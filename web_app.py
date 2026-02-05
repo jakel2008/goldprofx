@@ -827,6 +827,10 @@ if __name__ == '__main__':
     SIGNALS_DIR.mkdir(exist_ok=True)
     RECOMMENDATIONS_DIR.mkdir(exist_ok=True)
     
+    # إصلاح مشكلة الترميز على Windows
+    if os.sys.platform == 'win32':
+        os.system('chcp 65001 > nul')
+    
     print("""
     ╔════════════════════════════════════════════════════════════╗
     ║                                                            ║

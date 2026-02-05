@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 # استيراد اختياري مع معالجة الأخطاء
 try:
     from track_trades import get_current_price
-except ImportError:
+except Exception:
     def get_current_price(pair):
         return None
 

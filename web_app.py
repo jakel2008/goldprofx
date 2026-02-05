@@ -17,7 +17,7 @@ from track_trades import get_current_price
 # إعداد التطبيق
 DB_PATH = 'goldpro_system.db'
 app = Flask(__name__)
-app.secret_key = 'gold-pro-vip-signals-2026-secure-key'
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'gold-pro-vip-signals-2026-secure-key')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 SIGNALS_DIR = Path(__file__).parent / "signals"

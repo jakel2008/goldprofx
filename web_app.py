@@ -12,7 +12,13 @@ import hashlib
 import secrets
 import smtplib
 from email.mime.text import MIMEText
-from track_trades import get_current_price
+
+# استيراد اختياري مع معالجة الأخطاء
+try:
+    from track_trades import get_current_price
+except ImportError:
+    def get_current_price(pair):
+        return None
 
 # إعداد التطبيق
 DB_PATH = os.getenv('DB_PATH', 'goldpro_system.db')
@@ -177,8 +183,11 @@ def ensure_user_schema():
     conn.close()
 
 
-# تهيئة قاعدة البيانات عند الاستيراد (لبيئات الإنتاج مثل Render)
-init_db()
+# تهيئة قاعدة البيانات عند الاستيراد (لبيئات الإنتاج مثل Render) - آمن مع معالجة الأخطاء
+try:
+    init_db()
+except Exception as e:
+    print(f"Warning: Database initialization failed (will retry on first request): {e}")
 
 def get_user_by_email(email):
     conn = get_db()
@@ -810,7 +819,15 @@ def trades():
     """صفحة الصفقات"""
     return render_template('trades.html')
 
-# معالجات الأخطاء
+# معالجات الأخطاء الشاملة
+@app.before_request
+def before_request():
+    """تهيئة قاعدة البيانات عند أول طلب إذا لم تتم التهيئة"""
+    try:
+        init_db()
+    except Exception:
+        pass
+
 @app.errorhandler(404)
 def not_found(e):
     """صفحة 404"""

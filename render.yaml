@@ -5,9 +5,15 @@ services:
     plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT"
+    disks:
+      - name: goldpro-data
+        mountPath: /var/data
+        sizeGB: 1
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true
+      - key: DB_PATH
+        value: /var/data/goldpro_system.db
       - key: MM_TELEGRAM_BOT_TOKEN
         sync: false
       - key: MM_TELEGRAM_CHAT_ID

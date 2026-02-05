@@ -1,89 +1,271 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
-import yfinance as yf
+from tkinter import ttk, messagebox, simpledialog
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import requests
 import pandas as pd
 import ta
-import datetime
+import matplotlib.pyplot as plt
+import webbrowser
+import numpy as np
+import matplotlib.dates as mdates
+from mplfinance.original_flavor import candlestick_ohlc
+from datetime import datetime, timedelta
+import hashlib
+import uuid
+import json
+import os
+import base64
+from fpdf import FPDF
+import time
+import platform
+import psutil
+import threading
+import re
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from PIL import Image, ImageTk
+from license_manager import check_license, show_license_window
 
-class GoldAnalyzerApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Gold Analyzer Pro")
-        self.root.geometry("650x500")  # زيادة حجم النافذة
-        self.root.resizable(False, False)
+try:
+    import nltk  # type: ignore
+    nltk.download('vader_lexicon', quiet=True)
+    from nltk.sentiment.vader import SentimentIntensityAnalyzer  # type: ignore
+    NLTK_AVAILABLE = True
+except (ImportError, Exception) as e:
+    nltk = None
+    SentimentIntensityAnalyzer = None
+    NLTK_AVAILABLE = False
 
-        # تنسيق الواجهة
-        self.style = ttk.Style()
-        self.style.configure("TButton", font=("Arial", 12), padding=5)
-        self.style.configure("TLabel", font=("Arial", 11))
-        self.style.configure("Header.TLabel", font=("Arial", 14, "bold"), foreground="#2c3e50")
+class DataFetchError(Exception):
+    """Exception raised for data fetching errors."""
+    pass
 
-        # عناصر الواجهة
-        self.label = ttk.Label(root, text="تحليل الذهب - Gold Analyzer Pro", style="Header.TLabel")
-        self.label.pack(pady=20)
+# ============== إعدادات التفعيل المحسنة ==============
+ACTIVATION_SERVER = "https://api.smartforex.com"
+PREMIUM_FEATURES = False
+ACTIVATION_INFO = {
+    "activated": False,
+    "license_key": "",
+    "expiry_date": None,
+    "machine_id": "",
+    "user_email": ""
+}
 
-        self.analyze_btn = ttk.Button(root, text="ابدأ التحليل", command=self.analyze_gold)
-        self.analyze_btn.pack(pady=15)
+DEVELOPER_LICENSE_KEY = "DEV-2024-SMARTFOREX-ANALYZER"
+DEVELOPER_EMAIL = "MAHMOODALQAISE750@GMAIL.COM"
 
-        self.output_text = tk.Text(root, height=16, width=75, font=("Courier", 10), bg="#f8f9fa", wrap=tk.WORD)
-        self.output_text.pack(pady=10, padx=10)
+# API Configuration
+API_KEY = "YOUR_API_KEY_HERE"
+BASE_URL = "https://api.example.com/query"
 
-    def analyze_gold(self):
-        self.output_text.delete("1.0", tk.END)
+def get_machine_id():
+    try:
+        system_info = {
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "ram": str(round(psutil.virtual_memory().total / (1024 ** 3))) + " GB",
+            "mac": ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+        }
+        return hashlib.sha256(json.dumps(system_info).encode('utf-8')).hexdigest()
+    except:
+        return str(uuid.uuid4())
+
+def analyze(df, indicators="All"):
+    """تحليل البيانات مع خيارات اختيار المؤشرات"""
+    if len(df) < 14:
+        return df
+    
+    # Bollinger Bands
+    if indicators in ["All", "BB"] and len(df) >= 20:
+        bb = ta.volatility.BollingerBands(df["Close"], window=20, window_dev=2)
+        df["BB_High"] = bb.bollinger_hband()
+        df["BB_Low"] = bb.bollinger_lband()
+        df["BB_Mid"] = bb.bollinger_mavg()
+    
+    # RSI
+    if indicators in ["All", "RSI"] and len(df) >= 14:
+        df["RSI"] = ta.momentum.RSIIndicator(df["Close"], window=14).rsi()
+
+    # MACD
+    if indicators in ["All", "MACD"] and len(df) >= 26:
+        macd = ta.trend.MACD(df["Close"], window_slow=26, window_fast=12, window_sign=9)
+        df["MACD"] = macd.macd()
+        df["MACD_Signal"] = macd.macd_signal()
+        df["MACD_Hist"] = macd.macd_diff()
+
+    # EMAs
+    if indicators in ["All", "EMA"] and len(df) >= 50:
+        df["EMA_50"] = ta.trend.ema_indicator(df["Close"], window=50)
+    
+    if indicators in ["All", "EMA"] and len(df) >= 200:
+        df["EMA_200"] = ta.trend.ema_indicator(df["Close"], window=200)
+    
+    return df
+
+def fetch_data(symbol, interval="1h", outputsize=100):
+    """جلب البيانات مع محاولات متعددة ومصادر احتياطية"""
+    attempts = 0
+    max_attempts = 3
+    
+    while attempts < max_attempts:
         try:
-            # الحصول على التواريخ
-            end_date = datetime.datetime.now()
-            start_date = end_date - datetime.timedelta(days=180)
-            start_str = start_date.strftime('%Y-%m-%d')
-            end_str = end_date.strftime('%Y-%m-%d')
+            params = {
+                "symbol": symbol,
+                "interval": interval,
+                "outputsize": outputsize,
+                "apikey": API_KEY,
+                "format": "JSON"
+            }
+            response = requests.get(BASE_URL, params=params, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            df = pd.DataFrame(data["values"])
+            df = df.rename(columns={"datetime": "Date", "open": "Open", "high": "High", "low": "Low", "close": "Close"})
+            df['Date'] = pd.to_datetime(df['Date'])
+            df = df.sort_values("Date").reset_index(drop=True)
+            return df
+        except requests.exceptions.RequestException as e:
+            attempts += 1
+            if attempts < max_attempts:
+                time.sleep(2)
+                continue
+            raise DataFetchError(f"Connection error: {str(e)}")
 
-            # تحميل بيانات الذهب
-            data = yf.download('GC=F', start=start_str, end=end_str, interval='1d')
-            
-            # التحقق من وجود بيانات
-            if data.empty:
-                raise ValueError("❗ لم يتم العثور على بيانات الرجاء التحقق من الاتصال بالإنترنت")
+# نموذج تعلم الآلي لتحليل البيانات
+def train_ml_model(df):
+    """تدريب نموذج تعلم آلي لتحسين التوصيات بناءً على البيانات."""
+    if len(df) < 50:
+        return None, None  # يحتاج إلى بيانات أكثر
+    
+    # إعداد البيانات
+    df['RSI'] = ta.momentum.RSIIndicator(df["Close"], window=14).rsi()
+    df['MACD'] = ta.trend.MACD(df["Close"], window_slow=26, window_fast=12, window_sign=9).macd()
+    df['EMA_50'] = ta.trend.ema_indicator(df["Close"], window=50)
+    df['EMA_200'] = ta.trend.ema_indicator(df["Close"], window=200)
+    df = df.dropna()
+    
+    # الميزات المستخلصة
+    features = ['RSI', 'MACD', 'EMA_50', 'EMA_200']
+    target = ['Close']  # نستخدم سعر الإغلاق كهدف
 
-            # ترتيب البيانات وتنظيفها
-            data = data.sort_index(ascending=True)
-            close_prices = data['Close'].squeeze()  # تحويل إلى 1D array
+    X = df[features]
+    y = df[target]
+    
+    # القياس
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # استخدام Random Forest
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_scaled, y.values.ravel())
+    
+    return model, scaler
 
-            # حساب المؤشرات الفنية
-            data['rsi'] = ta.momentum.RSIIndicator(close=close_prices, window=14).rsi()
-            macd = ta.trend.MACD(close=close_prices, window_slow=26, window_fast=12)
-            data['macd_diff'] = macd.macd_diff()
-            data['ema20'] = ta.trend.EMAIndicator(close=close_prices, window=20).ema_indicator()
-            data['ema50'] = ta.trend.EMAIndicator(close=close_prices, window=50).ema_indicator()
+def predict_price(model, scaler, df):
+    """التنبؤ بالسعر باستخدام النموذج المدرب"""
+    features = ['RSI', 'MACD', 'EMA_50', 'EMA_200']
+    X = df[features]
+    X_scaled = scaler.transform(X)
+    
+    prediction = model.predict(X_scaled)
+    return prediction[-1]
 
-            # استخراج آخر قيمة
-            last_row = data.iloc[-1]
+# كشف الأخبار باستخدام NLTK
+def analyze_news_sentiment(news_text):
+    """تحليل مشاعر الأخبار باستخدام مكتبة NLTK"""
+    nltk.download('vader_lexicon')
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment = analyzer.polarity_scores(news_text)
+    
+    if sentiment['compound'] >= 0.05:
+        return "Positive"
+    elif sentiment['compound'] <= -0.05:
+        return "Negative"
+    else:
+        return "Neutral"
 
-            # بناء التقرير
-            report = (
-                f"آخر تحديث: {data.index[-1].strftime('%Y-%m-%d %H:%M')}\n"
-                f"----------------------------------------\n"
-                f"سعر الإغلاق: {last_row['Close']:.2f} دولار\n"
-                f"RSI (14): {last_row['rsi']:.2f}\n"
-                f"MACD: {last_row['macd_diff']:.4f}\n"
-                f"EMA 20: {last_row['ema20']:.2f}\n"
-                f"EMA 50: {last_row['ema50']:.2f}\n"
-                f"----------------------------------------\n"
-            )
+def detect_signals(df, model, scaler, news=None):
+    """كشف الإشارات بناءً على التحليل الفني والنموذج المدرب"""
+    entry_price = df.iloc[-1]["Close"]
+    prediction = predict_price(model, scaler, df)
+    
+    # تحليل الأخبار إذا كانت موجودة
+    if news:
+        sentiment = analyze_news_sentiment(news)
+    else:
+        sentiment = "Neutral"
+    
+    # تحديد التوصية بناءً على التحليل الفني والنموذج المدرب
+    if prediction > entry_price and sentiment == "Positive":
+        return "شراء"
+    elif prediction < entry_price and sentiment == "Negative":
+        return "بيع"
+    else:
+        return "انتظار"
 
-            # تحديد الإشارة
-            if last_row['rsi'] < 30 and last_row['ema20'] > last_row['ema50']:
-                report += "\n📈 إشارة شراء قوية:\n- RSI أقل من 30 (تشبع بيع)\n- EMA 20 أعلى من EMA 50 (اتجاه صاعد)"
-            elif last_row['rsi'] > 70 and last_row['ema20'] < last_row['ema50']:
-                report += "\n📉 إشارة بيع قوية:\n- RSI أعلى من 70 (تشبع شراء)\n- EMA 20 أقل من EMA 50 (اتجاه هابط)"
-            else:
-                report += "\n🟡 لا توجد إشارة قوية:\n- الانتظار حتى ظهور إشارات أوضح"
+# التطبيق الرئيسي
+class MoneyMakerApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
-            self.output_text.insert(tk.END, report)
-            
+        self.symbol_var = tk.StringVar()
+        self.interval_var = tk.StringVar()
+        self.model, self.scaler = None, None
+        self.premium_status = PREMIUM_FEATURES
+        self.symbol_var.set("EUR/USD")
+        self.interval_var.set("1h")
+
+        self.create_widgets()
+        self.load_and_train_model()
+
+    def load_and_train_model(self):
+        """تحميل البيانات وتدريب النموذج لتحسين التوصيات."""
+        symbol = self.symbol_var.get()
+        interval = self.interval_var.get()
+
+        try:
+            df = fetch_data(symbol, interval)
+            df = analyze(df)
+            self.model, self.scaler = train_ml_model(df)
+            messagebox.showinfo("تدريب النموذج", "تم تدريب النموذج بنجاح!")
         except Exception as e:
-            messagebox.showerror("خطأ فني", f"حدث خطأ غير متوقع:\n{str(e)}")
+            messagebox.showerror("خطأ في تحميل البيانات", str(e))
+
+    def run_analysis(self):
+        """تشغيل التحليل باستخدام النموذج المدرب."""
+        symbol = self.symbol_var.get()
+        interval = self.interval_var.get()
+        
+        if self.model is None or self.scaler is None:
+            messagebox.showerror("النموذج غير مدرب", "يرجى تدريب النموذج أولاً.")
+            return
+        
+        df = fetch_data(symbol, interval)
+        df = analyze(df)
+        
+        # إضافة نص الأخبار لتحليل المشاعر
+        news_text = "أخبار السوق الحالية المتعلقة بالعملات..."  # يمكن إضافة الأخبار هنا
+        recommendation = detect_signals(df, self.model, self.scaler, news=news_text)
+        
+        messagebox.showinfo("التوصية", f"التوصية: {recommendation}")
+
+    def create_widgets(self):
+        frame_top = ttk.Frame(self, padding=(15, 15, 15, 5))
+        frame_top.pack(fill="x", padx=15, pady=10)
+
+        symbol_label = ttk.Label(frame_top, text="اختيار الزوج")
+        symbol_label.pack(side="left")
+        symbol_combobox = ttk.Combobox(frame_top, textvariable=self.symbol_var, values=["EUR/USD", "GBP/USD", "USD/JPY"])
+        symbol_combobox.pack(side="left")
+        
+        interval_label = ttk.Label(frame_top, text="اختيار الفترة الزمنية")
+        interval_label.pack(side="left")
+        interval_combobox = ttk.Combobox(frame_top, textvariable=self.interval_var, values=["1h", "4h", "1d"])
+        interval_combobox.pack(side="left")
+
+        analyze_button = ttk.Button(frame_top, text="تشغيل التحليل", command=self.run_analysis)
+        analyze_button.pack(side="left", padx=5)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = GoldAnalyzerApp(root)
-    root.mainloop()
+    app = MoneyMakerApp()
+    app.mainloop()

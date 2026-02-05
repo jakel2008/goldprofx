@@ -1,0 +1,1202 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import requests
+import pandas as pd
+import ta
+import matplotlib.pyplot as plt
+import webbrowser
+import urllib.parse
+import numpy as np
+import matplotlib.dates as mdates
+from mplfinance.original_flavor import candlestick_ohlc
+from datetime import datetime
+import hashlib
+import uuid
+import json
+import os
+
+# ============== إعدادات التفعيل ==============
+ACTIVATION_SERVER = "https://your-activation-server.com"  # استبدل بمسار خادمك
+PREMIUM_FEATURES = False
+ACTIVATION_INFO = {
+    "activated": False,
+    "license_key": "",
+    "expiry_date": None,
+    "machine_id": ""
+}
+
+def get_machine_id():
+    """إنشاء معرف فريد للجهاز"""
+    try:
+        return str(uuid.getnode())
+    except:
+        return "7e8d4e9f-3b7a-4a6c-bf2d-5c9f8e1d2a3b"
+
+def check_activation():
+    """التحقق من حالة التفعيل"""
+    global PREMIUM_FEATURES, ACTIVATION_INFO
+    
+    if ACTIVATION_INFO["activated"]:
+        if ACTIVATION_INFO["expiry_date"] and datetime.now() < ACTIVATION_INFO["expiry_date"]:
+            PREMIUM_FEATURES = True
+            return True
+    
+    try:
+        machine_id = get_machine_id()
+        response = requests.post(
+            f"{ACTIVATION_SERVER}/verify",
+            json={
+                "license_key": ACTIVATION_INFO["license_key"],
+                "machine_id": machine_id,
+                "app_id": "smart_forex_analyzer"
+            },
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data["valid"]:
+                ACTIVATION_INFO["activated"] = True
+                ACTIVATION_INFO["expiry_date"] = datetime.strptime(data["expiry_date"], "%Y-%m-%d")
+                PREMIUM_FEATURES = True
+                save_activation_info()
+                return True
+    
+    except Exception as e:
+        print(f"فشل التحقق من التفعيل: {str(e)}")
+    
+    PREMIUM_FEATURES = False
+    return False
+
+def save_activation_info():
+    """حفظ معلومات التفعيل محلياً"""
+    try:
+        activation_data = {
+            "activated": ACTIVATION_INFO["activated"],
+            "license_key": ACTIVATION_INFO["license_key"],
+            "expiry_date": ACTIVATION_INFO["expiry_date"].strftime("%Y-%m-%d") if ACTIVATION_INFO["expiry_date"] else None,
+            "machine_id": ACTIVATION_INFO["machine_id"]
+        }
+        
+        with open("activation.dat", "w") as f:
+            json.dump(activation_data, f)
+            
+    except Exception as e:
+        print(f"فشل حفظ معلومات التفعيل: {str(e)}")
+
+def load_activation_info():
+    """تحميل معلومات التفعيل المحفوظة"""
+    global ACTIVATION_INFO
+    
+    try:
+        if os.path.exists("activation.dat"):
+            with open("activation.dat", "r") as f:
+                data = json.load(f)
+                
+                ACTIVATION_INFO["activated"] = data["activated"]
+                ACTIVATION_INFO["license_key"] = data["license_key"]
+                ACTIVATION_INFO["machine_id"] = data["machine_id"]
+                
+                if data["expiry_date"]:
+                    ACTIVATION_INFO["expiry_date"] = datetime.strptime(data["expiry_date"], "%Y-%m-%d")
+                
+                if ACTIVATION_INFO["activated"]:
+                    check_activation()
+    except:
+        ACTIVATION_INFO = {
+            "activated": False,
+            "license_key": "",
+            "expiry_date": None,
+            "machine_id": get_machine_id()
+        }
+
+def activate_license(key):
+    """تفعيل الترخيص"""
+    global ACTIVATION_INFO
+    
+    try:
+        machine_id = get_machine_id()
+        response = requests.post(
+            f"{ACTIVATION_SERVER}/activate",
+            json={
+                "license_key": key,
+                "machine_id": machine_id,
+                "app_id": "smart_forex_analyzer"
+            },
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data["success"]:
+                ACTIVATION_INFO["license_key"] = key
+                ACTIVATION_INFO["activated"] = True
+                ACTIVATION_INFO["expiry_date"] = datetime.strptime(data["expiry_date"], "%Y-%m-%d")
+                ACTIVATION_INFO["machine_id"] = machine_id
+                
+                save_activation_info()
+                return True, data["message"]
+            else:
+                return False, data["message"]
+        else:
+            return False, "خطأ في الاتصال بالخادم"
+            
+    except Exception as e:
+        return False, f"خطأ تقني: {str(e)}"
+
+# تحميل معلومات التفعيل عند بدء البرنامج
+load_activation_info()
+
+# ============== إعدادات التطبيق ==============
+# API Configuration
+API_KEY = "079cdb64bbc8415abcf8f7be7e389349"
+BASE_URL = "https://api.twelvedata.com/time_series"
+
+# Currency Pairs and Intervals
+symbols_list = [
+    "EUR/USD", "USD/JPY", "GBP/USD", "USD/CHF", "AUD/USD",
+    "USD/CAD", "NZD/USD", "XAU/USD", "XAG/USD", "BTC/USD", "ETH/USD",
+    "EUR/JPY", "GBP/JPY", "AUD/JPY", "EUR/GBP", "CHF/JPY", "CAD/JPY",
+    "NZD/JPY", "AUD/NZD", "EUR/CAD", "GBP/CAD", "EUR/AUD", "GBP/AUD"
+]
+
+intervals_list = ["1min", "5min", "15min", "30min", "1h", "4h", "1day"]
+
+# Translation Dictionary
+translations = {
+    "ar": {
+        "app_title": "محلل الفوركس الذكي",
+        "select_symbol": "اختر زوج العملات:",
+        "time_interval": "الفترة الزمنية:",
+        "chart_type": "نوع الرسم البياني:",
+        "analyze_button": "تحليل السوق",
+        "update_api_button": "تحديث مفتاح API",
+        "language_label": "اللغة:",
+        "contact_button": "تواصل معنا",
+        "education_button": "القسم التعليمي",
+        "whatsapp_share": "واتساب",
+        "telegram_share": "تليجرام",
+        "twitter_share": "تويتر",
+        "recommendation_title": "التوصية:",
+        "signals_title": "إشارات وتحليل السوق:",
+        "levels_title": "مستويات جني الأرباح ووقف الخسارة:",
+        "current_price": "السعر الحالي:",
+        "rsi_label": "RSI:",
+        "macd_label": "MACD:",
+        "pivot_point_label": "نقطة الارتكاز:",
+        "resistance_label": "المقاومة (R1/R2):",
+        "support_label": "الدعم (S1/S2):",
+        "fibonacci_title": "مستويات فيبوناتشي:",
+        "no_data_fetch_error": "خطأ في جلب البيانات",
+        "not_enough_data_warning": "بيانات غير كافية",
+        "not_enough_data_analysis": "لا توجد بيانات كافية للتحليل.",
+        "update_api_title": "تحديث مفتاح API",
+        "enter_api_key": "أدخل مفتاح API الجديد:",
+        "api_key_updated": "تم التحديث",
+        "api_key_success_message": "تم تحديث مفتاح API بنجاح!",
+        "share_unavailable_title": "المشاركة غير متاحة",
+        "share_no_data_message": "لا توجد بيانات لمشاركتها.",
+        "share_success_title": "تم المشاركة",
+        "whatsapp_share_success": "تم مشاركة التوصية بنجاح على واتساب!",
+        "telegram_share_success": "تم مشاركة التوصية بنجاح على تليجرام!",
+        "twitter_share_success": "تم مشاركة التوصية بنجاح على تويتر!",
+        "neutral_recommendation": "حياد",
+        "buy_recommendation": "شراء",
+        "sell_recommendation": "بيع",
+        "signal_ema_buy": "إشارة شراء (تقاطع EMA): EMA 50 يتقاطع فوق EMA 200 - اتجاه صاعد.",
+        "signal_ema_sell": "إشارة بيع (تقاطع EMA): EMA 50 يتقاطع تحت EMA 200 - اتجاه هابط.",
+        "signal_rsi_overbought": "RSI في منطقة الشراء المفرط (أعلى من 70)",
+        "signal_rsi_oversold": "RSI في منطقة البيع المفرط (أقل من 30)",
+        "signal_macd_crossover_buy": "MACD يتقاطع فوق إشارة MACD - إشارة شراء",
+        "signal_macd_crossover_sell": "MACD يتقاطع تحت إشارة MACD - إشارة بيع",
+        "signal_bollinger_buy": "إشارة شراء: السعر تحت النطاق السفلي لبولنجر باند",
+        "signal_bollinger_sell": "إشارة بيع: السعر فوق النطاق العلوي لبولنجر باند",
+        "signal_fibonacci_buy": "إشارة شراء بالقرب من مستوى فيبوناتشي {}",
+        "signal_fibonacci_sell": "إشارة بيع بالقرب من مستوى فيبوناتشي {}",
+        "signal_pivot_buy": "إشارة شراء: السعر فوق مقاومة R1",
+        "signal_pivot_sell": "إشارة بيع: السعر تحت دعم S1",
+        "volatility_high_warning": "تحذير: السوق عالي التقلب - استخدم وقف خسارة أكبر",
+        "volatility_low_warning": "ملاحظة: السوق هادئ - فرص تداول محدودة",
+        "volatility_label": "التقلب التاريخي:",
+        "analyze_title": "تحليل فني لـ",
+        "contact_message": "للتواصل، يرجى إرسال بريد إلكتروني إلى: support@example.com",
+        "education_message": "تفضل بزيارة قسمنا التعليمي على: example.com/education",
+        "telegram_share_message": "تمت المشاركة من خلال محلل الفوركس الذكي",
+    },
+    "en": {
+        "app_title": "Smart Forex Analyzer",
+        "select_symbol": "Select Currency Pair:",
+        "time_interval": "Time Interval:",
+        "chart_type": "Chart Type:",
+        "analyze_button": "Analyze Market",
+        "update_api_button": "Update API Key",
+        "language_label": "Language:",
+        "contact_button": "Contact Us",
+        "education_button": "Educational Section",
+        "whatsapp_share": "WhatsApp",
+        "telegram_share": "Telegram",
+        "twitter_share": "Twitter",
+        "recommendation_title": "Recommendation:",
+        "signals_title": "Market Signals and Analysis:",
+        "levels_title": "Take Profit and Stop Loss Levels:",
+        "current_price": "Current Price:",
+        "rsi_label": "RSI:",
+        "macd_label": "MACD:",
+        "pivot_point_label": "Pivot Point:",
+        "resistance_label": "Resistance (R1/R2):",
+        "support_label": "Support (S1/S2):",
+        "fibonacci_title": "Fibonacci Levels:",
+        "no_data_fetch_error": "Data Fetch Error",
+        "not_enough_data_warning": "Insufficient Data",
+        "not_enough_data_analysis": "Not enough data available for analysis.",
+        "update_api_title": "Update API Key",
+        "enter_api_key": "Enter New API Key:",
+        "api_key_updated": "Updated",
+        "api_key_success_message": "API Key updated successfully!",
+        "share_unavailable_title": "Sharing Unavailable",
+        "share_no_data_message": "No data to share.",
+        "share_success_title": "Shared",
+        "whatsapp_share_success": "Recommendation shared successfully on WhatsApp!",
+        "telegram_share_success": "Recommendation shared successfully on Telegram!",
+        "twitter_share_success": "Recommendation shared successfully on Twitter!",
+        "neutral_recommendation": "Neutral",
+        "buy_recommendation": "Buy",
+        "sell_recommendation": "Sell",
+        "signal_ema_buy": "Buy Signal (EMA Crossover): EMA 50 crosses above EMA 200 - bullish trend.",
+        "signal_ema_sell": "Sell Signal (EMA Crossover): EMA 50 crosses below EMA 200 - bearish trend.",
+        "signal_rsi_overbought": "RSI Overbought (above 70)",
+        "signal_rsi_oversold": "RSI Oversold (below 30)",
+        "signal_macd_crossover_buy": "MACD Crossover Buy Signal",
+        "signal_macd_crossover_sell": "MACD Crossover Sell Signal",
+        "signal_bollinger_buy": "Buy Signal: Price below Bollinger Lower Band",
+        "signal_bollinger_sell": "Sell Signal: Price above Bollinger Upper Band",
+        "signal_fibonacci_buy": "Buy Signal near Fibonacci level {}",
+        "signal_fibonacci_sell": "Sell Signal near Fibonacci level {}",
+        "signal_pivot_buy": "Buy Signal: Price above Resistance R1",
+        "signal_pivot_sell": "Sell Signal: Price below Support S1",
+        "volatility_high_warning": "Warning: High volatility market - use larger stop loss",
+        "volatility_low_warning": "Note: Low volatility market - limited trading opportunities",
+        "volatility_label": "Historical Volatility:",
+        "analyze_title": "Technical Analysis for",
+        "contact_message": "For support, please email: support@example.com",
+        "education_message": "Visit our educational section at: example.com/education",
+        "telegram_share_message": "Shared via Smart Forex Analyzer",
+    }
+}
+
+class DataFetchError(Exception):
+    pass
+
+def fetch_data(symbol, interval="1h", outputsize=100):
+    try:
+        params = {
+            "symbol": symbol,
+            "interval": interval,
+            "outputsize": outputsize,
+            "apikey": API_KEY,
+            "format": "JSON"
+        }
+        response = requests.get(BASE_URL, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if "code" in data and data["code"] != 200:
+            error_message = data.get('message', 'Unknown API error')
+            raise DataFetchError(f"Error fetching data: {error_message}")
+        if "values" not in data:
+            raise DataFetchError("No data available for this pair and time frame")
+        df = pd.DataFrame(data["values"])
+        df = df.rename(columns={"datetime": "Date", "open": "Open", "high": "High", "low": "Low", "close": "Close"})
+        for col in ["Open", "High", "Low", "Close"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        df = df.dropna()
+        df["Date"] = pd.to_datetime(df["Date"])
+        df = df.sort_values("Date").reset_index(drop=True)
+        df['symbol'] = symbol
+        return df
+    except requests.RequestException as e:
+        raise DataFetchError(f"Connection error: {str(e)}")
+    except Exception as e:
+        raise DataFetchError(f"Unexpected error: {str(e)}")
+
+def analyze(df):
+    if len(df) < 14:
+        return df
+    
+    if len(df) >= 20:
+        bb = ta.volatility.BollingerBands(df["Close"], window=20, window_dev=2)
+        df["BB_High"] = bb.bollinger_hband()
+        df["BB_Low"] = bb.bollinger_lband()
+    else:
+        df["BB_High"] = np.nan
+        df["BB_Low"] = np.nan
+    
+    if len(df) >= 14:
+        df["RSI"] = ta.momentum.RSIIndicator(df["Close"], window=14).rsi()
+    else:
+        df["RSI"] = np.nan
+    
+    if len(df) >= 26:
+        macd = ta.trend.MACD(df["Close"], window_slow=26, window_fast=12, window_sign=9)
+        df["MACD"] = macd.macd()
+        df["MACD_Signal"] = macd.macd_signal()
+    else:
+        df["MACD"] = np.nan
+        df["MACD_Signal"] = np.nan
+    
+    if len(df) >= 50:
+        df["EMA_50"] = ta.trend.ema_indicator(df["Close"], window=50)
+    else:
+        df["EMA_50"] = np.nan
+        
+    if len(df) >= 200:
+        df["EMA_200"] = ta.trend.ema_indicator(df["Close"], window=200)
+    else:
+        df["EMA_200"] = np.nan
+    
+    if len(df) >= 14:
+        stoch = ta.momentum.StochasticOscillator(
+            high=df["High"], 
+            low=df["Low"], 
+            close=df["Close"], 
+            window=14, 
+            smooth_window=3
+        )
+        df['STOCH_K'] = stoch.stoch()
+        df['STOCH_D'] = stoch.stoch_signal()
+    else:
+        df['STOCH_K'] = np.nan
+        df['STOCH_D'] = np.nan
+    
+    if len(df) >= 14:
+        df["ATR"] = ta.volatility.AverageTrueRange(
+            high=df["High"], 
+            low=df["Low"], 
+            close=df["Close"], 
+            window=14
+        ).average_true_range()
+    else:
+        df["ATR"] = np.nan
+    
+    return df
+
+def calculate_fibonacci_levels(df):
+    if df.empty or len(df) < 10:
+        return {}
+    recent_df = df.tail(50)
+    high = recent_df["High"].max()
+    low = recent_df["Low"].min()
+    diff = high - low
+    levels = {
+        "0.0%": round(high, 5),
+        "23.6%": round(high - 0.236 * diff, 5),
+        "38.2%": round(high - 0.382 * diff, 5),
+        "50.0%": round(high - 0.5 * diff, 5),
+        "61.8%": round(high - 0.618 * diff, 5),
+        "78.6%": round(high - 0.786 * diff, 5),
+        "100.0%": round(low, 5)
+    }
+    return levels
+
+def calculate_pivot_point(df):
+    if df.empty or len(df) < 2:
+        return None, None, None, None, None
+    
+    last_date = df["Date"].iloc[-1].date()
+    prev_day_df = df[df["Date"].dt.date < last_date]
+    
+    if len(prev_day_df) == 0:
+        return None, None, None, None, None
+        
+    prev_day_data_for_pivot = prev_day_df[prev_day_df["Date"].dt.date == prev_day_df["Date"].iloc[-1].date()]
+
+    prev_high = prev_day_data_for_pivot["High"].max()
+    prev_low = prev_day_data_for_pivot["Low"].min()
+    prev_close = prev_day_data_for_pivot["Close"].iloc[-1]
+
+    pp = (prev_high + prev_low + prev_close) / 3
+    r1 = (2 * pp) - prev_low
+    s1 = (2 * pp) - prev_high
+    r2 = pp + (prev_high - prev_low)
+    s2 = pp - (prev_high - prev_low)
+    return pp, r1, r2, s1, s2
+
+def calculate_volatility(df):
+    if len(df) < 20:
+        return 1.0
+    
+    returns = df['Close'].pct_change().dropna()
+    volatility = returns.std() * np.sqrt(252)
+    return volatility
+
+def ema_rsi_strategy(df, app_instance):
+    signals = []
+    if len(df) < 200:
+        return signals, 0
+    
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
+    
+    ema_signal = 0
+    if last['EMA_50'] > last['EMA_200'] and prev['EMA_50'] <= prev['EMA_200']:
+        signals.append(app_instance.get_text("signal_ema_buy"))
+        ema_signal = 1
+    elif last['EMA_50'] < last['EMA_200'] and prev['EMA_50'] >= prev['EMA_200']:
+        signals.append(app_instance.get_text("signal_ema_sell"))
+        ema_signal = -1
+    
+    rsi_signal = 0
+    if last['RSI'] < 30:
+        signals.append(app_instance.get_text("signal_rsi_oversold"))
+        rsi_signal = 1
+    elif last['RSI'] > 70:
+        signals.append(app_instance.get_text("signal_rsi_overbought"))
+        rsi_signal = -1
+    
+    combined_signal = ema_signal + rsi_signal
+    return signals, combined_signal
+
+def macd_bollinger_strategy(df, app_instance):
+    signals = []
+    if len(df) < 26:
+        return signals, 0
+    
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
+    
+    macd_signal = 0
+    if last['MACD'] > last['MACD_Signal'] and prev['MACD'] <= prev['MACD_Signal']:
+        signals.append(app_instance.get_text("signal_macd_crossover_buy"))
+        macd_signal = 1
+    elif last['MACD'] < last['MACD_Signal'] and prev['MACD'] >= prev['MACD_Signal']:
+        signals.append(app_instance.get_text("signal_macd_crossover_sell"))
+        macd_signal = -1
+    
+    bb_signal = 0
+    if "BB_Low" in df.columns and not pd.isna(last["BB_Low"]):
+        if last['Close'] < last['BB_Low']:
+            signals.append(app_instance.get_text("signal_bollinger_buy"))
+            bb_signal = 1
+    if "BB_High" in df.columns and not pd.isna(last["BB_High"]):
+        if last['Close'] > last['BB_High']:
+            signals.append(app_instance.get_text("signal_bollinger_sell"))
+            bb_signal = -1
+    
+    combined_signal = macd_signal + bb_signal
+    return signals, combined_signal
+
+def fibonacci_pivot_strategy(df, entry_price, app_instance):
+    signals = []
+    fib_levels = calculate_fibonacci_levels(df)
+    pp, r1, r2, s1, s2 = calculate_pivot_point(df)
+    
+    if not fib_levels or pp is None:
+        return signals, 0
+    
+    fib_signal = 0
+    for level, price in fib_levels.items():
+        if abs(entry_price - price) < (entry_price * 0.001):
+            if level in ["23.6%", "38.2%"]:
+                signals.append(app_instance.get_text("signal_fibonacci_sell").format(level))
+                fib_signal = -1
+            elif level in ["61.8%", "78.6%"]:
+                signals.append(app_instance.get_text("signal_fibonacci_buy").format(level))
+                fib_signal = 1
+    
+    pivot_signal = 0
+    if r1 and entry_price > r1:
+        signals.append(app_instance.get_text("signal_pivot_buy"))
+        pivot_signal = 1
+    if s1 and entry_price < s1:
+        signals.append(app_instance.get_text("signal_pivot_sell"))
+        pivot_signal = -1
+    
+    combined_signal = fib_signal + pivot_signal
+    return signals, combined_signal
+
+def detect_signals(df, interval, app_instance):
+    symbol = df['symbol'].iloc[0] if 'symbol' in df.columns else "N/A"
+    signals = []
+    
+    # إضافة عنوان واضح للزوج والفترة
+    signals.append(f"📈 {app_instance.get_text('analyze_title')} {symbol} ({interval})")
+    signals.append("=" * 50)  # خط فاصل
+    
+    if df.empty or len(df) < 50:
+        signals.append(app_instance.get_text("not_enough_data_analysis"))
+        return signals, app_instance.get_text("neutral_recommendation"), {}, {}
+
+    entry_price = df.iloc[-1]["Close"]
+    last = df.iloc[-1]
+    prev_last = df.iloc[-2] if len(df) > 1 else last
+
+    # حساب نقطة الارتكاز ومستويات الدعم والمقاومة
+    pp, r1, r2, s1, s2 = calculate_pivot_point(df)
+
+    signals.append(f"📊 {app_instance.get_text('current_price')}: {round(entry_price, 5)}")
+    if 'RSI' in df.columns and not np.isnan(last["RSI"]):
+        rsi_value = last["RSI"]
+        rsi_status = "⬆️ شراء مفرط" if rsi_value > 70 else "⬇️ بيع مفرط" if rsi_value < 30 else "⚖️ طبيعي"
+        signals.append(f"📉 {app_instance.get_text('rsi_label')}: {round(rsi_value, 2)} ({rsi_status})")
+    
+    if 'MACD' in df.columns and not np.isnan(last["MACD"]):
+        macd_diff = last['MACD'] - last['MACD_Signal']
+        macd_status = "⬆️ إيجابي" if macd_diff > 0 else "⬇️ سلبي"
+        signals.append(f"📈 {app_instance.get_text('macd_label')}: {round(macd_diff, 5)} ({macd_status})")
+
+    levels = {}
+    if pp is not None:
+        signals.append(f"📍 {app_instance.get_text('pivot_point_label')}: {round(pp, 5)}")
+        signals.append(f"🛑 {app_instance.get_text('resistance_label')}: {round(r1, 5)} / {round(r2, 5)}")
+        signals.append(f"🟢 {app_instance.get_text('support_label')}: {round(s1, 5)} / {round(s2, 5)}")
+        levels.update({
+            "Pivot Point": round(pp, 5),
+            "Resistance 1": round(r1, 5),
+            "Resistance 2": round(r2, 5),
+            "Support 1": round(s1, 5),
+            "Support 2": round(s2, 5)
+        })
+
+    fib_levels = calculate_fibonacci_levels(df)
+    if fib_levels:
+        signals.append("✨ " + app_instance.get_text("fibonacci_title"))
+        fib_signals = []
+        for level, price in fib_levels.items():
+            # حساب المسافة من السعر الحالي لكل مستوى
+            distance = abs(entry_price - price)
+            distance_percent = (distance / entry_price) * 100
+            
+            # تحديد إذا كان المستوى قريبًا بشكل ملحوظ
+            if distance_percent < 0.1:  # أقل من 0.1%
+                fib_signals.append(f"  ⚡ {level}: {price:.5f} (قريب جداً)")
+            elif distance_percent < 0.5:  # أقل من 0.5%
+                fib_signals.append(f"  ➡️ {level}: {price:.5f} (قريب)")
+            else:
+                fib_signals.append(f"  • {level}: {price:.5f}")
+        
+        # ترتيب مستويات فيبوناتشي من الأعلى إلى الأسفل
+        fib_signals.reverse()
+        signals.extend(fib_signals)
+    
+    # تطبيق الاستراتيجيات المتقدمة
+    buy_score = 0
+    sell_score = 0
+
+    # إستراتيجية 1: تقاطع المتوسطات مع RSI
+    ema_rsi_signals, ema_rsi_score = ema_rsi_strategy(df, app_instance)
+    signals.extend(ema_rsi_signals)
+    buy_score += max(0, ema_rsi_score)
+    sell_score += abs(min(0, ema_rsi_score))
+
+    # إستراتيجية 2: MACD مع بولنجر باند
+    macd_bb_signals, macd_bb_score = macd_bollinger_strategy(df, app_instance)
+    signals.extend(macd_bb_signals)
+    buy_score += max(0, macd_bb_score)
+    sell_score += abs(min(0, macd_bb_score))
+
+    # إستراتيجية 3: فيبوناتشي مع نقاط الارتكاز
+    fib_pivot_signals, fib_pivot_score = fibonacci_pivot_strategy(df, entry_price, app_instance)
+    signals.extend(fib_pivot_signals)
+    buy_score += max(0, fib_pivot_score)
+    sell_score += abs(min(0, fib_pivot_score))
+    
+    # تحديد التوصية النهائية
+    if buy_score > sell_score and buy_score >= 2:
+        final_recommendation = app_instance.get_text("buy_recommendation")
+    elif sell_score > buy_score and sell_score >= 2:
+        final_recommendation = app_instance.get_text("sell_recommendation")
+    else:
+        final_recommendation = app_instance.get_text("neutral_recommendation")
+    
+    # حساب التقلبات
+    volatility = calculate_volatility(df)
+    atr_value = last["ATR"] if "ATR" in df.columns and not np.isnan(last["ATR"]) else (df["High"].mean() - df["Low"].mean()) * 0.003
+    
+    tp1, tp2, tp3, sl = calculate_tp_sl(final_recommendation, entry_price, atr_value, volatility, app_instance)
+    
+    # إضافة معلومات التقلب
+    volatility_status = ""
+    if volatility > 2.0:
+        volatility_status = "🟠 " + app_instance.get_text("volatility_high_warning")
+    elif volatility < 0.5:
+        volatility_status = "🟢 " + app_instance.get_text("volatility_low_warning")
+    else:
+        volatility_status = "⚪ تقلب طبيعي"
+    
+    signals.append(f"\n📊 {app_instance.get_text('volatility_label')} {volatility:.2f}% - {volatility_status}")
+    
+    levels.update({
+        "TP1": round(tp1, 5), 
+        "TP2": round(tp2, 5),
+        "TP3": round(tp3, 5),
+        "SL": round(sl, 5),
+        "Entry Price": round(entry_price, 5),
+        "Time Frame": interval
+    })
+    return signals, final_recommendation, levels, fib_levels
+
+def calculate_tp_sl(recommendation, entry_price, atr_value, volatility, app_instance):
+    tp_multipliers = [1.0, 1.5, 2.0]
+    if volatility > 2.0:
+        tp_multipliers = [0.8, 1.2, 1.6]
+        sl_multiplier = 0.8
+    elif volatility < 0.5:
+        tp_multipliers = [1.5, 2.0, 2.5]
+        sl_multiplier = 1.5
+    else:
+        sl_multiplier = 1.0
+
+    if recommendation == app_instance.get_text("buy_recommendation"):
+        tp1 = entry_price + tp_multipliers[0] * atr_value
+        tp2 = entry_price + tp_multipliers[1] * atr_value
+        tp3 = entry_price + tp_multipliers[2] * atr_value
+        sl = entry_price - sl_multiplier * atr_value
+    elif recommendation == app_instance.get_text("sell_recommendation"):
+        tp1 = entry_price - tp_multipliers[0] * atr_value
+        tp2 = entry_price - tp_multipliers[1] * atr_value
+        tp3 = entry_price - tp_multipliers[2] * atr_value
+        sl = entry_price + sl_multiplier * atr_value
+    else:
+        tp1 = entry_price + 0.5 * atr_value 
+        tp2 = entry_price + 1.0 * atr_value
+        tp3 = entry_price + 1.5 * atr_value
+        sl = entry_price - 0.5 * atr_value
+    return tp1, tp2, tp3, sl
+
+class MoneyMakerApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.current_language = tk.StringVar(value="العربية")
+        self.languages = {"العربية": "ar", "English": "en"} 
+        
+        self.title(self.get_text("app_title"))
+        self.geometry("1200x850")
+        self.configure(bg="#2c3e50")
+
+        style = ttk.Style(self)
+        style.theme_use('clam')
+        style.configure("TFrame", background="#2c3e50")
+        style.configure("TLabel", background="#2c3e50", foreground="white", font=("Arial", 11))
+        style.configure("Title.TLabel", font=("Arial", 18, "bold"), foreground="#1abc9c", background="#2c3e50")
+        style.configure("TButton", background="#3498db", foreground="white", font=("Arial", 10, "bold"), borderwidth=0, relief="flat")
+        style.map("TButton", background=[('active', '#2980b9')])
+        style.configure("TCombobox", fieldbackground="#34495e", background="#34495e", foreground="white", arrowcolor="white")
+        style.map("TCombobox", fieldbackground=[('readonly', '#34495e')], foreground=[('readonly', 'white')])
+        style.configure("Premium.TButton", background="#9b59b6", foreground="white")
+        
+        # تحميل حالة التفعيل
+        self.premium_status = PREMIUM_FEATURES
+        self.create_widgets()
+        self.run_analysis()
+        
+        # إذا كانت النسخة مجانية، نعرض تذكيراً
+        if not self.premium_status:
+            self.show_premium_reminder()
+
+    def show_premium_reminder(self):
+        """عرض تذكير بالترقية للنسخة المدفوعة"""
+        reminder = tk.Toplevel(self)
+        reminder.title("النسخة المجانية")
+        reminder.geometry("500x300")
+        reminder.resizable(False, False)
+        
+        frame = ttk.Frame(reminder, padding=20)
+        frame.pack(fill="both", expand=True)
+        
+        ttk.Label(frame, text="النسخة المجانية محدودة الميزات", font=("Arial", 14, "bold"), foreground="#3498db").pack(pady=10)
+        
+        ttk.Label(frame, text="مزايا النسخة المدفوعة:", font=("Arial", 11)).pack(anchor="w", padx=20)
+        features = [
+            "• جميع أزواج العملات (23 زوج)",
+            "• جميع الفترات الزمنية (7 فترات)",
+            "• إشارات تداول متقدمة",
+            "• تحليل تقني متعمق",
+            "• تحديثات مستمرة"
+        ]
+        for feature in features:
+            ttk.Label(frame, text=feature).pack(anchor="w", padx=40)
+        
+        ttk.Label(frame, text="أسعار خاصة:", font=("Arial", 11)).pack(anchor="w", padx=20, pady=(10,0))
+        prices = [
+            "• اشتراك شهري: 20$",
+            "• اشتراك ربع سنوي: 50$ (توفير 17%)",
+            "• اشتراك سنوي: 150$ (توفير 38%)"
+        ]
+        for price in prices:
+            ttk.Label(frame, text=price).pack(anchor="w", padx=40)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        
+        ttk.Button(btn_frame, text="ترقية الآن", command=lambda: [reminder.destroy(), self.activate_premium()], 
+                  style="Premium.TButton").pack(side="left", padx=10)
+        
+        ttk.Button(btn_frame, text="لاحقاً", command=reminder.destroy).pack(side="left", padx=10)
+
+    def activate_premium(self):
+        """واجهة تفعيل النسخة المدفوعة"""
+        activation_win = tk.Toplevel(self)
+        activation_win.title("تفعيل النسخة المدفوعة")
+        activation_win.geometry("500x350")
+        activation_win.resizable(False, False)
+        
+        frame = ttk.Frame(activation_win, padding=20)
+        frame.pack(fill="both", expand=True)
+        
+        ttk.Label(frame, text="أدخل مفتاح الترخيص", font=("Arial", 12)).pack(pady=10)
+        
+        # معلومات الترخيص
+        license_frame = ttk.Frame(frame)
+        license_frame.pack(fill="x", pady=10)
+        
+        ttk.Label(license_frame, text="مفتاح الترخيص:").pack(side="left")
+        license_var = tk.StringVar()
+        license_entry = ttk.Entry(license_frame, textvariable=license_var, width=30)
+        license_entry.pack(side="left", padx=5)
+        license_entry.focus()
+        
+        # زر التفعيل
+        activate_btn = ttk.Button(frame, text="تفعيل", command=lambda: self.do_activation(license_var.get(), activation_win), 
+                                style="Premium.TButton")
+        activate_btn.pack(pady=15)
+        
+        # معلومات الدفع
+        ttk.Label(frame, text="طرق الدفع المتاحة:", font=("Arial", 11)).pack(anchor="w", pady=(20,5))
+        
+        payment_frame = ttk.Frame(frame)
+        payment_frame.pack(fill="x")
+        
+        methods = [
+            ("بطاقة ائتمان", "credit_card"),
+            ("PayPal", "paypal"),
+            ("تحويل بنكي", "bank_transfer"),
+            ("محافظ إلكترونية", "ewallet")
+        ]
+        
+        for method, method_id in methods:
+            ttk.Button(payment_frame, text=method, 
+                      command=lambda m=method_id: self.show_payment_page(m),
+                      width=15).pack(side="left", padx=5, pady=5)
+        
+        # روابط إضافية
+        ttk.Label(frame, text="يمكنك شراء ترخيص من موقعنا الرسمي", foreground="blue", cursor="hand2", 
+                 command=lambda: webbrowser.open(f"{ACTIVATION_SERVER}/pricing")).pack(pady=10)
+        
+        ttk.Label(frame, text="أو التواصل مع الدعم: support@smartforex.com", foreground="blue", cursor="hand2",
+                 command=lambda: webbrowser.open("mailto:support@smartforex.com")).pack()
+
+    def do_activation(self, license_key, window):
+        """تنفيذ عملية التفعيل"""
+        if not license_key:
+            messagebox.showerror("خطأ", "يرجى إدخال مفتاح الترخيص")
+            return
+            
+        success, message = activate_license(license_key)
+        if success:
+            messagebox.showinfo("تم التفعيل", "تم تفعيل النسخة المدفوعة بنجاح!")
+            self.premium_status = True
+            self.premium_button.config(text="النسخة المدفوعة مفعلة", state="disabled")
+            self.symbol_combo["values"] = symbols_list
+            self.interval_combo["values"] = intervals_list
+            window.destroy()
+        else:
+            messagebox.showerror("خطأ في التفعيل", message)
+
+    def show_payment_page(self, method):
+        """فتح صفحة الدفع"""
+        webbrowser.open(f"{ACTIVATION_SERVER}/pay?method={method}")
+        messagebox.showinfo("إتمام الدفع", "بعد إتمام الدفع، سيتم إرسال مفتاح الترخيص على بريدك الإلكتروني")
+
+    def get_text(self, key):
+        lang_display_name = self.current_language.get()
+        lang_code = self.languages.get(lang_display_name, "en")
+        return translations[lang_code].get(key, f"KEY_NOT_FOUND: {key}")
+
+    def create_widgets(self):
+        # --- الإطار العلوي للمدخلات ---
+        frame_top = ttk.Frame(self, padding=(15, 15, 15, 5))
+        frame_top.pack(fill="x", padx=15, pady=10)
+        
+        self.title_label_widget = ttk.Label(frame_top, text=self.get_text("app_title"), style="Title.TLabel")
+        self.title_label_widget.pack(side="top", pady=(0, 15))
+
+        input_frame = ttk.Frame(frame_top)
+        input_frame.pack(pady=5)
+
+        # اختيار زوج العملات
+        self.symbol_label_widget = ttk.Label(input_frame, text=self.get_text("select_symbol"))
+        self.symbol_label_widget.pack(side="left", padx=5)
+        self.symbol_var = tk.StringVar(value=symbols_list[0])
+        
+        # تحديد الأزواج المتاحة بناءً على النسخة
+        if self.premium_status:
+            available_symbols = symbols_list
+        else:
+            available_symbols = ["EUR/USD", "USD/JPY", "GBP/USD"]
+            
+        self.symbol_combo = ttk.Combobox(input_frame, textvariable=self.symbol_var, values=available_symbols, state="readonly", width=15)
+        self.symbol_combo.pack(side="left", padx=10)
+        self.symbol_combo.bind("<<ComboboxSelected>>", lambda e: self.run_analysis())
+
+        # اختيار الفترة الزمنية
+        self.interval_label_widget = ttk.Label(input_frame, text=self.get_text("time_interval"))
+        self.interval_label_widget.pack(side="left", padx=5)
+        self.interval_var = tk.StringVar(value="1h")
+        
+        # تحديد الفترات المتاحة بناءً على النسخة
+        if self.premium_status:
+            available_intervals = intervals_list
+        else:
+            available_intervals = ["1h", "4h"]
+            
+        self.interval_combo = ttk.Combobox(input_frame, textvariable=self.interval_var, values=available_intervals, state="readonly", width=10)
+        self.interval_combo.pack(side="left", padx=10)
+        self.interval_combo.bind("<<ComboboxSelected>>", lambda e: self.run_analysis())
+
+        # اختيار نوع الرسم البياني
+        self.chart_type_label_widget = ttk.Label(input_frame, text=self.get_text("chart_type"))
+        self.chart_type_label_widget.pack(side="left", padx=5)
+        self.chart_type_var = tk.StringVar(value="Candlestick")
+        self.chart_combo = ttk.Combobox(input_frame, textvariable=self.chart_type_var, values=["Line", "Candlestick"], state="readonly", width=12)
+        self.chart_combo.pack(side="left", padx=10)
+        self.chart_combo.bind("<<ComboboxSelected>>", lambda e: self.run_analysis())
+
+        # زر التحليل
+        self.analyze_button_widget = ttk.Button(input_frame, text=self.get_text("analyze_button"), command=self.run_analysis)
+        self.analyze_button_widget.pack(side="left", padx=(20, 5))
+        
+        # زر تحديث مفتاح API
+        self.update_api_button_widget = ttk.Button(input_frame, text=self.get_text("update_api_button"), command=self.update_api_key)
+        self.update_api_button_widget.pack(side="left", padx=10)
+
+        # اختيار اللغة
+        self.language_label_widget = ttk.Label(input_frame, text=self.get_text("language_label"))
+        self.language_label_widget.pack(side="left", padx=5)
+        self.language_combo = ttk.Combobox(input_frame, textvariable=self.current_language, values=list(self.languages.keys()), state="readonly", width=10)
+        self.language_combo.pack(side="left", padx=10)
+        self.language_combo.bind("<<ComboboxSelected>>", lambda e: self.update_language())
+        
+        # زر التفعيل
+        self.premium_button = ttk.Button(
+            input_frame, 
+            text="النسخة المجانية - الترقية" if not self.premium_status else "النسخة المدفوعة مفعلة",
+            command=self.activate_premium, 
+            style="Premium.TButton" if not self.premium_status else "TButton"
+        )
+        self.premium_button.pack(side="left", padx=10)
+        
+        if self.premium_status:
+            self.premium_button.config(state="disabled")
+
+        # --- الإطار الرئيسي للمحتوى (النص والرسم البياني) ---
+        main_content_frame = ttk.Frame(self)
+        main_content_frame.pack(fill="both", expand=True, padx=15, pady=10)
+
+        # منطقة عرض النص للتحليلات
+        self.text_output = tk.Text(main_content_frame, height=20, width=50, font=("Arial", 11), bg="#34495e", fg="white", wrap="word", relief="flat", borderwidth=0)
+        scrollbar = ttk.Scrollbar(main_content_frame, command=self.text_output.yview)
+        self.text_output.configure(yscrollcommand=scrollbar.set)
+        self.text_output.pack(side="left", fill="both", expand=False, padx=(0, 5))
+        scrollbar.pack(side="left", fill="y")
+
+        # منطقة عرض الرسم البياني
+        self.fig, self.ax = plt.subplots(figsize=(8, 5))
+        self.canvas = FigureCanvasTkAgg(self.fig, master=main_content_frame)
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.pack(side="right", fill="both", expand=True)
+
+        # --- الإطار السفلي للأزرار الإضافية ---
+        frame_bottom_buttons = ttk.Frame(self, padding=(15, 5, 15, 15))
+        frame_bottom_buttons.pack(fill="x", padx=15, pady=10)
+
+        self.contact_button_widget = ttk.Button(frame_bottom_buttons, text=self.get_text("contact_button"), command=self.open_contact_page)
+        self.contact_button_widget.pack(side="left", padx=5)
+        self.education_button_widget = ttk.Button(frame_bottom_buttons, text=self.get_text("education_button"), command=self.open_educational_page)
+        self.education_button_widget.pack(side="left", padx=5)
+
+        # أزرار المشاركة
+        frame_share = ttk.Frame(frame_bottom_buttons)
+        frame_share.pack(side="right", padx=5)
+        self.whatsapp_button_widget = ttk.Button(frame_share, text=self.get_text("whatsapp_share"), command=self.share_whatsapp)
+        self.whatsapp_button_widget.pack(side="left", padx=5)
+        self.telegram_button_widget = ttk.Button(frame_share, text=self.get_text("telegram_share"), command=self.share_telegram)
+        self.telegram_button_widget.pack(side="left", padx=5)
+        self.twitter_button_widget = ttk.Button(frame_share, text=self.get_text("twitter_share"), command=self.share_twitter)
+        self.twitter_button_widget.pack(side="left", padx=5)
+
+    def update_api_key(self):
+        api_key = simpledialog.askstring(self.get_text("update_api_title"), self.get_text("enter_api_key"), parent=self)
+        if api_key:
+            global API_KEY
+            API_KEY = api_key
+            messagebox.showinfo(self.get_text("api_key_updated"), self.get_text("api_key_success_message"))
+            self.run_analysis()
+
+    def update_language(self):
+        self.title(self.get_text("app_title"))
+        self.title_label_widget.config(text=self.get_text("app_title"))
+        self.symbol_label_widget.config(text=self.get_text("select_symbol"))
+        self.interval_label_widget.config(text=self.get_text("time_interval"))
+        self.chart_type_label_widget.config(text=self.get_text("chart_type"))
+        self.analyze_button_widget.config(text=self.get_text("analyze_button"))
+        self.update_api_button_widget.config(text=self.get_text("update_api_button"))
+        self.language_label_widget.config(text=self.get_text("language_label"))
+        self.contact_button_widget.config(text=self.get_text("contact_button"))
+        self.education_button_widget.config(text=self.get_text("education_button"))
+        self.whatsapp_button_widget.config(text=self.get_text("whatsapp_share"))
+        self.telegram_button_widget.config(text=self.get_text("telegram_share"))
+        self.twitter_button_widget.config(text=self.get_text("twitter_share"))
+        self.run_analysis()
+
+    def run_analysis(self):
+        symbol = self.symbol_var.get()
+        interval = self.interval_var.get()
+        
+        # التحقق من النسخة المدفوعة
+        if not self.premium_status:
+            # قيود النسخة المجانية
+            allowed_pairs = ["EUR/USD", "USD/JPY", "GBP/USD"]
+            allowed_intervals = ["1h", "4h"]
+            
+            if symbol not in allowed_pairs:
+                messagebox.showwarning("النسخة المجانية", "هذا الزوج متاح فقط في النسخة المدفوعة")
+                return
+                
+            if interval not in allowed_intervals:
+                messagebox.showwarning("النسخة المجانية", "هذه الفترة الزمنية متاحة فقط في النسخة المدفوعة")
+                return
+        
+        self.text_output.delete(1.0, tk.END)
+        self.ax.clear()
+
+        try:
+            df = fetch_data(symbol, interval)
+        except DataFetchError as e:
+            messagebox.showerror(self.get_text("no_data_fetch_error"), str(e))
+            return
+
+        if len(df) < 50:
+            messagebox.showwarning(self.get_text("not_enough_data_warning"), self.get_text("not_enough_data_analysis"))
+            try:
+                df = fetch_data(symbol, interval, outputsize=500) 
+                if len(df) < 50:
+                    self.text_output.insert(tk.END, self.get_text("not_enough_data_analysis"))
+                    self.text_output.insert(tk.END, "\n⚠️ بعض المؤشرات تتطلب بيانات أكثر ولن تظهر")
+                    self.canvas.draw()
+                    return
+            except DataFetchError as e:
+                self.text_output.insert(tk.END, f"{self.get_text('no_data_fetch_error')}: {str(e)}")
+                self.canvas.draw()
+                return
+        
+        df = analyze(df)
+        signals, recommendation, levels, fib_levels = detect_signals(df, interval, self)
+
+        # تنسيق النص في منطقة النتائج
+        self.text_output.tag_configure("recommendation", foreground="#1abc9c", font=("Arial", 12, "bold"))
+        self.text_output.insert(tk.END, f"🔔 {self.get_text('recommendation_title')} ", "recommendation")
+        self.text_output.insert(tk.END, f"{recommendation}\n\n", "recommendation")
+        
+        # إشارات السوق
+        self.text_output.tag_configure("section_title", foreground="#3498db", font=("Arial", 11, "bold"))
+        self.text_output.insert(tk.END, f"📋 {self.get_text('signals_title')}\n", "section_title")
+        
+        for sig in signals:
+            # تمييز الإشارات الهامة
+            if "⚡" in sig:
+                self.text_output.tag_configure("important", foreground="#e74c3c")
+                self.text_output.insert(tk.END, f"  {sig}\n", "important")
+            elif "➡️" in sig:
+                self.text_output.tag_configure("warning", foreground="#f39c12")
+                self.text_output.insert(tk.END, f"  {sig}\n", "warning")
+            else:
+                self.text_output.insert(tk.END, f"  {sig}\n")
+        
+        # مستويات جني الأرباح ووقف الخسارة
+        self.text_output.insert(tk.END, f"\n⚡ {self.get_text('levels_title')}\n", "section_title")
+        
+        # إنشاء جدول للمستويات
+        level_keys = ["Entry Price", "SL", "TP1", "TP2", "TP3", "Pivot Point", "Resistance 1", "Resistance 2", "Support 1", "Support 2"]
+        level_labels = {
+            "Entry Price": "سعر الدخول",
+            "SL": "وقف الخسارة",
+            "TP1": "جني الربح 1",
+            "TP2": "جني الربح 2",
+            "TP3": "جني الربح 3",
+            "Pivot Point": "نقطة الارتكاز",
+            "Resistance 1": "المقاومة 1",
+            "Resistance 2": "المقاومة 2",
+            "Support 1": "الدعم 1",
+            "Support 2": "الدعم 2"
+        }
+        
+        # تنسيق الجدول
+        for key in level_keys:
+            if key in levels:
+                value = levels[key]
+                if isinstance(value, (int, float)):
+                    formatted_value = f"{value:.5f}"
+                else:
+                    formatted_value = str(value)
+                
+                # تمييز المستويات الهامة
+                if key in ["SL", "TP1", "TP2", "TP3"]:
+                    self.text_output.tag_configure("key_important", foreground="#e74c3c")
+                    self.text_output.insert(tk.END, f"  • {level_labels[key]}: ", "key_important")
+                    self.text_output.insert(tk.END, f"{formatted_value}\n", "key_important")
+                else:
+                    self.text_output.insert(tk.END, f"  • {level_labels[key]}: {formatted_value}\n")
+
+        # رسم البيانات
+        plot_df = df.tail(100)
+
+        if self.chart_type_var.get() == "Line":
+            self.ax.plot(plot_df["Date"], plot_df["Close"], label=self.get_text("current_price"), color="cyan", linewidth=1.5)
+        else:
+            df_ohlc = plot_df[["Date", "Open", "High", "Low", "Close"]].copy()
+            df_ohlc["Date"] = mdates.date2num(df_ohlc["Date"].dt.to_pydatetime())
+            candlestick_ohlc(self.ax, df_ohlc.values, width=0.015 * (plot_df['Date'].iloc[-1] - plot_df['Date'].iloc[0]).total_seconds() / (86400 * len(plot_df)), colorup='#2ecc71', colordown='#e74c3c', alpha=0.8)
+
+        # رسم المؤشرات
+        if "BB_High" in plot_df and not plot_df["BB_High"].isnull().all():
+            self.ax.plot(plot_df["Date"], plot_df["BB_High"], label="BB High", color="red", linestyle="--", linewidth=0.8)
+        if "BB_Low" in plot_df and not plot_df["BB_Low"].isnull().all():
+            self.ax.plot(plot_df["Date"], plot_df["BB_Low"], label="BB Low", color="green", linestyle="--", linewidth=0.8)
+        if "EMA_50" in plot_df and not plot_df["EMA_50"].isnull().all():
+            self.ax.plot(plot_df["Date"], plot_df["EMA_50"], label="EMA 50", color="orange", linewidth=1.0)
+        if "EMA_200" in plot_df and not plot_df["EMA_200"].isnull().all():
+            self.ax.plot(plot_df["Date"], plot_df["EMA_200"], label="EMA 200", color="purple", linewidth=1.0)
+
+        # رسم مستويات فيبوناتشي
+        for level_name, price in fib_levels.items():
+            if not np.isnan(price):
+                color = "#9b59b6" if "23.6%" in level_name else "#3498db" if "38.2%" in level_name else "#2ecc71" if "50.0%" in level_name else "#f1c40f" if "61.8%" in level_name else "#e74c3c"
+                self.ax.axhline(price, linestyle=":", label=f"Fib {level_name}", color=color, alpha=0.7, linewidth=0.8)
+        
+        # رسم مستويات الدعم والمقاومة
+        pp_val = levels.get("Pivot Point")
+        if pp_val and not np.isnan(pp_val):
+            self.ax.axhline(pp_val, linestyle="-.", label=self.get_text("pivot_point_label"), color="white", linewidth=1.2)
+        r1_val = levels.get("Resistance 1")
+        if r1_val and not np.isnan(r1_val):
+             self.ax.axhline(r1_val, linestyle="--", label=f"R1: {round(r1_val,5)}", color="#f1c40f", linewidth=0.9)
+        s1_val = levels.get("Support 1")
+        if s1_val and not np.isnan(s1_val):
+             self.ax.axhline(s1_val, linestyle="--", label=f"S1: {round(s1_val,5)}", color="#3498db", linewidth=0.9)
+
+        # رسم المؤشر العشوائي
+        if "STOCH_K" in plot_df and "STOCH_D" in plot_df:
+            ax2 = self.ax.twinx()
+            ax2.plot(plot_df["Date"], plot_df["STOCH_K"], label="Stoch %K", color="blue", linewidth=0.8)
+            ax2.plot(plot_df["Date"], plot_df["STOCH_D"], label="Stoch %D", color="red", linewidth=0.8)
+            ax2.axhline(80, color='gray', linestyle='--', alpha=0.5)
+            ax2.axhline(20, color='gray', linestyle='--', alpha=0.5)
+            ax2.set_ylim(0, 100)
+            ax2.set_ylabel("Stochastic", color="white")
+            ax2.tick_params(axis='y', colors='white')
+            ax2.legend(loc="upper right")
+
+        # تنسيق الرسم البياني
+        self.ax.set_title(f"{self.get_text('analyze_title')} {symbol} - {self.get_text('time_interval')}: {interval}", color="white", fontsize=14)
+        self.ax.set_xlabel(self.get_text("time_interval"), color="white")
+        self.ax.set_ylabel(self.get_text("current_price"), color="white")
+
+        if len(plot_df) > 0:
+            if len(plot_df) > 30:
+                self.ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+            else:
+                self.ax.xaxis.set_major_locator(mdates.MaxNLocator(nbins=10, prune='lower'))
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+            plt.setp(self.ax.get_xticklabels(), rotation=30, ha="right")
+
+        self.ax.legend(loc="best", fontsize="small", facecolor="#2c3e50", edgecolor="white", labelcolor="white", framealpha=0.7)
+        self.ax.grid(True, color='gray', linestyle='--', linewidth=0.5, alpha=0.3)
+        self.ax.set_facecolor("#34495e")
+        self.fig.patch.set_facecolor("#2c3e50")
+        
+        self.ax.tick_params(axis='x', colors='white')
+        self.ax.tick_params(axis='y', colors='white')
+        self.fig.tight_layout()
+
+        self.canvas.draw()
+
+    def open_contact_page(self):
+        messagebox.showinfo(self.get_text("contact_button"), self.get_text("contact_message"))
+
+    def open_educational_page(self):
+        messagebox.showinfo(self.get_text("education_button"), self.get_text("education_message"))
+
+    def share_whatsapp(self):
+        text = self.text_output.get(1.0, tk.END).strip()
+        if not text:
+            messagebox.showinfo(self.get_text("share_unavailable_title"), self.get_text("share_no_data_message"))
+            return
+        formatted_text = f"📊 {self.get_text('app_title')}\n\n{text}"
+        encoded_text = urllib.parse.quote(formatted_text)
+        url = f"https://wa.me/?text={encoded_text}"
+        webbrowser.open(url)
+        messagebox.showinfo(self.get_text("share_success_title"), self.get_text("whatsapp_share_success"))
+
+    def share_telegram(self):
+        text = self.text_output.get(1.0, tk.END).strip()
+        if not text:
+            messagebox.showinfo(self.get_text("share_unavailable_title"), self.get_text("share_no_data_message"))
+            return
+        
+        # استخراج المعلومات الرئيسية
+        symbol = self.symbol_var.get()
+        interval = self.interval_var.get()
+        recommendation = ""
+        entry_price = ""
+        tp_levels = ""
+        sl_level = ""
+        
+        for line in text.split('\n'):
+            if self.get_text('recommendation_title') in line:
+                recommendation = line.replace(self.get_text('recommendation_title'), "").strip()
+            elif self.get_text('current_price') in line:
+                entry_price = line.replace(self.get_text('current_price'), "").strip()
+            elif "TP1:" in line:
+                tp_levels = line.strip()
+            elif "SL:" in line:
+                sl_level = line.strip()
+        
+        # إنشاء ملخص مختصر
+        formatted_text = f"📊 *{self.get_text('app_title')} - {symbol} ({interval})*\n\n"
+        formatted_text += f"✅ *{self.get_text('recommendation_title')}* {recommendation}\n\n"
+        formatted_text += f"💰 *{self.get_text('current_price')}* {entry_price}\n"
+        formatted_text += f"🎯 *{self.get_text('levels_title')}*\n"
+        formatted_text += f"  - {tp_levels}\n"
+        formatted_text += f"  - {sl_level}\n\n"
+        formatted_text += f"🔗 {self.get_text('telegram_share_message')}\n"
+        formatted_text += "#فوركس #توصيات_تداول #تحليل_فني"
+        
+        encoded_text = urllib.parse.quote(formatted_text)
+        url = f"https://t.me/share/url?url=&text={encoded_text}"
+        webbrowser.open(url)
+        messagebox.showinfo(self.get_text("share_success_title"), self.get_text("telegram_share_success"))
+
+    def share_twitter(self):
+        text = self.text_output.get(1.0, tk.END).strip()
+        if not text:
+            messagebox.showinfo(self.get_text("share_unavailable_title"), self.get_text("share_no_data_message"))
+            return
+        recommendation_line = ""
+        for line in text.split('\n'):
+            if self.get_text('recommendation_title') in line:
+                recommendation_line = line.strip()
+                break
+        
+        formatted_text = f"📊 {self.get_text('app_title')}\n{recommendation_line}\n"
+        formatted_text += f"Pair: {self.symbol_var.get()}, Interval: {self.interval_var.get()}\n"
+        formatted_text += "#Forex #TradingSignals #Analysis"
+        
+        encoded_text = urllib.parse.quote(formatted_text[:280]) 
+        url = f"https://twitter.com/intent/tweet?text={encoded_text}"
+        webbrowser.open(url)
+        messagebox.showinfo(self.get_text("share_success_title"), self.get_text("twitter_share_success"))
+
+if __name__ == "__main__":
+    app = MoneyMakerApp()
+    app.mainloop()

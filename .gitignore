@@ -1,0 +1,134 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+.venv-1/
+.venv-3/
+venv/
+ENV/
+env/
+
+# Database Files (حساسة - تحتوي بيانات مستخدمين)
+*.db
+*.sqlite
+*.sqlite3
+goldpro_system.db
+vip_subscriptions.db
+vip_signals.db
+users.db
+trades_database.db
+activations.db
+
+# Sensitive Data Files
+activation.dat
+encryption_key.key
+license.key
+*.key
+.env
+bots_config.json
+admin_users.json
+users.json
+clients_codes.json
+activation_codes.csv
+activation_codes.json
+activation_keys.json
+discovered_chat_ids.json
+
+# Logs
+*.log
+logs/
+autotrade.log
+autotradebot.log
+server.log
+bot_output.txt
+temp_output.txt
+master_system.log
+
+# Generated Data
+signals/
+analysis/
+recommendations/
+sent_signals.json
+sent_recommendations.json
+sent_signals_log.json
+active_trades.json
+closed_trades.json
+suspended_trades.json
+trades_tracker.json
+trades_log.json
+trade_manager_state.json
+recommendations_history.json
+user_pairs_preferences.json
+user_preferences.json
+last_update.json
+system_status.json
+support_info.json
+
+# Excel/PDF Reports
+*.xlsx
+*.xls
+*.pdf
+
+# JSON Signal Files
+MoneyMakers_*.json
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary
+*.tmp
+*.bak
+*.cache
+
+# Large Package Files
+*.zip
+Gold_Analyzer_Package.zip
+Gold_Analyzer_Package/build/
+Gold_Analyzer_Package/dist/
+Gold_Analyzer_Package/__pycache__/
+
+# Videos
+videos/
+
+# Instance folder
+instance/
+
+# Money Maker App Build
+money_maker_app/
+goldprofx/
+
+# Build artifacts
+*.spec

@@ -1,0 +1,8 @@
+tk
+matplotlib
+pandas
+ta
+requests
+fpdf
+psutil
+Pillow

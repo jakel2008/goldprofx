@@ -221,11 +221,14 @@ def get_all_plans():
     conn.close()
     return plans
 
-def create_user(full_name, email, password_hash, activation_code):
+def create_user(full_name, email, password_hash, activation_code, is_active=0):
     conn = get_db()
     c = conn.cursor()
-    c.execute('''INSERT INTO users (full_name, email, password_hash, plan_id, is_active, activation_code, join_date) VALUES (?, ?, ?, 1, 0, ?, ?)''',
-              (full_name, email, password_hash, activation_code, datetime.now().isoformat()))
+    c.execute(
+        '''INSERT INTO users (full_name, email, password_hash, plan_id, is_active, activation_code, join_date)
+           VALUES (?, ?, ?, 1, ?, ?, ?)''',
+        (full_name, email, password_hash, is_active, activation_code, datetime.now().isoformat())
+    )
     conn.commit()
     conn.close()
 
@@ -484,9 +487,20 @@ def register():
         password = request.form.get('password')
         if get_user_by_email(email):
             return render_template('register.html', error='البريد الإلكتروني مستخدم بالفعل.')
-        activation_code = secrets.token_urlsafe(32)
         password_hash = hashlib.sha256(password.encode()).hexdigest()
-        create_user(full_name, email, password_hash, activation_code)
+        smtp_server = os.environ.get('SMTP_SERVER')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_pass = os.environ.get('SMTP_PASS')
+        smtp_ready = all([smtp_server, smtp_user, smtp_pass]) and smtp_server != 'smtp.example.com'
+        auto_activate = os.environ.get('AUTO_ACTIVATE', '1') == '1'
+
+        if auto_activate or not smtp_ready:
+            create_user(full_name, email, password_hash, activation_code=None, is_active=1)
+            return render_template('register.html', success='تم إنشاء الحساب ويمكنك تسجيل الدخول الآن.')
+
+        activation_code = secrets.token_urlsafe(32)
+        create_user(full_name, email, password_hash, activation_code, is_active=0)
         # إرسال بريد التفعيل
         try:
             activation_link = url_for('activate', token=activation_code, _external=True)
@@ -494,17 +508,13 @@ def register():
             msg['Subject'] = 'تفعيل حسابك في GOLD PRO'
             msg['From'] = 'noreply@goldpro.com'
             msg['To'] = email
-            smtp_server = os.environ.get('SMTP_SERVER', 'smtp.example.com')
-            smtp_port = int(os.environ.get('SMTP_PORT', 587))
-            smtp_user = os.environ.get('SMTP_USER', 'user@example.com')
-            smtp_pass = os.environ.get('SMTP_PASS', 'password')
             # محاولة إرسال البريد (قد تفشل إذا لم تكن الإعدادات صحيحة)
             try:
                 with smtplib.SMTP(smtp_server, smtp_port) as server:
                     server.starttls()
                     server.login(smtp_user, smtp_pass)
                     server.sendmail(msg['From'], [msg['To']], msg.as_string())
-            except:
+            except Exception:
                 pass  # تجاهل أخطاء SMTP
             return render_template('register.html', success='تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتفعيل الحساب.')
         except Exception:

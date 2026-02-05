@@ -453,6 +453,21 @@ def login():
             print(f"[LOGIN] Password check: {check_password(user, password_hash)}")
             
             if check_password(user, password_hash):
+                admin_emails = {
+                    e.strip().lower()
+                    for e in os.environ.get('ADMIN_EMAILS', '').split(',')
+                    if e.strip()
+                }
+                if email.lower() in admin_emails:
+                    try:
+                        conn = get_db()
+                        c = conn.cursor()
+                        c.execute('UPDATE users SET is_admin = 1, is_active = 1 WHERE email = ?', (email,))
+                        conn.commit()
+                        conn.close()
+                        user = get_user_by_email(email)
+                    except Exception:
+                        pass
                 if not user['is_active']:
                     return render_template('login.html', error='يجب تفعيل الحساب عبر البريد الإلكتروني أولاً.')
                 # جلب خطة المستخدم

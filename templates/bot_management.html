@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة البوتات - Bot Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1400px;
+        }
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .bot-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .bot-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .bot-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-paused {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-deleted {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+        .btn-warning {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .btn-danger {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .btn-success {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .default-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        .stats-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stats-box h3 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .stats-box p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="fas fa-robot"></i>
+                        إدارة البوتات
+                    </h1>
+                    <p class="text-muted mb-0">Bot Management System</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/admin-panel" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-right"></i> العودة للوحة الإدارة
+                    </a>
+                    <a href="/admin-management" class="btn btn-warning me-2">
+                        <i class="fas fa-user-shield"></i> إدارة الأدمن
+                    </a>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBotModal">
+                        <i class="fas fa-plus"></i> إضافة بوت جديد
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3 id="totalBots">0</h3>
+                    <p>إجمالي البوتات</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h3 id="activeBots">0</h3>
+                    <p>بوتات نشطة</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h3 id="pausedBots">0</h3>
+                    <p>بوتات متوقفة</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h3 id="deletedBots">0</h3>
+                    <p>بوتات محذوفة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Bots List -->
+        <div id="botsList" class="row">
+            <!-- Bots will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Add Bot Modal -->
+    <div class="modal fade" id="addBotModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus-circle"></i> إضافة بوت جديد
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addBotForm">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> اسم البوت / Bot Name
+                            </label>
+                            <input type="text" class="form-control" id="botName" required 
+                                   placeholder="مثال: Bot VIP Signal">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-key"></i> توكن البوت / Bot Token
+                            </label>
+                            <input type="text" class="form-control" id="botToken" required 
+                                   placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz">
+                            <small class="text-muted">
+                                احصل على التوكن من <a href="https://t.me/BotFather" target="_blank">@BotFather</a>
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-info-circle"></i> الوصف / Description
+                            </label>
+                            <textarea class="form-control" id="botDescription" rows="3" 
+                                      placeholder="وصف البوت والغرض منه..."></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="setAsDefault">
+                            <label class="form-check-label" for="setAsDefault">
+                                <i class="fas fa-star"></i> تعيين كبوت افتراضي
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-info" onclick="testBotToken()">
+                                <i class="fas fa-vial"></i> اختبار التوكن
+                            </button>
+                            <span id="testResult" class="ms-3"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="addBot()">
+                        <i class="fas fa-save"></i> حفظ البوت
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Bot Modal -->
+    <div class="modal fade" id="editBotModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit"></i> تعديل البوت
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editBotForm">
+                        <input type="hidden" id="editBotId">
+                        <div class="mb-3">
+                            <label class="form-label">اسم البوت</label>
+                            <input type="text" class="form-control" id="editBotName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">توكن البوت</label>
+                            <input type="text" class="form-control" id="editBotToken" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الوصف</label>
+                            <textarea class="form-control" id="editBotDescription" rows="3"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="editSetAsDefault">
+                            <label class="form-check-label" for="editSetAsDefault">
+                                تعيين كبوت افتراضي
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditBot()">
+                        <i class="fas fa-save"></i> حفظ التعديلات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // تحميل البوتات عند فتح الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBots();
+        });
+
+        // تحميل قائمة البوتات
+        function loadBots() {
+            fetch('/api/admin/bots')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayBots(data.bots);
+                        updateStatistics(data.bots);
+                    } else {
+                        showAlert('خطأ في تحميل البوتات', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('خطأ في الاتصال بالخادم', 'danger');
+                });
+        }
+
+        // عرض البوتات
+        function displayBots(bots) {
+            const botsList = document.getElementById('botsList');
+            botsList.innerHTML = '';
+
+            if (bots.length === 0) {
+                botsList.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h4>لا توجد بوتات حالياً</h4>
+                            <p>قم بإضافة بوت جديد للبدء</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            bots.forEach(bot => {
+                const statusClass = bot.status === 'active' ? 'status-active' : 
+                                   bot.status === 'paused' ? 'status-paused' : 'status-deleted';
+                const statusText = bot.status === 'active' ? 'نشط' : 
+                                  bot.status === 'paused' ? 'متوقف' : 'محذوف';
+                const defaultBadge = bot.is_default ? '<span class="default-badge ms-2"><i class="fas fa-star"></i> افتراضي</span>' : '';
+
+                const botCard = `
+                    <div class="col-md-6">
+                        <div class="bot-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="mb-1">
+                                        <i class="fas fa-robot"></i> ${bot.name}
+                                        ${defaultBadge}
+                                    </h4>
+                                    <span class="bot-status ${statusClass}">${statusText}</span>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editBot(${bot.id})" 
+                                            ${bot.status === 'deleted' ? 'disabled' : ''}>
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="testBot(${bot.id})"
+                                            ${bot.status === 'deleted' ? 'disabled' : ''}>
+                                        <i class="fas fa-vial"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-key"></i> Token: ${bot.token.substring(0, 20)}...
+                                </small>
+                            </div>
+                            
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-info-circle"></i> ${bot.description || 'لا يوجد وصف'}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> ${new Date(bot.created_at).toLocaleDateString('ar-EG')}
+                                </small>
+                                <div class="btn-group">
+                                    ${bot.status === 'active' ? 
+                                        `<button class="btn btn-sm btn-warning" onclick="pauseBot(${bot.id})">
+                                            <i class="fas fa-pause"></i> إيقاف مؤقت
+                                        </button>` : ''}
+                                    ${bot.status === 'paused' ? 
+                                        `<button class="btn btn-sm btn-success" onclick="activateBot(${bot.id})">
+                                            <i class="fas fa-play"></i> تنشيط
+                                        </button>` : ''}
+                                    ${bot.status !== 'deleted' ? 
+                                        `<button class="btn btn-sm btn-danger" onclick="deleteBot(${bot.id})">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>` : ''}
+                                    ${bot.status === 'deleted' ? 
+                                        `<button class="btn btn-sm btn-success" onclick="restoreBot(${bot.id})">
+                                            <i class="fas fa-undo"></i> استعادة
+                                        </button>` : ''}
+                                    ${!bot.is_default && bot.status === 'active' ? 
+                                        `<button class="btn btn-sm btn-info" onclick="setDefaultBot(${bot.id})">
+                                            <i class="fas fa-star"></i> افتراضي
+                                        </button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                botsList.innerHTML += botCard;
+            });
+        }
+
+        // تحديث الإحصائيات
+        function updateStatistics(bots) {
+            const total = bots.length;
+            const active = bots.filter(b => b.status === 'active').length;
+            const paused = bots.filter(b => b.status === 'paused').length;
+            const deleted = bots.filter(b => b.status === 'deleted').length;
+
+            document.getElementById('totalBots').textContent = total;
+            document.getElementById('activeBots').textContent = active;
+            document.getElementById('pausedBots').textContent = paused;
+            document.getElementById('deletedBots').textContent = deleted;
+        }
+
+        // اختبار توكن البوت
+        function testBotToken() {
+            const token = document.getElementById('botToken').value;
+            if (!token) {
+                showAlert('الرجاء إدخال التوكن', 'warning');
+                return;
+            }
+
+            const testResult = document.getElementById('testResult');
+            testResult.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> جاري الاختبار...</span>';
+
+            fetch('/api/admin/bots/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({token: token})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    testResult.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> التوكن صالح - ${data.bot_name}</span>`;
+                } else {
+                    testResult.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle"></i> ${data.message}</span>`;
+                }
+            })
+            .catch(error => {
+                testResult.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle"></i> خطأ في الاختبار</span>';
+            });
+        }
+
+        // إضافة بوت جديد
+        function addBot() {
+            const name = document.getElementById('botName').value;
+            const token = document.getElementById('botToken').value;
+            const description = document.getElementById('botDescription').value;
+            const isDefault = document.getElementById('setAsDefault').checked;
+
+            if (!name || !token) {
+                showAlert('الرجاء إدخال الاسم والتوكن', 'warning');
+                return;
+            }
+
+            fetch('/api/admin/bots/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: name,
+                    token: token,
+                    description: description,
+                    is_default: isDefault
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تمت إضافة البوت بنجاح', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('addBotModal')).hide();
+                    document.getElementById('addBotForm').reset();
+                    document.getElementById('testResult').innerHTML = '';
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('خطأ في الإضافة', 'danger');
+            });
+        }
+
+        // تعديل بوت
+        function editBot(botId) {
+            fetch(`/api/admin/bots/${botId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const bot = data.bot;
+                        document.getElementById('editBotId').value = bot.id;
+                        document.getElementById('editBotName').value = bot.name;
+                        document.getElementById('editBotToken').value = bot.token;
+                        document.getElementById('editBotDescription').value = bot.description || '';
+                        document.getElementById('editSetAsDefault').checked = bot.is_default;
+                        new bootstrap.Modal(document.getElementById('editBotModal')).show();
+                    }
+                });
+        }
+
+        // حفظ تعديل البوت
+        function saveEditBot() {
+            const id = document.getElementById('editBotId').value;
+            const name = document.getElementById('editBotName').value;
+            const token = document.getElementById('editBotToken').value;
+            const description = document.getElementById('editBotDescription').value;
+            const isDefault = document.getElementById('editSetAsDefault').checked;
+
+            fetch(`/api/admin/bots/${id}/edit`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: name,
+                    token: token,
+                    description: description,
+                    is_default: isDefault
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم التعديل بنجاح', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('editBotModal')).hide();
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // إيقاف بوت مؤقتاً
+        function pauseBot(botId) {
+            if (!confirm('هل تريد إيقاف هذا البوت مؤقتاً؟')) return;
+            
+            fetch(`/api/admin/bots/${botId}/pause`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم إيقاف البوت مؤقتاً', 'success');
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // تنشيط بوت
+        function activateBot(botId) {
+            fetch(`/api/admin/bots/${botId}/activate`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم تنشيط البوت', 'success');
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // حذف بوت
+        function deleteBot(botId) {
+            if (!confirm('هل تريد حذف هذا البوت نهائياً؟ يمكنك استعادته لاحقاً.')) return;
+            
+            fetch(`/api/admin/bots/${botId}/delete`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم حذف البوت', 'success');
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // استعادة بوت محذوف
+        function restoreBot(botId) {
+            fetch(`/api/admin/bots/${botId}/restore`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم استعادة البوت', 'success');
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // تعيين بوت افتراضي
+        function setDefaultBot(botId) {
+            fetch(`/api/admin/bots/${botId}/set-default`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم تعيين البوت كافتراضي', 'success');
+                    loadBots();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // اختبار بوت
+        function testBot(botId) {
+            fetch(`/api/admin/bots/${botId}/test-send`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم إرسال رسالة اختبار بنجاح', 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            });
+        }
+
+        // عرض رسالة تنبيه
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.innerHTML = alertHTML;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

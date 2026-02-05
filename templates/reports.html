@@ -1,0 +1,613 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="reports-container">
+    <div class="reports-header">
+        <h2>📊 الإحصائيات والتقارير المتقدمة</h2>
+        <div class="report-actions">
+            <button onclick="refreshReports()" class="btn btn-primary">🔄 تحديث</button>
+            <button onclick="exportReport()" class="btn btn-secondary">📥 تصدير PDF</button>
+        </div>
+    </div>
+
+    <!-- بطاقات الإحصائيات الرئيسية -->
+    <div class="stats-grid-advanced">
+        <div class="stat-card-advanced blue">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <div class="stat-label">إجمالي الإشارات</div>
+                <div class="stat-value" id="total-signals">0</div>
+                <div class="stat-sub">
+                    <span class="sub-stat green">↗ <span id="buy-count">0</span> شراء</span>
+                    <span class="sub-stat red">↘ <span id="sell-count">0</span> بيع</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-advanced purple">
+            <div class="stat-icon">💡</div>
+            <div class="stat-content">
+                <div class="stat-label">التوصيات النشطة</div>
+                <div class="stat-value" id="total-recommendations">0</div>
+                <div class="stat-sub">
+                    <span class="sub-stat">متوسط الجودة: <strong id="avg-quality">0%</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-advanced green">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-content">
+                <div class="stat-label">توصيات عالية الجودة</div>
+                <div class="stat-value" id="high-quality">0</div>
+                <div class="stat-sub">
+                    <span class="sub-stat">75% فأكثر</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-advanced orange">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <div class="stat-label">المشتركون النشطون</div>
+                <div class="stat-value" id="subscribers">0</div>
+                <div class="stat-sub">
+                    <span class="sub-stat" id="plan-distribution"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرسوم البيانية -->
+    <div class="charts-section">
+        <div class="chart-card">
+            <h3>📈 توزيع الإشارات حسب النوع</h3>
+            <canvas id="signalsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>⭐ توزيع جودة التوصيات</h3>
+            <canvas id="qualityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- جداول التفاصيل -->
+    <div class="tables-section">
+        <div class="table-card">
+            <h3>🎯 أكثر الأزواج طلباً</h3>
+            <div class="table-responsive">
+                <table class="data-table" id="top-pairs-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الزوج</th>
+                            <th>عدد المستخدمين</th>
+                            <th>النسبة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-pairs-body">
+                        <tr><td colspan="4">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3>📊 توزيع المشتركين حسب الخطة</h3>
+            <div class="table-responsive">
+                <table class="data-table" id="plans-table">
+                    <thead>
+                        <tr>
+                            <th>الخطة</th>
+                            <th>العدد</th>
+                            <th>النسبة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plans-body">
+                        <tr><td colspan="3">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- تقرير تفصيلي -->
+    <div class="detailed-report-section">
+        <h3>📋 التقرير التفصيلي</h3>
+        <div class="report-content" id="detailed-report">
+            <p>جاري تحميل التقرير التفصيلي...</p>
+        </div>
+    </div>
+
+    <!-- تقرير الصفقات -->
+    <div class="detailed-report-section" style="margin-top:2rem;">
+        <h3>💼 تقرير الصفقات</h3>
+        <div class="stats-grid-advanced">
+            <div class="stat-card-advanced blue">
+                <div class="stat-icon">📌</div>
+                <div class="stat-content">
+                    <div class="stat-label">الصفقات النشطة</div>
+                    <div class="stat-value" id="active-trades">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">المنتهية آخر ساعة</div>
+                    <div class="stat-value" id="closed-last-hour">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced purple">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">الرابحة</div>
+                    <div class="stat-value" id="wins-count">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced orange">
+                <div class="stat-icon">📉</div>
+                <div class="stat-content">
+                    <div class="stat-label">الخاسرة</div>
+                    <div class="stat-value" id="losses-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card" style="margin-top:1rem;">
+            <h3>🧾 آخر الصفقات المنتهية</h3>
+            <div class="table-responsive">
+                <table class="data-table" id="closed-trades-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الزوج</th>
+                            <th>النتيجة</th>
+                            <th>النقاط</th>
+                            <th>وقت الإغلاق</th>
+                        </tr>
+                    </thead>
+                    <tbody id="closed-trades-body">
+                        <tr><td colspan="5">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .reports-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .reports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .reports-header h2 {
+        color: #667eea;
+        margin: 0;
+    }
+
+    .report-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .stats-grid-advanced {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card-advanced {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 1rem;
+        transition: transform 0.3s;
+    }
+
+    .stat-card-advanced:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .stat-card-advanced.blue { border-left: 5px solid #667eea; }
+    .stat-card-advanced.purple { border-left: 5px solid #764ba2; }
+    .stat-card-advanced.green { border-left: 5px solid #28a745; }
+    .stat-card-advanced.orange { border-left: 5px solid #ffc107; }
+
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-sub {
+        font-size: 0.85rem;
+        color: #888;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .sub-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .sub-stat.green { color: #28a745; }
+    .sub-stat.red { color: #dc3545; }
+
+    .charts-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .chart-card h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .tables-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .table-card h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        text-align: right;
+        font-weight: 600;
+        color: #667eea;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .data-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .detailed-report-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .detailed-report-section h3 {
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+
+    .report-content {
+        line-height: 1.8;
+        color: #666;
+    }
+
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .metric-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .metric-value {
+        color: #333;
+        font-weight: bold;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let signalsChart, qualityChart;
+
+    async function loadReportsData() {
+        try {
+            // تحميل الإحصائيات
+            const statsResponse = await fetch('/api/stats');
+            const stats = await statsResponse.json();
+
+            // تحميل التقرير التفصيلي
+            const reportResponse = await fetch('/api/detailed-report');
+            const report = await reportResponse.json();
+
+            // تحميل تقرير الصفقات
+            const tradesResponse = await fetch('/api/trades-report');
+            const trades = await tradesResponse.json();
+
+            // تحديث البطاقات
+            document.getElementById('total-signals').textContent = stats.signals_count || 0;
+            document.getElementById('buy-count').textContent = stats.buy_signals || 0;
+            document.getElementById('sell-count').textContent = stats.sell_signals || 0;
+            document.getElementById('total-recommendations').textContent = stats.recommendations_count || 0;
+            document.getElementById('avg-quality').textContent = (stats.average_quality || 0) + '%';
+            document.getElementById('high-quality').textContent = stats.high_quality_recommendations || 0;
+            document.getElementById('subscribers').textContent = stats.subscribers_count || 0;
+
+            // تحديث توزيع الخطط
+            const planDist = Object.entries(stats.plans || {}).map(([plan, count]) => `${plan}: ${count}`).join(' | ');
+            document.getElementById('plan-distribution').textContent = planDist || 'لا توجد بيانات';
+
+            // تحديث جدول أكثر الأزواج طلباً
+            updateTopPairsTable(stats.top_pairs || {}, stats.subscribers_count);
+
+            // تحديث جدول الخطط
+            updatePlansTable(stats.plans || {}, stats.subscribers_count);
+
+            // تحديث الرسوم البيانية
+            updateCharts(stats, report);
+
+            // تحديث التقرير التفصيلي
+            updateDetailedReport(report);
+
+            // تحديث تقرير الصفقات
+            updateTradesReport(trades);
+
+        } catch (error) {
+            console.error('خطأ في تحميل التقارير:', error);
+        }
+    }
+
+    function updateTopPairsTable(topPairs, total) {
+        const tbody = document.getElementById('top-pairs-body');
+        tbody.innerHTML = '';
+
+        const entries = Object.entries(topPairs);
+        if (entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">لا توجد بيانات</td></tr>';
+            return;
+        }
+
+        entries.forEach(([pair, count], index) => {
+            const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            const row = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${pair}</strong></td>
+                    <td>${count}</td>
+                    <td><span class="badge">${percentage}%</span></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function updatePlansTable(plans, total) {
+        const tbody = document.getElementById('plans-body');
+        tbody.innerHTML = '';
+
+        const planNames = {
+            'free': 'مجاني',
+            'bronze': 'برونزي',
+            'silver': 'فضي',
+            'gold': 'ذهبي',
+            'platinum': 'بلاتيني'
+        };
+
+        const entries = Object.entries(plans);
+        if (entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;">لا توجد بيانات</td></tr>';
+            return;
+        }
+
+        entries.forEach(([plan, count]) => {
+            const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            const row = `
+                <tr>
+                    <td><strong>${planNames[plan] || plan}</strong></td>
+                    <td>${count}</td>
+                    <td><span class="badge">${percentage}%</span></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function updateCharts(stats, report) {
+        // رسم توزيع الإشارات
+        const signalsCtx = document.getElementById('signalsChart').getContext('2d');
+        if (signalsChart) signalsChart.destroy();
+        
+        signalsChart = new Chart(signalsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['شراء (BUY)', 'بيع (SELL)'],
+                datasets: [{
+                    data: [stats.buy_signals || 0, stats.sell_signals || 0],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // رسم توزيع الجودة
+        const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+        if (qualityChart) qualityChart.destroy();
+        
+        qualityChart = new Chart(qualityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['عالية (75+)', 'متوسطة (50-74)', 'منخفضة (<50)'],
+                datasets: [{
+                    label: 'عدد التوصيات',
+                    data: [
+                        stats.high_quality_recommendations || 0,
+                        stats.medium_quality_recommendations || 0,
+                        (stats.recommendations_count || 0) - (stats.high_quality_recommendations || 0) - (stats.medium_quality_recommendations || 0)
+                    ],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateDetailedReport(report) {
+        const container = document.getElementById('detailed-report');
+        
+        let html = '<div class="metrics-grid">';
+        
+        html += `
+            <div class="metric-row">
+                <span class="metric-label">إجمالي الإشارات المسجلة</span>
+                <span class="metric-value">${report.total_signals || 0}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">إجمالي التوصيات النشطة</span>
+                <span class="metric-value">${report.total_recommendations || 0}</span>
+            </div>
+        `;
+        
+        // توزيع حسب الإطار الزمني
+        if (report.recommendations_by_timeframe) {
+            html += '<h4 style="margin-top:1.5rem;color:#667eea;">التوصيات حسب الإطار الزمني</h4>';
+            Object.entries(report.recommendations_by_timeframe).forEach(([tf, count]) => {
+                html += `
+                    <div class="metric-row">
+                        <span class="metric-label">${tf}</span>
+                        <span class="metric-value">${count}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function updateTradesReport(trades) {
+        document.getElementById('active-trades').textContent = trades.active_count || 0;
+        document.getElementById('closed-last-hour').textContent = trades.recent_closed_count || 0;
+        document.getElementById('wins-count').textContent = trades.wins || 0;
+        document.getElementById('losses-count').textContent = trades.losses || 0;
+
+        const tbody = document.getElementById('closed-trades-body');
+        tbody.innerHTML = '';
+        const items = trades.recent_closed || [];
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">لا توجد صفقات منتهية حديثاً</td></tr>';
+            return;
+        }
+
+        items.forEach((t, idx) => {
+            const resultText = t.result === 'win' ? 'رابحة' : 'خاسرة';
+            const closeTime = t.close_time ? new Date(t.close_time).toLocaleString('ar') : '-';
+            const pips = (t.pips !== undefined && t.pips !== null) ? Number(t.pips).toFixed(1) : '-';
+            const row = `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td><strong>${t.symbol || '-'}</strong></td>
+                    <td>${resultText}</td>
+                    <td>${pips}</td>
+                    <td>${closeTime}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function refreshReports() {
+        loadReportsData();
+    }
+
+    function exportReport() {
+        alert('⏳ جاري تجهيز التقرير للتصدير...\n\nهذه الميزة قيد التطوير');
+    }
+
+    // التحميل الأولي
+    loadReportsData();
+    
+    // تحديث كل دقيقة
+    setInterval(loadReportsData, 60000);
+</script>
+{% endblock %}

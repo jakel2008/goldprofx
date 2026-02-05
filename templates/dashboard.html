@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="signals-section">
+    <h2>📊 لوحة التحكم</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border-right: 5px solid #667eea;">
+            <h3 style="color: #667eea; margin-bottom: 0.5rem;">الإشارات المرسلة</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #333;" id="sent-signals">0</div>
+            <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">إشارات تم بثها</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border-right: 5px solid #28a745;">
+            <h3 style="color: #28a745; margin-bottom: 0.5rem;">إشارات شراء</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #333;" id="buy-signals">0</div>
+            <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">إشارات BUY</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border-right: 5px solid #dc3545;">
+            <h3 style="color: #dc3545; margin-bottom: 0.5rem;">إشارات بيع</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #333;" id="sell-signals">0</div>
+            <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">إشارات SELL</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border-right: 5px solid #ffc107;">
+            <h3 style="color: #ffc107; margin-bottom: 0.5rem;">الأزواج المختارة</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #333;">{{ selected_pairs_count or 0 }}</div>
+            <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">
+                ⚙️ إدارة الأزواج
+            </p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 10px; border-right: 5px solid #ffc107;">
+        <h3 style="margin-bottom: 1rem; color: #333;">📋 معلومات النظام</h3>
+        <ul style="list-style: none; color: #666;">
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">✓ البوت: يعمل بشكل طبيعي</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">✓ المحلل: آخر تشغيل قبل 60 دقيقة</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">✓ البث: يعمل بشكل مستمر</li>
+            <li style="padding: 0.5rem 0;">✓ قاعدة البيانات: متزامنة</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // تحديث إحصائيات لوحة التحكم
+    async function updateDashboard() {
+        const response = await fetch('/api/signals');
+        const signals = await response.json();
+        
+        let buyCount = 0;
+        let sellCount = 0;
+        
+        signals.forEach(signal => {
+            if (signal.rec === 'BUY') buyCount++;
+            else if (signal.rec === 'SELL') sellCount++;
+        });
+        
+        document.getElementById('sent-signals').textContent = signals.length;
+        document.getElementById('buy-signals').textContent = buyCount;
+        document.getElementById('sell-signals').textContent = sellCount;
+    }
+    
+    updateDashboard();
+    setInterval(updateDashboard, 5000);
+</script>
+{% endblock %}

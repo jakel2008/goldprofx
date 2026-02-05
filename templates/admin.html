@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="signals-section">
+  <h2>⚙️ لوحة تحكم الأدمن</h2>
+  <p style="color:#666;margin:0.5rem 0 1rem">مرحبا {{ user.username }} — لديك صلاحيات أدمن</p>
+
+  <!-- علامات التبويب -->
+  <div style="margin:1rem 0;border-bottom:2px solid #eee">
+    <button class="tab-btn active" onclick="showTab('users')">👥 المستخدمون</button>
+    <button class="tab-btn" onclick="showTab('subscriptions')">💎 الاشتراكات</button>
+    <button class="tab-btn" onclick="showTab('requests')">📨 طلبات الاشتراك</button>
+  </div>
+
+  <!-- تبويب المستخدمون -->
+  <div id="users-tab" class="tab-content active">
+    <h3>👥 إدارة المستخدمين</h3>
+    <div id="users-table-container" style="overflow:auto">
+      <table id="users-table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f0f2ff">
+            <th style="padding:8px;border-bottom:1px solid #eee">#</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">اسم المستخدم</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">البريد</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الاسم</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الخطة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">نشط</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">أدمن</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">آخر دخول</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- تبويب الاشتراكات -->
+  <div id="subscriptions-tab" class="tab-content" style="display:none">
+    <h3>💎 إدارة الاشتراكات</h3>
+    <div id="subscriptions-table-container" style="overflow:auto">
+      <table id="subscriptions-table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f0f2ff">
+            <th style="padding:8px;border-bottom:1px solid #eee">ID</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">اسم المستخدم</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الاسم الأول</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الخطة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">بداية الاشتراك</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">نهاية الاشتراك</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الحالة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">المدفوع</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="subscriptions-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- تبويب طلبات الاشتراك -->
+  <div id="requests-tab" class="tab-content" style="display:none">
+    <h3>📨 طلبات الاشتراك المعلقة</h3>
+    <div style="background:#fff3cd;padding:1rem;border-radius:8px;margin-bottom:1rem;border-left:4px solid #ffc107">
+      <strong>📧 بريد الدعم:</strong> mahmoodalqaise750@gmail.com<br>
+      <small>سيتم إرسال إشعارات الطلبات الجديدة إلى هذا البريد</small>
+    </div>
+    <div id="requests-table-container" style="overflow:auto">
+      <table id="requests-table" style="width:100%;border-collapse:collapse;font-size:0.9rem">
+        <thead>
+          <tr style="background:#f0f2ff">
+            <th style="padding:8px;border-bottom:1px solid #eee">#</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">المستخدم</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">البريد</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الخطة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">السعر</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">المدة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الموقع</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">طريقة الدفع</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">رقم العملية</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">التاريخ</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">الحالة</th>
+            <th style="padding:8px;border-bottom:1px solid #eee">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="requests-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn {
+  background:transparent;
+  border:none;
+  padding:0.5rem 1rem;
+  cursor:pointer;
+  font-size:1rem;
+  color:#666;
+  border-bottom:2px solid transparent;
+  transition:all 0.3s;
+}
+.tab-btn.active {
+  color:#6366f1;
+  border-bottom-color:#6366f1;
+}
+.tab-content {
+  margin-top:1rem;
+}
+.action-btn {
+  padding:4px 8px;
+  margin:2px;
+  font-size:0.85rem;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-success { background:#10b981; color:white; }
+.btn-success:hover { background:#059669; }
+.btn-danger { background:#ef4444; color:white; }
+.btn-danger:hover { background:#dc2626; }
+.btn-warning { background:#f59e0b; color:white; }
+.btn-warning:hover { background:#d97706; }
+.btn-info { background:#3b82f6; color:white; }
+.btn-info:hover { background:#2563eb; }
+</style>
+
+<script>
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  
+  if (tab === 'users') {
+    document.getElementById('users-tab').style.display = 'block';
+    event.target.classList.add('active');
+    loadUsers();
+  } else if (tab === 'subscriptions') {
+    document.getElementById('subscriptions-tab').style.display = 'block';
+    event.target.classList.add('active');
+    loadSubscriptions();
+  } else if (tab === 'requests') {
+    document.getElementById('requests-tab').style.display = 'block';
+    event.target.classList.add('active');
+    loadRequests();
+  }
+}
+
+async function loadUsers() {
+  const res = await fetch('/api/admin/users');
+  const data = await res.json();
+  const body = document.getElementById('users-body');
+  body.innerHTML = '';
+  if (!data.success) { 
+    body.innerHTML = '<tr><td colspan="9">تعذر تحميل المستخدمين</td></tr>'; 
+    return; 
+  }
+  data.users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.id}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.username}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.email}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.full_name || '-'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <select onchange="changeUserPlan(${u.id}, this.value)" style="padding:4px">
+          <option value="free" ${u.plan === 'free' ? 'selected' : ''}>Free</option>
+          <option value="bronze" ${u.plan === 'bronze' ? 'selected' : ''}>Bronze</option>
+          <option value="silver" ${u.plan === 'silver' ? 'selected' : ''}>Silver</option>
+          <option value="gold" ${u.plan === 'gold' ? 'selected' : ''}>Gold</option>
+          <option value="platinum" ${u.plan === 'platinum' ? 'selected' : ''}>Platinum</option>
+        </select>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.is_active ? '✅' : '❌'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.is_admin ? '⭐' : '-'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${u.last_login || '-'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <button class="action-btn ${u.is_active ? 'btn-danger' : 'btn-success'}" 
+                onclick="toggleActive(${u.id}, ${u.is_active ? 0 : 1})">
+          ${u.is_active ? 'إيقاف' : 'تفعيل'}
+        </button>
+        <button class="action-btn ${u.is_admin ? 'btn-warning' : 'btn-info'}" 
+                onclick="toggleAdmin(${u.id}, ${u.is_admin ? 0 : 1})">
+          ${u.is_admin ? 'إزالة أدمن' : 'ترقية'}
+        </button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+async function loadSubscriptions() {
+  const res = await fetch('/api/admin/subscriptions');
+  const data = await res.json();
+  const body = document.getElementById('subscriptions-body');
+  body.innerHTML = '';
+  if (!data.success) { 
+    body.innerHTML = '<tr><td colspan="9">تعذر تحميل الاشتراكات</td></tr>'; 
+    return; 
+  }
+  data.subscriptions.forEach(s => {
+    const tr = document.createElement('tr');
+    const startDate = s.subscription_start ? new Date(s.subscription_start).toLocaleDateString('ar') : '-';
+    const endDate = s.subscription_end ? new Date(s.subscription_end).toLocaleDateString('ar') : '-';
+    
+    tr.innerHTML = `
+      <td style="padding:8px;border-bottom:1px solid #eee">${s.user_id}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${s.username || '-'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${s.first_name || '-'}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${s.plan}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${startDate}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${endDate}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <span style="padding:4px 8px;border-radius:4px;background:${getStatusColor(s.status)};color:white">
+          ${getStatusText(s.status)}
+        </span>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee">$${s.total_paid || 0}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <button class="action-btn btn-info" onclick="extendSub(${s.user_id})">تمديد</button>
+        ${s.status === 'active' ? 
+          `<button class="action-btn btn-danger" onclick="cancelSub(${s.user_id})">إلغاء</button>` :
+          `<button class="action-btn btn-success" onclick="reactivateSub(${s.user_id})">إعادة تفعيل</button>`
+        }
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+function getStatusColor(status) {
+  const colors = {
+    'active': '#10b981',
+    'trial': '#3b82f6',
+    'cancelled': '#ef4444',
+    'expired': '#f59e0b'
+  };
+  return colors[status] || '#6b7280';
+}
+
+function getStatusText(status) {
+  const texts = {
+    'active': 'نشط',
+    'trial': 'تجريبي',
+    'cancelled': 'ملغي',
+    'expired': 'منتهي'
+  };
+  return texts[status] || status;
+}
+
+async function toggleAdmin(user_id, is_admin) {
+  const res = await fetch('/api/admin/set_admin', {
+    method: 'POST', 
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id, is_admin })
+  });
+  const data = await res.json();
+  if (data.success) { 
+    loadUsers(); 
+    alert('تم تعديل صلاحيات الأدمن بنجاح');
+  } else { 
+    alert('فشل تعديل صلاحيات الأدمن'); 
+  }
+}
+
+async function toggleActive(user_id, is_active) {
+  const res = await fetch('/api/admin/set_active', {
+    method: 'POST', 
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id, is_active })
+  });
+  const data = await res.json();
+  if (data.success) { 
+    loadUsers(); 
+    alert('تم تعديل حالة التفعيل بنجاح');
+  } else { 
+    alert('فشل تعديل حالة التفعيل'); 
+  }
+}
+
+async function changeUserPlan(user_id, plan) {
+  const res = await fetch('/api/admin/update_plan', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id, plan })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert(`تم تحديث الخطة إلى ${plan} بنجاح`);
+    loadUsers();
+    loadSubscriptions();
+  } else {
+    alert('فشل تحديث الخطة: ' + data.message);
+  }
+}
+
+async function extendSub(user_id) {
+  const days = prompt('كم يوم تريد التمديد؟', '30');
+  if (!days) return;
+  
+  const res = await fetch('/api/admin/extend_subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id, days: parseInt(days) })
+  });
+  const data = await res.json();
+  alert(data.message);
+  if (data.success) loadSubscriptions();
+}
+
+async function cancelSub(user_id) {
+  if (!confirm('هل أنت متأكد من إلغاء الاشتراك؟')) return;
+  
+  const res = await fetch('/api/admin/cancel_subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id })
+  });
+  const data = await res.json();
+  alert(data.message);
+  if (data.success) loadSubscriptions();
+}
+
+async function reactivateSub(user_id) {
+  const res = await fetch('/api/admin/reactivate_subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id })
+  });
+  const data = await res.json();
+  alert(data.message);
+  if (data.success) loadSubscriptions();
+}
+
+async function loadRequests() {
+  const res = await fetch('/api/admin/subscription_requests');
+  const data = await res.json();
+  const body = document.getElementById('requests-body');
+  body.innerHTML = '';
+  
+  if (!data.success) { 
+    body.innerHTML = '<tr><td colspan="11">تعذر تحميل الطلبات</td></tr>'; 
+    return; 
+  }
+  
+  if (data.requests.length === 0) {
+    body.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:2rem;color:#999">لا توجد طلبات حالياً</td></tr>';
+    return;
+  }
+  
+  data.requests.forEach(r => {
+    const tr = document.createElement('tr');
+    const requestDate = new Date(r.request_date).toLocaleString('ar');
+    const statusBg = r.status === 'pending' ? '#ffc107' : 
+                     r.status === 'approved' ? '#10b981' : '#ef4444';
+    const statusText = r.status === 'pending' ? 'معلق' : 
+                       r.status === 'approved' ? 'مفعل' : 'مرفوض';
+    
+    // تحديد نص طريقة الدفع
+    const paymentMethods = {
+      'cliq': '📱 CliQ',
+      'bank_transfer': '🏦 حوالة بنكية',
+      'visa': '💳 فيزا/ماستركارد',
+      'crypto': '₿ عملات رقمية'
+    };
+    const paymentMethodText = paymentMethods[r.payment_method] || r.payment_method || '-';
+    
+    // تحديد الموقع
+    const locationText = r.location === 'jordan' ? '🇯🇴 الأردن' : 
+                        r.location === 'international' ? '🌍 دولي' : '-';
+    
+    tr.innerHTML = `
+      <td style="padding:8px;border-bottom:1px solid #eee">${r.id}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <strong>${r.username}</strong><br>
+        <small>${r.full_name || '-'}</small>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee"><small>${r.email}</small></td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <span style="padding:4px 8px;background:#6366f1;color:white;border-radius:4px;font-size:0.85rem">
+          ${r.plan.toUpperCase()}
+        </span>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee">$${r.price}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${r.duration_days}د</td>
+      <td style="padding:8px;border-bottom:1px solid #eee"><small>${locationText}</small></td>
+      <td style="padding:8px;border-bottom:1px solid #eee"><small>${paymentMethodText}</small></td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <small>${r.transaction_id || '-'}</small>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee"><small>${requestDate}</small></td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        <span style="padding:4px 8px;border-radius:4px;background:${statusBg};color:white;font-size:0.85rem">
+          ${statusText}
+        </span>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee">
+        ${r.status === 'pending' ? `
+          <button class="action-btn btn-success" onclick="approveRequest(${r.id})">✅ تفعيل</button>
+          <button class="action-btn btn-danger" onclick="rejectRequest(${r.id})">❌ رفض</button>
+        ` : `
+          <small style="color:#666">${r.status === 'approved' ? 'تم التفعيل' : 'تم الرفض'}</small>
+        `}
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+async function approveRequest(requestId) {
+  const notes = prompt('ملاحظات التفعيل (اختياري):', '');
+  if (notes === null) return;
+  
+  const res = await fetch('/api/admin/approve_subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ request_id: requestId, admin_notes: notes })
+  });
+  const data = await res.json();
+  alert(data.message);
+  if (data.success) {
+    loadRequests();
+    loadUsers();
+    loadSubscriptions();
+  }
+}
+
+async function rejectRequest(requestId) {
+  const reason = prompt('سبب الرفض:', '');
+  if (!reason) return;
+  
+  const res = await fetch('/api/admin/reject_subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ request_id: requestId, admin_notes: reason })
+  });
+  const data = await res.json();
+  alert(data.message);
+  if (data.success) loadRequests();
+}
+
+// تحميل المستخدمين عند فتح الصفحة
+loadUsers();
+</script>
+{% endblock %}

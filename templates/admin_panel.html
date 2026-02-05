@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة تحكم المشرف - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 80px;">
+    
+    <!-- عنوان الصفحة -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>🎛️ لوحة تحكم المشرف</h1>
+                    <p class="text-muted mb-0">إدارة وتوزيع الإشارات والتقارير عبر التليجرام</p>
+                </div>
+                <div>
+                    <a href="/advanced-analyzer" class="btn btn-gradient-purple me-2" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; color: white;">
+                        <i class="fas fa-chart-area"></i> المحلل المتقدم
+                    </a>
+                    <a href="/forex-analyzer" class="btn btn-info me-2">
+                        <i class="fas fa-chart-line"></i> محلل الفوركس
+                    </a>
+                    <a href="/subscriptions-management" class="btn btn-success me-2">
+                        <i class="fas fa-users-cog"></i> إدارة الاشتراكات
+                    </a>
+                    <a href="/admin-management" class="btn btn-warning me-2">
+                        <i class="fas fa-user-shield"></i> إدارة الأدمن
+                    </a>
+                    <a href="/bot-management" class="btn btn-primary">
+                        <i class="fas fa-robot"></i> إدارة البوتات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ stats.total_users }}</div>
+                <div class="stat-label">إجمالي المستخدمين</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{{ stats.active_users }}</div>
+                <div class="stat-label">المستخدمون النشطون</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">{{ stats.total_signals }}</div>
+                <div class="stat-label">إجمالي الإشارات</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">{{ stats.total_recommendations }}</div>
+                <div class="stat-label">إجمالي التوصيات</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs للتبديل بين الأقسام -->
+    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button">
+                📊 إرسال الإشارات
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button">
+                🎯 إرسال التوصيات
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button">
+                📋 إرسال التقارير
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="broadcast-tab" data-bs-toggle="tab" data-bs-target="#broadcast" type="button">
+                📢 رسالة عامة
+            </button>
+        </li>
+    </ul>
+
+    <!-- محتوى الـ Tabs -->
+    <div class="tab-content" id="adminTabsContent">
+        
+        <!-- تبويب الإشارات -->
+        <div class="tab-pane fade show active" id="signals" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📊 إرسال الإشارات إلى التليجرام</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">اختر إشارة لإرسالها إلى جميع المشتركين النشطين</p>
+                    
+                    <div id="signals-list">
+                        {% if recent_signals %}
+                            {% for signal in recent_signals %}
+                            <div class="signal-item mb-3 p-3 border rounded">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        {% set sig_symbol = signal.get('symbol', signal.get('pair', 'N/A')) %}
+                                        {% set sig_action = signal.get('rec', signal.get('signal', '')) %}
+                                        <h6>
+                                            <span class="badge bg-primary">{{ sig_symbol }}</span>
+                                            <span class="badge bg-{{ 'success' if sig_action|lower == 'buy' else 'danger' }}">
+                                                {{ sig_action|upper if sig_action else 'N/A' }}
+                                            </span>
+                                            <span class="badge bg-info">⭐ {{ signal.get('quality_score', 'N/A') }}</span>
+                                        </h6>
+                                        <small class="text-muted">
+                                            Entry: {{ signal.get('entry', 'N/A') }} | SL: {{ signal.get('sl', 'N/A') }} | 
+                                            TP1: {{ signal.get('tp1', 'N/A') }} | TF: {{ signal.get('tf', signal.get('timeframe', 'N/A')) }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-primary btn-sm send-signal-btn" 
+                                                data-signal-id="{{ signal.file }}">
+                                            📤 إرسال
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                لا توجد إشارات متاحة حالياً
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب التوصيات -->
+        <div class="tab-pane fade" id="recommendations" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🎯 إرسال التوصيات إلى التليجرام</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">اختر توصية لإرسالها إلى جميع المشتركين النشطين</p>
+                    
+                    <div id="recommendations-list">
+                        {% if recent_recommendations %}
+                            {% for rec in recent_recommendations %}
+                            <div class="signal-item mb-3 p-3 border rounded">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h6>
+                                            <span class="badge bg-primary">{{ rec.pair }}</span>
+                                            {% set rec_signal = rec.get('signal', rec.get('action', '')) %}
+                                            <span class="badge bg-{{ 'success' if rec_signal|lower == 'buy' else 'danger' }}">
+                                                {{ rec_signal|upper if rec_signal else 'N/A' }}
+                                            </span>
+                                            <span class="badge bg-info">⭐ {{ rec.get('quality_score', rec.get('confidence', 'N/A')) }}</span>
+                                        </h6>
+                                        <small class="text-muted">
+                                            Entry: {{ rec.get('entry', 'N/A') }} | SL: {{ rec.get('sl', 'N/A') }} | 
+                                            TP1: {{ rec.get('tp1', 'N/A') }} | TF: {{ rec.get('timeframe', 'N/A') }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-primary btn-sm send-recommendation-btn" 
+                                                data-rec-index="{{ loop.index0 }}">
+                                            📤 إرسال
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                لا توجد توصيات متاحة حالياً
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب التقارير -->
+        <div class="tab-pane fade" id="reports" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📋 إرسال تقرير إلى التليجرام</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="report-type" class="form-label">نوع التقرير</label>
+                        <select class="form-select" id="report-type">
+                            <option value="custom">تقرير مخصص</option>
+                            <option value="daily">تقرير يومي</option>
+                            <option value="weekly">تقرير أسبوعي</option>
+                            <option value="performance">تقرير أداء</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="report-text" class="form-label">محتوى التقرير</label>
+                        <textarea class="form-control" id="report-text" rows="8" 
+                                  placeholder="اكتب محتوى التقرير هنا...
+
+مثال:
+✅ الإشارات الناجحة: 15
+❌ الإشارات الخاسرة: 3
+📈 نسبة النجاح: 83%
+💰 الربح الإجمالي: +450 نقطة"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-success" id="send-report-btn">
+                        📤 إرسال التقرير
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب الرسالة العامة -->
+        <div class="tab-pane fade" id="broadcast" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📢 إرسال رسالة عامة</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>تنبيه:</strong> سيتم إرسال هذه الرسالة لجميع المشتركين النشطين ({{ stats.active_users }} مستخدم)
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="broadcast-message" class="form-label">نص الرسالة</label>
+                        <textarea class="form-control" id="broadcast-message" rows="6" 
+                                  placeholder="اكتب رسالتك هنا...
+
+مثال:
+🎉 عرض خاص لفترة محدودة!
+
+احصل على خصم 50% على جميع الباقات
+استخدم كود: SPECIAL50
+
+⏰ العرض ينتهي بعد 48 ساعة"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-warning" id="send-broadcast-btn">
+                        📢 إرسال للجميع
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- منطقة النتائج -->
+    <div id="result-area" class="mt-4" style="display: none;">
+        <div class="alert" id="result-message"></div>
+    </div>
+
+</div>
+
+<style>
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.signal-item {
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.signal-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.nav-tabs .nav-link {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // إرسال إشارة
+    document.querySelectorAll('.send-signal-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const signalId = this.getAttribute('data-signal-id');
+            const originalText = this.textContent;
+            
+            if (!confirm('هل أنت متأكد من إرسال هذه الإشارة لجميع المشتركين؟')) {
+                return;
+            }
+            
+            this.disabled = true;
+            this.textContent = '⏳ جاري الإرسال...';
+            
+            fetch('/api/admin/send-signal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ signal_id: signalId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('success', `✅ تم الإرسال بنجاح!
+                        📊 تم الإرسال: ${data.sent_count}
+                        ❌ فشل: ${data.failed_count}
+                        👥 إجمالي: ${data.total_subscribers}`);
+                    this.textContent = '✅ تم الإرسال';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                } else {
+                    showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                    this.disabled = false;
+                    this.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                showResult('danger', '❌ خطأ: ' + error);
+                this.disabled = false;
+                this.textContent = originalText;
+            });
+        });
+    });
+    
+    // إرسال توصية
+    document.querySelectorAll('.send-recommendation-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const recIndex = this.getAttribute('data-rec-index');
+            const originalText = this.textContent;
+            
+            if (!confirm('هل أنت متأكد من إرسال هذه التوصية لجميع المشتركين؟')) {
+                return;
+            }
+            
+            this.disabled = true;
+            this.textContent = '⏳ جاري الإرسال...';
+            
+            fetch('/api/admin/send-recommendation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ recommendation_id: recIndex })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('success', `✅ تم الإرسال بنجاح!
+                        📊 تم الإرسال: ${data.sent_count}
+                        ❌ فشل: ${data.failed_count}
+                        👥 إجمالي: ${data.total_subscribers}`);
+                    this.textContent = '✅ تم الإرسال';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                } else {
+                    showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                    this.disabled = false;
+                    this.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                showResult('danger', '❌ خطأ: ' + error);
+                this.disabled = false;
+                this.textContent = originalText;
+            });
+        });
+    });
+    
+    // إرسال تقرير
+    document.getElementById('send-report-btn').addEventListener('click', function() {
+        const reportText = document.getElementById('report-text').value.trim();
+        const reportType = document.getElementById('report-type').value;
+        
+        if (!reportText) {
+            showResult('warning', '⚠️ يرجى كتابة محتوى التقرير');
+            return;
+        }
+        
+        if (!confirm('هل أنت متأكد من إرسال هذا التقرير لجميع المشتركين؟')) {
+            return;
+        }
+        
+        this.disabled = true;
+        this.textContent = '⏳ جاري الإرسال...';
+        
+        fetch('/api/admin/send-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                report_text: reportText,
+                report_type: reportType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showResult('success', `✅ تم إرسال التقرير بنجاح!
+                    📊 تم الإرسال: ${data.sent_count}
+                    ❌ فشل: ${data.failed_count}
+                    👥 إجمالي: ${data.total_subscribers}`);
+                document.getElementById('report-text').value = '';
+                this.disabled = false;
+                this.textContent = '📤 إرسال التقرير';
+            } else {
+                showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                this.disabled = false;
+                this.textContent = '📤 إرسال التقرير';
+            }
+        })
+        .catch(error => {
+            showResult('danger', '❌ خطأ: ' + error);
+            this.disabled = false;
+            this.textContent = '📤 إرسال التقرير';
+        });
+    });
+    
+    // إرسال رسالة عامة
+    document.getElementById('send-broadcast-btn').addEventListener('click', function() {
+        const message = document.getElementById('broadcast-message').value.trim();
+        
+        if (!message) {
+            showResult('warning', '⚠️ يرجى كتابة الرسالة');
+            return;
+        }
+        
+        if (!confirm('⚠️ سيتم إرسال هذه الرسالة لجميع المشتركين النشطين. هل أنت متأكد؟')) {
+            return;
+        }
+        
+        this.disabled = true;
+        this.textContent = '⏳ جاري الإرسال...';
+        
+        fetch('/api/admin/broadcast-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showResult('success', `✅ تم إرسال الرسالة بنجاح!
+                    📊 تم الإرسال: ${data.sent_count}
+                    ❌ فشل: ${data.failed_count}
+                    👥 إجمالي: ${data.total_subscribers}`);
+                document.getElementById('broadcast-message').value = '';
+                this.disabled = false;
+                this.textContent = '📢 إرسال للجميع';
+            } else {
+                showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                this.disabled = false;
+                this.textContent = '📢 إرسال للجميع';
+            }
+        })
+        .catch(error => {
+            showResult('danger', '❌ خطأ: ' + error);
+            this.disabled = false;
+            this.textContent = '📢 إرسال للجميع';
+        });
+    });
+    
+    function showResult(type, message) {
+        const resultArea = document.getElementById('result-area');
+        const resultMessage = document.getElementById('result-message');
+        
+        resultMessage.className = `alert alert-${type}`;
+        resultMessage.innerHTML = message.replace(/\n/g, '<br>');
+        resultArea.style.display = 'block';
+        
+        // Scroll to result
+        resultArea.scrollIntoView({ behavior: 'smooth' });
+        
+        // Hide after 10 seconds
+        setTimeout(() => {
+            resultArea.style.display = 'none';
+        }, 10000);
+    }
+});
+</script>
+
+{% endblock %}

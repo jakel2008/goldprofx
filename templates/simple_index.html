@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLD PRO - نظام الإشارات VIP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            gap: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+        .nav a {
+            text-decoration: none;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .signal-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transition: transform 0.3s;
+        }
+        .signal-card:hover {
+            transform: translateY(-5px);
+        }
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .pair-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .signal-type {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .buy {
+            background: #10b981;
+            color: white;
+        }
+        .sell {
+            background: #ef4444;
+            color: white;
+        }
+        .signal-info {
+            margin: 15px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+        .info-value {
+            color: #333;
+            font-weight: bold;
+        }
+        .quality-score {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            text-align: center;
+        }
+        .quality-score .score {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+        }
+        .quality-score .label {
+            color: white;
+            margin-top: 5px;
+        }
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+        .no-signals {
+            text-align: center;
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            color: #666;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/login">الدخول</a>
+        <a href="/home">الرئيسية</a>
+        <a href="/signals">الإشارات</a>
+        <a href="/trades">متابعة الصفقات</a>
+        <a href="/plans">خطط الاشتراك</a>
+        <a href="/dashboard">لوحة التحكم</a>
+        <a href="/reports">التقارير</a>
+        <a href="/admin">الأدمن</a>
+        <a href="/advanced-analyzer">المحلل العميق</a>
+        <a href="/forex-analyzer">محلل الفوركس</a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 GOLD PRO - نظام الإشارات VIP 🌟</h1>
+            <p>إشارات تداول احترافية للفوركس والذهب</p>
+        </div>
+
+        {% if signals %}
+        <div class="signals-grid">
+            {% for signal in signals %}
+            <div class="signal-card">
+                <div class="signal-header">
+                    <div class="pair-name">{{ signal.pair }}</div>
+                    <div class="signal-type {{ signal.signal }}">
+                        {{ 'شراء' if signal.signal == 'buy' else 'بيع' }}
+                    </div>
+                </div>
+
+                <div class="signal-info">
+                    <div class="info-row">
+                        <span class="info-label">نقطة الدخول</span>
+                        <span class="info-value">{{ signal.entry }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">وقف الخسارة</span>
+                        <span class="info-value">{{ signal.sl }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الهدف الأول</span>
+                        <span class="info-value">{{ signal.tp1 }}</span>
+                    </div>
+                    {% if signal.tp2 %}
+                    <div class="info-row">
+                        <span class="info-label">الهدف الثاني</span>
+                        <span class="info-value">{{ signal.tp2 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if signal.quality_score %}
+                <div class="quality-score">
+                    <div class="score">{{ signal.quality_score }}%</div>
+                    <div class="label">جودة الإشارة</div>
+                </div>
+                {% endif %}
+
+                <div class="timestamp">
+                    {{ signal.timestamp }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-signals">
+            📊 لا توجد إشارات متاحة حالياً
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // تحديث تلقائي كل 30 ثانية
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

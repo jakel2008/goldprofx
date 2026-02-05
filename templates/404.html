@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">الصفحة غير موجودة</h2>
+        <p class="error-message">عذراً، الصفحة التي تبحث عنها غير متاحة</p>
+        
+        <div class="error-suggestions">
+            <p>يمكنك:</p>
+            <ul>
+                <li><a href="{{ url_for('index') }}">العودة إلى الرئيسية</a></li>
+                <li><a href="{{ url_for('signals_page') }}">عرض الإشارات</a></li>
+                <li><a href="{{ url_for('signals_page') }}">عرض الإشارات</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    max-width: 600px;
+}
+
+.error-code {
+    font-size: 5rem;
+    color: #667eea;
+    margin: 0;
+    font-weight: bold;
+    animation: bounce 2s infinite;
+}
+
+.error-title {
+    font-size: 2rem;
+    color: #333;
+    margin: 1rem 0;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.error-suggestions {
+    background: #f5f5f5;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+}
+
+.error-suggestions p {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.error-suggestions ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.error-suggestions a {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.error-suggestions a:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

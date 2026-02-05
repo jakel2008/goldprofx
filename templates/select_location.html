@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}اختر موقعك - Gold Analyzer VIP{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h2 class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i>
+                        اختر موقعك الجغرافي
+                    </h2>
+                    <p class="mb-0 mt-2">لتوفير أفضل طرق الدفع المناسبة لك</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <!-- تفاصيل الخطة المختارة -->
+                    <div class="alert alert-info text-center mb-4">
+                        <h4><i class="fas fa-crown"></i> خطة {{ plan_data.name }}</h4>
+                        <p class="mb-0">
+                            <strong>${{ plan_data.price }}</strong> - 
+                            {{ plan_data.duration_days }} يوم - 
+                            {{ plan_data.signals }} إشارات يومياً
+                        </p>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- داخل الأردن -->
+                        <div class="col-md-6">
+                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/jordan/{{ plan }}'">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="fas fa-flag" style="font-size: 4rem; color: #000;"></i>
+                                    </div>
+                                    <h3 class="card-title mb-3">🇯🇴 داخل الأردن</h3>
+                                    <p class="text-muted mb-4">طرق الدفع المحلية المتاحة</p>
+                                    
+                                    <div class="payment-methods mb-4">
+                                        <div class="payment-method-item mb-3 p-3 bg-light rounded">
+                                            <i class="fas fa-mobile-alt text-primary"></i>
+                                            <strong>CliQ (كليك)</strong>
+                                            <p class="mb-0 small text-muted">تحويل فوري عبر تطبيق البنك</p>
+                                        </div>
+                                        <div class="payment-method-item p-3 bg-light rounded">
+                                            <i class="fas fa-university text-success"></i>
+                                            <strong>حوالة بنكية / IBAN</strong>
+                                            <p class="mb-0 small text-muted">تحويل عبر البنك مباشرة</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="price-display mb-3">
+                                        <h4 class="text-primary mb-0">
+                                            {{ "%.2f"|format(plan_data.price * 0.71) }} دينار أردني
+                                        </h4>
+                                        <small class="text-muted">(≈ ${{ plan_data.price }})</small>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-arrow-left"></i>
+                                        متابعة للدفع
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- خارج الأردن -->
+                        <div class="col-md-6">
+                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/international/{{ plan }}'">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="fas fa-globe-americas" style="font-size: 4rem; color: #007bff;"></i>
+                                    </div>
+                                    <h3 class="card-title mb-3">🌍 خارج الأردن (دولي)</h3>
+                                    <p class="text-muted mb-4">طرق الدفع العالمية</p>
+                                    
+                                    <div class="payment-methods mb-4">
+                                        <div class="payment-method-item mb-3 p-3 bg-light rounded">
+                                            <i class="fab fa-cc-visa text-primary"></i>
+                                            <i class="fab fa-cc-mastercard text-danger"></i>
+                                            <strong>بطاقة فيزا / ماستركارد</strong>
+                                            <p class="mb-0 small text-muted">دفع آمن عبر Stripe</p>
+                                        </div>
+                                        <div class="payment-method-item p-3 bg-light rounded">
+                                            <i class="fab fa-bitcoin text-warning"></i>
+                                            <strong>عملات رقمية</strong>
+                                            <p class="mb-0 small text-muted">Bitcoin, USDT, Ethereum</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="price-display mb-3">
+                                        <h4 class="text-success mb-0">
+                                            ${{ plan_data.price }} USD
+                                        </h4>
+                                        <small class="text-muted">سعر موحد عالمياً</small>
+                                    </div>
+                                    
+                                    <button class="btn btn-success btn-lg w-100">
+                                        <i class="fas fa-arrow-left"></i>
+                                        متابعة للدفع
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ملاحظات -->
+                    <div class="alert alert-warning mt-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>ملاحظة:</strong> اختر موقعك بدقة لعرض طرق الدفع المناسبة. سيتم تفعيل اشتراكك بعد التحقق من الدفع.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.location-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 3px solid #e0e0e0;
+}
+
+.location-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-color: #667eea;
+}
+
+.payment-method-item {
+    transition: all 0.2s ease;
+}
+
+.payment-method-item:hover {
+    transform: scale(1.05);
+}
+
+.price-display {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.hover-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.hover-effect::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.hover-effect:hover::before {
+    width: 500px;
+    height: 500px;
+}
+</style>
+{% endblock %}

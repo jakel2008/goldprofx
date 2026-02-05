@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم المركزية - MONEY MAKER VIP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .status-running {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .status-stopped {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #f85032 0%, #e73827 100%);
+            color: white;
+        }
+        
+        .metric-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            color: white;
+            text-align: center;
+        }
+        
+        .metric-box h3 {
+            font-size: 2.5rem;
+            margin: 10px 0;
+        }
+        
+        .metric-box p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .bg-gradient-blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .bg-gradient-green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .bg-gradient-orange {
+            background: linear-gradient(135deg, #f83600 0%, #f9d423 100%);
+        }
+        
+        .bg-gradient-red {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+        }
+        
+        .trade-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-right: 4px solid #667eea;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .trade-buy {
+            border-right-color: #38ef7d;
+        }
+        
+        .trade-sell {
+            border-right-color: #ff6a00;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .system-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px;
+        }
+        
+        .log-info { color: #00ff00; }
+        .log-warning { color: #ffff00; }
+        .log-error { color: #ff0000; }
+        .log-success { color: #00ffff; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="dashboard-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="mb-0"><i class="bi bi-speedometer2"></i> لوحة التحكم المركزية</h1>
+                            <p class="text-muted mb-0">MONEY MAKER VIP - Master Control Panel</p>
+                        </div>
+                        <div>
+                            <span class="status-badge status-running pulse" id="systemStatus">
+                                <i class="bi bi-circle-fill"></i> النظام يعمل
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Components Status -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="dashboard-card p-3">
+                    <h6><i class="bi bi-globe"></i> تطبيق الويب</h6>
+                    <span class="status-badge status-running" id="webAppStatus">يعمل</span>
+                    <p class="text-muted small mb-0 mt-2">Port: 5000</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card p-3">
+                    <h6><i class="bi bi-telegram"></i> بوت تليجرام</h6>
+                    <span class="status-badge status-running" id="botStatus">يعمل</span>
+                    <p class="text-muted small mb-0 mt-2">Polling Active</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card p-3">
+                    <h6><i class="bi bi-broadcast"></i> نظام البث</h6>
+                    <span class="status-badge status-running" id="broadcasterStatus">يعمل</span>
+                    <p class="text-muted small mb-0 mt-2">Auto-broadcast</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card p-3">
+                    <h6><i class="bi bi-clock-history"></i> المجدول</h6>
+                    <span class="status-badge status-running" id="schedulerStatus">يعمل</span>
+                    <p class="text-muted small mb-0 mt-2">Auto-Analysis</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-box bg-gradient-blue">
+                    <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
+                    <h3 id="totalUsers">0</h3>
+                    <p>إجمالي المشتركين</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-box bg-gradient-green">
+                    <i class="bi bi-graph-up-arrow" style="font-size: 2rem;"></i>
+                    <h3 id="totalSignals">0</h3>
+                    <p>الإشارات المرسلة اليوم</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-box bg-gradient-orange">
+                    <i class="bi bi-activity" style="font-size: 2rem;"></i>
+                    <h3 id="activeTrades">0</h3>
+                    <p>الصفقات النشطة</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-box bg-gradient-red">
+                    <i class="bi bi-percent" style="font-size: 2rem;"></i>
+                    <h3 id="winRate">0%</h3>
+                    <p>معدل النجاح</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Active Trades -->
+            <div class="col-md-6">
+                <div class="dashboard-card p-4">
+                    <h5 class="mb-3"><i class="bi bi-briefcase-fill"></i> الصفقات النشطة</h5>
+                    <div id="activeTradesContainer">
+                        <p class="text-muted text-center">جاري التحميل...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Logs -->
+            <div class="col-md-6">
+                <div class="dashboard-card p-4">
+                    <h5 class="mb-3"><i class="bi bi-terminal-fill"></i> سجل النظام</h5>
+                    <div class="system-log" id="systemLogs">
+                        <div class="log-entry log-success">[00:00:00] النظام جاهز للعمل</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Analysis -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="dashboard-card p-4">
+                    <h5 class="mb-3"><i class="bi bi-bar-chart-line-fill"></i> آخر التحليلات</h5>
+                    <div id="recentAnalysis">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>الزوج</th>
+                                        <th>الإشارة</th>
+                                        <th>الدخول</th>
+                                        <th>الهدف الأول</th>
+                                        <th>وقف الخسارة</th>
+                                        <th>الجودة</th>
+                                        <th>الوقت</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analysisTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">جاري التحميل...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تحديث البيانات كل 5 ثوانٍ
+        let logCount = 0;
+        
+        function updateDashboard() {
+            // جلب حالة النظام
+            fetch('/api/system-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // تحديث حالة المكونات
+                        updateComponentStatus(data.status);
+                        
+                        // تحديث المقاييس
+                        document.getElementById('totalUsers').textContent = data.metrics.total_users || 0;
+                        document.getElementById('totalSignals').textContent = data.metrics.total_signals || 0;
+                        document.getElementById('activeTrades').textContent = data.metrics.active_trades || 0;
+                        document.getElementById('winRate').textContent = (data.metrics.win_rate || 0).toFixed(1) + '%';
+                        
+                        // تحديث الصفقات النشطة
+                        updateActiveTrades(data.active_trades || []);
+                        
+                        // إضافة سجل
+                        addLog('success', 'تم تحديث البيانات بنجاح');
+                    }
+                })
+                .catch(error => {
+                    addLog('error', 'خطأ في جلب البيانات: ' + error.message);
+                });
+            
+            // جلب آخر التحليلات
+            fetch('/api/recent-analysis')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateAnalysisTable(data.analysis || []);
+                    }
+                })
+                .catch(error => console.error('Error fetching analysis:', error));
+        }
+        
+        function updateComponentStatus(status) {
+            const components = ['webAppStatus', 'botStatus', 'broadcasterStatus', 'schedulerStatus'];
+            const statusMap = {
+                'running': 'status-running',
+                'stopped': 'status-stopped',
+                'error': 'status-error'
+            };
+            
+            components.forEach(comp => {
+                const element = document.getElementById(comp);
+                if (element && status[comp]) {
+                    element.className = 'status-badge ' + statusMap[status[comp]];
+                    element.innerHTML = `<i class="bi bi-circle-fill"></i> ${
+                        status[comp] === 'running' ? 'يعمل' : 
+                        status[comp] === 'stopped' ? 'متوقف' : 'خطأ'
+                    }`;
+                }
+            });
+        }
+        
+        function updateActiveTrades(trades) {
+            const container = document.getElementById('activeTradesContainer');
+            
+            if (!trades || trades.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">لا توجد صفقات نشطة حالياً</p>';
+                return;
+            }
+            
+            let html = '';
+            trades.forEach(trade => {
+                const tradeClass = trade.direction === 'buy' ? 'trade-buy' : 'trade-sell';
+                const directionIcon = trade.direction === 'buy' ? 'arrow-up-circle' : 'arrow-down-circle';
+                
+                html += `
+                    <div class="trade-item ${tradeClass}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="bi bi-${directionIcon}"></i> ${trade.symbol}
+                                </h6>
+                                <small class="text-muted">الدخول: ${trade.entry_price}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-info">${trade.status || 'نشط'}</span>
+                                <br><small class="text-muted">${trade.entry_time || 'الآن'}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function updateAnalysisTable(analysis) {
+            const tbody = document.getElementById('analysisTableBody');
+            
+            if (!analysis || analysis.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">لا توجد تحليلات حديثة</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            analysis.slice(0, 10).forEach(item => {
+                const signalClass = item.signal === 'buy' ? 'text-success' : 'text-danger';
+                const qualityBadge = item.quality_score >= 80 ? 'bg-success' : 
+                                    item.quality_score >= 60 ? 'bg-warning' : 'bg-secondary';
+                
+                html += `
+                    <tr>
+                        <td><strong>${item.pair}</strong></td>
+                        <td class="${signalClass}">${item.signal === 'buy' ? '🔼 شراء' : '🔽 بيع'}</td>
+                        <td>${item.entry}</td>
+                        <td>${item.tp1}</td>
+                        <td>${item.sl}</td>
+                        <td><span class="badge ${qualityBadge}">${item.quality_score}</span></td>
+                        <td><small>${new Date(item.timestamp).toLocaleString('ar')}</small></td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function addLog(type, message) {
+            const logsContainer = document.getElementById('systemLogs');
+            const timestamp = new Date().toLocaleTimeString('ar');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // الحفاظ على آخر 50 سجل فقط
+            logCount++;
+            if (logCount > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+                logCount = 50;
+            }
+        }
+        
+        // تحديث كل 5 ثوانٍ
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+        
+        // إضافة سجلات تجريبية
+        setTimeout(() => addLog('info', 'بدء التحليل التلقائي...'), 2000);
+        setTimeout(() => addLog('success', 'تم تحليل EUR/USD بنجاح'), 4000);
+        setTimeout(() => addLog('info', 'بث إشارة جديدة إلى المشتركين'), 6000);
+    </script>
+</body>
+</html>

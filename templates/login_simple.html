@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تسجيل الدخول - GOLD PRO</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+            color: #e5e7eb;
+            margin: 0;
+        }
+        .nav {
+            background: rgba(17, 24, 39, 0.9);
+            padding: 14px 24px;
+            display: flex;
+            gap: 16px;
+        }
+        .nav a {
+            color: #e5e7eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 520px;
+            margin: 60px auto;
+            background: #111827;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 { margin: 0 0 16px; }
+        label { display: block; margin: 12px 0 6px; color: #9ca3af; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: 10px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/login">الدخول</a>
+        <a href="/home">الرئيسية</a>
+        <a href="/signals">الإشارات</a>
+        <a href="/trades">متابعة الصفقات</a>
+        <a href="/plans">خطط الاشتراك</a>
+        <a href="/dashboard">لوحة التحكم</a>
+        <a href="/reports">التقارير</a>
+        <a href="/admin">الأدمن</a>
+        <a href="/advanced-analyzer">المحلل العميق</a>
+        <a href="/forex-analyzer">محلل الفوركس</a>
+    </div>
+    <div class="container">
+        <h1>تسجيل الدخول</h1>
+        <form method="post">
+            <label>اسم المستخدم</label>
+            <input type="text" name="username" placeholder="اكتب اسم المستخدم" required />
+            <label>كلمة المرور</label>
+            <input type="password" name="password" placeholder="••••••••" required />
+            <button type="submit">دخول</button>
+        </form>
+    </div>
+</body>
+</html>

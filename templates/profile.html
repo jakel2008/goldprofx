@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <span>{{ user.full_name[0] if user.full_name else 'U' }}</span>
+        </div>
+        <div class="profile-info">
+            <h2>{{ user.full_name }}</h2>
+            <p class="username">@{{ user.username }}</p>
+            <p class="email">{{ user.email }}</p>
+        </div>
+        <div class="profile-actions">
+            <a href="{{ url_for('logout') }}" class="btn-logout">تسجيل خروج</a>
+        </div>
+    </div>
+    
+    <div class="profile-grid">
+        <!-- بطاقة المعلومات الشخصية -->
+        <div class="profile-card">
+            <h3>📋 المعلومات الشخصية</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>الاسم الكامل</label>
+                    <p>{{ user.full_name }}</p>
+                </div>
+                <div class="info-item">
+                    <label>اسم المستخدم</label>
+                    <p>@{{ user.username }}</p>
+                </div>
+                <div class="info-item">
+                    <label>البريد الإلكتروني</label>
+                    <p>{{ user.email }}</p>
+                </div>
+                <div class="info-item">
+                    <label>تاريخ التسجيل</label>
+                    <p>{{ user.created_at[:10] if user.created_at else 'N/A' }}</p>
+                </div>
+            </div>
+            <button class="btn-edit">✏️ تعديل البيانات</button>
+        </div>
+        
+        <!-- بطاقة الخطة -->
+        <div class="profile-card">
+            <h3>💎 خطة الاشتراك</h3>
+            <div class="plan-badge" data-plan="{{ user.plan }}">
+                {{ user.plan | upper }}
+            </div>
+            <div class="plan-details">
+                <p>خطتك الحالية: <strong>{{ user.plan }}</strong></p>
+                {% if user.plan == 'free' %}
+                <p class="plan-description">ابدأ مع خطة مجانية وارق إلى خطة مميزة للحصول على مزايا إضافية</p>
+                <button class="btn-upgrade">ترقية الآن 🚀</button>
+                {% else %}
+                <p class="plan-description">شكراً لاختيارك {{ user.plan }}!</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- بطاقة الإحصائيات -->
+        <div class="profile-card">
+            <h3>📊 الإحصائيات</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">12</span>
+                    <span class="stat-label">إشارات مستقبلة</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">8</span>
+                    <span class="stat-label">صفقات ناجحة</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">67%</span>
+                    <span class="stat-label">نسبة النجاح</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">+$2.4K</span>
+                    <span class="stat-label">الأرباح</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- بطاقة الأمان -->
+        <div class="profile-card">
+            <h3>🔐 الأمان</h3>
+            <div class="security-items">
+                <div class="security-item">
+                    <span>كلمة المرور</span>
+                    <button class="btn-change">تغيير</button>
+                </div>
+                <div class="security-item">
+                    <span>مصادقة ثنائية</span>
+                    <span class="badge-inactive">غير مفعلة</span>
+                </div>
+                <div class="security-item">
+                    <span>جلسات النشاط</span>
+                    <button class="btn-view">عرض</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- بطاقة التفضيلات -->
+        <div class="profile-card">
+            <h3>⚙️ التفضيلات</h3>
+            <div class="preferences">
+                <label class="pref-item">
+                    <input type="checkbox" checked>
+                    <span>إشعارات الإشارات الجديدة</span>
+                </label>
+                <label class="pref-item">
+                    <input type="checkbox" checked>
+                    <span>إشعارات البريد الإلكتروني</span>
+                </label>
+                <label class="pref-item">
+                    <input type="checkbox">
+                    <span>الوضع الداكن</span>
+                </label>
+                <label class="pref-item">
+                    <input type="checkbox" checked>
+                    <span>اللغة العربية</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- بطاقة الدعم -->
+        <div class="profile-card">
+            <h3>💬 الدعم والمساعدة</h3>
+            <div class="support-links">
+                <a href="#" class="support-link">📞 اتصل بنا</a>
+                <a href="#" class="support-link">📖 مركز المساعدة</a>
+                <a href="#" class="support-link">🐛 الإبلاغ عن مشكلة</a>
+                <a href="#" class="support-link">💡 اقتراح ميزة</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    flex-wrap: wrap;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    border: 3px solid white;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.profile-info h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+}
+
+.username {
+    opacity: 0.9;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.email {
+    opacity: 0.8;
+    margin: 0.2rem 0 0 0;
+    font-size: 0.9rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-logout {
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background: white;
+    color: #667eea;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card h3 {
+    color: #667eea;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.info-item {
+    padding: 0.8rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.info-item label {
+    display: block;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.info-item p {
+    margin: 0;
+    color: #333;
+}
+
+.btn-edit {
+    width: 100%;
+    padding: 0.7rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-edit:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+}
+
+.plan-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.plan-badge[data-plan="free"] {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.plan-badge[data-plan="bronze"] {
+    background: #fbe9e7;
+    color: #d84315;
+}
+
+.plan-badge[data-plan="silver"] {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.plan-badge[data-plan="gold"] {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.plan-details p {
+    margin: 0.5rem 0;
+    color: #666;
+}
+
+.plan-description {
+    font-size: 0.9rem;
+    color: #999;
+}
+
+.btn-upgrade {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-upgrade:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.security-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.security-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.security-item span {
+    font-weight: 500;
+    color: #333;
+}
+
+.btn-change, .btn-view {
+    padding: 0.4rem 0.8rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.btn-change:hover, .btn-view:hover {
+    background: #764ba2;
+}
+
+.badge-inactive {
+    padding: 0.3rem 0.8rem;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.preferences {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.pref-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+}
+
+.pref-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.support-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.support-link {
+    padding: 0.8rem;
+    background: #f5f5f5;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.support-link:hover {
+    background: #667eea;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 1rem;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .profile-info {
+        min-width: auto;
+    }
+    
+    .profile-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

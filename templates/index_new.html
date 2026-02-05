@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>📊 الإشارات</h3>
+        <div class="number" id="signals-count">0</div>
+        <p>إشارة محفوظة</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>🎯 التوصيات</h3>
+        <div class="number" id="recommendations-count">0</div>
+        <p>توصية نشطة</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>📈 التحليلات</h3>
+        <div class="number" id="analysis-count">0</div>
+        <p>تحليل متاح</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>👥 المشتركون</h3>
+        <div class="number" id="subscribers-count">0</div>
+        <p>مشترك نشط</p>
+    </div>
+</div>
+
+<!-- التوصيات المتقدمة -->
+<div class="signals-section">
+    <h2>🎯 أحدث التوصيات</h2>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('recommendations')">التوصيات</button>
+        <button class="tab-btn" onclick="showTab('signals')">الإشارات</button>
+        <button class="tab-btn" onclick="showTab('analysis')">التحليلات</button>
+    </div>
+    
+    <div id="recommendations-container" class="tab-content active recommendations-grid"></div>
+    <div id="signals-container" class="tab-content"></div>
+    <div id="analysis-container" class="tab-content"></div>
+</div>
+
+<div class="signals-section">
+    <h2>💳 اختر خطتك المفضلة</h2>
+    <div class="plans-grid">
+        <div class="plan-card">
+            <div class="plan-name">مجاني</div>
+            <div class="plan-price">0 $</div>
+            <ul class="plan-features">
+                <li>✓ توصيات جودة 90+</li>
+                <li>✓ 5 إشارات يومية</li>
+                <li>✓ تحليل أساسي</li>
+                <li>✗ بدون دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary">مجاني</button>
+        </div>
+        
+        <div class="plan-card">
+            <div class="plan-name">برونزي</div>
+            <div class="plan-price">9 $</div>
+            <ul class="plan-features">
+                <li>✓ توصيات جودة 80+</li>
+                <li>✓ 15 إشارة يومية</li>
+                <li>✓ تحليل متوسط</li>
+                <li>✓ دعم عادي</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+        
+        <div class="plan-card popular">
+            <div class="plan-name">فضي</div>
+            <div class="plan-price">29 $</div>
+            <ul class="plan-features">
+                <li>✓ توصيات جودة 70+</li>
+                <li>✓ 30 إشارة يومية</li>
+                <li>✓ تحليل متقدم (8 استراتيجيات)</li>
+                <li>✓ دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+        
+        <div class="plan-card">
+            <div class="plan-name">ذهبي</div>
+            <div class="plan-price">99 $</div>
+            <ul class="plan-features">
+                <li>✓ جميع التوصيات (50+ زوج)</li>
+                <li>✓ إشارات غير محدودة</li>
+                <li>✓ تحليل شامل كامل</li>
+                <li>✓ دعم VIP 24/7</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #333;
+}
+
+.tab-btn.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+@media (max-width: 1200px) {
+    .recommendations-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recommendation-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-left: 6px solid #007bff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+}
+
+.recommendation-card.buy {
+    border-left-color: #28a745;
+}
+
+.recommendation-card.sell {
+    border-left-color: #dc3545;
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.recommendation-symbol {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.recommendation-signal {
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.recommendation-signal.buy {
+    background: #28a745;
+}
+
+.recommendation-signal.sell {
+    background: #dc3545;
+}
+
+.recommendation-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.detail-item {
+    background: #f9fafb;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #eef2f7;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.quality-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.recommendation-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 6px;
+}
+
+.recommendation-time {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.quality-high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.quality-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.quality-low {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.analysis-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.strategies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.strategy-item {
+    padding: 8px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.strategy-buy {
+    background: #d4edda;
+    color: #155724;
+}
+
+.strategy-sell {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.strategy-hold {
+    background: #e2e3e5;
+    color: #383d41;
+}
+</style>
+
+<script>
+function showTab(tab) {
+    // إخفاء جميع التبويبات
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // إظهار التبويب المحدد
+    document.getElementById(tab + '-container').classList.add('active');
+    event.target.classList.add('active');
+}
+
+function updateStats() {
+    fetch('/api/stats')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('signals-count').textContent = data.signals_count || 0;
+            document.getElementById('recommendations-count').textContent = data.recommendations_count || 0;
+            document.getElementById('analysis-count').textContent = data.analysis_count || 0;
+            document.getElementById('subscribers-count').textContent = data.subscribers_count || 0;
+        });
+}
+
+function updateRecommendations() {
+    fetch('/api/recommendations')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('recommendations-container');
+            if (data.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">لا توجد توصيات حالياً</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(rec => `
+                <div class="recommendation-card ${rec.signal}">
+                    <div class="recommendation-header">
+                        <div class="recommendation-symbol">${rec.symbol}</div>
+                        <div class="recommendation-signal ${rec.signal}">${rec.signal.toUpperCase()}</div>
+                    </div>
+                    
+                    <div class="recommendation-details">
+                        <div class="detail-item">
+                            <div class="detail-label">💰 الدخول</div>
+                            <div class="detail-value">${rec.entry_price.toFixed(5)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🛡️ وقف الخسارة</div>
+                            <div class="detail-value">${rec.stop_loss.toFixed(5)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🎯 الهدف 1</div>
+                            <div class="detail-value">${rec.take_profit_1.toFixed(5)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🎯 الهدف 2</div>
+                            <div class="detail-value">${rec.take_profit_2.toFixed(5)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🎯 الهدف 3</div>
+                            <div class="detail-value">${rec.take_profit_3.toFixed(5)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">⏰ الإطار</div>
+                            <div class="detail-value">${rec.timeframe}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-footer">
+                        <span class="quality-badge ${rec.quality_score >= 80 ? 'quality-high' : rec.quality_score >= 65 ? 'quality-medium' : 'quality-low'}">
+                            ⭐ الجودة: ${rec.quality_score}/100
+                        </span>
+                        <span class="recommendation-time">📅 ${new Date(rec.timestamp).toLocaleString('ar-EG')}</span>
+                    </div>
+                </div>
+            `).join('');
+        });
+}
+
+function updateSignals() {
+    fetch('/api/signals')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('signals-container');
+            if (data.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">لا توجد إشارات حالياً</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(signal => `
+                <div class="signal-card">
+                    <h3>${signal.pair || signal.symbol}</h3>
+                    <p>الإشارة: ${signal.signal}</p>
+                    <p>الدخول: ${signal.entry || 'N/A'}</p>
+                    <p>الجودة: ${signal.quality_score || 'N/A'}/100</p>
+                </div>
+            `).join('');
+        });
+}
+
+function updateAnalysis() {
+    fetch('/api/analysis')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('analysis-container');
+            if (data.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">لا توجد تحليلات حالياً</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(analysis => {
+                const consensus = analysis.consensus || {};
+                const strategies = analysis.strategies_results || {};
+                
+                return `
+                    <div class="analysis-card">
+                        <h3>${analysis.symbol} - ${analysis.timeframe}</h3>
+                        <div style="margin: 15px 0;">
+                            <strong>الإجماع:</strong> 
+                            <span style="color: ${consensus.signal === 'buy' ? '#28a745' : consensus.signal === 'sell' ? '#dc3545' : '#666'}; font-size: 18px; font-weight: bold;">
+                                ${(consensus.signal || 'hold').toUpperCase()}
+                            </span>
+                            <span style="margin-left: 15px;">
+                                القوة: ${consensus.strength || 0}%
+                            </span>
+                        </div>
+                        
+                        <div class="strategies-grid">
+                            ${Object.entries(strategies).map(([name, data]) => `
+                                <div class="strategy-item strategy-${data.signal}">
+                                    ${name}: ${data.signal}
+                                    ${data.confidence ? ` (${data.confidence}%)` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                            📅 ${new Date(analysis.timestamp).toLocaleString('ar-EG')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+}
+
+// التحديث التلقائي
+setInterval(() => {
+    updateStats();
+    updateRecommendations();
+    updateSignals();
+    updateAnalysis();
+}, 5000);
+
+// التحديث عند التحميل
+updateStats();
+updateRecommendations();
+updateSignals();
+updateAnalysis();
+</script>
+{% endblock %}

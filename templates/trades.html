@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>متابعة الصفقات - GOLD PRO</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #111827;
+            --muted: #9ca3af;
+            --text: #e5e7eb;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --blue: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+            color: var(--text);
+            padding: 24px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { color: var(--muted); }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat .label { color: var(--muted); font-size: 14px; }
+        .stat .value { font-size: 22px; margin-top: 6px; font-weight: 700; }
+
+        .section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .section h2 { font-size: 20px; margin-bottom: 12px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+        th { color: var(--muted); font-weight: 600; }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .buy { background: rgba(16,185,129,0.15); color: var(--green); }
+        .sell { background: rgba(239,68,68,0.15); color: var(--red); }
+        .pos { color: var(--green); }
+        .neg { color: var(--red); }
+
+        .muted { color: var(--muted); }
+        .footer { text-align: center; color: var(--muted); margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="nav" style="background: rgba(17,24,39,0.9); padding: 14px 24px; display:flex; flex-wrap:wrap; gap:16px; border-radius: 12px; margin-bottom: 18px;">
+        <a href="/login" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الدخول</a>
+        <a href="/home" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الرئيسية</a>
+        <a href="/signals" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الإشارات</a>
+        <a href="/trades" style="color:#e5e7eb; text-decoration:none; font-weight:600;">متابعة الصفقات</a>
+        <a href="/plans" style="color:#e5e7eb; text-decoration:none; font-weight:600;">خطط الاشتراك</a>
+        <a href="/dashboard" style="color:#e5e7eb; text-decoration:none; font-weight:600;">لوحة التحكم</a>
+        <a href="/reports" style="color:#e5e7eb; text-decoration:none; font-weight:600;">التقارير</a>
+        <a href="/admin" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الأدمن</a>
+        <a href="/advanced-analyzer" style="color:#e5e7eb; text-decoration:none; font-weight:600;">المحلل العميق</a>
+        <a href="/forex-analyzer" style="color:#e5e7eb; text-decoration:none; font-weight:600;">محلل الفوركس</a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>لوحة متابعة الصفقات</h1>
+            <p>تحديث تلقائي كل 20 ثانية - عرض الصفقات النشطة والرابحة والخاسرة</p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat"><div class="label">إجمالي الصفقات</div><div class="value" id="total">0</div></div>
+            <div class="stat"><div class="label">نشطة</div><div class="value" id="active">0</div></div>
+            <div class="stat"><div class="label">رابحة</div><div class="value" id="winners">0</div></div>
+            <div class="stat"><div class="label">خاسرة</div><div class="value" id="losers">0</div></div>
+            <div class="stat"><div class="label">صافي الربح (%)</div><div class="value" id="net">0</div></div>
+        </div>
+
+        <div class="section">
+            <h2>الصفقات النشطة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الزوج</th>
+                        <th>الاتجاه</th>
+                        <th>الدخول</th>
+                        <th>الحالي</th>
+                        <th>الربح (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="active-body">
+                    <tr><td colspan="5" class="muted">جارٍ التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>الصفقات الرابحة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الزوج</th>
+                        <th>الاتجاه</th>
+                        <th>الربح (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="winners-body">
+                    <tr><td colspan="3" class="muted">جارٍ التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>الصفقات الخاسرة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الزوج</th>
+                        <th>الاتجاه</th>
+                        <th>الخسارة (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="losers-body">
+                    <tr><td colspan="3" class="muted">جارٍ التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer" id="timestamp"></div>
+    </div>
+
+    <script>
+        async function fetchTrades() {
+            try {
+                const res = await fetch('/api/trades_status');
+                const data = await res.json();
+
+                if (data.error) {
+                    document.getElementById('active-body').innerHTML = `<tr><td colspan="5" class="muted">${data.error}</td></tr>`;
+                    return;
+                }
+
+                const summary = data.summary || {};
+                document.getElementById('total').textContent = summary.total_trades ?? 0;
+                document.getElementById('active').textContent = summary.active ?? 0;
+                document.getElementById('winners').textContent = summary.winners ?? 0;
+                document.getElementById('losers').textContent = summary.losers ?? 0;
+                document.getElementById('net').textContent = summary.net_profit_percent ?? 0;
+
+                const active = data.active_trades || [];
+                const winners = (data.closed_trades && data.closed_trades.winners) || [];
+                const losers = (data.closed_trades && data.closed_trades.losers) || [];
+
+                const activeBody = document.getElementById('active-body');
+                activeBody.innerHTML = active.length
+                    ? active.map(t => `
+                        <tr>
+                            <td>${t.pair}</td>
+                            <td><span class="pill ${t.signal}">${t.signal.toUpperCase()}</span></td>
+                            <td>${t.entry}</td>
+                            <td>${t.current_price}</td>
+                            <td class="${t.profit_percent >= 0 ? 'pos' : 'neg'}">${t.profit_percent}</td>
+                        </tr>`).join('')
+                    : `<tr><td colspan="5" class="muted">لا توجد صفقات نشطة</td></tr>`;
+
+                const winnersBody = document.getElementById('winners-body');
+                winnersBody.innerHTML = winners.length
+                    ? winners.map(t => `
+                        <tr>
+                            <td>${t.pair}</td>
+                            <td><span class="pill ${t.signal}">${t.signal.toUpperCase()}</span></td>
+                            <td class="pos">${t.profit_percent}</td>
+                        </tr>`).join('')
+                    : `<tr><td colspan="3" class="muted">لا توجد صفقات رابحة</td></tr>`;
+
+                const losersBody = document.getElementById('losers-body');
+                losersBody.innerHTML = losers.length
+                    ? losers.map(t => `
+                        <tr>
+                            <td>${t.pair}</td>
+                            <td><span class="pill ${t.signal}">${t.signal.toUpperCase()}</span></td>
+                            <td class="neg">${t.profit_percent}</td>
+                        </tr>`).join('')
+                    : `<tr><td colspan="3" class="muted">لا توجد صفقات خاسرة</td></tr>`;
+
+                document.getElementById('timestamp').textContent = `آخر تحديث: ${data.timestamp || ''}`;
+            } catch (err) {
+                document.getElementById('active-body').innerHTML = `<tr><td colspan="5" class="muted">تعذر تحميل البيانات</td></tr>`;
+            }
+        }
+
+        fetchTrades();
+        setInterval(fetchTrades, 20000);
+    </script>
+</body>
+</html>

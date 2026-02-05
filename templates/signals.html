@@ -1,0 +1,1034 @@
+{% extends "base.html" %}
+
+{% block title %}الإشارات - نظام VIP{% endblock %}
+
+{% block content %}
+<script>
+    // تحديث الصفحة كل 30 ثانية لإزالة الصفقات المنتهية
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+
+    // تحديث السعر الحالي كل ثانية
+    setInterval(function() {
+        updatePrices();
+    }, 1000);
+    
+    // تحديث الحالة كل 20 ثانية
+    setInterval(function() {
+        updateStatus();
+    }, 20000);
+    
+    // دالة تحديث الأسعار
+    function updatePrices() {
+        fetch('/api/update_prices')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    data.signals.forEach(signal => {
+                        // تحديث السعر الحالي
+                        const priceElement = document.getElementById('current-price-' + signal.signal_id);
+                        if (priceElement && signal.current_price) {
+                            priceElement.textContent = signal.current_price.toFixed(5);
+                        }
+                        // تحديث النقاط
+                        const pipsElement = document.getElementById('pips-' + signal.signal_id);
+                        if (pipsElement && signal.pips !== undefined) {
+                            pipsElement.textContent = (signal.pips > 0 ? '+' : '') + signal.pips.toFixed(2) + ' نقطة';
+                            pipsElement.className = 'pips-display ' + (signal.pips > 0 ? 'pips-positive' : 'pips-negative');
+                        }
+                        // تحديث نسبة التقدم
+                        const progressElement = document.getElementById('progress-' + signal.signal_id);
+                        const progressBar = document.getElementById('progress-bar-' + signal.signal_id);
+                        if (progressElement && progressBar && signal.progress !== undefined) {
+                            progressElement.textContent = signal.progress + '%';
+                            progressBar.style.width = (signal.progress > 100 ? 100 : signal.progress) + '%';
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error updating prices:', error));
+    }
+
+    // دالة تحديث الحالة والملخص
+    function updateStatus() {
+        fetch('/api/trades_status')
+            .then(response => response.json())
+            .then(data => {
+                const summary = data.summary || {};
+                const total = summary.total_trades ?? 0;
+                const active = summary.active ?? 0;
+                const winners = summary.winners ?? 0;
+                const losers = summary.losers ?? 0;
+
+                const totalEl = document.getElementById('stat-total');
+                const activeEl = document.getElementById('stat-active');
+                const winnersEl = document.getElementById('stat-winners');
+                const losersEl = document.getElementById('stat-losers');
+
+                if (totalEl) totalEl.textContent = total;
+                if (activeEl) activeEl.textContent = active;
+                if (winnersEl) winnersEl.textContent = winners;
+                if (losersEl) losersEl.textContent = losers;
+
+                const winSet = new Set((data.closed_trades?.winners || []).map(t => `${t.pair}|${t.signal}`));
+                const lossSet = new Set((data.closed_trades?.losers || []).map(t => `${t.pair}|${t.signal}`));
+
+                document.querySelectorAll('.signal-card').forEach(card => {
+                    const key = `${card.dataset.symbol}|${card.dataset.signal}`;
+                    if (winSet.has(key) || lossSet.has(key)) {
+                        card.classList.add('signal-hidden');
+                    } else {
+                        card.classList.remove('signal-hidden');
+                    }
+                });
+            })
+            .catch(error => console.error('Error updating status:', error));
+    }
+</script>
+<script>
+// تحديث تلقائي كل 30 ثانية
+// (تم نقل هذا الكود للأعلى، لا داعي لتكراره)
+</script>
+<style>
+    body {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .signals-container {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 30px;
+    }
+    
+    .signal-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.98) 100%);
+        border-radius: 25px;
+        padding: 35px;
+        margin-bottom: 30px;
+        color: #1a202c;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        position: relative;
+        overflow: hidden;
+        /* Removed duplicate/conflicting CSS rules to fix 'at-rule or selector expected' error */
+    /* If you want a gradient background for a label, use a new class */
+    .field-label-gradient {
+        background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 20px;
+        border: 2px solid rgba(142, 197, 252, 0.3);
+    }
+    
+    .targets-title {
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .target-item {
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 5px solid #667eea;
+        transition: all 0.3s ease;
+    }
+    
+    .target-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        border-left-color: #38ef7d;
+    }
+    
+    .target-item span:first-child {
+        font-weight: 600;
+        color: #5a6c7d;
+        font-size: 16px;
+    }
+    
+    .signal-footer {
+        align-items: center;
+        padding-top: 20px;
+        border-top: 2px solid #e8eaf6;
+        font-size: 14px;
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+    
+    .signal-footer span {
+        display: flex;
+        align-items: center;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 800;
+        display: inline-block;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+
+    
+    .admin-badge {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        color: #5a6c7d;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .no-signals-icon {
+        font-size: 100px;
+        margin-bottom: 25px;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .no-signals h2 {
+        color: #2c3e50;
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+    
+    .no-signals p {
+        font-size: 18px;
+        line-height: 1.6;
+    }
+    
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+        margin-left: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeb99 100%);
+        color: #856404;
+        border: 2px solid rgba(255, 193, 7, 0.5);
+        box-shadow: 0 3px 12px rgba(255, 193, 7, 0.3);
+        animation: pulse-pending 2s infinite;
+        font-size: 13px;
+        font-weight: 800;
+    }
+    
+    @keyframes pulse-pending {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.02); }
+    }
+    
+    .status-active {
+        background: linear-gradient(135deg, #d4edda 0%, #a8e6a3 100%);
+        color: #155724;
+        border: 2px solid rgba(40, 167, 69, 0.5);
+        box-shadow: 0 3px 12px rgba(40, 167, 69, 0.4);
+        animation: glow-active 2s infinite;
+        font-size: 13px;
+        font-weight: 800;
+    }
+    
+    @keyframes glow-active {
+        0%, 100% { box-shadow: 0 3px 12px rgba(40, 167, 69, 0.4); }
+        50% { box-shadow: 0 5px 20px rgba(40, 167, 69, 0.6); }
+    }
+    
+    .status-closed {
+        background: linear-gradient(135deg, #606c88, #3f4c6b);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 4px 15px rgba(96, 108, 136, 0.4);
+    }
+    
+    .result-badge {
+        padding: 8px 18px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 800;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-left: 8px;
+    }
+    
+    .result-win {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 18px rgba(16, 185, 129, 0.6);
+        animation: win-pulse 1.5s infinite;
+        font-size: 14px;
+        font-weight: 900;
+    }
+    
+    @keyframes win-pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 4px 18px rgba(16, 185, 129, 0.6); }
+        50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.8); }
+    }
+    
+    .result-loss {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 18px rgba(239, 68, 68, 0.6);
+        font-size: 14px;
+        font-weight: 900;
+    }
+    
+    .live-price-section {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 20px;
+        border: 3px solid rgba(252, 182, 159, 0.5);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .live-price-title {
+        font-size: 19px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 10px;
+    }
+    
+    .price-comparison {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: center;
+        margin: 10px 0;
+        background: #ffffff;
+        padding: 10px 8px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        gap: 8px;
+    }
+    
+    .price-item {
+        text-align: center;
+        flex: 1 1 auto;
+        min-width: 70px;
+    }
+    
+    .price-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .price-value {
+        font-size: 13px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        padding: 5px 8px;
+        border-radius: 8px;
+        display: inline-block;
+        letter-spacing: 0.2px;
+        min-width: 60px;
+        max-width: 100%;
+        text-align: center;
+        word-break: break-all;
+        overflow-wrap: break-word;
+    }
+    
+    .entry-price {
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(127, 140, 141, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    .current-price {
+        animation: blink-price 2s infinite;
+    }
+    
+    .profit-price {
+        background: linear-gradient(135deg, #00b09b, #96c93d, #39ff14);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 176, 155, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        animation: glow-green 2s infinite;
+    }
+    
+    @keyframes glow-green {
+        0%, 100% { 
+            box-shadow: 0 8px 40px rgba(0, 176, 155, 0.8); 
+            transform: scale(1);
+        }
+        50% { 
+            box-shadow: 0 12px 60px rgba(57, 255, 20, 1); 
+            transform: scale(1.02);
+        }
+    }
+    
+    .loss-price {
+        background: linear-gradient(135deg, #eb3349, #f45c43, #ff6b35);
+        color: white;
+        box-shadow: 0 4px 20px rgba(235, 51, 73, 0.7);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        animation: glow-red 2s infinite;
+    }
+    
+    @keyframes glow-red {
+        0%, 100% { 
+            box-shadow: 0 8px 40px rgba(235, 51, 73, 0.8); 
+            transform: scale(1);
+        }
+        50% { 
+            box-shadow: 0 12px 60px rgba(255, 107, 53, 1); 
+            transform: scale(1.02);
+        }
+    }
+    
+    @keyframes blink-price {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.9; }
+    }
+    
+    .price-arrow {
+        font-size: 22px;
+        animation: bounce-arrow 1.5s infinite;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        margin: 0 8px;
+    }
+    
+    @keyframes bounce-arrow {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    .pips-section {
+        background: #ffffff;
+        padding: 6px;
+        border-radius: 6px;
+        margin: 6px 0;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    
+    .pips-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .pips-display {
+        font-size: 16px;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .target-achieved {
+        background: linear-gradient(135deg, #00b09b, #96c93d, #39ff14) !important;
+        box-shadow: 0 6px 25px rgba(0, 176, 155, 0.8) !important;
+        animation: target-glow 2s infinite;
+        position: relative;
+        border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    @keyframes target-glow {
+        0%, 100% { 
+            box-shadow: 0 6px 25px rgba(0, 176, 155, 0.8); 
+            transform: scale(1);
+        }
+        50% { 
+            box-shadow: 0 10px 40px rgba(57, 255, 20, 1); 
+            transform: scale(1.03);
+        }
+    }
+    
+    .target-achieved .field-value {
+        color: white !important;
+        font-weight: 800;
+    }
+    
+    .achievement-badge {
+        display: inline-block;
+        margin-right: 10px;
+        font-size: 20px;
+        color: #fff;
+        animation: badge-pulse 1.5s infinite;
+        filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.8));
+    }
+    
+    @keyframes badge-pulse {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.3) rotate(15deg); }
+    }
+    
+    .live-badge {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-right: auto;
+    }
+    
+    .progress-section {
+        margin-top: 20px;
+    }
+    
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .progress-percent {
+        font-size: 20px;
+        font-weight: 900;
+        color: #667eea;
+    }
+    
+    .progress-text {
+        font-size: 14px;
+        font-weight: 800;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border-left: 5px solid #667eea;
+    }
+    
+    .price-row span:first-child {
+        font-weight: 600;
+        color: #5a6c7d;
+        font-size: 16px;
+    }
+    
+    .pips-display {
+        font-size: 28px;
+        font-weight: 900;
+        font-family: 'Courier New', monospace;
+        padding: 5px 15px;
+        border-radius: 10px;
+    }
+    
+    .pips-positive {
+        color: #fff;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 30px rgba(46, 204, 113, 0.7);
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        animation: pulse-profit 1.5s infinite;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2, #38ef7d);
+        background-size: 200% 100%;
+        border-radius: 20px;
+        transition: width 0.8s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 900;
+        font-size: 16px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        animation: gradient-shift 3s infinite;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+    }
+    
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+     }
+    
+
+
+    .live-price-section {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-top: 20px;
+        border: 3px solid rgba(252, 182, 159, 0.5);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .live-price-section::before {
+        content: '⚡';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 60px;
+        opacity: 0.1;
+        animation: pulse-icon 2s infinite;
+    }
+
+
+
+    .live-price-title {
+        font-size: 19px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 10px;
+    }
+
+    .price-comparison {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+
+
+
+
+    .price-arrow {
+        font-size: 38px;
+        animation: bounce-arrow 1.5s infinite;
+        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+        margin: 0 15px;
+    }
+
+
+
+    .progress-section {
+        margin-top: 20px;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .progress-percent {
+        font-size: 20px;
+        font-weight: 900;
+        color: #667eea;
+    }
+
+    .progress-text {
+        font-size: 14px;
+        font-weight: 800;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+    }
+
+    .pips-display {
+        font-size: 36px;
+        font-weight: 900;
+        font-family: 'Courier New', monospace;
+        padding: 15px 30px;
+        border-radius: 15px;
+        display: inline-block;
+        min-width: 200px;
+        text-align: center;
+    }
+
+    .pips-positive {
+        color: #fff;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 30px rgba(46, 204, 113, 0.7);
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        animation: pulse-profit 1.5s infinite;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #3498db, #2ecc71);
+        border-radius: 15px;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+
+    .status-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin: 20px 0 30px;
+    }
+
+    .status-summary .stat {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .status-summary .stat .label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+
+    .status-summary .stat .value {
+        font-size: 22px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .signal-hidden {
+        display: none !important;
+    }
+</style>
+
+<div class="signals-container">
+    <h1 class="page-header">
+        📊 إشارات التداول المباشرة
+        <div style="font-size: 18px; margin-top: 10px; opacity: 0.9;">⏱️ تحديث تلقائي كل 30 ثانية</div>
+    </h1>
+
+    <div class="status-summary" id="status-summary">
+        <div class="stat"><div class="label">إجمالي الإشارات</div><div class="value" id="stat-total">0</div></div>
+        <div class="stat"><div class="label">نشطة</div><div class="value" id="stat-active">0</div></div>
+        <div class="stat"><div class="label">رابحة</div><div class="value" id="stat-winners">0</div></div>
+        <div class="stat"><div class="label">خاسرة</div><div class="value" id="stat-losers">0</div></div>
+    </div>
+    
+    {% if is_admin %}
+    <div class="admin-badge">
+        👑 أنت الأدمن - يمكنك رؤية جميع الإشارات ({{ signals|length }})
+    </div>
+    {% endif %}
+    
+    {% if signals %}
+        {% for signal in signals %}
+        <div class="signal-card {{ 'buy' if signal.signal_type == 'buy' else 'sell' }}" data-symbol="{{ signal.symbol }}" data-signal="{{ signal.signal_type }}">
+            
+            <!-- القسم الأول: جميع المعلومات الرئيسية في عمود واحد -->
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+                
+                <!-- اسم الزوج -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    <div style="font-size: 40px; font-weight: 900; color: white; letter-spacing: 1px;">{{ signal.symbol }}</div>
+                </div>
+                
+                <!-- نوع الصفقة -->
+
+                {#--- نوع الصفقة (Type) ---#}
+                {% set type_style = (
+                    'background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);'
+                    if signal.signal_type == 'buy' else
+                    'background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); box-shadow: 0 4px 15px rgba(235, 51, 73, 0.3);'
+                ) %}
+                <div style=" {{ type_style }}; padding: 18px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 800; color: white;">
+                        {{ '🔺 شراء BUY' if signal.signal_type == 'buy' else '🔻 بيع SELL' }}
+                    </div>
+                </div>
+
+                {#--- الحالة (Status) ---#}
+                {% set status_style = (
+                    'background: linear-gradient(135deg, #fff3cd 0%, #ffeb99 100%); box-shadow: 0 4px 15px rgba(255, 235, 153, 0.4); color: #856404;'
+                    if signal.status == 'pending' else
+                    'background: linear-gradient(135deg, #d4edda 0%, #a8e6a3 100%); box-shadow: 0 4px 15px rgba(168, 230, 163, 0.4); color: #155724;'
+                    if signal.status == 'active' else
+                    'background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%); box-shadow: 0 4px 15px rgba(214, 216, 219, 0.4); color: #383d41;'
+                ) %}
+                <div style="padding: 15px; border-radius: 12px; text-align: center; {{ status_style }}">
+                    <div style="font-size: 20px; font-weight: 700;">
+                        {% if signal.status == 'pending' %}
+                            ⏳ معلقة PENDING
+                        {% elif signal.status == 'active' %}
+                            ⚡ نشطة ACTIVE
+                        {% elif signal.status == 'closed' %}
+                            ☑️ مغلقة CLOSED
+                        {% endif %}
+                    </div>
+                </div>
+
+                {#--- النتيجة (Result) ---#}
+                {% if signal.result %}
+                    {% set result_style = (
+                        'background: linear-gradient(135deg, #10b981 0%, #34d399 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);'
+                        if signal.result == 'win' else
+                        'background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);'
+                    ) %}
+                    <div style="padding: 15px; border-radius: 12px; text-align: center; {{ result_style }}">
+                        <div style="font-size: 20px; font-weight: 700; color: white;">
+                            {% if signal.result == 'win' %}
+                                🏆 رابحة WIN
+                            {% elif signal.result == 'loss' %}
+                                ❌ خاسرة LOSS
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- التاريخ والوقت -->
+                <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); padding: 18px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);">
+                    <div style="font-size: 11px; font-weight: 700; color: #ecf0f1; margin-bottom: 8px; text-transform: uppercase;">📅 التاريخ والوقت</div>
+                    <div style="font-size: 18px; font-weight: 800; color: white; font-family: 'Consolas', monospace;">{{ signal.timestamp }}</div>
+                </div>
+                
+                <!-- الجودة -->
+                <div style="background: linear-gradient(135deg, #fff9e6 0%, #ffe4b3 100%); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);">
+                    <div style="font-size: 36px; margin-bottom: 5px;">⭐</div>
+                    <div style="font-size: 32px; font-weight: 900; color: #f39c12; line-height: 1;">{{ signal.quality_score }}</div>
+                    <div style="font-size: 12px; color: #7f8c8d; font-weight: 600; margin-top: 5px; text-transform: uppercase;">جودة الإشارة</div>
+                </div>
+            </div>
+            
+            <!-- القسم الثاني: معلومات التداول والأهداف - عمود واحد -->
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <!-- سعر الدخول -->
+                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 20px; border-radius: 12px; border-left: 5px solid #4caf50;">
+                    <div style="font-size: 11px; font-weight: 700; color: #2e7d32; margin-bottom: 8px; text-transform: uppercase;">💰 سعر الدخول</div>
+                    <div style="font-size: 24px; font-weight: 900; color: #1b5e20; font-family: 'Consolas', monospace;">{{ "%.5f"|format(signal.entry_price) }}</div>
+                </div>
+                
+                <!-- وقف الخسارة -->
+                <div style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 20px; border-radius: 12px; border-left: 5px solid #f44336;">
+                    <div style="font-size: 11px; font-weight: 700; color: #c62828; margin-bottom: 8px; text-transform: uppercase;">🛑 وقف الخسارة</div>
+                    <div style="font-size: 24px; font-weight: 900; color: #b71c1c; font-family: 'Consolas', monospace;">{{ "%.5f"|format(signal.stop_loss) }}</div>
+                </div>
+            
+            <!-- الأهداف -->
+            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%); padding: 20px; border-radius: 12px; border-left: 5px solid #3f51b5;">
+                <div style="font-size: 11px; font-weight: 700; color: #283593; margin-bottom: 15px; text-transform: uppercase;">🎯 الأهداف</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% if signal.take_profit_1 %}
+                        {% set tp1_border = '2px solid #10b981' if signal.tp1_locked else '2px solid #e0e0e0' %}
+                        {% set tp1_color = '#10b981' if signal.tp1_locked else '#2c3e50' %}
+                            <div class="target-item {% if signal.tp1_locked %}target-achieved{% endif %}"
+                                style="background: white; padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: {{ tp1_border }}">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px;">🥇</span>
+                                <span style="font-weight: 700; font-size: 13px; color: #2c3e50;">الهدف الأول</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px; font-weight: 900; font-family: 'Consolas', monospace; color: {{ tp1_color }};">{{ "%.5f"|format(signal.take_profit_1) }}</span>
+                                {% if signal.tp1_locked %}<span style="font-size: 20px;">🔒</span>{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if signal.take_profit_2 %}
+                        {% set tp2_border = '2px solid #10b981' if signal.tp2_locked else '2px solid #e0e0e0' %}
+                        {% set tp2_color = '#10b981' if signal.tp2_locked else '#2c3e50' %}
+                        <div class="target-item {% if signal.tp2_locked %}target-achieved{% endif %}"
+                             style="background: white; padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: {{ tp2_border }};">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px;">🥈</span>
+                                <span style="font-weight: 700; font-size: 13px; color: #2c3e50;">الهدف الثاني</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px; font-weight: 900; font-family: 'Consolas', monospace; color: {{ tp2_color }};">{{ "%.5f"|format(signal.take_profit_2) }}</span>
+                                {% if signal.tp2_locked %}<span style="font-size: 20px;">🔒</span>{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if signal.take_profit_3 %}
+                        {% set tp3_border = '2px solid #10b981' if signal.tp3_locked else '2px solid #e0e0e0' %}
+                        {% set tp3_color = '#10b981' if signal.tp3_locked else '#2c3e50' %}
+                        <div class="target-item {% if signal.tp3_locked %}target-achieved{% endif %}"
+                             style="background: white; padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: {{ tp3_border }};">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px;">🥉</span>
+                                <span style="font-weight: 700; font-size: 13px; color: #2c3e50;">الهدف الثالث</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px; font-weight: 900; font-family: 'Consolas', monospace; color: {{ tp3_color }};">{{ "%.5f"|format(signal.take_profit_3) }}</span>
+                                {% if signal.tp3_locked %}<span style="font-size: 20px;">🔒</span>{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            </div>
+            <!-- نهاية عمود معلومات التداول -->
+            
+            {% if signal.status == 'active' and signal.current_price %}
+            <div class="live-price-section">
+                <div class="live-price-title">
+                    <span>📊</span>
+                    <span>السعر الحالي والتقدم</span>
+                    <span class="live-badge">⚡ مباشر</span>
+                </div>
+                
+                <div class="price-comparison">
+                    <div class="price-item">
+                        <div class="price-label">💰 الدخول</div>
+                        <div class="price-value entry-price">{{ "%.5f"|format(signal.entry_price) }}</div>
+                    </div>
+                    <div class="price-arrow">
+                        {% if signal.pips > 0 %}⬆️{% else %}⬇️{% endif %}
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">📈 الحالي</div>
+                        <div id="current-price-{{ signal.signal_id }}" class="price-value current-price {{ 'profit-price' if signal.pips > 0 else 'loss-price' }}">{{ "%.5f"|format(signal.current_price) }}</div>
+                    </div>
+                </div>
+                
+                <div class="pips-section">
+                    <div class="pips-label">الربح/الخسارة</div>
+                    <div id="pips-{{ signal.signal_id }}" class="pips-display {{ 'pips-positive' if signal.pips > 0 else 'pips-negative' }}">
+                        {{ "+" if signal.pips > 0 else "" }}{{ "%.2f"|format(signal.pips) }} نقطة
+                    </div>
+                </div>
+                
+                {% if signal.progress > 0 %}
+                <div class="progress-section">
+                    <div class="progress-label">
+                        <span>🎯 التقدم نحو الهدف الأول</span>
+                        <span id="progress-{{ signal.signal_id }}" class="progress-percent">{{ signal.progress }}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar-{{ signal.signal_id }}" class="progress-bar" style="width: {{ signal.progress if signal.progress <= 100 else 100 }}%">
+                            <span class="progress-text">{{ signal.progress }}%</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% elif signal.status == 'closed' and signal.close_price %}
+            <div class="live-price-section">
+                <div class="live-price-title">
+                    <span>✓</span>
+                    <span>سعر الإغلاق</span>
+                    <span class="live-badge">مغلقة</span>
+                </div>
+                
+                <div class="price-comparison">
+                    <div class="price-item">
+                        <div class="price-label">💰 الدخول</div>
+                        <div class="price-value entry-price">{{ "%.5f"|format(signal.entry_price) }}</div>
+                    </div>
+                    <div class="price-arrow">→</div>
+                    <div class="price-item">
+                        <div class="price-label">✓ الإغلاق</div>
+                        <div class="price-value {{ 'profit-price' if signal.result == 'win' else 'loss-price' }}">{{ "%.5f"|format(signal.close_price) }}</div>
+                    </div>
+                </div>
+                
+                {% if signal.result %}
+                <div class="pips-section">
+                    <div class="pips-label" style="font-size: 8px; margin-bottom: 3px;">النتيجة النهائية</div>
+                    <div class="pips-display {{ 'pips-positive' if signal.result == 'win' else 'pips-negative' }}" style="font-size: 12px;">
+                        {{ '🎯 ربح' if signal.result == 'win' else '❌ خسارة' }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-signals">
+            <div class="no-signals-icon">📭</div>
+            <h2>لا توجد إشارات متاحة حالياً</h2>
+            <p>سيتم عرض الإشارات الجديدة هنا فور توفرها</p>
+            <p>التحديث التلقائي كل 30 ثانية</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// تحديث تلقائي كل 30 ثانية
+let countdown = 30;
+const countdownElement = document.createElement('div');
+countdownElement.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 9999; font-size: 16px;';
+document.body.appendChild(countdownElement);
+
+setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+        countdownElement.innerHTML = '🔄 جاري التحديث...';
+        location.reload();
+    } else {
+        countdownElement.innerHTML = `⏱️ التحديث بعد: ${countdown} ثانية`;
+    }
+}, 1000);
+
+// إضافة تأثير ظهور للبطاقات
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.signal-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

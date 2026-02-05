@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}الدفع - داخل الأردن{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- ملخص الطلب -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-shopping-cart"></i> ملخص الطلب</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>خطة {{ plan_data.name }}</h5>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-clock"></i> المدة: {{ plan_data.duration_days }} يوم
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-signal"></i> الإشارات: {{ plan_data.signals }} يومياً
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <h3 class="text-primary mb-0">{{ plan_data.price_jod }} JOD</h3>
+                            <small class="text-muted">(≈ ${{ plan_data.price }})</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- طرق الدفع -->
+            <div class="row g-4">
+                <!-- CliQ -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm payment-option" id="cliq-option">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-mobile-alt"></i> الدفع عبر CliQ (كليك)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="payment-details text-center mb-4">
+                                <div class="alert alert-light border">
+                                    <p class="mb-2"><strong>رقم الهاتف / الاسم المستعار:</strong></p>
+                                    <h4 class="text-primary mb-0">0796223334</h4>
+                                    <small class="text-muted">أو ابحث عن: GoldAnalyzer</small>
+                                </div>
+                                
+                                <div class="qr-code-placeholder my-4">
+                                    <div class="p-4 bg-light rounded">
+                                        <i class="fas fa-qrcode" style="font-size: 100px; color: #ccc;"></i>
+                                        <p class="mt-2 mb-0 small">امسح الرمز بتطبيق البنك</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="steps">
+                                <h6 class="text-muted mb-3">خطوات الدفع:</h6>
+                                <ol class="ps-3">
+                                    <li>افتح تطبيق البنك الخاص بك</li>
+                                    <li>اختر خدمة CliQ</li>
+                                    <li>أدخل الرقم: <strong>0796223334</strong></li>
+                                    <li>أدخل المبلغ: <strong>{{ plan_data.price_jod }} JOD</strong></li>
+                                    <li>أكمل العملية واحتفظ بإيصال التحويل</li>
+                                    <li>أدخل رقم العملية أدناه</li>
+                                </ol>
+                            </div>
+
+                            <button class="btn btn-info btn-lg w-100 mt-3" onclick="selectPaymentMethod('cliq')">
+                                <i class="fas fa-check-circle"></i> اختر CliQ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- حوالة بنكية -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm payment-option" id="bank-option">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-university"></i> حوالة بنكية / IBAN
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="payment-details mb-4">
+                                <div class="alert alert-light border mb-3">
+                                    <p class="mb-1"><strong>اسم المستفيد:</strong></p>
+                                    <p class="mb-0">Gold Analyzer Services</p>
+                                </div>
+                                
+                                <div class="alert alert-light border mb-3">
+                                    <p class="mb-1"><strong>رقم الحساب (IBAN):</strong></p>
+                                    <h6 class="mb-0 font-monospace">JO94CBJO0010000000000131000302</h6>
+                                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyIBAN()">
+                                        <i class="fas fa-copy"></i> نسخ
+                                    </button>
+                                </div>
+
+                                <div class="alert alert-light border">
+                                    <p class="mb-1"><strong>اسم البنك:</strong></p>
+                                    <p class="mb-0">البنك التجاري الأردني</p>
+                                </div>
+                            </div>
+
+                            <div class="steps">
+                                <h6 class="text-muted mb-3">خطوات الدفع:</h6>
+                                <ol class="ps-3">
+                                    <li>قم بزيارة فرع البنك أو استخدم الخدمات الإلكترونية</li>
+                                    <li>قم بتحويل <strong>{{ plan_data.price_jod }} JOD</strong></li>
+                                    <li>إلى الحساب المذكور أعلاه</li>
+                                    <li>احتفظ بإيصال التحويل</li>
+                                    <li>أدخل رقم العملية أدناه</li>
+                                </ol>
+                            </div>
+
+                            <button class="btn btn-success btn-lg w-100 mt-3" onclick="selectPaymentMethod('bank_transfer')">
+                                <i class="fas fa-check-circle"></i> اختر الحوالة البنكية
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج إدخال رقم العملية -->
+            <div class="card shadow mt-4" id="transaction-form" style="display: none;">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice"></i> تأكيد الدفع</h5>
+                </div>
+                <div class="card-body">
+                    <form id="paymentForm">
+                        <input type="hidden" id="selected-method" name="payment_method">
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>رقم العملية / المرجع:</strong></label>
+                            <input type="text" class="form-control form-control-lg" 
+                                   id="transaction_id" required
+                                   placeholder="أدخل رقم العملية من إيصال التحويل">
+                            <small class="form-text text-muted">
+                                هذا الرقم مطلوب للتحقق من الدفع
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">ملاحظات إضافية (اختياري):</label>
+                            <textarea class="form-control" id="notes" rows="2" 
+                                      placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>مهم:</strong> سيتم مراجعة طلبك خلال 1-24 ساعة. 
+                            ستصلك رسالة تأكيد على البريد الإلكتروني بعد التفعيل.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-paper-plane"></i> إرسال طلب الاشتراك
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedMethod = '';
+
+function selectPaymentMethod(method) {
+    selectedMethod = method;
+    document.getElementById('selected-method').value = method;
+    
+    // إظهار نموذج إدخال رقم العملية
+    document.getElementById('transaction-form').style.display = 'block';
+    
+    // Scroll to form
+    document.getElementById('transaction-form').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+    
+    // تسليط الضوء على الخيار المحدد
+    document.querySelectorAll('.payment-option').forEach(el => {
+        el.classList.remove('border-primary', 'border-3');
+    });
+    
+    if(method === 'cliq') {
+        document.getElementById('cliq-option').classList.add('border-primary', 'border-3');
+    } else {
+        document.getElementById('bank-option').classList.add('border-primary', 'border-3');
+    }
+}
+
+function copyIBAN() {
+    const iban = "JO94CBJO0010000000000131000302";
+    navigator.clipboard.writeText(iban).then(() => {
+        alert('تم نسخ رقم IBAN بنجاح!');
+    });
+}
+
+document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if(!selectedMethod) {
+        alert('الرجاء اختيار طريقة الدفع أولاً');
+        return;
+    }
+    
+    const transactionId = document.getElementById('transaction_id').value.trim();
+    if(!transactionId) {
+        alert('الرجاء إدخال رقم العملية');
+        return;
+    }
+    
+    const button = e.target.querySelector('button[type="submit"]');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+    
+    try {
+        const response = await fetch('/api/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plan: '{{ plan }}',
+                location: 'jordan',
+                payment_method: selectedMethod,
+                transaction_id: transactionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if(data.success) {
+            alert('✅ ' + data.message);
+            window.location.href = '/profile';
+        } else {
+            alert('❌ ' + (data.error || 'حدث خطأ'));
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب الاشتراك';
+        }
+    } catch(error) {
+        alert('حدث خطأ في الاتصال');
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب الاشتراك';
+    }
+});
+</script>
+
+<style>
+.payment-option {
+    transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.qr-code-placeholder {
+    background: white;
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+}
+
+.font-monospace {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.steps ol {
+    line-height: 2;
+}
+
+.steps li {
+    margin-bottom: 8px;
+}
+</style>
+{% endblock %}

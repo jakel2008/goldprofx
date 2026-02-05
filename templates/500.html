@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1 class="error-code">500</h1>
+        <h2 class="error-title">خطأ في الخادم</h2>
+        <p class="error-message">عذراً، حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقاً</p>
+        
+        <div class="error-suggestions">
+            <p>ماذا تفعل الآن؟</p>
+            <ul>
+                <li><a href="{{ url_for('index') }}">العودة إلى الرئيسية</a></li>
+                <li><a href="javascript:location.reload()">إعادة تحميل الصفحة</a></li>
+                <li><a href="#">التواصل مع الدعم</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    max-width: 600px;
+}
+
+.error-code {
+    font-size: 5rem;
+    color: #ff6b6b;
+    margin: 0;
+    font-weight: bold;
+    animation: shake 0.5s infinite;
+}
+
+.error-title {
+    font-size: 2rem;
+    color: #333;
+    margin: 1rem 0;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.error-suggestions {
+    background: #ffe6e6;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+}
+
+.error-suggestions p {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.error-suggestions ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.error-suggestions a {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: #ff6b6b;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.error-suggestions a:hover {
+    background: #ee5a52;
+    transform: translateY(-2px);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

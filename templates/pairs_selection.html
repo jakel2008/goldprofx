@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pairs-selection-container">
+    <h2>🎯 اختر الأزواج التي تريد تحليلها</h2>
+    <p class="description">اختر الأزواج والأصول التي تريد تلقي توصياتها وتحليلاتها</p>
+    
+    <div class="selection-summary">
+        <div class="summary-item">
+            <span class="summary-label">المختارة:</span>
+            <span id="selected-count" class="summary-value">0</span>
+        </div>
+        <button id="save-preferences-btn" class="btn btn-primary">💾 حفظ التفضيلات</button>
+        <button id="select-all-btn" class="btn btn-secondary">✓ تحديد الكل</button>
+        <button id="clear-all-btn" class="btn btn-secondary">✗ إلغاء التحديد</button>
+    </div>
+
+    <div id="categories-container"></div>
+    
+    <div class="save-section">
+        <button id="save-preferences-bottom-btn" class="btn btn-primary btn-large">💾 حفظ التفضيلات</button>
+    </div>
+</div>
+
+<style>
+    .pairs-selection-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .pairs-selection-container h2 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .description {
+        text-align: center;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .selection-summary {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .summary-item {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .summary-label {
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .summary-value {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    
+    .category-section {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .category-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .category-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-small {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .pairs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .pair-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+    
+    .pair-checkbox:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    .pair-checkbox.selected {
+        background: #e7f3ff;
+        border-color: #667eea;
+    }
+    
+    .pair-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .pair-label {
+        font-weight: 500;
+        color: #333;
+        cursor: pointer;
+        flex: 1;
+    }
+    
+    .btn-large {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        width: 100%;
+        max-width: 400px;
+        margin: 2rem auto;
+        display: block;
+    }
+    
+    .save-section {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .category-count {
+        font-size: 0.9rem;
+        color: #666;
+        margin-left: 0.5rem;
+    }
+</style>
+
+<script>
+    let selectedPairs = [];
+    let allPairs = {};
+    
+    // تحميل الأزواج المتاحة
+    async function loadAvailablePairs() {
+        try {
+            const response = await fetch('/api/available-pairs');
+            const data = await response.json();
+            allPairs = data;
+            renderPairs();
+        } catch (error) {
+            console.error('خطأ في تحميل الأزواج:', error);
+        }
+    }
+    
+    // تحميل التفضيلات المحفوظة
+    async function loadUserPreferences() {
+        try {
+            const response = await fetch('/api/user-pairs-preferences');
+            const data = await response.json();
+            if (data.success && data.pairs) {
+                selectedPairs = data.pairs;
+                updateCheckboxes();
+                updateSelectedCount();
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل التفضيلات:', error);
+        }
+    }
+    
+    // عرض الأزواج
+    function renderPairs() {
+        const container = document.getElementById('categories-container');
+        container.innerHTML = '';
+        
+        const categoryNames = {
+            'forex_major': '💱 أزواج الفوركس الرئيسية',
+            'forex_minor': '💱 أزواج الفوركس الثانوية',
+            'metals': '🥇 المعادن الثمينة',
+            'energy': '⚡ الطاقة',
+            'indices_us': '📊 المؤشرات الأمريكية',
+            'indices_europe': '📊 المؤشرات الأوروبية',
+            'indices_asia': '📊 المؤشرات الآسيوية',
+            'crypto': '₿ العملات الرقمية'
+        };
+        
+        for (const [category, pairs] of Object.entries(allPairs)) {
+            const section = document.createElement('div');
+            section.className = 'category-section';
+            
+            const pairsArray = Object.keys(pairs);
+            
+            section.innerHTML = `
+                <div class="category-header">
+                    <div>
+                        <span class="category-title">${categoryNames[category] || category}</span>
+                        <span class="category-count">(${pairsArray.length} زوج)</span>
+                    </div>
+                    <div class="category-actions">
+                        <button class="btn btn-small btn-secondary" onclick="selectCategory('${category}')">تحديد الكل</button>
+                        <button class="btn btn-small btn-secondary" onclick="deselectCategory('${category}')">إلغاء</button>
+                    </div>
+                </div>
+                <div class="pairs-grid" id="category-${category}"></div>
+            `;
+            
+            container.appendChild(section);
+            
+            const pairsGrid = document.getElementById(`category-${category}`);
+            pairsArray.forEach(pair => {
+                const pairDiv = document.createElement('div');
+                pairDiv.className = 'pair-checkbox';
+                pairDiv.innerHTML = `
+                    <input type="checkbox" id="pair-${pair}" value="${pair}" onchange="togglePair('${pair}')">
+                    <label for="pair-${pair}" class="pair-label">${pair}</label>
+                `;
+                pairsGrid.appendChild(pairDiv);
+            });
+        }
+        
+        updateCheckboxes();
+        updateSelectedCount();
+    }
+    
+    // تحديث حالة الـ checkboxes
+    function updateCheckboxes() {
+        document.querySelectorAll('.pair-checkbox input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = selectedPairs.includes(checkbox.value);
+            if (checkbox.checked) {
+                checkbox.parentElement.classList.add('selected');
+            } else {
+                checkbox.parentElement.classList.remove('selected');
+            }
+        });
+    }
+    
+    // تبديل اختيار زوج
+    function togglePair(pair) {
+        const index = selectedPairs.indexOf(pair);
+        if (index > -1) {
+            selectedPairs.splice(index, 1);
+        } else {
+            selectedPairs.push(pair);
+        }
+        updateCheckboxes();
+        updateSelectedCount();
+    }
+    
+    // تحديد فئة كاملة
+    function selectCategory(category) {
+        const pairs = Object.keys(allPairs[category]);
+        pairs.forEach(pair => {
+            if (!selectedPairs.includes(pair)) {
+                selectedPairs.push(pair);
+            }
+        });
+        updateCheckboxes();
+        updateSelectedCount();
+    }
+    
+    // إلغاء تحديد فئة
+    function deselectCategory(category) {
+        const pairs = Object.keys(allPairs[category]);
+        selectedPairs = selectedPairs.filter(p => !pairs.includes(p));
+        updateCheckboxes();
+        updateSelectedCount();
+    }
+    
+    // تحديد الكل
+    document.getElementById('select-all-btn').addEventListener('click', () => {
+        selectedPairs = [];
+        for (const pairs of Object.values(allPairs)) {
+            selectedPairs.push(...Object.keys(pairs));
+        }
+        updateCheckboxes();
+        updateSelectedCount();
+    });
+    
+    // إلغاء التحديد
+    document.getElementById('clear-all-btn').addEventListener('click', () => {
+        selectedPairs = [];
+        updateCheckboxes();
+        updateSelectedCount();
+    });
+    
+    // تحديث العداد
+    function updateSelectedCount() {
+        document.getElementById('selected-count').textContent = selectedPairs.length;
+    }
+    
+    // حفظ التفضيلات
+    async function savePreferences() {
+        try {
+            const response = await fetch('/api/save-pairs-preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    pairs: selectedPairs
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('✅ تم حفظ تفضيلاتك بنجاح!');
+            } else {
+                alert('❌ حدث خطأ: ' + (result.message || 'غير معروف'));
+            }
+        } catch (error) {
+            console.error('خطأ في حفظ التفضيلات:', error);
+            alert('❌ حدث خطأ في الاتصال');
+        }
+    }
+    
+    document.getElementById('save-preferences-btn').addEventListener('click', savePreferences);
+    document.getElementById('save-preferences-bottom-btn').addEventListener('click', savePreferences);
+    
+    // التحميل الأولي
+    loadAvailablePairs().then(() => loadUserPreferences());
+</script>
+{% endblock %}

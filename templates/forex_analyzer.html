@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Forex Analyzer PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.18.0.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+        }
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .results-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-height: 500px;
+        }
+        .btn-analyze {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        .btn-analyze:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.5);
+        }
+        .signal-badge {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .level-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid;
+        }
+        .level-entry { border-color: #3498db; }
+        .level-tp { border-color: #2ecc71; }
+        .level-sl { border-color: #e74c3c; }
+        .level-fib { border-color: #9b59b6; }
+        .level-support { border-color: #1abc9c; }
+        .level-resistance { border-color: #e67e22; }
+        .explanation-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            border-right: 4px solid #3498db;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner-border {
+            color: #3498db;
+        }
+        .form-select, .form-control {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        .form-select:focus, .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        .tradingview-btn {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 25px;
+        }
+        .tradingview-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="padding: 20px;">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Smart Forex Analyzer PRO
+                    </h1>
+                    <p class="text-muted mb-0">محلل فوركس احترافي متقدم - Advanced Forex Analysis System</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/admin-panel" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-right"></i> العودة
+                    </a>
+                    <button class="btn tradingview-btn" onclick="openTradingView()">
+                        <i class="fas fa-external-link-alt"></i> TradingView
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-brain"></i> الاستراتيجية | Strategy
+                    </label>
+                    <select class="form-select" id="strategySelect">
+                        <option value="Harmonic">Harmonic Patterns - الأنماط التوافقية</option>
+                        <option value="Elliott Wave">Elliott Wave - موجات إليوت</option>
+                        <option value="Head and Shoulders">Head & Shoulders - الرأس والكتفين</option>
+                        <option value="SMC">Smart Money Concepts - مفاهيم الأموال الذكية</option>
+                        <option value="ICT">Inner Circle Trading - ICT</option>
+                        <option value="IST">Institutional Trading - التداول المؤسسي</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-exchange-alt"></i> الزوج | Symbol
+                    </label>
+                    <select class="form-select" id="symbolSelect">
+                        <option value="EUR/USD">EUR/USD</option>
+                        <option value="USD/JPY">USD/JPY</option>
+                        <option value="GBP/USD">GBP/USD</option>
+                        <option value="USD/CHF">USD/CHF</option>
+                        <option value="AUD/USD">AUD/USD</option>
+                        <option value="USD/CAD">USD/CAD</option>
+                        <option value="NZD/USD">NZD/USD</option>
+                        <option value="XAU/USD">XAU/USD (Gold)</option>
+                        <option value="XAG/USD">XAG/USD (Silver)</option>
+                        <option value="BTC/USD">BTC/USD</option>
+                        <option value="ETH/USD">ETH/USD</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-clock"></i> الإطار الزمني | Interval
+                    </label>
+                    <select class="form-select" id="intervalSelect">
+                        <option value="1min">1 دقيقة | 1 Minute</option>
+                        <option value="5min">5 دقائق | 5 Minutes</option>
+                        <option value="15min">15 دقيقة | 15 Minutes</option>
+                        <option value="30min">30 دقيقة | 30 Minutes</option>
+                        <option value="1h" selected>1 ساعة | 1 Hour</option>
+                        <option value="4h">4 ساعات | 4 Hours</option>
+                        <option value="1day">يومي | Daily</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-analyze w-100" onclick="runAnalysis()">
+                        <i class="fas fa-play"></i> تشغيل التحليل | Run Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">جاري التحليل... Analyzing...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <div class="row">
+                <!-- Analysis Results -->
+                <div class="col-lg-5">
+                    <div class="results-card">
+                        <h4 class="mb-4">
+                            <i class="fas fa-list-check text-success"></i>
+                            نتائج التحليل | Analysis Results
+                        </h4>
+                        
+                        <!-- Signals -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">
+                                <i class="fas fa-signal"></i> الإشارات | Signals
+                            </h6>
+                            <div id="signalsContainer"></div>
+                        </div>
+
+                        <!-- Trade Setup -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">
+                                <i class="fas fa-bullseye"></i> إعداد الصفقة | Trade Setup
+                            </h6>
+                            <div id="tradeSetupContainer"></div>
+                        </div>
+
+                        <!-- Key Levels -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">
+                                <i class="fas fa-layer-group"></i> المستويات الرئيسية | Key Levels
+                            </h6>
+                            <div id="keyLevelsContainer"></div>
+                        </div>
+
+                        <!-- Fibonacci Levels -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">
+                                <i class="fas fa-chart-area"></i> مستويات فيبوناتشي | Fibonacci Levels
+                            </h6>
+                            <div id="fibonacciContainer"></div>
+                        </div>
+
+                        <!-- Explanation -->
+                        <div>
+                            <h6 class="fw-bold">
+                                <i class="fas fa-info-circle"></i> التفسير | Explanation
+                            </h6>
+                            <div class="explanation-box" id="explanationBox"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="col-lg-7">
+                    <div class="chart-container">
+                        <h4 class="mb-4">
+                            <i class="fas fa-chart-candlestick text-primary"></i>
+                            الرسم البياني | Price Chart
+                        </h4>
+                        <div id="chartDiv" style="width: 100%; height: 600px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function runAnalysis() {
+            const strategy = document.getElementById('strategySelect').value;
+            const symbol = document.getElementById('symbolSelect').value;
+            const interval = document.getElementById('intervalSelect').value;
+
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            // Call API
+            fetch('/api/forex-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    strategy: strategy,
+                    symbol: symbol,
+                    interval: interval
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+
+                if (data.success) {
+                    // البيانات موجودة في data.data
+                    const analysisData = data.data || data;
+                    displayResults(analysisData);
+                    document.getElementById('resultsSection').style.display = 'block';
+                } else {
+                    alert('خطأ: ' + (data.error || 'حدث خطأ غير معروف'));
+                }
+            })
+            .catch(error => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('خطأ في الاتصال: ' + error);
+            });
+        }
+
+        function displayResults(data) {
+            // Display signals
+            const signals = data.signals || data.signals_list || [];
+            const signalsHtml = signals.map(signal => 
+                `<span class="signal-badge">${signal}</span>`
+            ).join('');
+            document.getElementById('signalsContainer').innerHTML = signalsHtml || 'لا توجد إشارات';
+
+            // Display trade setup
+            const takeProfit = data.take_profit || [data.take_profit1, data.take_profit2, data.take_profit3].filter(x => x);
+            const tpList = takeProfit.map((tp, i) => 
+                `<div class="level-item level-tp">TP${i+1}: ${typeof tp === 'number' ? tp.toFixed(5) : tp}</div>`
+            ).join('');
+            
+            const entryPoint = data.entry_point || data.entry || 0;
+            const stopLoss = data.stop_loss || data.sl || 0;
+            
+            document.getElementById('tradeSetupContainer').innerHTML = `
+                <div class="level-item level-entry">
+                    <i class="fas fa-sign-in-alt"></i> نقطة الدخول | Entry: ${typeof entryPoint === 'number' ? entryPoint.toFixed(5) : entryPoint}
+                </div>
+                ${tpList}
+                <div class="level-item level-sl">
+                    <i class="fas fa-stop-circle"></i> وقف الخسارة | Stop Loss: ${typeof stopLoss === 'number' ? stopLoss.toFixed(5) : stopLoss}
+                </div>
+            `;
+
+            // Display key levels
+            const support = data.support || 0;
+            const pivot = data.pivot || 0;
+            const resistance = data.resistance || 0;
+            
+            document.getElementById('keyLevelsContainer').innerHTML = `
+                <div class="level-item level-support">
+                    <i class="fas fa-arrow-down"></i> الدعم | Support: ${typeof support === 'number' ? support.toFixed(5) : support}
+                </div>
+                <div class="level-item level-fib">
+                    <i class="fas fa-circle"></i> المحور | Pivot: ${typeof pivot === 'number' ? pivot.toFixed(5) : pivot}
+                </div>
+                <div class="level-item level-resistance">
+                    <i class="fas fa-arrow-up"></i> المقاومة | Resistance: ${typeof resistance === 'number' ? resistance.toFixed(5) : resistance}
+                </div>
+            `;
+
+            // Display Fibonacci levels
+            const fibLevels = data.fibonacci_levels || {};
+            const fibHtml = Object.entries(fibLevels).map(([level, price]) => 
+                `<div class="level-item level-fib">Fib ${level}: ${typeof price === 'number' ? price.toFixed(5) : price}</div>`
+            ).join('');
+            document.getElementById('fibonacciContainer').innerHTML = fibHtml || 'لا توجد مستويات فيبوناتشي';
+
+            // Display explanation
+            const explanation = data.explanation || data.analysis_text || 'لا يوجد شرح متاح';
+            document.getElementById('explanationBox').textContent = explanation;
+
+            // Draw chart
+            drawChart(data);
+        }
+
+        function drawChart(data) {
+            const chartData = data.chart_data || [];
+            
+            if (!chartData || chartData.length === 0) {
+                console.warn('No chart data available');
+                return;
+            }
+            
+            // Prepare candlestick data
+            const trace = {
+                x: chartData.dates || chartData.map(d => d.Date),
+                open: chartData.open || chartData.map(d => d.open),
+                high: chartData.high || chartData.map(d => d.high),
+                low: chartData.low || chartData.map(d => d.low),
+                close: chartData.close || chartData.map(d => d.close),
+                type: 'candlestick',
+                name: 'Price',
+                increasing: {line: {color: '#2ecc71'}},
+                decreasing: {line: {color: '#e74c3c'}}
+            };
+
+            // Add horizontal lines for levels
+            const shapes = [];
+            
+            const entryPoint = data.entry_point || 0;
+            const firstDate = chartData.dates ? chartData.dates[0] : chartData[0]?.Date;
+            const lastDate = chartData.dates ? chartData.dates[chartData.dates.length - 1] : chartData[chartData.length - 1]?.Date;
+            
+            // Entry point
+            if (entryPoint && firstDate && lastDate) {
+                shapes.push({
+                    type: 'line',
+                    x0: firstDate,
+                    x1: lastDate,
+                    y0: entryPoint,
+                    y1: entryPoint,
+                    line: {color: '#3498db', width: 2, dash: 'solid'},
+                    name: 'Entry'
+                });
+            }
+
+            // Take profit levels
+            const takeProfit = data.take_profit || [data.take_profit1, data.take_profit2, data.take_profit3].filter(x => x);
+            takeProfit.forEach((tp, i) => {
+                if (tp && firstDate && lastDate) {
+                    shapes.push({
+                        type: 'line',
+                        x0: firstDate,
+                        x1: lastDate,
+                        y0: tp,
+                        y1: tp,
+                        line: {color: '#2ecc71', width: 1.5, dash: 'dash'}
+                    });
+                }
+            });
+
+            // Stop loss
+            const stopLoss = data.stop_loss || data.sl;
+            if (stopLoss && firstDate && lastDate) {
+                shapes.push({
+                    type: 'line',
+                    x0: firstDate,
+                    x1: lastDate,
+                    y0: stopLoss,
+                    y1: stopLoss,
+                    line: {color: '#e74c3c', width: 2, dash: 'solid'}
+                });
+            }
+
+            // Support and Resistance
+            const support = data.support;
+            const resistance = data.resistance;
+            
+            if (support && firstDate && lastDate) {
+                shapes.push({
+                    type: 'line',
+                    x0: firstDate,
+                    x1: lastDate,
+                    y0: support,
+                    y1: support,
+                    line: {color: '#1abc9c', width: 1.5, dash: 'dot'}
+                });
+            }
+            
+            if (resistance && firstDate && lastDate) {
+                shapes.push({
+                    type: 'line',
+                    x0: firstDate,
+                    x1: lastDate,
+                    y0: resistance,
+                    y1: resistance,
+                    line: {color: '#e67e22', width: 1.5, dash: 'dot'}
+                });
+            }
+
+            const layout = {
+                title: {
+                    text: document.getElementById('symbolSelect').value + ' - ' + document.getElementById('intervalSelect').value,
+                    font: {size: 16}
+                },
+                xaxis: {
+                    rangeslider: {visible: false},
+                    type: 'date'
+                },
+                yaxis: {
+                    title: 'Price'
+                },
+                shapes: shapes,
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: 'white',
+                font: {family: 'Arial'},
+                showlegend: false
+            };
+
+            Plotly.newPlot('chartDiv', [trace], layout, {responsive: true});
+        }
+
+        function openTradingView() {
+            const symbol = document.getElementById('symbolSelect').value.replace('/', '');
+            const interval = document.getElementById('intervalSelect').value;
+            
+            const intervalMap = {
+                '1min': '1',
+                '5min': '5',
+                '15min': '15',
+                '30min': '30',
+                '1h': '60',
+                '4h': '240',
+                '1day': '1D'
+            };
+            
+            const tvInterval = intervalMap[interval] || '60';
+            const url = `https://www.tradingview.com/chart/?symbol=${symbol}&interval=${tvInterval}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

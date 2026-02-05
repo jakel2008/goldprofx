@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬🌍MONEY MAKER IRAQ🌍☬ - المحلل المتقدم</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin: 0;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+        
+        .recommendation-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .rec-buy-strong {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .rec-buy {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .rec-neutral {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .rec-sell {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .rec-sell-strong {
+            background: linear-gradient(135deg, #c0392b, #922b21);
+            color: white;
+        }
+        
+        .signal-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-right: 4px solid #667eea;
+        }
+        
+        .level-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: #e8f4f8;
+            border-radius: 5px;
+        }
+        
+        .level-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .level-value {
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .btn-analyze {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none;
+            margin-right: 10px;
+        }
+        
+        .btn-share {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            margin-right: 10px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner.active {
+            display: block;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .confidence-high {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .confidence-medium {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .confidence-low {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .fib-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .fib-level {
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #e8f4f8, #d4e6f1);
+            border: 1px solid #3498db;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="header text-center">
+            <h1>☬🌍 MONEY MAKER IRAQ 🌍☬</h1>
+            <p class="text-white mb-0">المحلل الفني المتقدم - Advanced Technical Analyzer</p>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h3 class="mb-4"><i class="bi bi-gear-fill"></i> لوحة التحكم</h3>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">اختر الزوج</label>
+                    <select class="form-select" id="symbolSelect">
+                        <option value="EUR/USD">EUR/USD</option>
+                        <option value="USD/JPY">USD/JPY</option>
+                        <option value="GBP/USD">GBP/USD</option>
+                        <option value="USD/CHF">USD/CHF</option>
+                        <option value="AUD/USD">AUD/USD</option>
+                        <option value="USD/CAD">USD/CAD</option>
+                        <option value="NZD/USD">NZD/USD</option>
+                        <option value="XAU/USD">XAU/USD - الذهب</option>
+                        <option value="XAG/USD">XAG/USD - الفضة</option>
+                        <option value="BTC/USD">BTC/USD - بيتكوين</option>
+                        <option value="ETH/USD">ETH/USD - إيثيريوم</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الفترة الزمنية</label>
+                    <select class="form-select" id="intervalSelect">
+                        <option value="1min">1 دقيقة</option>
+                        <option value="5min">5 دقائق</option>
+                        <option value="15min">15 دقيقة</option>
+                        <option value="30min">30 دقيقة</option>
+                        <option value="1h" selected>1 ساعة</option>
+                        <option value="4h">4 ساعات</option>
+                        <option value="1day">يوم واحد</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">الاستراتيجية</label>
+                    <select class="form-select" id="strategySelect">
+                        <option value="harmonic">Harmonic Patterns</option>
+                        <option value="elliott">Elliott Wave</option>
+                        <option value="head_shoulders">Head & Shoulders</option>
+                        <option value="smc">Smart Money Concepts</option>
+                        <option value="ict">Inner Circle Trading</option>
+                        <option value="ist">Institutional Trading</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary btn-analyze w-100" onclick="runAnalysis()">
+                        <i class="bi bi-play-circle-fill"></i> تحليل
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-light" role="status" style="width: 4rem; height: 4rem;">
+                <span class="visually-hidden">جاري التحليل...</span>
+            </div>
+            <h4 class="text-white mt-3">جاري تحليل البيانات...</h4>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <!-- Recommendation Box -->
+            <div id="recommendationBox"></div>
+            
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#signalsTab">
+                        <i class="bi bi-bar-chart-line"></i> الإشارات
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#levelsTab">
+                        <i class="bi bi-layers"></i> المستويات
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#chartTab">
+                        <i class="bi bi-graph-up"></i> الرسم البياني
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#fibonacciTab">
+                        <i class="bi bi-diagram-3"></i> فيبوناتشي
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content">
+                <!-- Signals Tab -->
+                <div class="tab-pane fade show active" id="signalsTab">
+                    <div class="analysis-section">
+                        <h4><i class="bi bi-bar-chart-line"></i> الإشارات والتوصيات</h4>
+                        <div id="signalsContent"></div>
+                    </div>
+                </div>
+                
+                <!-- Levels Tab -->
+                <div class="tab-pane fade" id="levelsTab">
+                    <div class="analysis-section">
+                        <h4><i class="bi bi-layers"></i> المستويات الهامة</h4>
+                        <div id="levelsContent"></div>
+                    </div>
+                </div>
+                
+                <!-- Chart Tab -->
+                <div class="tab-pane fade" id="chartTab">
+                    <div class="analysis-section">
+                        <h4><i class="bi bi-graph-up"></i> الرسم البياني التفاعلي</h4>
+                        <div class="chart-container">
+                            <div id="chartContent" style="width: 100%; height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fibonacci Tab -->
+                <div class="tab-pane fade" id="fibonacciTab">
+                    <div class="analysis-section">
+                        <h4><i class="bi bi-diagram-3"></i> مستويات فيبوناتشي</h4>
+                        <div id="fibonacciContent"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="text-center mt-4 mb-5">
+                <button class="btn btn-export btn-lg" onclick="exportSignal()">
+                    <i class="bi bi-download"></i> تصدير الإشارة
+                </button>
+                <button class="btn btn-success btn-lg" onclick="publishToRecommendations()">
+                    <i class="bi bi-megaphone"></i> نشر على التوصيات
+                </button>
+                <button class="btn btn-info btn-lg" onclick="sendToTelegram()">
+                    <i class="bi bi-send"></i> إرسال للبوت
+                </button>
+                <button class="btn btn-share btn-lg" onclick="shareWhatsApp()">
+                    <i class="bi bi-whatsapp"></i> مشاركة واتساب
+                </button>
+                <button class="btn btn-share btn-lg" onclick="shareTelegram()">
+                    <i class="bi bi-telegram"></i> مشاركة تلجرام
+                </button>
+                <a href="/admin-panel" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-arrow-right"></i> العودة للوحة التحكم
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentAnalysisData = null;
+        
+        async function runAnalysis() {
+            const symbol = document.getElementById('symbolSelect').value;
+            const interval = document.getElementById('intervalSelect').value;
+            const strategy = document.getElementById('strategySelect').value;
+            
+            // Show loading
+            document.getElementById('loadingSpinner').classList.add('active');
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/advanced-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        interval: interval,
+                        strategy: strategy
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentAnalysisData = result.data;
+                    displayResults(result.data);
+                } else {
+                    alert('خطأ في التحليل: ' + (result.error || 'حدث خطأ غير متوقع'));
+                }
+            } catch (error) {
+                alert('خطأ في الاتصال: ' + error.message);
+            } finally {
+                document.getElementById('loadingSpinner').classList.remove('active');
+            }
+        }
+        
+        function displayResults(data) {
+            // Display recommendation
+            displayRecommendation(data);
+            
+            // Display signals
+            displaySignals(data);
+            
+            // Display levels
+            displayLevels(data);
+            
+            // Display chart
+            displayChart(data);
+            
+            // Display Fibonacci
+            displayFibonacci(data);
+            
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+        
+        function displayRecommendation(data) {
+            const recBox = document.getElementById('recommendationBox');
+            const signal = data.signal || 'NEUTRAL';
+            const explanation = data.explanation || 'لا توجد توصية';
+            
+            let className = 'rec-neutral';
+            let icon = '⚪';
+            
+            if (signal.includes('BUY') || signal.includes('شراء')) {
+                className = signal.includes('قوي') ? 'rec-buy-strong' : 'rec-buy';
+                icon = '🟢';
+            } else if (signal.includes('SELL') || signal.includes('بيع')) {
+                className = signal.includes('قوي') ? 'rec-sell-strong' : 'rec-sell';
+                icon = '🔴';
+            }
+            
+            recBox.innerHTML = `
+                <div class="recommendation-box ${className}">
+                    ${icon} التوصية: ${signal}
+                    <div class="mt-2" style="font-size: 0.9em; opacity: 0.9;">
+                        ${explanation}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displaySignals(data) {
+            const container = document.getElementById('signalsContent');
+            const explanation = data.explanation || 'لا توجد معلومات';
+            
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h5>📊 السعر الحالي</h5>
+                    <div class="signal-item">
+                        <strong>${data.entry_point ? data.entry_point.toFixed(5) : 'N/A'}</strong>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>🎯 نقاط جني الأرباح</h5>
+                    <div class="signal-item">TP1: ${data.take_profit1 ? data.take_profit1.toFixed(5) : 'N/A'}</div>
+                    <div class="signal-item">TP2: ${data.take_profit2 ? data.take_profit2.toFixed(5) : 'N/A'}</div>
+                    <div class="signal-item">TP3: ${data.take_profit3 ? data.take_profit3.toFixed(5) : 'N/A'}</div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>🛑 وقف الخسارة</h5>
+                    <div class="signal-item text-danger fw-bold">
+                        SL: ${data.stop_loss ? data.stop_loss.toFixed(5) : 'N/A'}
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>📝 التحليل الشامل</h5>
+                    <div class="alert alert-info" style="max-height: 600px; overflow-y: auto; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; text-align: right;">
+                        ${explanation}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayLevels(data) {
+            const container = document.getElementById('levelsContent');
+            
+            container.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>📈 مستويات الدعم</h5>
+                        <div class="level-item">
+                            <span class="level-label">الدعم الأول</span>
+                            <span class="level-value">${data.support ? data.support.toFixed(5) : 'N/A'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>📉 مستويات المقاومة</h5>
+                        <div class="level-item">
+                            <span class="level-label">المقاومة الأولى</span>
+                            <span class="level-value">${data.resistance ? data.resistance.toFixed(5) : 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h5>🎯 نقطة الارتكاز</h5>
+                    <div class="level-item">
+                        <span class="level-label">Pivot Point</span>
+                        <span class="level-value">${data.pivot ? data.pivot.toFixed(5) : 'N/A'}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayChart(data) {
+            if (!data.chart_data || !data.chart_data.dates || !data.chart_data.close) {
+                document.getElementById('chartContent').innerHTML = '<p class="text-muted text-center">لا توجد بيانات للرسم البياني</p>';
+                return;
+            }
+            
+            const trace = {
+                x: data.chart_data.dates,
+                close: data.chart_data.close,
+                high: data.chart_data.high,
+                low: data.chart_data.low,
+                open: data.chart_data.open,
+                type: 'candlestick',
+                increasing: {line: {color: '#2ecc71'}},
+                decreasing: {line: {color: '#e74c3c'}},
+                name: 'السعر'
+            };
+            
+            const layout = {
+                title: 'الرسم البياني',
+                xaxis: {title: 'التاريخ'},
+                yaxis: {title: 'السعر'},
+                height: 500
+            };
+            
+            Plotly.newPlot('chartContent', [trace], layout);
+        }
+        
+        function displayFibonacci(data) {
+            const container = document.getElementById('fibonacciContent');
+            const fibLevels = data.fibonacci_levels || {};
+            
+            let html = '<div class="fib-levels">';
+            
+            for (const [level, price] of Object.entries(fibLevels)) {
+                html += `
+                    <div class="fib-level">
+                        <div class="fw-bold">${level}</div>
+                        <div class="text-primary">${price.toFixed(5)}</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        async function exportSignal() {
+            if (!currentAnalysisData) {
+                alert('لا توجد بيانات للتصدير');
+                return;
+            }
+            
+            const symbol = document.getElementById('symbolSelect').value;
+            const interval = document.getElementById('intervalSelect').value;
+            
+            try {
+                const response = await fetch('/api/export-trading-signal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        interval: interval,
+                        trade_type: currentAnalysisData.signal || 'NEUTRAL',
+                        entry_price: currentAnalysisData.entry_point,
+                        take_profit: [
+                            currentAnalysisData.take_profit1,
+                            currentAnalysisData.take_profit2,
+                            currentAnalysisData.take_profit3
+                        ],
+                        stop_loss: currentAnalysisData.stop_loss,
+                        confidence: 'MEDIUM',
+                        recommendation: currentAnalysisData.explanation
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('تم تصدير الإشارة بنجاح: ' + result.filename);
+                } else {
+                    alert('خطأ في التصدير: ' + result.error);
+                }
+            } catch (error) {
+                alert('خطأ في الاتصال: ' + error.message);
+            }
+        }
+        
+        function shareWhatsApp() {
+            if (!currentAnalysisData) {
+                alert('لا توجد بيانات للمشاركة');
+                return;
+            }
+            
+            const symbol = document.getElementById('symbolSelect').value;
+            const text = `
+📊 MONEY MAKER - تحليل ${symbol}
+
+✅ التوصية: ${currentAnalysisData.signal || 'N/A'}
+💰 السعر: ${currentAnalysisData.entry_point ? currentAnalysisData.entry_point.toFixed(5) : 'N/A'}
+
+🎯 جني الأرباح:
+TP1: ${currentAnalysisData.take_profit1 ? currentAnalysisData.take_profit1.toFixed(5) : 'N/A'}
+TP2: ${currentAnalysisData.take_profit2 ? currentAnalysisData.take_profit2.toFixed(5) : 'N/A'}
+TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFixed(5) : 'N/A'}
+
+🛑 وقف الخسارة: ${currentAnalysisData.stop_loss ? currentAnalysisData.stop_loss.toFixed(5) : 'N/A'}
+
+#فوركس #تداول #تحليل_فني
+            `;
+            
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        function shareTelegram() {
+            if (!currentAnalysisData) {
+                alert('لا توجد بيانات للمشاركة');
+                return;
+            }
+            
+            const symbol = document.getElementById('symbolSelect').value;
+            const text = `
+📊 MONEY MAKER - تحليل ${symbol}
+
+✅ التوصية: ${currentAnalysisData.signal || 'N/A'}
+💰 السعر: ${currentAnalysisData.entry_point ? currentAnalysisData.entry_point.toFixed(5) : 'N/A'}
+
+🎯 جني الأرباح:
+TP1: ${currentAnalysisData.take_profit1 ? currentAnalysisData.take_profit1.toFixed(5) : 'N/A'}
+TP2: ${currentAnalysisData.take_profit2 ? currentAnalysisData.take_profit2.toFixed(5) : 'N/A'}
+TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFixed(5) : 'N/A'}
+
+🛑 وقف الخسارة: ${currentAnalysisData.stop_loss ? currentAnalysisData.stop_loss.toFixed(5) : 'N/A'}
+            `;
+            
+            const url = `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        function publishToRecommendations() {
+            if (!currentAnalysisData) {
+                alert('الرجاء إجراء التحليل أولاً');
+                return;
+            }
+            
+            if (!confirm('هل تريد نشر هذا التحليل على صفحة التوصيات؟')) {
+                return;
+            }
+            
+            fetch('/api/publish-to-recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: document.getElementById('symbol').value,
+                    recommendation: currentAnalysisData.recommendation || currentAnalysisData.signal,
+                    entry_point: currentAnalysisData.entry_point,
+                    tp1: currentAnalysisData.take_profit1,
+                    tp2: currentAnalysisData.take_profit2,
+                    tp3: currentAnalysisData.take_profit3,
+                    stop_loss: currentAnalysisData.stop_loss,
+                    analysis_text: currentAnalysisData.analysis_text || '',
+                    confidence: currentAnalysisData.confidence || '',
+                    interval: document.getElementById('interval').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ تم النشر على صفحة التوصيات بنجاح!');
+                } else {
+                    alert('❌ حدث خطأ: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('❌ خطأ في الاتصال: ' + error);
+            });
+        }
+        
+        function sendToTelegram() {
+            if (!currentAnalysisData) {
+                alert('الرجاء إجراء التحليل أولاً');
+                return;
+            }
+            
+            if (!confirm('هل تريد إرسال هذا التحليل للبوت؟')) {
+                return;
+            }
+            
+            fetch('/api/send-to-telegram', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: document.getElementById('symbol').value,
+                    recommendation: currentAnalysisData.recommendation || currentAnalysisData.signal,
+                    entry_point: currentAnalysisData.entry_point,
+                    tp1: currentAnalysisData.take_profit1,
+                    tp2: currentAnalysisData.take_profit2,
+                    tp3: currentAnalysisData.take_profit3,
+                    stop_loss: currentAnalysisData.stop_loss,
+                    confidence: currentAnalysisData.confidence || '',
+                    interval: document.getElementById('interval').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ تم إرسال التحليل للبوت بنجاح!');
+                } else {
+                    alert('❌ حدث خطأ: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('❌ خطأ في الاتصال: ' + error);
+            });
+        }
+        
+        // Run initial analysis on load
+        window.onload = function() {
+            runAnalysis();
+        };
+    </script>
+</body>
+</html>

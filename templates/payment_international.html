@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}الدفع الدولي - International Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- ملخص الطلب -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-globe"></i> International Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ plan_data.name }} Plan</h5>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-clock"></i> Duration: {{ plan_data.duration_days }} days
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-signal"></i> Signals: {{ plan_data.signals }}/day
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <h3 class="text-success mb-0">${{ plan_data.price }} USD</h3>
+                            <small class="text-muted">One-time payment</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- طرق الدفع -->
+            <div class="row g-4">
+                <!-- Visa/Mastercard via Stripe -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm payment-option" id="card-option">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fab fa-cc-visa"></i>
+                                <i class="fab fa-cc-mastercard"></i>
+                                Credit/Debit Card
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <div class="payment-icons mb-3">
+                                    <i class="fab fa-cc-visa fa-3x text-primary mx-2"></i>
+                                    <i class="fab fa-cc-mastercard fa-3x text-danger mx-2"></i>
+                                    <i class="fab fa-cc-amex fa-3x text-info mx-2"></i>
+                                </div>
+                                <p class="text-muted">Secure payment powered by Stripe</p>
+                            </div>
+
+                            <div class="features mb-4">
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    Instant activation
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    100% secure payment
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    SSL encryption
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    No extra fees
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    Your subscription will be activated immediately after payment
+                                </small>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg w-100" onclick="selectPaymentMethod('visa')">
+                                <i class="fas fa-credit-card"></i> Pay with Card
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cryptocurrency -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm payment-option" id="crypto-option">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fab fa-bitcoin"></i> Cryptocurrency
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <div class="payment-icons mb-3">
+                                    <i class="fab fa-bitcoin fa-3x text-warning mx-1"></i>
+                                    <i class="fab fa-ethereum fa-3x text-primary mx-1"></i>
+                                    <span class="badge bg-success fs-5 mx-1">USDT</span>
+                                </div>
+                                <p class="text-muted">Bitcoin, Ethereum, USDT & more</p>
+                            </div>
+
+                            <div class="features mb-4">
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    Anonymous payment
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    Low transaction fees
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    Blockchain secured
+                                </div>
+                                <div class="feature-item mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    Multiple coins accepted
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <small>
+                                    <i class="fas fa-clock"></i>
+                                    Activation after blockchain confirmation (5-30 mins)
+                                </small>
+                            </div>
+
+                            <button class="btn btn-warning btn-lg w-100 text-dark" onclick="selectPaymentMethod('crypto')">
+                                <i class="fab fa-bitcoin"></i> Pay with Crypto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stripe Payment Form -->
+            <div class="card shadow mt-4" id="stripe-form" style="display: none;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Card Payment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Coming Soon!</strong> Stripe integration is being configured. 
+                        For now, please contact support at <strong>mahmoodalqaise750@gmail.com</strong>
+                    </div>
+                    
+                    <form id="stripePaymentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Card Holder Name</label>
+                            <input type="text" class="form-control" placeholder="John Doe" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" placeholder="4242 4242 4242 4242" 
+                                   maxlength="19" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" placeholder="MM/YY" 
+                                       maxlength="5" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" placeholder="123" 
+                                       maxlength="4" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email for Receipt</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" required>
+                        </div>
+
+                        <button type="button" class="btn btn-secondary w-100" onclick="contactSupport('visa')">
+                            <i class="fas fa-envelope"></i> Contact Support for Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Crypto Payment Form -->
+            <div class="card shadow mt-4" id="crypto-form" style="display: none;">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fab fa-bitcoin"></i> Cryptocurrency Payment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Coming Soon!</strong> Cryptocurrency payment integration is being configured.
+                        For now, please contact support at <strong>mahmoodalqaise750@gmail.com</strong>
+                    </div>
+
+                    <div class="crypto-options mb-4">
+                        <h6 class="mb-3">Select Cryptocurrency:</h6>
+                        <div class="btn-group w-100 mb-3" role="group">
+                            <input type="radio" class="btn-check" name="crypto-type" id="btc" checked>
+                            <label class="btn btn-outline-warning" for="btc">
+                                <i class="fab fa-bitcoin"></i> Bitcoin
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="crypto-type" id="eth">
+                            <label class="btn btn-outline-primary" for="eth">
+                                <i class="fab fa-ethereum"></i> Ethereum
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="crypto-type" id="usdt">
+                            <label class="btn btn-outline-success" for="usdt">
+                                USDT
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="payment-address text-center mb-4">
+                        <div class="qr-placeholder mb-3 p-4 bg-light rounded">
+                            <i class="fas fa-qrcode" style="font-size: 100px; color: #ccc;"></i>
+                            <p class="mt-2 mb-0">Scan to pay</p>
+                        </div>
+                        
+                        <div class="alert alert-dark">
+                            <p class="mb-1"><strong>Wallet Address:</strong></p>
+                            <code class="d-block">Will be provided after setup</code>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Transaction Hash:</label>
+                            <input type="text" class="form-control" id="tx-hash" 
+                                   placeholder="Enter transaction hash after payment">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary w-100" onclick="contactSupport('crypto')">
+                        <i class="fas fa-envelope"></i> Contact Support for Payment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alternative: Contact Support -->
+            <div class="card shadow mt-4">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-headset"></i> Need Help?</h5>
+                    <p class="text-muted mb-3">Contact our support team for payment assistance</p>
+                    <a href="mailto:mahmoodalqaise750@gmail.com" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i> mahmoodalqaise750@gmail.com
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedMethod = '';
+
+function selectPaymentMethod(method) {
+    selectedMethod = method;
+    
+    // Hide all forms
+    document.getElementById('stripe-form').style.display = 'none';
+    document.getElementById('crypto-form').style.display = 'none';
+    
+    // Show selected form
+    if(method === 'visa') {
+        document.getElementById('stripe-form').style.display = 'block';
+        document.getElementById('card-option').classList.add('border-primary', 'border-3');
+        document.getElementById('crypto-option').classList.remove('border-warning', 'border-3');
+    } else if(method === 'crypto') {
+        document.getElementById('crypto-form').style.display = 'block';
+        document.getElementById('crypto-option').classList.add('border-warning', 'border-3');
+        document.getElementById('card-option').classList.remove('border-primary', 'border-3');
+    }
+    
+    // Scroll to form
+    setTimeout(() => {
+        const formElement = method === 'visa' ? 
+            document.getElementById('stripe-form') : 
+            document.getElementById('crypto-form');
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+}
+
+function contactSupport(method) {
+    var paymentMethod = (method === 'visa') ? 'Credit/Debit Card' : 'Cryptocurrency';
+    const subject = `Payment Request - {{ plan_data.name }} Plan - ${method}`;
+    const body = `Hello,%0D%0A%0D%0AI would like to subscribe to the {{ plan_data.name }} Plan (${{ plan_daice }}) using ${method === 'visa' ? 'Credit/Debit Card' : 'Cryptocurrency'}.%0D%0APlan Details:%0D%0A - Price: ${{ plan_data,price }}%0D%0APlease provide payment instructions.%0D%0AThank you!`;
+    window.location.href = `mailto:mahmoodalqaise750@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+</script>
+<style>
+
+    .payment-option {
+        transition: all 0.3s ease;
+    }
+    .payment-option:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .payment-icons i, .payment-icons .badge {
+        transition: transform 0.3s ease;
+    }
+
+    .payment-icons i:hover, .payment-icons .badge:hover {
+        transform: scale(1.2);
+    }
+
+    .feature-item {
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .qr-placeholder {
+        background: white;
+        border: 2px dashed #ddd;
+    }
+
+    code {
+        font-size: 0.9rem;
+        word-break: break-all;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الاشتراكات - Subscriptions Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1400px;
+        }
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .subscription-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .subscription-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .plan-badge {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+        .plan-free { background: #e9ecef; color: #495057; }
+        .plan-bronze { background: linear-gradient(135deg, #cd7f32, #daa520); color: white; }
+        .plan-silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
+        .plan-gold { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000; }
+        .plan-platinum { background: linear-gradient(135deg, #e5e4e2, #b9f2ff); color: #333; }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-expired { background: #fff3cd; color: #856404; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #d1ecf1; color: #0c5460; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+        .btn-warning, .btn-danger, .btn-success, .btn-info {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        .stats-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stats-box h3 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .stats-box p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            padding-left: 45px;
+        }
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        .filter-tabs {
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            margin: 5px;
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="fas fa-users-cog"></i>
+                        إدارة الاشتراكات
+                    </h1>
+                    <p class="text-muted mb-0">Subscriptions Management System</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/admin-panel" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-right"></i> العودة للوحة الإدارة
+                    </a>
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        <i class="fas fa-sync"></i> تحديث
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3 id="totalSubscriptions">0</h3>
+                    <p>إجمالي الاشتراكات</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h3 id="activeSubscriptions">0</h3>
+                    <p>اشتراكات نشطة</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h3 id="expiredSubscriptions">0</h3>
+                    <p>اشتراكات منتهية</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h3 id="pendingSubscriptions">0</h3>
+                    <p>في الانتظار</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-tabs">
+            <button class="btn filter-btn btn-primary" onclick="filterByStatus('all')">
+                <i class="fas fa-list"></i> الكل
+            </button>
+            <button class="btn filter-btn btn-outline-success" onclick="filterByStatus('active')">
+                <i class="fas fa-check-circle"></i> نشط
+            </button>
+            <button class="btn filter-btn btn-outline-warning" onclick="filterByStatus('expired')">
+                <i class="fas fa-clock"></i> منتهي
+            </button>
+            <button class="btn filter-btn btn-outline-danger" onclick="filterByStatus('cancelled')">
+                <i class="fas fa-ban"></i> ملغي
+            </button>
+            <button class="btn filter-btn btn-outline-info" onclick="filterByStatus('pending')">
+                <i class="fas fa-hourglass-half"></i> قيد الانتظار
+            </button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" id="searchInput" placeholder="ابحث عن مستخدم... (اسم، معرف، خطة)">
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Subscriptions List -->
+        <div id="subscriptionsList">
+            <!-- Subscriptions will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Upgrade Plan Modal -->
+    <div class="modal fade" id="upgradePlanModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-arrow-up"></i> ترقية/تغيير الخطة
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="upgradeUserId">
+                    <input type="hidden" id="upgradeUsername">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> المستخدم
+                        </label>
+                        <input type="text" class="form-control" id="upgradeUserDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-crown"></i> الخطة الجديدة
+                        </label>
+                        <select class="form-select" id="upgradePlanSelect">
+                            <option value="free">مجاني - Free</option>
+                            <option value="bronze">برونزي - Bronze (29$)</option>
+                            <option value="silver">فضي - Silver (69$)</option>
+                            <option value="gold">ذهبي - Gold (199$)</option>
+                            <option value="platinum">بلاتيني - Platinum (499$)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> المدة (أيام)
+                        </label>
+                        <input type="number" class="form-control" id="upgradeDuration" placeholder="اتركه فارغاً للمدة الافتراضية">
+                        <small class="text-muted">اترك فارغاً لاستخدام المدة الافتراضية للخطة</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmUpgrade()">
+                        <i class="fas fa-save"></i> تأكيد الترقية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extend Subscription Modal -->
+    <div class="modal fade" id="extendModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-plus"></i> تمديد الاشتراك
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="extendUserId">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> المستخدم
+                        </label>
+                        <input type="text" class="form-control" id="extendUserDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> عدد الأيام
+                        </label>
+                        <input type="number" class="form-control" id="extendDays" min="1" placeholder="عدد الأيام" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmExtend()">
+                        <i class="fas fa-save"></i> تمديد
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allSubscriptions = [];
+        let currentFilter = 'all';
+
+        // تحميل الاشتراكات عند فتح الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubscriptions();
+        });
+
+        // تحميل قائمة الاشتراكات
+        function loadSubscriptions() {
+            fetch('/api/admin/subscriptions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allSubscriptions = data.subscriptions;
+                        displaySubscriptions(allSubscriptions);
+                        updateStatistics(allSubscriptions);
+                    } else {
+                        showAlert('خطأ في تحميل الاشتراكات', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('خطأ في الاتصال بالخادم', 'danger');
+                });
+        }
+
+        // عرض الاشتراكات
+        function displaySubscriptions(subscriptions) {
+            const subscriptionsList = document.getElementById('subscriptionsList');
+            subscriptionsList.innerHTML = '';
+
+            if (subscriptions.length === 0) {
+                subscriptionsList.innerHTML = `
+                    <div class="subscription-card text-center">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h4>لا توجد اشتراكات</h4>
+                    </div>
+                `;
+                return;
+            }
+
+            subscriptions.forEach(sub => {
+                const status = getSubscriptionStatus(sub);
+                const statusBadge = getStatusBadge(status);
+                const planBadge = getPlanBadge(sub.plan);
+                const endDate = sub.subscription_end ? new Date(sub.subscription_end).toLocaleDateString('ar-EG') : 'غير محدد';
+                const startDate = sub.subscription_start ? new Date(sub.subscription_start).toLocaleDateString('ar-EG') : 'غير محدد';
+
+                const subCard = `
+                    <div class="subscription-card" data-status="${status}">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-user-circle fa-3x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">
+                                            ${sub.first_name || sub.username}
+                                            ${planBadge}
+                                        </h5>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-id-card"></i> ID: ${sub.user_id}
+                                        </p>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-at"></i> @${sub.username}
+                                        </p>
+                                        ${statusBadge}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-check"></i> بداية: ${startDate}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-times"></i> نهاية: ${endDate}
+                                </small>
+                                <br>
+                                ${sub.referral_code ? `<small class="text-muted"><i class="fas fa-link"></i> كود الإحالة: ${sub.referral_code}</small>` : ''}
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <div class="btn-group-vertical w-100">
+                                    ${status === 'active' ? 
+                                        `<button class="btn btn-sm btn-warning mb-2" onclick="deactivateSubscription(${sub.user_id}, '${sub.username}')">
+                                            <i class="fas fa-pause"></i> إيقاف
+                                        </button>` : 
+                                        `<button class="btn btn-sm btn-success mb-2" onclick="activateSubscription(${sub.user_id}, '${sub.username}')">
+                                            <i class="fas fa-play"></i> تفعيل
+                                        </button>`
+                                    }
+                                    <button class="btn btn-sm btn-primary mb-2" onclick="showUpgradeModal(${sub.user_id}, '${sub.username}', '${sub.plan}')">
+                                        <i class="fas fa-arrow-up"></i> ترقية/تغيير
+                                    </button>
+                                    <button class="btn btn-sm btn-info mb-2" onclick="showExtendModal(${sub.user_id}, '${sub.username}')">
+                                        <i class="fas fa-calendar-plus"></i> تمديد
+                                    </button>
+                                    ${status !== 'cancelled' ?
+                                        `<button class="btn btn-sm btn-danger" onclick="cancelSubscription(${sub.user_id}, '${sub.username}')">
+                                            <i class="fas fa-ban"></i> إلغاء
+                                        </button>` : ''
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                subscriptionsList.innerHTML += subCard;
+            });
+        }
+
+        // تحديد حالة الاشتراك
+        function getSubscriptionStatus(sub) {
+            if (sub.status === 'cancelled') return 'cancelled';
+            if (sub.status === 'pending') return 'pending';
+            if (!sub.subscription_end) return sub.plan === 'free' ? 'active' : 'inactive';
+            
+            const endDate = new Date(sub.subscription_end);
+            const now = new Date();
+            
+            if (endDate < now) return 'expired';
+            return sub.status || 'active';
+        }
+
+        // الحصول على badge الحالة
+        function getStatusBadge(status) {
+            const badges = {
+                'active': '<span class="status-badge status-active"><i class="fas fa-check-circle"></i> نشط</span>',
+                'inactive': '<span class="status-badge status-inactive"><i class="fas fa-times-circle"></i> غير نشط</span>',
+                'expired': '<span class="status-badge status-expired"><i class="fas fa-clock"></i> منتهي</span>',
+                'cancelled': '<span class="status-badge status-cancelled"><i class="fas fa-ban"></i> ملغي</span>',
+                'pending': '<span class="status-badge status-pending"><i class="fas fa-hourglass-half"></i> قيد الانتظار</span>'
+            };
+            return badges[status] || badges['inactive'];
+        }
+
+        // الحصول على badge الخطة
+        function getPlanBadge(plan) {
+            const badges = {
+                'free': '<span class="plan-badge plan-free">مجاني</span>',
+                'bronze': '<span class="plan-badge plan-bronze">برونزي</span>',
+                'silver': '<span class="plan-badge plan-silver">فضي</span>',
+                'gold': '<span class="plan-badge plan-gold">ذهبي</span>',
+                'platinum': '<span class="plan-badge plan-platinum">بلاتيني</span>'
+            };
+            return badges[plan] || badges['free'];
+        }
+
+        // تحديث الإحصائيات
+        function updateStatistics(subscriptions) {
+            const total = subscriptions.length;
+            let active = 0, expired = 0, pending = 0;
+
+            subscriptions.forEach(sub => {
+                const status = getSubscriptionStatus(sub);
+                if (status === 'active') active++;
+                else if (status === 'expired') expired++;
+                else if (status === 'pending') pending++;
+            });
+
+            document.getElementById('totalSubscriptions').textContent = total;
+            document.getElementById('activeSubscriptions').textContent = active;
+            document.getElementById('expiredSubscriptions').textContent = expired;
+            document.getElementById('pendingSubscriptions').textContent = pending;
+        }
+
+        // تصفية حسب الحالة
+        function filterByStatus(status) {
+            currentFilter = status;
+            if (status === 'all') {
+                displaySubscriptions(allSubscriptions);
+            } else {
+                const filtered = allSubscriptions.filter(sub => getSubscriptionStatus(sub) === status);
+                displaySubscriptions(filtered);
+            }
+        }
+
+        // البحث عن الاشتراكات
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allSubscriptions.filter(sub => 
+                sub.username.toLowerCase().includes(searchTerm) ||
+                (sub.first_name && sub.first_name.toLowerCase().includes(searchTerm)) ||
+                sub.user_id.toString().includes(searchTerm) ||
+                sub.plan.toLowerCase().includes(searchTerm)
+            );
+            displaySubscriptions(filtered);
+        });
+
+        // إظهار نافذة الترقية
+        function showUpgradeModal(userId, username, currentPlan) {
+            document.getElementById('upgradeUserId').value = userId;
+            document.getElementById('upgradeUsername').value = username;
+            document.getElementById('upgradeUserDisplay').value = `${username} (ID: ${userId})`;
+            document.getElementById('upgradePlanSelect').value = currentPlan;
+            document.getElementById('upgradeDuration').value = '';
+            new bootstrap.Modal(document.getElementById('upgradePlanModal')).show();
+        }
+
+        // تأكيد الترقية
+        function confirmUpgrade() {
+            const userId = document.getElementById('upgradeUserId').value;
+            const plan = document.getElementById('upgradePlanSelect').value;
+            const duration = document.getElementById('upgradeDuration').value;
+
+            fetch('/api/admin/update_plan', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: userId,
+                    plan: plan,
+                    duration_days: duration || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم تحديث الخطة بنجاح', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('upgradePlanModal')).hide();
+                    loadSubscriptions();
+                } else {
+                    showAlert(data.message || 'فشل في تحديث الخطة', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'danger');
+            });
+        }
+
+        // إظهار نافذة التمديد
+        function showExtendModal(userId, username) {
+            document.getElementById('extendUserId').value = userId;
+            document.getElementById('extendUserDisplay').value = `${username} (ID: ${userId})`;
+            document.getElementById('extendDays').value = '';
+            new bootstrap.Modal(document.getElementById('extendModal')).show();
+        }
+
+        // تأكيد التمديد
+        function confirmExtend() {
+            const userId = document.getElementById('extendUserId').value;
+            const days = document.getElementById('extendDays').value;
+
+            if (!days || days <= 0) {
+                showAlert('الرجاء إدخال عدد أيام صحيح', 'warning');
+                return;
+            }
+
+            fetch('/api/admin/extend_subscription', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: userId,
+                    days: parseInt(days)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم تمديد الاشتراك بنجاح', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('extendModal')).hide();
+                    loadSubscriptions();
+                } else {
+                    showAlert(data.message || 'فشل في تمديد الاشتراك', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'danger');
+            });
+        }
+
+        // تفعيل الاشتراك
+        function activateSubscription(userId, username) {
+            if (!confirm(`هل تريد تفعيل اشتراك ${username}؟`)) return;
+
+            fetch('/api/admin/activate_subscription', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم تفعيل الاشتراك بنجاح', 'success');
+                    loadSubscriptions();
+                } else {
+                    showAlert(data.message || 'فشل في تفعيل الاشتراك', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'danger');
+            });
+        }
+
+        // إيقاف الاشتراك
+        function deactivateSubscription(userId, username) {
+            if (!confirm(`هل تريد إيقاف اشتراك ${username} مؤقتاً؟`)) return;
+
+            fetch('/api/admin/deactivate_subscription', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم إيقاف الاشتراك مؤقتاً', 'success');
+                    loadSubscriptions();
+                } else {
+                    showAlert(data.message || 'فشل في إيقاف الاشتراك', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'danger');
+            });
+        }
+
+        // إلغاء الاشتراك
+        function cancelSubscription(userId, username) {
+            if (!confirm(`هل تريد إلغاء اشتراك ${username} نهائياً؟ لن يمكن التراجع عن هذا الإجراء!`)) return;
+
+            fetch('/api/admin/cancel_subscription', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('تم إلغاء الاشتراك', 'success');
+                    loadSubscriptions();
+                } else {
+                    showAlert(data.message || 'فشل في إلغاء الاشتراك', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'danger');
+            });
+        }
+
+        // تحديث البيانات
+        function refreshData() {
+            loadSubscriptions();
+            showAlert('تم تحديث البيانات', 'info');
+        }
+
+        // عرض رسالة تنبيه
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.innerHTML = alertHTML;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

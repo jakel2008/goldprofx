@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}GOLD PRO - الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<div class="landing-container gold-border gold-shadow">
+    <div class="landing-hero mb-4">
+        <h1 class="display-4 mb-3" style="color:#bfa100;">مرحبًا بك في GOLD PRO</h1>
+        <p class="lead mb-4">منصة تداول احترافية بخطط ذهبية متعددة، صفقات حصرية، دعم فني، ولوحة إنجازات تسويقية.</p>
+        <a href="{{ url_for('register') }}" class="btn gold-btn px-5 mx-2">ابدأ الآن</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-dark px-5 mx-2">تسجيل الدخول</a>
+    </div>
+    <div class="row mb-4">
+        {% for plan in plans %}
+        <div class="col-md-4 mb-3">
+            <div class="card gold-border gold-shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title" style="color:#bfa100;">{{ plan['name'] }}</h5>
+                    <p class="card-text">{{ plan['description'] }}</p>
+                    <p class="fw-bold">السعر: <span style="color:#bfa100;">{{ plan['price'] }}$</span></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="landing-features mt-4">
+        <h2 class="mb-3" style="color:#bfa100;">ماذا نقدم؟</h2>
+        <ul class="list-unstyled">
+            <li>🔔 إشارات فورية دقيقة</li>
+            <li>📊 تقارير أداء يومية وأسبوعية</li>
+            <li>💰 خطط اشتراك ذهبية مرنة</li>
+            <li>🤖 نظام تداول آلي متكامل</li>
+            <li>🛡️ حماية وخصوصية عالية</li>
+            <li>📱 إشعارات عبر التليجرام والبريد</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+/* GOLD PRO Landing Styles */
+.landing-container {
+    max-width: 950px;
+    margin: 3rem auto;
+    background: #fffbe6;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(191,161,0,0.08);
+    padding: 2.5rem 2rem;
+    text-align: center;
+}
+.landing-hero h1, .landing-hero .display-4 {
+    color: #bfa100;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.landing-hero p, .landing-hero .lead {
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+.gold-btn {
+    background: linear-gradient(90deg, #ffd700 0%, #bfa100 100%);
+    color: #222;
+    border: none;
+    font-weight: bold;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(191,161,0,0.12);
+}
+.gold-btn:hover {
+    background: linear-gradient(90deg, #bfa100 0%, #ffd700 100%);
+    color: #000;
+}
+.gold-border {
+    border: 2px solid #ffd700;
+}
+.gold-shadow {
+    box-shadow: 0 4px 24px rgba(191,161,0,0.08);
+}
+</style>

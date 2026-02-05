@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>📊 الإشارات</h3>
+        <div class="number" id="signals-count">0</div>
+        <p>إشارة محفوظة</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>� التوصيات</h3>
+        <div class="number" id="recommendations-count">0</div>
+        <p>توصية نشطة</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>👥 المشتركون</h3>
+        <div class="number" id="subscribers-count">0</div>
+        <p>مشترك نشط</p>
+    </div>
+    
+    <div class="stat-card">
+        <h3>🚀 النظام</h3>
+        <div class="number" style="color: #28a745;">✓</div>
+        <p>يعمل بكفاءة</p>
+    </div>
+</div>
+
+<div class="signals-section">
+    <h2>💡 آخر التوصيات</h2>
+    <div id="recommendations-container"></div>
+</div>
+
+<div class="signals-section">
+    <h2>📈 آخر الإشارات</h2>
+    <div id="signals-container"></div>
+</div>
+
+<div class="signals-section">
+    <h2>💳 اختر خطتك المفضلة</h2>
+    <div class="plans-grid">
+        <div class="plan-card">
+            <div class="plan-name">مجاني</div>
+            <div class="plan-price">0 $</div>
+            <ul class="plan-features">
+                <li>✓ 5 إشارات يومية</li>
+                <li>✓ إشارات عالية الجودة فقط</li>
+                <li>✗ بدون تحليل متقدم</li>
+                <li>✗ بدون دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary">مجاني</button>
+        </div>
+        
+        <div class="plan-card">
+            <div class="plan-name">برونزي</div>
+            <div class="plan-price">9 $</div>
+            <ul class="plan-features">
+                <li>✓ 15 إشارة يومية</li>
+                <li>✓ جميع مستويات الجودة</li>
+                <li>✓ تحليل 1H و 5M</li>
+                <li>✗ بدون دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+        
+        <div class="plan-card popular">
+            <div class="plan-name">فضي</div>
+            <div class="plan-price">29 $</div>
+            <ul class="plan-features">
+                <li>✓ 30 إشارة يومية</li>
+                <li>✓ جميع مستويات الجودة</li>
+                <li>✓ تحليل متقدم</li>
+                <li>✓ دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+        
+        <div class="plan-card">
+            <div class="plan-name">ذهبي</div>
+            <div class="plan-price">99 $</div>
+            <ul class="plan-features">
+                <li>✓ إشارات غير محدودة</li>
+                <li>✓ جميع مستويات الجودة</li>
+                <li>✓ تحليل شامل</li>
+                <li>✓ دعم VIP 24/7</li>
+            </ul>
+            <button class="btn btn-primary">اختر</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

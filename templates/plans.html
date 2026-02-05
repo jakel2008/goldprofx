@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="signals-section">
+    <h2>💳 خطط الاشتراك</h2>
+    
+    <div class="plans-grid">
+        <div class="plan-card" data-plan="free">
+            <div class="plan-name">مجاني</div>
+            <div class="plan-price">0 $</div>
+            <ul class="plan-features">
+                <li>✓ 5 إشارات يومية</li>
+                <li>✓ إشارات عالية الجودة فقط (75%+)</li>
+                <li>✓ على أطر زمنية محددة</li>
+                <li>✗ بدون تحليل متقدم</li>
+                <li>✗ بدون دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary plan-btn" disabled>مشترك بالفعل</button>
+        </div>
+        
+        <div class="plan-card" data-plan="bronze">
+            <div class="plan-name">برونزي</div>
+            <div class="plan-price">$9/الشهر</div>
+            <ul class="plan-features">
+                <li>✓ 15 إشارة يومية</li>
+                <li>✓ جودة عالية ومتوسطة (50%+)</li>
+                <li>✓ تحليل 1H و 5M</li>
+                <li>✓ أزواج فوركس رئيسية</li>
+                <li>✗ بدون دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+        </div>
+        
+        <div class="plan-card popular" data-plan="silver">
+            <div class="plan-name">🌟 فضي</div>
+            <div class="plan-price">$29/الشهر</div>
+            <ul class="plan-features">
+                <li>✓ 30 إشارة يومية</li>
+                <li>✓ جميع مستويات الجودة</li>
+                <li>✓ تحليل متقدم (15 دقيقة و ساعة)</li>
+                <li>✓ جميع الأزواج والمعادن</li>
+                <li>✓ دعم أولوية</li>
+            </ul>
+            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+        </div>
+        
+        <div class="plan-card" data-plan="gold">
+            <div class="plan-name">ذهبي VIP</div>
+            <div class="plan-price">$99/الشهر</div>
+            <ul class="plan-features">
+                <li>✓ إشارات غير محدودة</li>
+                <li>✓ جميع مستويات الجودة</li>
+                <li>✓ تحليل شامل على جميع الأطر</li>
+                <li>✓ جميع الأزواج والعملات والمعادن</li>
+                <li>✓ دعم VIP 24/7 + استشارات</li>
+            </ul>
+            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+        </div>
+    </div>
+    
+    <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; text-align: center;">
+        <h3>🎯 المقارنة التفصيلية</h3>
+        <table style="width: 100%; margin-top: 1rem; text-align: right;">
+            <thead>
+                <tr style="background: #667eea; color: white;">
+                    <th style="padding: 1rem;">الميزة</th>
+                    <th style="padding: 1rem;">مجاني</th>
+                    <th style="padding: 1rem;">برونزي</th>
+                    <th style="padding: 1rem;">فضي</th>
+                    <th style="padding: 1rem;">ذهبي</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #e9ecef;">
+                    <td style="padding: 1rem;">الإشارات يومياً</td>
+                    <td>5</td>
+                    <td>15</td>
+                    <td>30</td>
+                    <td>∞</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e9ecef;">
+                    <td style="padding: 1rem;">الحد الأدنى للجودة</td>
+                    <td>75%</td>
+                    <td>50%</td>
+                    <td>كل المستويات</td>
+                    <td>كل المستويات</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e9ecef;">
+                    <td style="padding: 1rem;">عدد الأزواج</td>
+                    <td>محدود</td>
+                    <td>أساسي</td>
+                    <td>شامل</td>
+                    <td>كامل</td>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem;">الدعم</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>أولوية</td>
+                    <td>VIP 24/7</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<script>
+// مناول اشتراك الخطط
+document.addEventListener('DOMContentLoaded', async () => {
+    const buttons = document.querySelectorAll('.plan-btn');
+    let currentUser = null;
+
+    try {
+        const res = await fetch('/api/user');
+        if (res.ok) {
+            currentUser = await res.json();
+        }
+    } catch (e) { /* ignore */ }
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const card = btn.closest('.plan-card');
+            const plan = card?.getAttribute('data-plan');
+            if (!plan) return;
+
+            // إذا لم يكن المستخدم مسجل الدخول، توجيه للتسجيل
+            if (!currentUser || !currentUser.success) {
+                const proceed = confirm('يجب تسجيل الدخول للاشتراك. هل تريد الانتقال لصفحة التسجيل؟');
+                if (proceed) window.location.href = '/register';
+                return;
+            }
+
+            // إذا نفس الخطة، إعلام المستخدم
+            if (currentUser.plan && currentUser.plan.toLowerCase() === plan.toLowerCase()) {
+                alert('أنت بالفعل على هذه الخطة.');
+                return;
+            }
+
+            // توجيه إلى صفحة اختيار الموقع الجغرافي
+            window.location.href = `/select_location/${plan}`;
+        });
+    });
+});
+</script>
+{% endblock %}

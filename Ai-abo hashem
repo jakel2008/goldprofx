@@ -1,0 +1,281 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import requests
+import pandas as pd
+import ta
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+API_KEY = "079cdb64bbc8415abcf8f7be7e389349"
+BASE_URL = "https://api.twelvedata.com/time_series"
+
+symbols_list = [
+    "EUR/USD", "USD/JPY", "GBP/USD", "USD/CHF", "AUD/USD",
+    "USD/CAD", "NZD/USD", "XAU/USD", "XAG/USD", "BTC/USD", "ETH/USD",
+    "EUR/JPY", "GBP/JPY", "AUD/JPY", "EUR/GBP", "CHF/JPY", "CAD/JPY",
+    "NZD/JPY", "AUD/NZD", "EUR/CAD", "GBP/CAD", "EUR/AUD", "GBP/AUD"
+]
+
+intervals_list = ["1min", "5min", "15min", "30min", "1h", "4h", "1day"]
+
+def fetch_data(symbol, interval="1h", outputsize=500):
+    params = {
+        "symbol": symbol,
+        "interval": interval,
+        "outputsize": outputsize,
+        "apikey": API_KEY,
+        "format": "JSON"
+    }
+    response = requests.get(BASE_URL, params=params)
+    data = response.json()
+    if "values" not in data:
+        raise Exception(f"Error fetching data: {data.get('message', 'Unknown error')}")
+    df = pd.DataFrame(data["values"])
+    df = df.rename(columns={"datetime": "Date", "open": "Open", "high": "High",
+                            "low": "Low", "close": "Close"})
+    for col in ["Open", "High", "Low", "Close"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df = df.dropna()
+    df["Date"] = pd.to_datetime(df["Date"])
+    df = df.sort_values("Date").reset_index(drop=True)
+    return df
+
+def add_indicators(df):
+    df["RSI"] = ta.momentum.RSIIndicator(df["Close"]).rsi()
+    macd = ta.trend.MACD(df["Close"])
+    df["MACD"] = macd.macd()
+    df["MACD_Signal"] = macd.macd_signal()
+    boll = ta.volatility.BollingerBands(df["Close"])
+    df["BB_High"] = boll.bollinger_hband()
+    df["BB_Low"] = boll.bollinger_lband()
+    df = df.dropna()
+    return df
+
+def add_target(df, n=3):
+    df["Target"] = (df["Close"].shift(-n) > df["Close"]).astype(int)
+    df = df.dropna()
+    return df
+
+def prepare_data(df):
+    features = ["RSI", "MACD", "MACD_Signal", "BB_High", "BB_Low"]
+    X = df[features]
+    y = df["Target"]
+    return train_test_split(X, y, test_size=0.2, random_state=42)
+
+def train_model(X_train, y_train):
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    return model
+
+def evaluate_model(model, X_test, y_test):
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    return acc
+
+def detect_signals(df):
+    signals = []
+    entry_price = df.iloc[-1]["Close"]
+    pivot = df.iloc[-2]["Close"]
+
+    last = df.iloc[-1]
+    signals.append(f"📈 السعر الحالي: {round(entry_price, 5)}")
+    signals.append(f"📉 RSI: {round(last['RSI'], 2)}")
+    signals.append(f"📊 MACD: {round(last['MACD'], 5)} | إشارة MACD: {round(last['MACD_Signal'], 5)}")
+
+    if last["RSI"] < 30 and last["MACD"] > last["MACD_Signal"]:
+        signals.append("🔼 إشارة شراء (RSI < 30 & MACD يتقاطع لأعلى)")
+    if last["RSI"] > 70 and last["MACD"] < last["MACD_Signal"]:
+        signals.append("🔽 إشارة بيع (RSI > 70 & MACD يتقاطع لأسفل)")
+    if last["Close"] < last["BB_Low"]:
+        signals.append("📉 السعر تحت الحد السفلي ل Bollinger Bands → احتمال ارتداد")
+    if last["Close"] > last["BB_High"]:
+        signals.append("📈 السعر فوق الحد العلوي ل Bollinger Bands → احتمال انعكاس")
+
+    if last["Close"] > df["Close"].rolling(3).mean().iloc[-1]:
+        signals.append("📊 SMC: السوق يشكل قمم أعلى")
+    if last["Close"] < df["Close"].rolling(3).mean().iloc[-1]:
+        signals.append("📉 SMC: السوق يشكل قمم أقل")
+    if df["High"].iloc[-2] > df["High"].iloc[-3] and df["High"].iloc[-1] < df["High"].iloc[-2]:
+        signals.append("🔄 نمط QM تم اكتشافه")
+    if df["Close"].iloc[-1] > df["Open"].iloc[-1] and df["Close"].iloc[-1] > df["Close"].mean():
+        signals.append("🧠 ICT: إختراق سيولة + إغلاق صاعد")
+
+    recommendation = "🔍 انتظر"
+    # هنا لا نعطي توصية نهائية بناءً على هذه التحليلات فقط
+
+    levels = {
+        "الدخول": round(entry_price, 5),
+        "نقطة المحور": round(pivot, 5),
+        "أخذ الربح": round(entry_price * 1.01, 5),
+        "وقف الخسارة": round(entry_price * 0.99, 5)
+    }
+    return signals, recommendation, levels
+
+def plot_chart(df, symbol, interval):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(df["Date"], df["Close"], label="السعر", color="blue")
+    ax.plot(df["Date"], df["BB_High"], label="الحد العلوي Bollinger Bands", linestyle="--", color="green")
+    ax.plot(df["Date"], df["BB_Low"], label="الحد السفلي Bollinger Bands", linestyle="--", color="red")
+    ax.set_title(f"{symbol} ({interval}) السعر مع Bollinger Bands")
+    ax.legend(loc="upper left")
+    return fig
+
+class MoneyMakerApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("💰 Money Maker$")
+        self.geometry("1000x700")
+        self.configure(bg="#f0f4f7")
+
+        self.style = ttk.Style(self)
+        self.style.theme_use("clam")
+        self.style.configure("TButton", font=("Segoe UI", 10, "bold"))
+
+        # أزرار الشريط العلوي
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(fill=tk.X, pady=10)
+
+        self.analysis_btn = ttk.Button(btn_frame, text="📊 التحليل والتوصيات", command=self.show_analysis)
+        self.analysis_btn.pack(side=tk.LEFT, padx=5)
+
+        self.education_btn = ttk.Button(btn_frame, text="📚 التعليم", command=self.show_education)
+        self.education_btn.pack(side=tk.LEFT, padx=5)
+
+        self.contact_btn = ttk.Button(btn_frame, text="📞 التواصل", command=self.show_contact)
+        self.contact_btn.pack(side=tk.LEFT, padx=5)
+
+        # الإطارات لكل قسم
+        self.analysis_frame = ttk.Frame(self)
+        self.education_frame = ttk.Frame(self)
+        self.contact_frame = ttk.Frame(self)
+
+        self.analysis_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.create_analysis_ui()
+        self.create_education_ui()
+        self.create_contact_ui()
+
+    def create_analysis_ui(self):
+        input_frame = ttk.Frame(self.analysis_frame)
+        input_frame.pack(pady=5)
+
+        ttk.Label(input_frame, text="زوج التداول:").grid(row=0, column=0, padx=5)
+        self.symbol_var = tk.StringVar()
+        self.symbol_var.set(symbols_list[0])
+        symbol_menu = ttk.OptionMenu(input_frame, self.symbol_var, symbols_list[0], *symbols_list)
+        symbol_menu.grid(row=0, column=1, padx=5)
+
+        ttk.Label(input_frame, text="الفاصل الزمني:").grid(row=0, column=2, padx=5)
+        self.interval_var = tk.StringVar()
+        self.interval_var.set(intervals_list[4])
+        interval_menu = ttk.OptionMenu(input_frame, self.interval_var, intervals_list[4], *intervals_list)
+        interval_menu.grid(row=0, column=3, padx=5)
+
+        analyze_btn = ttk.Button(input_frame, text="تحليل", command=self.run_analysis)
+        analyze_btn.grid(row=0, column=4, padx=10)
+
+        self.share_btn = ttk.Button(input_frame, text="مشاركة عبر واتساب", command=self.share_whatsapp)
+        self.share_btn.grid(row=0, column=5, padx=10)
+
+        self.result_text = tk.Text(self.analysis_frame, height=14, font=("Consolas", 10), wrap="word", bg="#ffffff")
+        self.result_text.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
+
+        self.chart_frame = ttk.Frame(self.analysis_frame)
+        self.chart_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        self.model = None  # لتخزين نموذج ML المدرب
+        self.latest_df = None
+        self.latest_recommendation = ""
+
+    def create_education_ui(self):
+        label = ttk.Label(self.education_frame, text="معلومات تعليمية عن التداول والاستراتيجيات", font=("Segoe UI", 14))
+        label.pack(pady=20)
+
+    def create_contact_ui(self):
+        label = ttk.Label(self.contact_frame, text="للتواصل: example@email.com", font=("Segoe UI", 14))
+        label.pack(pady=20)
+
+    def show_analysis(self):
+        self.education_frame.pack_forget()
+        self.contact_frame.pack_forget()
+        self.analysis_frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_education(self):
+        self.analysis_frame.pack_forget()
+        self.contact_frame.pack_forget()
+        self.education_frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_contact(self):
+        self.analysis_frame.pack_forget()
+        self.education_frame.pack_forget()
+        self.contact_frame.pack(fill=tk.BOTH, expand=True)
+
+    def run_analysis(self):
+        symbol = self.symbol_var.get()
+        interval = self.interval_var.get()
+        self.result_text.delete(1.0, tk.END)
+        self.result_text.insert(tk.END, f"جاري جلب البيانات لزوج {symbol} بفاصل {interval}...\n")
+        self.update()
+
+        try:
+            df = fetch_data(symbol, interval=interval)
+            df = add_indicators(df)
+            df = add_target(df)
+            X_train, X_test, y_train, y_test = prepare_data(df)
+            model = train_model(X_train, y_train)
+            acc = evaluate_model(model, X_test, y_test)
+            self.model = model
+            self.latest_df = df
+
+            signals, recommendation, levels = detect_signals(df)
+
+            # توقع ML للإشارة الأخيرة
+            latest_features = df[["RSI", "MACD", "MACD_Signal", "BB_High", "BB_Low"]].iloc[-1].values.reshape(1, -1)
+            prediction = model.predict(latest_features)[0]
+            if prediction == 1:
+                ml_signal = "🔮 توقع الذكاء الصناعي: شراء"
+            else:
+                ml_signal = "🔮 توقع الذكاء الصناعي: بيع"
+
+            # عرض النتائج في مربع النص
+            self.result_text.insert(tk.END, "\n".join(signals) + "\n")
+            self.result_text.insert(tk.END, ml_signal + "\n")
+            self.result_text.insert(tk.END, f"دقة النموذج: {acc*100:.2f}%\n\n")
+            self.result_text.insert(tk.END, f"مستويات التداول:\n")
+            for k, v in levels.items():
+                self.result_text.insert(tk.END, f"{k}: {v}\n")
+
+            # عرض الرسم البياني
+            fig = plot_chart(df, symbol, interval)
+            self.show_chart(fig)
+            
+            # تخزين التوصية كاملة للمشاركة
+            self.latest_recommendation = "\n".join(signals) + "\n" + ml_signal + f"\nدقة النموذج: {acc*100:.2f}%"
+
+        except Exception as e:
+            messagebox.showerror("خطأ", str(e))
+            self.result_text.insert(tk.END, f"حدث خطأ: {str(e)}\n")
+
+    def show_chart(self, fig):
+        for widget in self.chart_frame.winfo_children():
+            widget.destroy()
+        canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def share_whatsapp(self):
+        if not self.latest_recommendation:
+            messagebox.showinfo("تنبيه", "يرجى إجراء تحليل أولاً قبل المشاركة.")
+            return
+        import urllib.parse
+        text = urllib.parse.quote(self.latest_recommendation)
+        url = f"https://wa.me/?text={text}"
+        import webbrowser
+        webbrowser.open(url)
+
+if __name__ == "__main__":
+    app = MoneyMakerApp()
+    app.mainloop()

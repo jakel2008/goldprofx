@@ -1,0 +1,56 @@
+{
+    "pairs": [
+        "EUR/USD",
+        "GBP/USD",
+        "USD/JPY",
+        "XAU/USD",
+        "BTC/USD",
+        "ETH/USD",
+        "XRP/USD",
+        "ADA/USD",
+        "SOL/USD",
+        "DOGE/USD",
+        "EUR/GBP",
+        "AUD/USD",
+        "USD/CAD"
+    ],
+    "intervals": [
+        "15m",
+        "1h",
+        "4h"
+    ],
+    "analysis_schedule_minutes": 20,
+    "broadcast_schedule_minutes": 10,
+    "trades_update_minutes": 5,
+    "daily_report_time": "23:00",
+    "auto_start": {
+        "web_app": true,
+        "vip_bot": true,
+        "signal_broadcaster": true,
+        "auto_analyzer": true
+    },
+    "quality_thresholds": {
+        "free": 50,
+        "bronze": 60,
+        "silver": 70,
+        "gold": 80,
+        "platinum": 90
+    },
+    "telegram": {
+        "enabled": true,
+        "send_entry_signals": true,
+        "send_tp_updates": true,
+        "send_sl_updates": true,
+        "send_daily_summary": true
+    },
+    "risk_management": {
+        "max_daily_signals": 10,
+        "min_risk_reward_ratio": 1.5,
+        "max_concurrent_trades": 5
+    },
+    "notifications": {
+        "high_quality_signals": true,
+        "market_alerts": true,
+        "system_status": true
+    }
+}

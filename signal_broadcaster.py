@@ -41,9 +41,13 @@ def load_sent_signals():
 def save_sent_signal(signal_id, signature=None):
     """حفظ معرف الإشارة المرسلة"""
     sent = load_sent_signals()
+    sig = signature or signal_id
+    existing = {item.get('signature') or item.get('signal_id') for item in sent if isinstance(item, dict)}
+    if sig in existing:
+        return
     sent.append({
         'signal_id': signal_id,
-        'signature': signature or signal_id,
+        'signature': sig,
         'sent_at': datetime.now().isoformat()
     })
     # الاحتفاظ بآخر 1000 إشارة فقط
@@ -281,6 +285,7 @@ def read_and_broadcast_signals():
                     if sent_count > 0:
                         print(f"✅ تم الإرسال ل {sent_count} مشترك")
                         save_sent_signal(signal_id, signature=signal_id)
+                        sent_ids.add(signal_id)
                         new_signals_count += 1
                     else:
                         print("⚠️ لا يوجد مستخدمين مؤهلين")

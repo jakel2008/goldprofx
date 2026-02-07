@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+# تحديث قواعد البيانات (إنشاء الجداول/الأعمدة الجديدة)
+cd "d:\GOLD PRO"
+python -c "from web_app import init_db; init_db()"
+
+# رفع التحديثات إلى GitHub
+git status
+git add .
+git commit -m "Full update: UI, subscriptions, payments, DB migrations"
+git push<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">

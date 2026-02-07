@@ -28,7 +28,7 @@
                 <li>✓ أزواج فوركس رئيسية</li>
                 <li>✗ بدون دعم أولوية</li>
             </ul>
-            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+            <button class="btn btn-primary plan-btn">ترقية الخطة</button>
         </div>
         
         <div class="plan-card popular" data-plan="silver">
@@ -41,7 +41,7 @@
                 <li>✓ جميع الأزواج والمعادن</li>
                 <li>✓ دعم أولوية</li>
             </ul>
-            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+            <button class="btn btn-primary plan-btn">ترقية الخطة</button>
         </div>
         
         <div class="plan-card" data-plan="gold">
@@ -54,7 +54,7 @@
                 <li>✓ جميع الأزواج والعملات والمعادن</li>
                 <li>✓ دعم VIP 24/7 + استشارات</li>
             </ul>
-            <button class="btn btn-primary plan-btn">اشترك الآن</button>
+            <button class="btn btn-primary plan-btn">ترقية الخطة</button>
         </div>
     </div>
     
@@ -137,8 +137,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // توجيه إلى صفحة اختيار الموقع الجغرافي
-            window.location.href = `/select_location/${plan}`;
+            // توجيه إلى صفحة الدفع
+            window.location.href = `/payment_jordan/${plan}`;
         });
     });
 });

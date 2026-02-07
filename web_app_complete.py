@@ -1,30 +1,133 @@
-"""
-تطبيق ويب لنظام الإشارات VIP مع نظام التسجيل
-VIP Signals Web Application with Login System
-"""
+# ============ صفحة استرجاع كلمة المرور ============
+
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+import hashlib
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+import sqlite3
+import os
+# ============== Bot Management Routes ==============
+
+# Define CHAT_ID for bot test send (replace with your actual chat id)
+CHAT_ID = os.environ.get('MM_TELEGRAM_CHAT_ID', '')
 from functools import wraps
 import json
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
-from recommendations_engine import ALL_AVAILABLE_PAIRS
-from telegram_sender import (
-    send_telegram_message,
-    send_signal_to_subscribers,
-    send_recommendation_to_subscribers,
-    send_report_to_subscribers
-)
-from forex_analyzer import perform_analysis
+import telegram_sender
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
 
-# Initialize database
+# ============ صفحة استرجاع كلمة المرور ============
+def ensure_password_reset_table():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    try:
+        c.execute('''CREATE TABLE IF NOT EXISTS password_resets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TEXT,
+            used INTEGER DEFAULT 0,
+            created_at TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )''')
+        conn.commit()
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+# ============ صفحة إعادة تعيين كلمة المرور ============
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('SELECT user_id, expires_at, used FROM password_resets WHERE token = ?', (token,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return render_template('reset_password.html', error='الرابط غير صالح أو منتهي.')
+    user_id, expires_at, used = row
+    if used:
+        conn.close()
+        return render_template('reset_password.html', error='تم استخدام الرابط بالفعل.')
+    if datetime.fromisoformat(expires_at) < datetime.now():
+        conn.close()
+        return render_template('reset_password.html', error='انتهت صلاحية الرابط.')
+    if request.method == 'POST':
+        password = request.form.get('password', '').strip()
+        confirm = request.form.get('confirm_password', '').strip()
+        if not password or len(password) < 6:
+            return render_template('reset_password.html', error='كلمة المرور يجب أن تكون 6 أحرف على الأقل.')
+        if password != confirm:
+            return render_template('reset_password.html', error='كلمتا المرور غير متطابقتين.')
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        c.execute('UPDATE users SET password_hash = ? WHERE id = ?', (password_hash, user_id))
+        c.execute('UPDATE password_resets SET used = 1 WHERE token = ?', (token,))
+        conn.commit()
+        conn.close()
+        return render_template('reset_password.html', success='تم تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.')
+    conn.close()
+    return render_template('reset_password.html')
+
+# ============ صفحة استرجاع كلمة المرور ============
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        if not email:
+            return render_template('forgot_password.html', error='يرجى إدخال البريد الإلكتروني.')
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('SELECT id, full_name FROM users WHERE email = ?', (email,))
+        user = c.fetchone()
+        if not user:
+            conn.close()
+            return render_template('forgot_password.html', error='البريد غير مسجل.')
+        ensure_password_reset_table()
+        user_id, full_name = user
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now() + timedelta(minutes=30)).isoformat()
+        created_at = datetime.now().isoformat()
+        c.execute('INSERT INTO password_resets (user_id, token, expires_at, created_at) VALUES (?, ?, ?, ?)',
+                  (user_id, token, expires_at, created_at))
+        conn.commit()
+        conn.close()
+        reset_link = url_for('reset_password', token=token, _external=True)
+        msg_body = f"""
+مرحباً {full_name},
+
+لإعادة تعيين كلمة المرور، يرجى الضغط على الرابط التالي:
+{reset_link}
+
+الرابط صالح لمدة 30 دقيقة فقط.
+"""
+        smtp_server = os.environ.get('SMTP_SERVER')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_pass = os.environ.get('SMTP_PASS')
+        smtp_ready = all([smtp_server, smtp_user, smtp_pass]) and smtp_server != 'smtp.example.com'
+        try:
+            msg = MIMEText(msg_body, 'plain', 'utf-8')
+            msg['Subject'] = 'استعادة كلمة المرور - GOLD PRO'
+            msg['From'] = smtp_user or 'noreply@goldpro.com'
+            msg['To'] = email
+            if smtp_ready:
+                with smtplib.SMTP(smtp_server, smtp_port) as server:
+                    server.starttls()
+                    server.login(smtp_user, smtp_pass)
+                    server.sendmail(msg['From'], [msg['To']], msg.as_string())
+            else:
+                print('SMTP settings not ready, skipping email send.')
+        except Exception as e:
+            print(f'Error sending reset email: {e}')
+        return render_template('forgot_password.html', success='تم إرسال رابط الاستعادة إلى بريدك إذا كان مسجلاً.')
+    return render_template('forgot_password.html')
 subscription_manager = SubscriptionManager()
 SIGNALS_DIR = Path(__file__).parent / "signals"
 SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
@@ -47,6 +150,11 @@ def get_live_price(symbol):
     Get current price with multiple fallback methods
     """
     if symbol not in YF_SYMBOLS:
+        return None
+
+    try:
+        import yfinance as yf  # heavy; lazy import to keep server startup fast
+    except Exception:
         return None
     
     yf_symbol = YF_SYMBOLS[symbol]
@@ -908,7 +1016,12 @@ def api_stats():
 @app.route('/api/available-pairs')
 def api_available_pairs():
     """API لجلب جميع الأزواج المتاحة"""
-    return jsonify(ALL_AVAILABLE_PAIRS)
+    return jsonify(get_all_available_pairs())
+
+# ===== Helper function for available pairs =====
+def get_all_available_pairs():
+    """جلب جميع الأزواج المتاحة من YF_SYMBOLS"""
+    return list(YF_SYMBOLS.keys())
 
 
 @app.route('/api/user-pairs-preferences')
@@ -1460,7 +1573,7 @@ def api_admin_send_signal():
             signal_data = json.load(f)
         
         # إرسال الإشارة إلى المشتركين
-        result = send_signal_to_subscribers(signal_data, signal_data.get('quality_score', 100))
+        result = telegram_sender.send_signal_to_subscribers(signal_data, signal_data.get('quality_score', 100))
         
         return jsonify({
             'success': True,
@@ -1498,7 +1611,7 @@ def api_admin_send_recommendation():
             return jsonify({'success': False, 'error': 'Recommendation not found'}), 404
         
         # إرسال التوصية إلى المشتركين
-        result = send_recommendation_to_subscribers(recommendation)
+        result = telegram_sender.send_recommendation_to_subscribers(recommendation)
         
         return jsonify({
             'success': True,
@@ -1536,7 +1649,7 @@ def api_admin_send_report():
         full_report = header + report_text
         
         # إرسال التقرير إلى المشتركين
-        result = send_report_to_subscribers(full_report)
+        result = telegram_sender.send_report_to_subscribers(full_report)
         
         return jsonify({
             'success': True,
@@ -1561,7 +1674,7 @@ def api_admin_broadcast_message():
             return jsonify({'success': False, 'error': 'Message is required'}), 400
         
         # إرسال الرسالة لجميع المشتركين
-        result = send_report_to_subscribers(message_text)
+        result = telegram_sender.send_report_to_subscribers(message_text)
         
         return jsonify({
             'success': True,
@@ -1941,94 +2054,7 @@ def test_send_bot(bot_id):
             return jsonify({'success': False, 'message': 'فشل إرسال الرسالة'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
-
-# ============== End Bot Management Routes ==============
-
-# ============== Advanced Forex Analyzer Routes ==============
-
-@app.route('/advanced-analyzer')
-def advanced_analyzer():
-    """صفحة المحلل المتقدم"""
-    # السماح بالوصول مباشرة
-    return render_template('advanced_analyzer.html')
-
-@app.route('/api/advanced-analysis', methods=['POST'])
-def advanced_analysis():
-    """API للتحليل المتقدم الكامل"""
-    try:
-        from advanced_analyzer_engine import perform_full_analysis
-        
-        data = request.json
-        symbol = data.get('symbol', 'EUR/USD')
-        interval = data.get('interval', '1h')
-        
-        result = perform_full_analysis(symbol, interval)
-        
-        if result.get('success'):
-            return jsonify({'success': True, 'data': result})
-        else:
-            return jsonify({'success': False, 'error': result.get('error')})
-    
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/export-trading-signal', methods=['POST'])
-def export_trading_signal():
-    """تصدير إشارة تداول"""
-    try:
-        data = request.json
-        symbol = data.get('symbol')
-        
-        signal = {
-            'symbol': symbol.replace('/', ''),
-            'trade_type': data.get('trade_type', 'BUY'),
-            'entry_price': data.get('entry_price'),
-            'take_profit': data.get('take_profit', []),
-            'stop_loss': data.get('stop_loss'),
-            'confidence': data.get('confidence', 'MEDIUM'),
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'timeframe': data.get('interval'),
-            'recommendation_text': data.get('recommendation')
-        }
-        
-        filename = f"MoneyMakers_{signal['symbol']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        filepath = os.path.join('signals', filename)
-        
-        os.makedirs('signals', exist_ok=True)
-        
-        with open(filepath, 'w') as f:
-            json.dump(signal, f, indent=4)
-        
-        return jsonify({
-            'success': True,
-            'message': 'تم تصدير الإشارة بنجاح',
-            'filename': filename
-        })
-    
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/publish-to-recommendations', methods=['POST'])
-@admin_required
-def publish_to_recommendations():
-    """نشر التحليل على صفحة التوصيات"""
-    try:
-        data = request.json
-        
-        # حفظ كتوصية
-        recommendation = {
-            'pair': data.get('symbol'),
-            'action': data.get('recommendation'),
-            'entry': data.get('entry_point'),
-            'tp1': data.get('tp1'),
-            'tp2': data.get('tp2'),
-            'tp3': data.get('tp3'),
-            'sl': data.get('stop_loss'),
-            'analysis': data.get('analysis_text', ''),
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'confidence': data.get('confidence', ''),
-            'timeframe': data.get('interval', '1h')
-        }
+    # ...existing code...
         
         # حفظ في ملف JSON
         recommendations_file = 'recommendations_history.json'
@@ -2093,7 +2119,7 @@ def send_analysis_to_telegram():
 """
         
         # إرسال للتليجرام
-        result = send_telegram_message(
+        result = telegram_sender.send_telegram_message(
             os.environ.get("MM_TELEGRAM_CHAT_ID", ""),
             message
         )

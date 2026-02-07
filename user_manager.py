@@ -12,6 +12,17 @@ from pathlib import Path
 DATABASE_FILE = Path(__file__).parent / 'users.db'
 
 class UserManager:
+    def update_user_email(self, username, new_email):
+        """تحديث البريد الإلكتروني للمستخدم حسب الاسم"""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET email = ? WHERE username = ?", (new_email, username))
+            conn.commit()
+            conn.close()
+            return {'success': True, 'message': 'تم تحديث البريد بنجاح'}
+        except Exception as e:
+            return {'success': False, 'message': f'خطأ: {str(e)}'}
     def __init__(self):
         self.db_file = DATABASE_FILE
         self.init_database()

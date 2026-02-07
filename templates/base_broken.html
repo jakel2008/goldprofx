@@ -455,7 +455,7 @@
                 <li><a href="{{ url_for('trades') }}">💹 الصفقات</a></li>
                 {% if session.get('user_id') %}
                     <!-- صفحات المستخدمين المسجلين -->
-                    <li><a href="{{ url_for('signals_page') }}">📊 الإشارات</a></li>
+                    <li><a href="{{ url_for('signals') }}">📊 الإشارات</a></li>
                     <li><a href="{{ url_for('dashboard') }}">📈 لوحة التحكم</a></li>
                     <li><a href="{{ url_for('reports') }}">📋 التقارير</a></li>
                     <li><a href="{{ url_for('pairs_selection') }}">⚙️ الأزواج</a></li>

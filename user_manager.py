@@ -131,47 +131,37 @@ class UserManager:
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}
     
-    def login_user(self, username, password, ip_address=''):
-        """تسجيل دخول المستخدم"""
+    def login_user(self, username_or_email, password, ip_address=''):
+        """تسجيل دخول المستخدم باسم المستخدم أو البريد الإلكتروني"""
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
-            
-            # البحث عن المستخدم
+            # البحث عن المستخدم بالاسم أو البريد
             cursor.execute('''
-                SELECT id, password_hash, is_active FROM users WHERE username = ?
-            ''', (username,))
+                SELECT id, password_hash, is_active FROM users WHERE username = ? OR email = ?
+            ''', (username_or_email, username_or_email))
             result = cursor.fetchone()
-            
             if not result:
-                return {'success': False, 'message': 'اسم المستخدم أو كلمة المرور غير صحيحة'}
-            
+                return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
             user_id, password_hash, is_active = result
-            
             if not is_active:
                 return {'success': False, 'message': 'الحساب غير مفعل'}
-            
             if not self.verify_password(password_hash, password):
-                return {'success': False, 'message': 'اسم المستخدم أو كلمة المرور غير صحيحة'}
-            
+                return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
             # إنشاء جلسة جديدة
             session_token = secrets.token_urlsafe(32)
             cursor.execute('''
                 INSERT INTO user_sessions (user_id, session_token, ip_address, expires_at)
                 VALUES (?, ?, ?, datetime('now', '+30 days'))
             ''', (user_id, session_token, ip_address))
-            
             # تحديث آخر تسجيل دخول
             cursor.execute('''
                 UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
             ''', (user_id,))
-            
             conn.commit()
             conn.close()
-            
             # تسجيل النشاط
             self.log_activity(user_id, 'login', f'Login from {ip_address}')
-            
             return {
                 'success': True,
                 'message': 'تسجيل دخول ناجح',

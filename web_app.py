@@ -600,12 +600,13 @@ def plans():
     return render_template('plans.html', plans=plans)
 
 @app.route('/dashboard')
-@require_login@require_login
+@require_login
+
 def dashboard():
-    """لوحة التحكم"""
+    """
+    لوحة التحكم
+    """
     return render_template('dashboard.html')
-
-
 
 @app.route('/index_new')
 def index_new():
@@ -618,7 +619,7 @@ def index_new():
 def admin_panel():
     """لوحة الإدارة"""
     user = {
-        'username': session.get('full_name') or session.get('email') or 'Admin'('full_name') or session.get('email') or 'Admin'
+        'username': session.get('full_name') or session.get('email') or 'Admin'
     }
     return render_template('admin.html', user=user)
 
@@ -662,7 +663,7 @@ def api_admin_users():
 
 @app.route('/api/admin/set_active', methods=['POST'])
 @require_login
-@require_admin@require_admin
+@require_admin
 def api_admin_set_active():
     data = request.json or {}
     user_id = data.get('user_id')

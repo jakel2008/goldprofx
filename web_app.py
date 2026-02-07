@@ -725,9 +725,6 @@ def api_admin_update_plan():
     conn.close()
     return jsonify({'success': True})
 
-@app.route('/signals')@app.route('/signals')
-@require_login
-
 @app.route('/signals')
 @require_login
 def signals_page():

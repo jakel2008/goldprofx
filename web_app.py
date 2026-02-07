@@ -606,7 +606,17 @@ def dashboard():
     """
     لوحة التحكم
     """
-    return render_template('dashboard.html')
+    # حساب عدد الأزواج المختارة للمستخدم الحالي
+    selected_pairs_count = 0
+    try:
+        user_id = session.get('user_id')
+        if user_id:
+            # مثال: إذا كان لديك جدول أو قائمة للأزواج المختارة
+            # selected_pairs_count = get_selected_pairs_count(user_id)
+            pass
+    except Exception:
+        selected_pairs_count = 0
+    return render_template('dashboard.html', selected_pairs_count=selected_pairs_count)
 
 @app.route('/index_new')
 def index_new():

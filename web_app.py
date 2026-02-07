@@ -824,137 +824,14 @@ def api_trades_status():
             elif current_price <= tp1:
                 status = 'win'
 
-        trades.append({
-            'pair': pair,
-            'signal': signal,
-            'entry': entry,
-            'current_price': current_price,
-            'profit_percent': profit_percent,
-            'status': status
-        })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    app.run(host='0.0.0.0', port=5000, debug=True)
-        trades.append({
-            'pair': pair,
-            'signal': signal,
-            'entry': entry,
-            'current_price': current_price,
-            'profit_percent': profit_percent,
-            'status': status
-        })
-
+    trades.append({
+        'pair': pair,
+        'signal': signal,
+        'entry': entry,
+        'current_price': current_price,
+        'profit_percent': profit_percent,
+        'status': status
+    })
     active = [t for t in trades if t['status'] == 'active']
     winners = [t for t in trades if t['status'] == 'win']
     losers = [t for t in trades if t['status'] == 'loss']

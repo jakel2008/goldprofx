@@ -733,13 +733,15 @@ def signals_page():
     else:
         # المستخدمين غير المسجلين يرون فقط الإشارات عالية الجودة
         filtered_signals = [s for s in signals if s.get('quality_score', 0) >= 90]
-    
-    return render_template('signals.html', 
-                         signals=filtered_signals,
-                         all_signals_count=len(signals),
-                         is_logged_in=user_info['success'],
-                         is_admin=(username == 'jakel2008'),
-                         user=user_info if user_info['success'] else None)
+
+    return render_template(
+        'signals_gold_card.html',
+        signals=filtered_signals,
+        all_signals_count=len(signals),
+        is_logged_in=user_info['success'],
+        is_admin=(username == 'jakel2008'),
+        user=user_info if user_info['success'] else None
+    )
 
 
 @app.route('/select_location/<plan>')

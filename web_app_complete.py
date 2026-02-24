@@ -238,14 +238,16 @@ def get_current_user():
     return {'success': False}
 
 
-# Context processor لتوفير المعلومات للقوالب
+
+# Context processor لتوفير المعلومات للقوالب + الروابط المركزية
 @app.context_processor
-def inject_user():
-    """إضافة معلومات المستخدم لجميع القوالب"""
+def inject_user_and_links():
+    """إضافة معلومات المستخدم وجميع الروابط لجميع القوالب"""
     user_info = get_current_user()
     return {
         'is_logged_in': user_info['success'],
-        'user': user_info if user_info['success'] else None
+        'user': user_info if user_info['success'] else None,
+        'site_links': site_links.links
     }
 
 # Decorator لصلاحيات الأدمن
@@ -691,42 +693,41 @@ def get_detailed_report():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """صفحة تسجيل الدخول"""
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        
-        print(f"[LOGIN] Attempt for user: {username}")
-        
-        if not username or not password:
-            print("[LOGIN] Missing username or password")
-            return render_template('login.html', error='يرجى ملء جميع الحقول')
-        
-        # محاولة تسجيل الدخول
-        result = user_manager.login_user(
-            username, 
-            password,
-            request.remote_addr
-        )
-        
-        print(f"[LOGIN] Result: {result.get('success')}, Message: {result.get('message')}")
-        
-        if result['success']:
-            session['session_token'] = result['session_token']
-            session['user_id'] = result['user_id']
-            print(f"[LOGIN] Session set successfully for user_id: {result['user_id']}")
-            print(f"[LOGIN] Redirecting to index...")
-            return redirect(url_for('index'))
-        else:
-            print(f"[LOGIN] Login failed: {result['message']}")
-            return render_template('login.html', error=result['message'])
-    
-    # التحقق من وجود جلسة نشطة
-    if session.get('session_token'):
-        user_info = user_manager.verify_session(session.get('session_token'))
-        if user_info['success']:
-            return redirect(url_for('index'))
-    
-    return render_template('login.html')
+    try:
+        if request.method == 'POST':
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
+            print(f"[LOGIN] Attempt for user: {username}")
+            if not username or not password:
+                print("[LOGIN] Missing username or password")
+                return render_template('login.html', error='يرجى ملء جميع الحقول')
+            # محاولة تسجيل الدخول
+            result = user_manager.login_user(
+                username, 
+                password,
+                request.remote_addr
+            )
+            print(f"[LOGIN] Result: {result.get('success')}, Message: {result.get('message')}")
+            if result['success']:
+                session['session_token'] = result['session_token']
+                session['user_id'] = result['user_id']
+                print(f"[LOGIN] Session set successfully for user_id: {result['user_id']}")
+                print(f"[LOGIN] Redirecting to index...")
+                return redirect(url_for('index'))
+            else:
+                print(f"[LOGIN] Login failed: {result['message']}")
+                return render_template('login.html', error=result['message'])
+        # التحقق من وجود جلسة نشطة
+        if session.get('session_token'):
+            user_info = user_manager.verify_session(session.get('session_token'))
+            if user_info['success']:
+                return redirect(url_for('index'))
+        return render_template('login.html')
+    except Exception as e:
+        import traceback
+        print("[LOGIN] Exception:", e)
+        traceback.print_exc()
+        return render_template('login.html', error=f'حدث خطأ داخلي: {e}')
 
 
 @app.route('/register', methods=['GET', 'POST'])

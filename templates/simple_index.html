@@ -140,6 +140,105 @@
             color: #666;
             font-size: 1.2em;
         }
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+        }
+        .auth-card {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 22px;
+            padding: 2.7rem 2.2rem 2.2rem 2.2rem;
+            box-shadow: 0 10px 40px rgba(102,126,234,0.13);
+            margin: 2rem auto;
+        }
+        .auth-card h2 {
+            color: #5a67d8;
+            margin-bottom: 0.7rem;
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .auth-subtitle {
+            color: #888;
+            margin-bottom: 1.7rem;
+            font-size: 1.05rem;
+            text-align: center;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+        .form-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.3rem;
+            font-size: 0.97rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="tel"],
+        .form-group select {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1.01rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.13);
+        }
+        .form-icon {
+            position: absolute;
+            left: 0.8rem;
+            top: 2rem;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+        .form-group small {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 0.2rem;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        .alert-success {
+            background: #e6fffa;
+            color: #319795;
+            border: 1px solid #b2f5ea;
+        }
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: 0.5rem;
+                min-height: 100vh;
+            }
+            .auth-card {
+                padding: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>

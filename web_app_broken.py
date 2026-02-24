@@ -1914,8 +1914,10 @@ def test_send_bot(bot_id):
 """
         
         # استخدام التوكن الخاص بهذا البوت
+        # Get chat ID from environment variable or set a default/fallback
+        chat_id = os.environ.get("MM_TELEGRAM_CHAT_ID", "")
         result = telegram_sender.send_telegram_message(
-            CHAT_ID,
+            chat_id,
             test_message,
             bot_token=bot['token']
         )

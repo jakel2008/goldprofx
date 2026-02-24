@@ -1915,6 +1915,8 @@ def test_send_bot(bot_id):
 """
         
         # استخدام التوكن الخاص بهذا البوت
+        # تعريف CHAT_ID من متغير البيئة أو قيمة افتراضية
+        CHAT_ID = os.environ.get("MM_TELEGRAM_CHAT_ID", "")
         result = telegram_sender.send_telegram_message(
             CHAT_ID,
             test_message,

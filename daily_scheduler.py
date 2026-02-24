@@ -8,7 +8,7 @@ import time
 import sys
 from datetime import datetime
 from auto_pairs_analyzer import run_daily_analysis, run_hourly_5min_analysis
-from monitor_trades import monitor_and_report
+from monitor_trades import monitor_and_report, send_hourly_closed_report
 
 # معالجة الترميز
 if sys.stdout.encoding != 'utf-8':

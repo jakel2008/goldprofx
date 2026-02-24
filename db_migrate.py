@@ -54,7 +54,15 @@ def _safe_float(v: Any, default: float = 0.0) -> float:
 
 def _load_plans() -> Dict[str, Dict[str, Any]]:
     # المصدر الوحيد للخطط
-    from vip_subscription_system import PLANS  # noqa
+    try:
+        from vip_subscription_system import SubscriptionManager  # noqa
+        PLANS = SubscriptionManager.PLANS
+    except ImportError as exc:
+        raise RuntimeError(
+            "Failed to import 'SubscriptionManager.PLANS' required for database migrations. "
+            "Ensure that 'vip_subscription_system.py' is present on the Python path and "
+            "can be imported before running db_migrate."
+        ) from exc
     if not isinstance(PLANS, dict):
         return {}
     return PLANS

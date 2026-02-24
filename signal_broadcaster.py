@@ -251,37 +251,55 @@ def read_and_broadcast_signals():
     
     # قراءة جميع ملفات الإشارات
     signal_files = list(SIGNALS_DIR.glob("*.json"))
-    
+    now = datetime.now()
+    new_signals_count = 0
+    expired_files = []
+
     if not signal_files:
         print("⏳ لا توجد ملفات إشارات")
         return 0
-    
-    new_signals_count = 0
-    
+
     for signal_file in signal_files:
         try:
             with open(signal_file, 'r', encoding='utf-8') as f:
                 signals = json.load(f)
-            
+
             # التعامل مع الإشارات المخزنة كقائمة أو قاموس
             if isinstance(signals, dict):
                 signals = [signals]
-            
+
+            # تحقق من صلاحية الإشارة (تاريخ/وقت)
+            valid_signals = []
             for signal in signals:
+                # دعم أكثر من اسم لحقل الوقت
+                ts = signal.get('timestamp') or signal.get('time') or signal.get('date')
+                if ts:
+                    try:
+                        # دعم تنسيقات مختلفة
+                        if 'T' in ts:
+                            sig_time = datetime.fromisoformat(ts)
+                        else:
+                            sig_time = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+                        if sig_time >= now:
+                            valid_signals.append(signal)
+                        else:
+                            expired_files.append(signal_file)
+                    except Exception:
+                        # إذا فشل التحويل اعتبرها غير صالحة
+                        expired_files.append(signal_file)
+                else:
+                    # إذا لم يوجد وقت اعتبرها صالحة (للتوافق)
+                    valid_signals.append(signal)
+
+            for signal in valid_signals:
                 signal_id = get_signal_id(signal)
-                
                 # تحقق إذا لم ترسل من قبل
                 if signal_id not in sent_ids:
-                    # حساب جودة الإشارة
                     quality_score = calculate_signal_quality(signal)
-                    
-                    # إرسال الإشارة
                     display_symbol = signal.get('symbol') or signal.get('pair')
                     print(f"\n📢 بث إشارة جديدة: {display_symbol}")
                     print(f"   الجودة: {quality_score}/100")
-                    
                     sent_count = send_signal_to_users(signal, quality_score)
-                    
                     if sent_count > 0:
                         print(f"✅ تم الإرسال ل {sent_count} مشترك")
                         save_sent_signal(signal_id, signature=signal_id)
@@ -289,13 +307,20 @@ def read_and_broadcast_signals():
                         new_signals_count += 1
                     else:
                         print("⚠️ لا يوجد مستخدمين مؤهلين")
-                    
                     time.sleep(2)  # تأخير بين الإشارات
-        
+
         except Exception as e:
             print(f"❌ خطأ في قراءة {signal_file.name}: {e}")
             continue
-    
+
+    # حذف ملفات الإشارات المنتهية
+    for expired_file in set(expired_files):
+        try:
+            expired_file.unlink()
+            print(f"🗑️ تم حذف إشارة منتهية: {expired_file.name}")
+        except Exception as e:
+            print(f"❌ تعذر حذف {expired_file.name}: {e}")
+
     return new_signals_count
 
 

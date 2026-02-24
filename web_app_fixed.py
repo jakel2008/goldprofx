@@ -3,16 +3,22 @@
 VIP Signals Web Application with Login System
 """
 
+
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from functools import wraps
 import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+import yfinance as yf
+import sqlite3
 from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
 from recommendations_engine import ALL_AVAILABLE_PAIRS
+
+import telegram_sender
 from telegram_sender import (
     send_telegram_message,
     send_signal_to_subscribers,
@@ -378,8 +384,6 @@ def load_signals():
                             conn2.close()
                         except:
                             pass
-                except:
-                    pass
             
             signals.append({
                 'signal_id': row['signal_id'],

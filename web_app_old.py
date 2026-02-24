@@ -3,12 +3,14 @@
 VIP Signals Web Application with Login System
 """
 
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from functools import wraps
 import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+import yfinance as yf
 from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
@@ -62,7 +64,7 @@ def get_live_price(symbol):
                 price = float(info[field])
                 if price > 0:
                     return price
-    except:
+    except Exception:
         pass
     
     # الطريقة 2: من البيانات التاريخية
@@ -77,9 +79,9 @@ def get_live_price(symbol):
                     price = float(hist['Close'].iloc[-1])
                     if price > 0:
                         return price
-            except:
+            except Exception:
                 continue
-    except:
+    except Exception:
         pass
     
     # الطريقة 3: download
@@ -90,7 +92,7 @@ def get_live_price(symbol):
             price = float(close_val.iloc[0] if hasattr(close_val, 'iloc') else close_val)
             if price > 0:
                 return price
-    except:
+    except Exception:
         pass
     
     return None

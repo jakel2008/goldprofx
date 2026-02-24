@@ -13,6 +13,7 @@ from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
 from recommendations_engine import ALL_AVAILABLE_PAIRS
+import telegram_sender
 from telegram_sender import (
     send_telegram_message,
     send_signal_to_subscribers,
@@ -20,6 +21,7 @@ from telegram_sender import (
     send_report_to_subscribers
 )
 from forex_analyzer import perform_analysis
+import yfinance as yf
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
@@ -55,14 +57,15 @@ def get_live_price(symbol):
     try:
         ticker = yf.Ticker(yf_symbol)
         info = ticker.info
-        
         price_fields = ['regularMarketPrice', 'currentPrice', 'bid', 'ask', 'previousClose']
         for field in price_fields:
             if field in info and info[field]:
                 price = float(info[field])
                 if price > 0:
                     return price
-    except:
+    except Exception:
+        pass
+    except Exception:
         pass
     
     # الطريقة 2: من البيانات التاريخية
@@ -1147,6 +1150,7 @@ def api_admin_subscription_requests():
     """الحصول على طلبات الاشتراك المعلقة"""
     try:
         import sqlite3
+        import sqlite3
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
         
@@ -1572,11 +1576,13 @@ def admin_management():
     """صفحة إدارة صلاحيات الأدمن"""
     return render_template('admin_management.html')
 
+
 @app.route('/api/admin/users/all', methods=['GET'])
 @admin_required
 def get_all_users():
     """الحصول على جميع المستخدمين"""
     try:
+        import sqlite3
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
         cursor.execute('''
@@ -1603,9 +1609,11 @@ def get_all_users():
 
 @app.route('/api/admin/users/set-admin', methods=['POST'])
 @admin_required
+
 def set_admin_status():
     """تعيين أو إزالة صلاحيات الأدمن"""
     try:
+        import sqlite3
         data = request.json
         user_id = data.get('user_id')
         is_admin = data.get('is_admin', False)
@@ -1694,11 +1702,14 @@ def test_bot_token():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
+
 @app.route('/api/admin/bots/add', methods=['POST'])
 @admin_required
 def add_bot():
     """إضافة بوت جديد"""
     try:
+        # Ensure telegram_sender is imported
+        import telegram_sender
         data = request.json
         name = data.get('name')
         token = data.get('token')
@@ -1755,7 +1766,7 @@ def add_bot():
 @app.route('/api/admin/bots/<int:bot_id>/edit', methods=['POST'])
 @admin_required
 def edit_bot(bot_id):
-    """تعديل بوت"""
+    """ تعديل بوت"""
     try:
         data = request.json
         config = telegram_sender.load_bots_config()

@@ -1,5 +1,6 @@
 # ============ صفحة استرجاع كلمة المرور ============
 
+
 import secrets
 import smtplib
 from email.mime.text import MIMEText
@@ -20,6 +21,14 @@ from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
 import telegram_sender
+
+# استيراد قائمة الروابط المركزية
+import sys
+sys.path.append(str(Path(__file__).parent / 'templates'))
+try:
+    import site_links # pyright: ignore[reportMissingImports]
+except Exception:
+    site_links.links = []
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'

@@ -1576,6 +1576,9 @@ def admin_management():
     """صفحة إدارة صلاحيات الأدمن"""
     return render_template('admin_management.html')
 
+
+import sqlite3
+
 @app.route('/api/admin/users/all', methods=['GET'])
 @admin_required
 def get_all_users():
@@ -1641,6 +1644,10 @@ def bot_management():
     """صفحة إدارة البوتات"""
     return render_template('bot_management.html')
 
+
+# Ensure telegram_sender is imported for bot management routes
+import telegram_sender
+
 @app.route('/api/admin/bots', methods=['GET'])
 @admin_required
 def get_bots():
@@ -1662,6 +1669,7 @@ def get_bots():
 def get_bot(bot_id):
     """الحصول على بيانات بوت محدد"""
     try:
+        import telegram_sender
         config = telegram_sender.load_bots_config()
         bot = next((b for b in config.get('bots', []) if b['id'] == bot_id), None)
         if bot:

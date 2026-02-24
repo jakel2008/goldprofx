@@ -3,16 +3,21 @@
 VIP Signals Web Application with Login System
 """
 
+
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from functools import wraps
 import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+import sqlite3
+import yfinance as yf
 from vip_subscription_system import SubscriptionManager
 from user_manager import user_manager
 from email_service import email_service
 from recommendations_engine import ALL_AVAILABLE_PAIRS
+import telegram_sender
 from telegram_sender import (
     send_telegram_message,
     send_signal_to_subscribers,

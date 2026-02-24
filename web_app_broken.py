@@ -192,195 +192,187 @@ def load_signals():
             # استخدام الدالة المحسنة لجلب السعر
             current_price = get_live_price(symbol)
             
-            try:
-                if current_price:
-                    # معالجة الصفقات النشطة فقط (نوع الصفقة buy/sell يأتي من التحليل)
-                    if status == 'active':
-                        if signal_type == 'buy':
-                            pips = current_price - entry
-                            total_range = tp1 - entry
-                            
-                            # فحص إيقاف الخسارة
-                            if current_price <= sl:
-                                status = 'closed'
-                                result = 'loss'
-                            close_price = current_price
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        # فحص الأهداف بنظام القفل
-                        elif current_price >= tp3:
-                            tp_levels_hit = 3
-                            if not tp3_locked:
-                                tp3_locked = 1
-                                tp2_locked = 1
-                                tp1_locked = 1
-                                status = 'closed'
-                                result = 'win'
-                                close_price = current_price
-                                try:
-                                    conn2 = sqlite3.connect('vip_signals.db')
-                                    c2 = conn2.cursor()
-                                    c2.execute('''
-                                        UPDATE signals 
-                                        SET status='closed', result='win', close_price=?,
-                                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                        WHERE signal_id=?
-                                    ''', (current_price, row['signal_id']))
-                                    conn2.commit()
-                                    conn2.close()
-                                except:
-                                    pass
-                            else:
-                                tp_levels_hit = 3
-                        elif current_price >= tp2 and not tp2_locked:
-                            tp_levels_hit = 2
-                            tp2_locked = 1
-                            tp1_locked = 1
-                            result = 'win'
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        elif current_price >= tp1 and not tp1_locked:
-                            tp_levels_hit = 1
-                            tp1_locked = 1
-                            result = 'win'
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        else:
-                            # عدد المقفلة من قبل
-                            tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
-                            if tp1_locked:
-                                result = 'win'
-                                
-                    else:  # sell
-                        pips = entry - current_price
-                        total_range = entry - tp1
-                        
+            if current_price:
+                # معالجة الصفقات النشطة فقط (نوع الصفقة buy/sell يأتي من التحليل)
+                if status == 'active':
+                    if signal_type == 'buy':
+                        pips = current_price - entry
+                        total_range = tp1 - entry
                         # فحص إيقاف الخسارة
-                        if current_price >= sl:
+                        if current_price <= sl:
                             status = 'closed'
                             result = 'loss'
-                            close_price = current_price
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        # فحص الأهداف بنظام القفل
-                        elif current_price <= tp3:
-                            tp_levels_hit = 3
-                            if not tp3_locked:
-                                tp3_locked = 1
-                                tp2_locked = 1
-                                tp1_locked = 1
-                                status = 'closed'
-                                result = 'win'
-                                close_price = current_price
-                                try:
-                                    conn2 = sqlite3.connect('vip_signals.db')
-                                    c2 = conn2.cursor()
-                                    c2.execute('''
-                                        UPDATE signals 
-                                        SET status='closed', result='win', close_price=?,
-                                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                        WHERE signal_id=?
-                                    ''', (current_price, row['signal_id']))
-                                    conn2.commit()
-                                    conn2.close()
-                                except:
-                                    pass
-                            else:
-                                tp_levels_hit = 3
-                        elif current_price <= tp2 and not tp2_locked:
-                            tp_levels_hit = 2
-                            tp2_locked = 1
-                            tp1_locked = 1
-                            result = 'win'
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        elif current_price <= tp1 and not tp1_locked:
-                            tp_levels_hit = 1
-                            tp1_locked = 1
-                            result = 'win'
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
-                        else:
-                            # عدد المقفلة من قبل
-                            tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
-                            if tp1_locked:
-                                result = 'win'
-                            
-                            # حساب التقدم
-                            if total_range > 0:
-                                progress = int((pips / total_range) * 100)
-                        
-                        # تحديث السعر في قاعدة البيانات
+                        close_price = current_price
                         try:
                             conn2 = sqlite3.connect('vip_signals.db')
                             c2 = conn2.cursor()
-                            c2.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
+                            c2.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='loss', close_price=? 
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
                             conn2.commit()
                             conn2.close()
                         except:
                             pass
-                except:
-                    pass
+                    # فحص الأهداف بنظام القفل
+                    elif current_price >= tp3:
+                        tp_levels_hit = 3
+                        if not tp3_locked:
+                            tp3_locked = 1
+                            tp2_locked = 1
+                            tp1_locked = 1
+                            status = 'closed'
+                            result = 'win'
+                            close_price = current_price
+                            try:
+                                conn2 = sqlite3.connect('vip_signals.db')
+                                c2 = conn2.cursor()
+                                c2.execute('''
+                                    UPDATE signals 
+                                    SET status='closed', result='win', close_price=?,
+                                        tp1_locked=1, tp2_locked=1, tp3_locked=1
+                                    WHERE signal_id=?
+                                ''', (current_price, row['signal_id']))
+                                conn2.commit()
+                                conn2.close()
+                            except:
+                                pass
+                        else:
+                            tp_levels_hit = 3
+                    elif current_price >= tp2 and not tp2_locked:
+                        tp_levels_hit = 2
+                        tp2_locked = 1
+                        tp1_locked = 1
+                        result = 'win'
+                        try:
+                            conn2 = sqlite3.connect('vip_signals.db')
+                            c2 = conn2.cursor()
+                            c2.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1, tp2_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                            conn2.commit()
+                            conn2.close()
+                        except:
+                            pass
+                    elif current_price >= tp1 and not tp1_locked:
+                        tp_levels_hit = 1
+                        tp1_locked = 1
+                        result = 'win'
+                        try:
+                            conn2 = sqlite3.connect('vip_signals.db')
+                            c2 = conn2.cursor()
+                            c2.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                            conn2.commit()
+                            conn2.close()
+                        except:
+                            pass
+                    else:
+                        # عدد المقفلة من قبل
+                        tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
+                        if tp1_locked:
+                            result = 'win'
+                else:  # sell
+                    pips = entry - current_price
+                    total_range = entry - tp1
+                    # فحص إيقاف الخسارة
+                    if current_price >= sl:
+                        status = 'closed'
+                        result = 'loss'
+                        close_price = current_price
+                        try:
+                            conn2 = sqlite3.connect('vip_signals.db')
+                            c2 = conn2.cursor()
+                            c2.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='loss', close_price=? 
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
+                            conn2.commit()
+                            conn2.close()
+                        except:
+                            pass
+                    # فحص الأهداف بنظام القفل
+                    elif current_price <= tp3:
+                        tp_levels_hit = 3
+                        if not tp3_locked:
+                            tp3_locked = 1
+                            tp2_locked = 1
+                            tp1_locked = 1
+                            status = 'closed'
+                            result = 'win'
+                            close_price = current_price
+                            try:
+                                conn2 = sqlite3.connect('vip_signals.db')
+                                c2 = conn2.cursor()
+                                c2.execute('''
+                                    UPDATE signals 
+                                    SET status='closed', result='win', close_price=?,
+                                        tp1_locked=1, tp2_locked=1, tp3_locked=1
+                                    WHERE signal_id=?
+                                ''', (current_price, row['signal_id']))
+                                conn2.commit()
+                                conn2.close()
+                            except:
+                                pass
+                        else:
+                            tp_levels_hit = 3
+                    elif current_price <= tp2 and not tp2_locked:
+                        tp_levels_hit = 2
+                        tp2_locked = 1
+                        tp1_locked = 1
+                        result = 'win'
+                        try:
+                            conn2 = sqlite3.connect('vip_signals.db')
+                            c2 = conn2.cursor()
+                            c2.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1, tp2_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                            conn2.commit()
+                            conn2.close()
+                        except:
+                            pass
+                    elif current_price <= tp1 and not tp1_locked:
+                        tp_levels_hit = 1
+                        tp1_locked = 1
+                        result = 'win'
+                        try:
+                            conn2 = sqlite3.connect('vip_signals.db')
+                            c2 = conn2.cursor()
+                            c2.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                            conn2.commit()
+                            conn2.close()
+                        except:
+                            pass
+                    else:
+                        # عدد المقفلة من قبل
+                        tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
+                        if tp1_locked:
+                            result = 'win'
+                        # حساب التقدم
+                        if total_range > 0:
+                            progress = int((pips / total_range) * 100)
+                    # تحديث السعر في قاعدة البيانات
+                    try:
+                        conn2 = sqlite3.connect('vip_signals.db')
+                        c2 = conn2.cursor()
+                        c2.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
+                        conn2.commit()
+                        conn2.close()
+                    except:
+                        pass
             
             signals.append({
                 'signal_id': row['signal_id'],
@@ -2309,24 +2301,22 @@ def api_update_prices():
             current_price = get_live_price(symbol)
             
             if current_price:
-                        
-                        # حساب النقاط
-                        if signal_type == 'buy':
-                            pips = current_price - entry
-                            total_range = tp1 - entry
-                        else:
-                            pips = entry - current_price
-                            total_range = entry - tp1
-                        
-                        # حساب نسبة التقدم
-                        progress = int((pips / total_range) * 100) if total_range != 0 else 0
-                        
-                        signals_data.append({
-                            'id': row['signal_id'],
-                            'current_price': current_price,
-                            'pips': round(pips, 2),
-                            'progress': max(0, progress)
-                        })
+                try:
+                    # حساب النقاط
+                    if signal_type == 'buy':
+                        pips = current_price - entry
+                        total_range = tp1 - entry
+                    else:
+                        pips = entry - current_price
+                        total_range = entry - tp1
+                    # حساب نسبة التقدم
+                    progress = int((pips / total_range) * 100) if total_range != 0 else 0
+                    signals_data.append({
+                        'id': row['signal_id'],
+                        'current_price': current_price,
+                        'pips': round(pips, 2),
+                        'progress': max(0, progress)
+                    })
                 except Exception as e:
                     print(f"Error fetching price for {symbol}: {e}")
                     continue
@@ -2383,78 +2373,76 @@ def api_update_status():
             current_price = get_live_price(symbol)
             
             if current_price:
-                        
-                        # فحص التغييرات في الحالة
-                        if signal_type == 'buy':
-                            # فحص SL
-                            if current_price <= sl:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                            # فحص TP3
-                            elif current_price >= tp3 and not tp3_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='win', close_price=?,
-                                        tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                            # فحص TP2
-                            elif current_price >= tp2 and not tp2_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                            # فحص TP1
-                            elif current_price >= tp1 and not tp1_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                
-                        else:  # sell
-                            # فحص SL
-                            if current_price >= sl:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                            # فحص TP3
-                            elif current_price <= tp3 and not tp3_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='win', close_price=?,
-                                        tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                    WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
-                            # فحص TP2
-                            elif current_price <= tp2 and not tp2_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                            # فحص TP1
-                            elif current_price <= tp1 and not tp1_locked:
-                                needs_refresh = True
-                                c.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1
-                                    WHERE signal_id=?
-                                ''', (row['signal_id'],))
-                                
+                try:
+                    # فحص التغييرات في الحالة
+                    if signal_type == 'buy':
+                        # فحص SL
+                        if current_price <= sl:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='loss', close_price=? 
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
+                        # فحص TP3
+                        elif current_price >= tp3 and not tp3_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='win', close_price=?,
+                                    tp1_locked=1, tp2_locked=1, tp3_locked=1
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
+                        # فحص TP2
+                        elif current_price >= tp2 and not tp2_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1, tp2_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                        # فحص TP1
+                        elif current_price >= tp1 and not tp1_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                    else:  # sell
+                        # فحص SL
+                        if current_price >= sl:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='loss', close_price=? 
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
+                        # فحص TP3
+                        elif current_price <= tp3 and not tp3_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET status='closed', result='win', close_price=?,
+                                    tp1_locked=1, tp2_locked=1, tp3_locked=1
+                                WHERE signal_id=?
+                            ''', (current_price, row['signal_id']))
+                        # فحص TP2
+                        elif current_price <= tp2 and not tp2_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1, tp2_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
+                        # فحص TP1
+                        elif current_price <= tp1 and not tp1_locked:
+                            needs_refresh = True
+                            c.execute('''
+                                UPDATE signals 
+                                SET result='win', tp1_locked=1
+                                WHERE signal_id=?
+                            ''', (row['signal_id'],))
                 except Exception as e:
                     print(f"Error checking status for {symbol}: {e}")
                     continue

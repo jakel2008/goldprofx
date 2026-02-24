@@ -94,38 +94,18 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">🏠 الرئيسية</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/plans">💰 الخطط</a>
-                    </li>
-                    {% if session.get('user_id') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">📊 لوحة التحكم</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/signals">📈 الإشارات</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/trades">💹 الصفقات</a>
-                    </li>
-                    {% if session.get('role') == 'admin' %}
-                    <li class="nav-item">
-                        <a class="nav-link text-warning" href="/admin">🔐 الإدارة</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout">🚪 خروج</a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/login">🔓 دخول</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">✍️ تسجيل</a>
-                    </li>
-                    {% endif %}
+                    {# قائمة الروابط المركزية ديناميكياً حسب الصلاحيات #}
+                    {% for link in site_links %}
+                        {% if (link.admin and (not user or not user.is_admin))
+                              or (link.guest and is_logged_in)
+                              or (link.auth and not is_logged_in) %}
+                            {# لا تعرض الرابط #}
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link{% if link.admin %} text-warning{% endif %}" href="{{ link.url }}">{{ link.icon }} {{ link.name }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
                 </ul>
             </div>
         </div>

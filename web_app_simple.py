@@ -299,7 +299,7 @@ def signals():
     signals = load_signals()
     user_info = get_current_user()
     filtered_signals = filter_signals_by_plan(signals, user_info)
-    return render_template('signals.html', signals=filtered_signals)
+    return render_template('signals_gold_card.html', signals=filtered_signals)
 
 @app.route('/trades')
 @login_required

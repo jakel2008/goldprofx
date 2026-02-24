@@ -19,14 +19,14 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 def index():
     """الصفحة الرئيسية"""
     signal_list = load_signals()
-    return render_template('signals.html', signals=signal_list)
+    return render_template('signals_gold_card.html', signals=signal_list)
 
 
 @app.route('/signals')
 def signals_page():
     """صفحة عرض الإشارات"""
     signal_list = load_signals()
-    return render_template('signals.html', signals=signal_list)
+    return render_template('signals_gold_card.html', signals=signal_list)
 
 
 def load_signals():

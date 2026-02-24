@@ -738,7 +738,7 @@ def signals_page():
         # المستخدمين غير المسجلين يرون فقط الإشارات عالية الجودة
         filtered_signals = [s for s in signals if s.get('quality_score', 0) >= 90]
     
-    return render_template('signals.html', 
+    return render_template('signals_gold_card.html', 
                          signals=filtered_signals,
                          all_signals_count=len(signals),
                          is_logged_in=user_info['success'],

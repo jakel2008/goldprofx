@@ -741,7 +741,7 @@ def signals_page():
     """صفحة الإشارات"""
     signals = load_signals_from_files()
     is_admin = session.get('role') == 'admin'
-    return render_template('signals.html', signals=signals, is_admin=is_admin)
+    return render_template('signals_gold_card.html', signals=signals, is_admin=is_admin)
 
 
 @app.route('/api/update_prices')

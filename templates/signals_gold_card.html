@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}الإشارات - نظام VIP{% endblock %}
+
+{% block content %}
+<script>
+    // تحديث الصفحة كل 30 ثانية لإزالة الصفقات المنتهية
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+
+    // تحديث السعر الحالي كل ثانية
+    setInterval(function() {
+        updatePrices();
+    }, 1000);
+    
+    // تحديث الحالة كل 20 ثانية
+    setInterval(function() {
+        updateStatus();
+    }, 20000);
+    
+    // دالة تحديث الأسعار
+    function updatePrices() {
+        fetch('/api/update_prices')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    data.signals.forEach(signal => {
+                        // تحديث السعر الحالي
+                        const priceElement = document.getElementById('current-price-' + signal.signal_id);
+                        if (priceElement && signal.current_price) {
+                            priceElement.textContent = signal.current_price.toFixed(5);
+                        }
+                        // تحديث النقاط
+                        const pipsElement = document.getElementById('pips-' + signal.signal_id);
+                        if (pipsElement && signal.pips !== undefined) {
+                            pipsElement.textContent = (signal.pips > 0 ? '+' : '') + signal.pips.toFixed(2) + ' نقطة';
+                            pipsElement.className = 'pips-display ' + (signal.pips > 0 ? 'pips-positive' : 'pips-negative');
+                        }
+                        // تحديث نسبة التقدم
+                        const progressElement = document.getElementById('progress-' + signal.signal_id);
+                        const progressBar = document.getElementById('progress-bar-' + signal.signal_id);
+                        if (progressElement && progressBar && signal.progress !== undefined) {
+                            progressElement.textContent = signal.progress + '%';
+                            progressBar.style.width = (signal.progress > 100 ? 100 : signal.progress) + '%';
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error updating prices:', error));
+    }
+
+    // دالة تحديث الحالة والملخص
+    function updateStatus() {
+        fetch('/api/trades_status')
+            .then(response => response.json())
+            .then(data => {
+                const summary = data.summary || {};
+                const total = summary.total_trades ?? 0;
+                const active = summary.active ?? 0;
+                const winners = summary.winners ?? 0;
+                const losers = summary.losers ?? 0;
+
+                const totalEl = document.getElementById('stat-total');
+                const activeEl = document.getElementById('stat-active');
+                const winnersEl = document.getElementById('stat-winners');
+                const losersEl = document.getElementById('stat-losers');
+
+                if (totalEl) totalEl.textContent = total;
+                if (activeEl) activeEl.textContent = active;
+                if (winnersEl) winnersEl.textContent = winners;
+                if (losersEl) losersEl.textContent = losers;
+
+                const winSet = new Set((data.closed_trades?.winners || []).map(t => `${t.pair}|${t.signal}`));
+                const lossSet = new Set((data.closed_trades?.losers || []).map(t => `${t.pair}|${t.signal}`));
+
+                document.querySelectorAll('.signal-card').forEach(card => {
+                    const key = `${card.dataset.symbol}|${card.dataset.signal}`;
+                    if (winSet.has(key) || lossSet.has(key)) {
+                        card.classList.add('signal-hidden');
+                    } else {
+                        card.classList.remove('signal-hidden');
+                    }
+                });
+            })
+            .catch(error => console.error('Error updating status:', error));
+    }
+</script>
+<script>
+// تحديث تلقائي كل 30 ثانية
+// (تم نقل هذا الكود للأعلى، لا داعي لتكراره)
+</script>
+<style>
+    body {
+        background: linear-gradient(135deg, #f7e7b3 0%, #e6d19c 100%);
+        min-height: 100vh;
+    }
+    .signals-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 30px;
+    }
+    .signals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+    .signal-card {
+        background: linear-gradient(135deg, #f7e7b3 0%, #e6d19c 100%);
+        border-radius: 22px;
+        padding: 24px 18px 18px 18px;
+        color: #2c2c2c;
+        box-shadow: 0 8px 24px rgba(180,140,40,0.13), 0 2px 8px rgba(180,140,40,0.07);
+        width: 320px;
+        min-width: 280px;
+        max-width: 340px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .signal-title {
+        font-size: 20px;
+        font-weight: 900;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+    .signal-info {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        text-align: center;
+    }
+    .signal-label {
+        font-size: 14px;
+        color: #7a6a3c;
+        font-weight: 600;
+        margin-right: 6px;
+    }
+    .signal-value {
+        font-size: 16px;
+        color: #2c2c2c;
+        font-weight: 700;
+    }
+    .buy-btn {
+        background: linear-gradient(135deg, #3bb34a 0%, #1e7e34 100%);
+        color: #fff;
+        font-weight: 900;
+        font-size: 18px;
+        border: none;
+        border-radius: 18px;
+        padding: 10px 38px;
+        margin-top: 12px;
+        box-shadow: 0 4px 18px rgba(60,180,60,0.13);
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .buy-btn:hover {
+        background: linear-gradient(135deg, #1e7e34 0%, #3bb34a 100%);
+    }
+</style>
+
+<div class="signals-container">
+    <h1 class="page-header">
+        📊 إشارات التداول المباشرة
+        <div style="font-size: 18px; margin-top: 10px; opacity: 0.9;">⏱️ تحديث تلقائي كل 30 ثانية</div>
+    </h1>
+
+    <div class="status-summary" id="status-summary">
+        <div class="stat"><div class="label">إجمالي الإشارات</div><div class="value" id="stat-total">0</div></div>
+        <div class="stat"><div class="label">نشطة</div><div class="value" id="stat-active">0</div></div>
+        <div class="stat"><div class="label">رابحة</div><div class="value" id="stat-winners">0</div></div>
+        <div class="stat"><div class="label">خاسرة</div><div class="value" id="stat-losers">0</div></div>
+    </div>
+    
+    {% if is_admin %}
+    <div class="admin-badge">
+        👑 أنت الأدمن - يمكنك رؤية جميع الإشارات ({{ signals|length }})
+    </div>
+    {% endif %}
+    
+    {% if signals %}
+        {% for signal in signals %}
+        <div class="signal-card">
+            <div class="signal-title">{{ signal.symbol }} {{ signal.signal_type|upper }} Signal</div>
+            <div class="signal-info">
+                <span class="signal-label">Entry:</span>
+                <span class="signal-value">{{ '%.5f'|format(signal.entry_price) }}</span>
+            </div>
+            <div class="signal-info">
+                <span class="signal-label">Target:</span>
+                <span class="signal-value">{{ '%.5f'|format(signal.take_profit_1) }}</span>
+            </div>
+            <div class="signal-info">
+                <span class="signal-label">Stop Loss:</span>
+                <span class="signal-value">{{ '%.5f'|format(signal.stop_loss) }}</span>
+            </div>
+            <button class="buy-btn" onclick="window.open('https://www.tradingview.com/chart/?symbol={{ signal.symbol }}', '_blank')">BUY</button>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-signals">
+            <div class="no-signals-icon">📭</div>
+            <h2>لا توجد إشارات متاحة حالياً</h2>
+            <p>سيتم عرض الإشارات الجديدة هنا فور توفرها</p>
+            <p>التحديث التلقائي كل 30 ثانية</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// تحديث تلقائي كل 30 ثانية
+let countdown = 30;
+const countdownElement = document.createElement('div');
+countdownElement.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 9999; font-size: 16px;';
+document.body.appendChild(countdownElement);
+
+setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+        countdownElement.innerHTML = '🔄 جاري التحديث...';
+        location.reload();
+    } else {
+        countdownElement.innerHTML = `⏱️ التحديث بعد: ${countdown} ثانية`;
+    }
+}, 1000);
+
+// إضافة تأثير ظهور للبطاقات
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.signal-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

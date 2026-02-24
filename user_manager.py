@@ -102,31 +102,26 @@ class UserManager:
         except:
             return False
     
-    def register_user(self, username, email, password, full_name):
-        """تسجيل مستخدم جديد"""
+    def register_user(self, username, email, password, full_name, phone=None, country=None, nickname=None):
+        """تسجيل مستخدم جديد مع دعم الحقول الإضافية"""
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
-            
             # التحقق من عدم وجود المستخدم
             cursor.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email))
             if cursor.fetchone():
                 return {'success': False, 'message': 'اسم المستخدم أو البريد موجود بالفعل'}
-            
             # إضافة المستخدم الجديد
             password_hash = self.hash_password(password)
             cursor.execute('''
-                INSERT INTO users (username, email, password_hash, full_name, role, is_admin)
-                VALUES (?, ?, ?, ?, 'user', 0)
-            ''', (username, email, password_hash, full_name))
-            
+                INSERT INTO users (username, email, password_hash, full_name, role, is_admin, phone, country, nickname)
+                VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?)
+            ''', (username, email, password_hash, full_name, phone, country, nickname))
             user_id = cursor.lastrowid
             conn.commit()
             conn.close()
-            
             # تسجيل النشاط
             self.log_activity(user_id, 'registration', 'New user registered')
-            
             return {'success': True, 'message': 'تم التسجيل بنجاح', 'user_id': user_id}
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}

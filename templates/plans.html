@@ -124,10 +124,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const plan = card?.getAttribute('data-plan');
             if (!plan) return;
 
-            // إذا لم يكن المستخدم مسجل الدخول، توجيه للتسجيل
+            // إذا لم يكن المستخدم مسجل الدخول، توجيه لصفحة تسجيل الدخول فقط
             if (!currentUser || !currentUser.success) {
-                const proceed = confirm('يجب تسجيل الدخول للاشتراك. هل تريد الانتقال لصفحة التسجيل؟');
-                if (proceed) window.location.href = '/register';
+                alert('يجب تسجيل الدخول بحسابك الحالي لإتمام الترقية.');
+                window.location.href = '/login';
                 return;
             }
 
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // توجيه إلى صفحة الدفع
+            // توجيه إلى صفحة الدفع مع تمرير الخطة
             window.location.href = `/payment_jordan/${plan}`;
         });
     });

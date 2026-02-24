@@ -247,7 +247,7 @@ def fetch_pair_data_5m(symbol, period='1d'):
                 df = ticker_obj.history(period='7d', interval='15m', auto_adjust=False)
             except Exception:
                 df = None
-            send_broadcast_message(notification)
+            # send_broadcast_message(notification)  # Removed undefined variable 'notification'
         if df is None or df.empty:
             return None
         

@@ -5,11 +5,19 @@ Based on original tkinter code with full indicators
 """
 import pandas as pd
 import numpy as np
-import ta
+try:
+    import ta
+    TA_AVAILABLE = True
+except Exception:
+    ta = None
+    TA_AVAILABLE = False
 from datetime import datetime
 
 def analyze_with_indicators(df):
     """تحليل شامل مع جميع المؤشرات"""
+    if not TA_AVAILABLE:
+        return df
+
     # التأكد من وجود الأعمدة الأساسية
     if 'Close' not in df.columns:
         raise ValueError(f"العمود 'Close' غير موجود. الأعمدة المتوفرة: {df.columns.tolist()}")
@@ -676,6 +684,10 @@ def perform_full_analysis(symbol, interval):
         
         # Create detailed analysis text
         analysis_text = "\n".join(signals)
+
+        warnings = []
+        if not TA_AVAILABLE:
+            warnings.append('ta package unavailable: indicator set reduced')
         
         return {
             'success': True,
@@ -702,6 +714,7 @@ def perform_full_analysis(symbol, interval):
             'risk_reward_tp1': levels.get('Risk Reward TP1', 0),
             'volatility': levels.get('Volatility', 0),
             'atr': levels.get('ATR', 0)
+            , 'warnings': warnings
         }
         
     except DataFetchError as e:

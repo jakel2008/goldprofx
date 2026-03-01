@@ -1,4 +1,8 @@
-"""Render/Gunicorn entrypoint."""
-from web_app import app
+"""Render/Gunicorn entrypoint.
+
+Keeps backward compatibility with `gunicorn app:app` while serving
+the canonical application from `wsgi.py`.
+"""
+from wsgi import app
 
 __all__ = ["app"]

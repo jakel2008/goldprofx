@@ -266,7 +266,14 @@ def get_plan_by_id(plan_id):
 def get_all_plans():
     conn = get_db()
     c = conn.cursor()
-    c.execute('SELECT * FROM plans WHERE is_active = 1')
+    try:
+        c.execute('SELECT * FROM plans WHERE is_active = 1')
+    except sqlite3.OperationalError as e:
+        if 'no such column: is_active' in str(e).lower():
+            c.execute('SELECT * FROM plans')
+        else:
+            conn.close()
+            raise
     plans = c.fetchall()
     conn.close()
     return plans

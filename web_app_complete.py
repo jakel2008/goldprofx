@@ -241,6 +241,119 @@ def forgot_password():
         return render_template('forgot_password.html', success='تم إرسال رابط الاستعادة إلى بريدك إذا كان مسجلاً.')
     return render_template('forgot_password.html')
 subscription_manager = vip_subscription_system.SubscriptionManager()
+
+
+def _ensure_subscription_user_link(user_id, username, full_name='', email='', prefer_trial=False):
+    """ضمان وجود المستخدم في قاعدة vip_subscriptions وربطه بمعرّف users.db."""
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return False, 'invalid_user_id'
+
+    username = str(username or '').strip()
+    first_name = str(full_name or '').strip()
+    email = str(email or '').strip()
+
+    if not username:
+        return False, 'missing_username'
+
+    existing = subscription_manager.get_user(user_id)
+    if existing:
+        try:
+            conn = sqlite3.connect('vip_subscriptions.db')
+            c = conn.cursor()
+            c.execute("PRAGMA table_info(users)")
+            cols = {row[1] for row in c.fetchall()}
+
+            updates = []
+            params = []
+            if 'username' in cols:
+                updates.append('username = ?')
+                params.append(username)
+            if 'first_name' in cols:
+                updates.append('first_name = ?')
+                params.append(first_name)
+            if email and 'email' in cols:
+                updates.append('email = ?')
+                params.append(email)
+
+            if updates:
+                params.append(user_id)
+                c.execute(f"UPDATE users SET {', '.join(updates)} WHERE user_id = ?", tuple(params))
+                conn.commit()
+            conn.close()
+        except Exception:
+            pass
+        return True, 'already_linked'
+
+    if prefer_trial:
+        ok, msg = subscription_manager.add_user(user_id, username, first_name)
+        return bool(ok), msg
+
+    try:
+        conn = sqlite3.connect('vip_subscriptions.db')
+        c = conn.cursor()
+
+        referral_code = None
+        for _ in range(6):
+            candidate = subscription_manager.generate_referral_code(user_id)
+            c.execute('SELECT 1 FROM users WHERE referral_code = ?', (candidate,))
+            if not c.fetchone():
+                referral_code = candidate
+                break
+        if not referral_code:
+            referral_code = f"REF{user_id}{int(time.time()) % 100000}"
+
+        c.execute('''
+            INSERT INTO users
+            (user_id, username, first_name, plan, subscription_start,
+             subscription_end, status, referral_code, total_paid, created_at, email)
+            VALUES (?, ?, ?, 'free', ?, NULL, 'active', ?, 0, CURRENT_TIMESTAMP, ?)
+        ''', (user_id, username, first_name, datetime.now().isoformat(), referral_code, email or None))
+
+        conn.commit()
+        conn.close()
+        return True, 'linked_free'
+    except Exception as e:
+        return False, str(e)
+
+
+def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
+    """مزامنة جميع المستخدمين من users.db إلى vip_subscriptions.db."""
+    summary = {
+        'total_users': 0,
+        'linked': 0,
+        'failed': 0,
+        'errors': []
+    }
+    try:
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('SELECT id, username, full_name, email FROM users ORDER BY id ASC')
+        rows = c.fetchall()
+        conn.close()
+    except Exception as e:
+        summary['errors'].append(f'load_users_failed: {e}')
+        return summary
+
+    summary['total_users'] = len(rows)
+    for row in rows:
+        ok, msg = _ensure_subscription_user_link(
+            row['id'],
+            row['username'],
+            row['full_name'],
+            row['email'],
+            prefer_trial=prefer_trial_for_missing
+        )
+        if ok:
+            summary['linked'] += 1
+        else:
+            summary['failed'] += 1
+            if len(summary['errors']) < 20:
+                summary['errors'].append(f"user_id={row['id']}: {msg}")
+    return summary
+
 SIGNALS_DIR = Path(__file__).parent / "signals"
 SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
 AUTO_BROADCAST_REGISTRY_FILE = Path(__file__).parent / "auto_broadcast_registry.json"
@@ -365,9 +478,9 @@ if _symbols_from_env:
         CONTINUOUS_ANALYZER_SYMBOLS = parsed_symbols
 
 CONTINUOUS_ANALYZER_INTERVAL_DEFAULT = int(os.environ.get('CONTINUOUS_ANALYZER_INTERVAL_SECONDS', '120'))
-MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '78'))
-MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.35'))
-MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '3.8'))
+MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '55'))
+MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.0'))
+MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '4.2'))
 CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
 
 CONTINUOUS_ANALYZER_STATE = {
@@ -767,8 +880,8 @@ def _get_adaptive_thresholds(symbol, timeframe='1h'):
                 max_volatility += 0.15
                 mode = 'aggressive'
 
-    adaptive['min_quality_score'] = int(max(70, min(92, round(min_quality_score))))
-    adaptive['min_rr'] = round(max(1.20, min(2.20, float(min_rr))), 2)
+    adaptive['min_quality_score'] = int(max(55, min(92, round(min_quality_score))))
+    adaptive['min_rr'] = round(max(1.00, min(2.20, float(min_rr))), 2)
     adaptive['max_volatility'] = round(max(2.20, min(5.20, float(max_volatility))), 2)
     adaptive['sample_size'] = sample_size
     adaptive['win_rate'] = round(win_rate, 3)
@@ -2538,6 +2651,17 @@ def login():
             )
             print(f"[LOGIN] Result: {result.get('success')}, Message: {result.get('message')}")
             if result['success']:
+                try:
+                    profile = user_manager.get_user_info(result['user_id']) or {}
+                    _ensure_subscription_user_link(
+                        result['user_id'],
+                        profile.get('username') or username,
+                        profile.get('full_name') or '',
+                        profile.get('email') or '',
+                        prefer_trial=False
+                    )
+                except Exception:
+                    pass
                 session['session_token'] = result['session_token']
                 session['user_id'] = result['user_id']
                 print(f"[LOGIN] Session set successfully for user_id: {result['user_id']}")
@@ -2599,6 +2723,13 @@ def register():
         result = user_manager.register_user(username, email, password, full_name)
         
         if result['success']:
+            _ensure_subscription_user_link(
+                result.get('user_id'),
+                username,
+                full_name,
+                email,
+                prefer_trial=True
+            )
             # تسجيل الدخول التلقائي بعد التسجيل
             login_result = user_manager.login_user(username, password, request.remote_addr)
             if login_result['success']:
@@ -3798,8 +3929,19 @@ def api_admin_set_active():
 @admin_required
 def api_admin_subscriptions():
     """الحصول على جميع الاشتراكات"""
+    sync_summary = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
     subscriptions = subscription_manager.get_all_subscriptions()
-    return jsonify({'success': True, 'subscriptions': subscriptions})
+    return jsonify({'success': True, 'subscriptions': subscriptions, 'sync': sync_summary})
+
+
+@app.route('/api/admin/subscriptions/sync-users', methods=['POST'])
+@admin_required
+def api_admin_sync_users_to_subscriptions():
+    """مزامنة المستخدمين المسجلين مع قاعدة بيانات الاشتراكات."""
+    data = request.get_json(silent=True) or {}
+    prefer_trial = bool(data.get('prefer_trial', False))
+    summary = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=prefer_trial)
+    return jsonify({'success': True, 'sync': summary})
 
 @app.route('/api/admin/update_plan', methods=['POST'])
 @admin_required
@@ -5571,3 +5713,4 @@ if __name__ == '__main__':
         print(f"[CLEANUP_SCHEDULER] {cleanup_msg}")
 
     app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=debug_mode)
+

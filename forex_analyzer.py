@@ -20,6 +20,7 @@ BASE_URL = "https://api.twelvedata.com/time_series"
 BINANCE_KLINES_URL = "https://api.binance.com/api/v3/klines"
 CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
+CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "auto") or "auto").strip().lower()
 
 logger = logging.getLogger("forex_analyzer")
 if not logger.handlers:
@@ -42,10 +43,24 @@ LAST_FETCH_METADATA = {
 CRYPTO_BINANCE_SYMBOLS = {
     "BTCUSD": "BTCUSDT",
     "ETHUSD": "ETHUSDT",
+    "BNBUSD": "BNBUSDT",
+    "SOLUSD": "SOLUSDT",
+    "XRPUSD": "XRPUSDT",
+    "ADAUSD": "ADAUSDT",
+    "DOGEUSD": "DOGEUSDT",
+    "LTCUSD": "LTCUSDT",
     "BTC/USDT": "BTCUSDT",
     "ETH/USDT": "ETHUSDT",
+    "BNB/USDT": "BNBUSDT",
+    "SOL/USDT": "SOLUSDT",
+    "XRP/USDT": "XRPUSDT",
     "BTC/USDC": "BTCUSDC",
     "ETH/USDC": "ETHUSDC"
+}
+
+KNOWN_CRYPTO_BASES = {
+    "BTC", "ETH", "BNB", "SOL", "XRP", "ADA", "DOGE", "LTC",
+    "DOT", "AVAX", "LINK", "TRX", "MATIC", "UNI", "ATOM", "BCH"
 }
 
 YF_SYMBOLS = {
@@ -148,7 +163,15 @@ def _normalize_interval(interval):
 
 def _is_crypto_symbol(symbol):
     normalized = _normalize_symbol(symbol)
-    return normalized.startswith("BTC") or normalized.startswith("ETH")
+    if normalized in CRYPTO_BINANCE_SYMBOLS:
+        return True
+
+    for quote in ("USDT", "USDC", "USD"):
+        if normalized.endswith(quote) and len(normalized) > len(quote):
+            base = normalized[:-len(quote)]
+            return base in KNOWN_CRYPTO_BASES
+
+    return False
 
 
 def _to_standard_ohlc(df):
@@ -265,9 +288,20 @@ def _fetch_from_binance(symbol, interval, outputsize):
     interval_key = _normalize_interval(interval)
 
     binance_symbol = CRYPTO_BINANCE_SYMBOLS.get(normalized_symbol)
-    if not binance_symbol:
-        slash_format = normalized_symbol.replace("USD", "/USDT")
-        binance_symbol = CRYPTO_BINANCE_SYMBOLS.get(slash_format)
+    if not binance_symbol and normalized_symbol.endswith("USD") and len(normalized_symbol) > 3:
+        base = normalized_symbol[:-3]
+        if base in KNOWN_CRYPTO_BASES:
+            binance_symbol = f"{base}USDT"
+
+    if not binance_symbol and normalized_symbol.endswith("USDT") and len(normalized_symbol) > 4:
+        base = normalized_symbol[:-4]
+        if base in KNOWN_CRYPTO_BASES:
+            binance_symbol = normalized_symbol
+
+    if not binance_symbol and normalized_symbol.endswith("USDC") and len(normalized_symbol) > 4:
+        base = normalized_symbol[:-4]
+        if base in KNOWN_CRYPTO_BASES:
+            binance_symbol = normalized_symbol
 
     binance_interval = INTERVAL_MAP_BINANCE.get(interval_key)
     if not binance_symbol or not binance_interval:
@@ -376,10 +410,16 @@ def fetch_data(symbol, interval, outputsize=100):
         logger.info("[DATA_FETCH] success symbol=%s interval=%s source=%s rows=%s", normalized_symbol, normalized_interval, "CACHE_FRESH", len(fresh_cache))
         return fresh_cache
 
-    sources = [("TwelveData", _fetch_from_twelve_data)]
-    if _is_crypto_symbol(normalized_symbol):
-        sources.append(("Binance", _fetch_from_binance))
-    sources.append(("YahooFinance", _fetch_from_yfinance))
+    is_crypto = _is_crypto_symbol(normalized_symbol)
+    if is_crypto:
+        if CRYPTO_DATA_SOURCE_MODE == "binance_only":
+            sources = [("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance)]
+        elif CRYPTO_DATA_SOURCE_MODE == "binance_first":
+            sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance)]
+        else:
+            sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance)]
+    else:
+        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance)]
 
     for source_name, source_fn in sources:
         if source_name == "YahooFinance" and _is_yf_in_cooldown(normalized_symbol, normalized_interval):

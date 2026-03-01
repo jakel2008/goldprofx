@@ -3,6 +3,7 @@ services:
     name: goldprofx
     env: python
     plan: free
+    healthCheckPath: /api/system-status
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT"
     disks:
@@ -14,6 +15,12 @@ services:
         generateValue: true
       - key: DB_PATH
         value: /var/data/goldpro_system.db
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: APP_DEBUG
+        value: "0"
       - key: MM_TELEGRAM_BOT_TOKEN
         sync: false
       - key: MM_TELEGRAM_CHAT_ID

@@ -61,6 +61,44 @@
             background: linear-gradient(90deg, #0e1627 0%, #15253f 55%, #1a2f4f 100%) !important;
             border-bottom: 1px solid rgba(245, 197, 66, 0.2);
         }
+
+        .dark-navbar .navbar-toggler {
+            border-color: rgba(245, 197, 66, 0.45);
+            background: rgba(245, 197, 66, 0.08);
+        }
+
+        .dark-navbar .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(245, 197, 66, 0.25);
+        }
+
+        .dark-navbar .navbar-toggler-icon {
+            filter: brightness(0) invert(1);
+        }
+
+        @media (max-width: 991.98px) {
+            .dark-navbar .navbar-nav {
+                flex-direction: column !important;
+                align-items: stretch;
+                gap: 0.3rem;
+                padding-top: 0.5rem;
+            }
+
+            .dark-navbar .nav-link {
+                width: 100%;
+                margin: 0;
+            }
+
+            .nav-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs .nav-link {
+                white-space: nowrap;
+            }
+        }
         
         .container {
             max-width: 1200px;
@@ -104,14 +142,14 @@
 <body>
     <!-- Navbar -->
     {% if request.endpoint not in ['login', 'register', 'forgot_password', 'reset_password', 'index', 'activate'] %}
-    <nav class="navbar navbar-expand-lg dark-navbar sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark dark-navbar sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">⭐ GOLD PRO</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="تبديل القائمة" aria-label="تبديل القائمة">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto d-flex flex-row flex-wrap">{%- for link in site_links -%}{%- if not ((link.admin and (not user or not user.is_admin)) or (link.guest and is_logged_in) or (link.auth and not is_logged_in)) -%}{%- set is_active = (request.path == link.url) or (link.url != '/' and request.path.startswith(link.url)) -%}<a class="nav-link{% if is_active %} active{% endif %}{% if link.admin %} admin-link{% endif %}" href="{{ link.url }}">{{ link.icon }} {{ link.name }}</a>{%- endif -%}{%- endfor -%}</div>
+                <div class="navbar-nav ms-auto d-flex flex-lg-row flex-wrap">{%- for link in site_links -%}{%- if not ((link.admin and (not user or not user.is_admin)) or (link.guest and is_logged_in) or (link.auth and not is_logged_in)) -%}{%- set is_active = (request.path == link.url) or (link.url != '/' and request.path.startswith(link.url)) -%}<a class="nav-link{% if is_active %} active{% endif %}{% if link.admin %} admin-link{% endif %}" href="{{ link.url }}">{{ link.icon }} {{ link.name }}</a>{%- endif -%}{%- endfor -%}</div>
             </div>
         </div>
     </nav>

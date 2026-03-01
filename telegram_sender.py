@@ -232,6 +232,29 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", bot_token=None):
     """
     if not bot_token:
         bot_token = BOT_TOKEN
+
+    chat_id = str(chat_id or '').strip()
+    if not chat_id:
+        config = load_broadcast_targets()
+        targets = config.get('targets', []) if isinstance(config, dict) else []
+        for item in targets:
+            if not isinstance(item, dict):
+                continue
+            if not item.get('enabled', True):
+                continue
+            platform = str(item.get('platform') or item.get('type') or '').strip().lower()
+            if platform not in ('telegram', 'telegram_channel', 'telegram_group'):
+                continue
+            candidate = str(item.get('chat_id') or item.get('telegram_chat_id') or '').strip()
+            if candidate:
+                chat_id = candidate
+                break
+
+    if not chat_id:
+        return {
+            'success': False,
+            'error': 'missing telegram chat_id'
+        }
     
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {

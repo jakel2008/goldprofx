@@ -55,6 +55,12 @@ class UserManager:
                 cursor.execute("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0")
             if 'role' not in columns:
                 cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+            if 'phone' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT")
+            if 'country' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN country TEXT")
+            if 'nickname' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN nickname TEXT")
             
             # جدول جلسات المستخدمين
             cursor.execute('''

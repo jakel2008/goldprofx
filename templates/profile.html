@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}الملف الشخصي - GOLD PRO{% endblock %}
+
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
@@ -51,7 +53,7 @@
                 <p>خطتك الحالية: <strong>{{ user.plan }}</strong></p>
                 {% if user.plan == 'free' %}
                 <p class="plan-description">ابدأ مع خطة مجانية وارق إلى خطة مميزة للحصول على مزايا إضافية</p>
-                <button class="btn-upgrade">ترقية الآن 🚀</button>
+                <button class="btn-upgrade" onclick="window.location.href='/plans'">ترقية الآن 🚀</button>
                 {% else %}
                 <p class="plan-description">شكراً لاختيارك {{ user.plan }}!</p>
                 {% endif %}
@@ -127,10 +129,10 @@
         <div class="profile-card">
             <h3>💬 الدعم والمساعدة</h3>
             <div class="support-links">
-                <a href="#" class="support-link">📞 اتصل بنا</a>
-                <a href="#" class="support-link">📖 مركز المساعدة</a>
-                <a href="#" class="support-link">🐛 الإبلاغ عن مشكلة</a>
-                <a href="#" class="support-link">💡 اقتراح ميزة</a>
+                <a href="tel:{{ site_settings.support_phone }}" class="support-link">📞 اتصل بنا</a>
+                <a href="{{ site_settings.support_help_url }}" class="support-link">📖 مركز المساعدة</a>
+                <a href="{{ site_settings.support_bug_url }}" class="support-link">🐛 الإبلاغ عن مشكلة</a>
+                <a href="{{ site_settings.support_feature_url }}" class="support-link">💡 اقتراح ميزة</a>
             </div>
         </div>
     </div>
@@ -147,13 +149,14 @@
     display: flex;
     align-items: center;
     gap: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 60%, #c49b2e 100%);
     color: white;
     padding: 2rem;
     border-radius: 15px;
     margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
     flex-wrap: wrap;
+    border: 1px solid rgba(245, 197, 66, 0.3);
 }
 
 .profile-avatar {
@@ -210,7 +213,7 @@
 
 .btn-logout:hover {
     background: white;
-    color: #667eea;
+    color: #1c2f4b;
 }
 
 .profile-grid {
@@ -223,7 +226,9 @@
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+    border: 1px solid #f0e1b8;
+    border-right: 4px solid #d4a72f;
     transition: all 0.3s ease;
 }
 
@@ -232,7 +237,7 @@
 }
 
 .profile-card h3 {
-    color: #667eea;
+    color: #8e6c0d;
     margin-top: 0;
     margin-bottom: 1rem;
     font-size: 1.2rem;
@@ -247,14 +252,14 @@
 
 .info-item {
     padding: 0.8rem;
-    background: #f5f5f5;
+    background: #fff9eb;
     border-radius: 8px;
 }
 
 .info-item label {
     display: block;
     font-weight: 600;
-    color: #667eea;
+    color: #8e6c0d;
     font-size: 0.85rem;
     margin-bottom: 0.3rem;
 }
@@ -267,8 +272,8 @@
 .btn-edit {
     width: 100%;
     padding: 0.7rem;
-    background: #667eea;
-    color: white;
+    background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -277,7 +282,7 @@
 }
 
 .btn-edit:hover {
-    background: #764ba2;
+    box-shadow: 0 5px 15px rgba(212, 167, 47, 0.28);
     transform: translateY(-2px);
 }
 
@@ -291,23 +296,23 @@
 }
 
 .plan-badge[data-plan="free"] {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: #f5f5f5;
+    color: #4b5563;
 }
 
 .plan-badge[data-plan="bronze"] {
-    background: #fbe9e7;
-    color: #d84315;
+    background: #f8e7d0;
+    color: #8a4b12;
 }
 
 .plan-badge[data-plan="silver"] {
-    background: #f3e5f5;
-    color: #7b1fa2;
+    background: #eceff3;
+    color: #344054;
 }
 
 .plan-badge[data-plan="gold"] {
-    background: #fff3e0;
-    color: #e65100;
+    background: #fff3d8;
+    color: #8e6c0d;
 }
 
 .plan-details p {
@@ -324,8 +329,8 @@
     width: 100%;
     margin-top: 1rem;
     padding: 0.7rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -335,7 +340,7 @@
 
 .btn-upgrade:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px rgba(212, 167, 47, 0.3);
 }
 
 .stats-grid {
@@ -347,7 +352,7 @@
 .stat-item {
     text-align: center;
     padding: 1rem;
-    background: #f5f5f5;
+    background: #fff9eb;
     border-radius: 8px;
 }
 
@@ -355,7 +360,7 @@
     display: block;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #667eea;
+    color: #8e6c0d;
     margin-bottom: 0.3rem;
 }
 
@@ -376,7 +381,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.8rem;
-    background: #f5f5f5;
+    background: #fff9eb;
     border-radius: 8px;
 }
 
@@ -387,8 +392,8 @@
 
 .btn-change, .btn-view {
     padding: 0.4rem 0.8rem;
-    background: #667eea;
-    color: white;
+    background: #1c2f4b;
+    color: #f8fafc;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -397,7 +402,7 @@
 }
 
 .btn-change:hover, .btn-view:hover {
-    background: #764ba2;
+    background: #0f1a2d;
 }
 
 .badge-inactive {
@@ -438,8 +443,8 @@
 
 .support-link {
     padding: 0.8rem;
-    background: #f5f5f5;
-    color: #667eea;
+    background: #fff9eb;
+    color: #8e6c0d;
     text-decoration: none;
     border-radius: 8px;
     text-align: center;
@@ -448,8 +453,8 @@
 }
 
 .support-link:hover {
-    background: #667eea;
-    color: white;
+    background: #1c2f4b;
+    color: #f5e9c5;
 }
 
 @media (max-width: 768px) {

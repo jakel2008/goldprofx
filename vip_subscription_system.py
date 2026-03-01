@@ -42,7 +42,7 @@ class SubscriptionManager:
             'total_paid': row[7],
             'password_hash': row[8] if len(row) > 8 else None
         }
-    """إدارة الاشتراكات والمستخدمين"""
+    """ إدارة الاشتراكات والمستخدمين"""
     
     PLANS = {
         'free': {'price': 0, 'duration_days': 0, 'signals_per_day': 1},
@@ -60,8 +60,8 @@ class SubscriptionManager:
         """إنشاء جداول قاعدة البيانات"""
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        
-        # جدول المستخدمين
+
+        # إنشاء الجدول الأساسي بدون الأعمدة الإضافية
         c.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -74,30 +74,29 @@ class SubscriptionManager:
                 referral_code TEXT UNIQUE,
                 referred_by INTEGER,
                 total_paid REAL DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                password_hash TEXT,
-                email TEXT,
-                activation_token TEXT,
-                FOREIGN KEY(referred_by) REFERENCES users(user_id)
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # إضافة الأعمدة الجديدة إذا لم تكن موجودة (للتوافق مع قواعد بيانات قديمة)
-        try:
-            c.execute('ALTER TABLE users ADD COLUMN password_hash TEXT')
-        except Exception: pass
-        try:
-            c.execute('ALTER TABLE users ADD COLUMN email TEXT')
-        except Exception: pass
-        try:
-            c.execute('ALTER TABLE users ADD COLUMN activation_token TEXT')
-        except Exception: pass
-        try:
-            c.execute('ALTER TABLE users ADD COLUMN chat_id TEXT')
-        except Exception: pass
-        try:
-            c.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER')
-        except Exception: pass
-        
+
+        # معرفة الأعمدة الموجودة حالياً
+        c.execute("PRAGMA table_info(users)")
+        existing_columns = set([row[1] for row in c.fetchall()])
+
+        # إضافة الأعمدة الجديدة إذا لم تكن موجودة
+        alter_columns = [
+            ("password_hash", "TEXT"),
+            ("email", "TEXT"),
+            ("activation_token", "TEXT"),
+            ("chat_id", "TEXT"),
+            ("telegram_id", "INTEGER")
+        ]
+        for col, coltype in alter_columns:
+            if col not in existing_columns:
+                try:
+                    c.execute(f'ALTER TABLE users ADD COLUMN {col} {coltype}')
+                except Exception:
+                    pass
+
         # جدول المدفوعات
         c.execute('''
             CREATE TABLE IF NOT EXISTS payments (
@@ -112,7 +111,7 @@ class SubscriptionManager:
                 FOREIGN KEY(user_id) REFERENCES users(user_id)
             )
         ''')
-        
+
         # جدول الإحالات
         c.execute('''
             CREATE TABLE IF NOT EXISTS referrals (
@@ -126,7 +125,7 @@ class SubscriptionManager:
                 FOREIGN KEY(referred_user_id) REFERENCES users(user_id)
             )
         ''')
-        
+
         # جدول التوصيات المُرسلة
         c.execute('''
             CREATE TABLE IF NOT EXISTS signals_sent (
@@ -138,10 +137,10 @@ class SubscriptionManager:
                 FOREIGN KEY(user_id) REFERENCES users(user_id)
             )
         ''')
-        
+
         conn.commit()
         conn.close()
-        
+
         print("[OK] Database created successfully")
     
     def generate_referral_code(self, user_id):

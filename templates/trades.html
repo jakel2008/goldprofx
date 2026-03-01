@@ -1,104 +1,100 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>متابعة الصفقات - GOLD PRO</title>
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #111827;
-            --muted: #9ca3af;
-            --text: #e5e7eb;
-            --green: #10b981;
-            --red: #ef4444;
-            --yellow: #f59e0b;
-            --blue: #3b82f6;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-            color: var(--text);
-            padding: 24px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .header h1 { font-size: 28px; margin-bottom: 8px; }
-        .header p { color: var(--muted); }
+{% extends "base.html" %}
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat {
-            background: var(--card);
-            border-radius: 14px;
-            padding: 18px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .stat .label { color: var(--muted); font-size: 14px; }
-        .stat .value { font-size: 22px; margin-top: 6px; font-weight: 700; }
+{% block title %}متابعة الصفقات - GOLD PRO{% endblock %}
 
-        .section {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .section h2 { font-size: 20px; margin-bottom: 12px; }
+{% block head %}
+<style>
+    :root {
+        --card: #ffffff;
+        --muted: #6b7280;
+        --text: #1f2937;
+        --green: #059669;
+        --red: #dc2626;
+        --gold-line: #d4a72f;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th, td {
-            padding: 10px 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            text-align: center;
-        }
-        th { color: var(--muted); font-weight: 600; }
+    .trades-wrap { max-width: 1200px; margin: 0 auto; }
 
-        .pill {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .buy { background: rgba(16,185,129,0.15); color: var(--green); }
-        .sell { background: rgba(239,68,68,0.15); color: var(--red); }
-        .pos { color: var(--green); }
-        .neg { color: var(--red); }
+    .header {
+        background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 100%);
+        color: #f8fafc;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(245, 197, 66, 0.3);
+    }
 
-        .muted { color: var(--muted); }
-        .footer { text-align: center; color: var(--muted); margin-top: 16px; }
-    </style>
-</head>
-<body>
-    <div class="nav" style="background: rgba(17,24,39,0.9); padding: 14px 24px; display:flex; flex-wrap:wrap; gap:16px; border-radius: 12px; margin-bottom: 18px;">
-        <a href="/login" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الدخول</a>
-        <a href="/home" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الرئيسية</a>
-        <a href="/signals" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الإشارات</a>
-        <a href="/trades" style="color:#e5e7eb; text-decoration:none; font-weight:600;">متابعة الصفقات</a>
-        <a href="/plans" style="color:#e5e7eb; text-decoration:none; font-weight:600;">خطط الاشتراك</a>
-        <a href="/dashboard" style="color:#e5e7eb; text-decoration:none; font-weight:600;">لوحة التحكم</a>
-        <a href="/reports" style="color:#e5e7eb; text-decoration:none; font-weight:600;">التقارير</a>
-        <a href="/admin" style="color:#e5e7eb; text-decoration:none; font-weight:600;">الأدمن</a>
-        <a href="/advanced-analyzer" style="color:#e5e7eb; text-decoration:none; font-weight:600;">المحلل العميق</a>
-        <a href="/forex-analyzer" style="color:#e5e7eb; text-decoration:none; font-weight:600;">محلل الفوركس</a>
-    </div>
-    <div class="container">
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    .header p { color: #e9d8a6; }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px;
+        border-right: 4px solid var(--gold-line);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .stat .label { color: var(--muted); font-size: 14px; }
+    .stat .value { font-size: 22px; margin-top: 6px; font-weight: 700; color: var(--text); }
+
+    .section {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border: 1px solid #f1e3bc;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .section h2 { font-size: 20px; margin-bottom: 12px; color: #1f2a44; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #f3f4f6;
+        text-align: center;
+        color: var(--text);
+    }
+
+    th {
+        color: #8a6c1f;
+        font-weight: 700;
+        background: #fff9e9;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .buy { background: rgba(5,150,105,0.12); color: var(--green); }
+    .sell { background: rgba(220,38,38,0.12); color: var(--red); }
+    .pos { color: var(--green); font-weight: 700; }
+    .neg { color: var(--red); font-weight: 700; }
+
+    .muted { color: var(--muted); }
+    .footer-lite { text-align: center; color: var(--muted); margin-top: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="trades-wrap">
         <div class="header">
             <h1>لوحة متابعة الصفقات</h1>
             <p>تحديث تلقائي كل 20 ثانية - عرض الصفقات النشطة والرابحة والخاسرة</p>
@@ -110,6 +106,11 @@
             <div class="stat"><div class="label">رابحة</div><div class="value" id="winners">0</div></div>
             <div class="stat"><div class="label">خاسرة</div><div class="value" id="losers">0</div></div>
             <div class="stat"><div class="label">صافي الربح (%)</div><div class="value" id="net">0</div></div>
+            <div class="stat"><div class="label">صفقات مؤرشفة</div><div class="value" id="archived">0</div></div>
+        </div>
+
+        <div class="section" style="padding:12px 16px; margin-top:-8px;">
+            <div class="muted">🧹 يتم تنظيف الصفقات المنتهية تلقائيًا أولًا بأول، وتبقى فقط الصفقات الفعّالة في العرض المباشر.</div>
         </div>
 
         <div class="section">
@@ -162,7 +163,7 @@
             </table>
         </div>
 
-        <div class="footer" id="timestamp"></div>
+        <div class="footer-lite" id="timestamp"></div>
     </div>
 
     <script>
@@ -182,6 +183,8 @@
                 document.getElementById('winners').textContent = summary.winners ?? 0;
                 document.getElementById('losers').textContent = summary.losers ?? 0;
                 document.getElementById('net').textContent = summary.net_profit_percent ?? 0;
+                const archivedEl = document.getElementById('archived');
+                if (archivedEl) archivedEl.textContent = summary.archived_closed_trades ?? 0;
 
                 const active = data.active_trades || [];
                 const winners = (data.closed_trades && data.closed_trades.winners) || [];
@@ -207,7 +210,7 @@
                             <td><span class="pill ${t.signal}">${t.signal.toUpperCase()}</span></td>
                             <td class="pos">${t.profit_percent}</td>
                         </tr>`).join('')
-                    : `<tr><td colspan="3" class="muted">لا توجد صفقات رابحة</td></tr>`;
+                    : `<tr><td colspan="3" class="muted">لا توجد صفقات رابحة ضمن العرض الحالي (يتم تنظيف المنتهي تلقائيًا)</td></tr>`;
 
                 const losersBody = document.getElementById('losers-body');
                 losersBody.innerHTML = losers.length
@@ -217,7 +220,7 @@
                             <td><span class="pill ${t.signal}">${t.signal.toUpperCase()}</span></td>
                             <td class="neg">${t.profit_percent}</td>
                         </tr>`).join('')
-                    : `<tr><td colspan="3" class="muted">لا توجد صفقات خاسرة</td></tr>`;
+                    : `<tr><td colspan="3" class="muted">لا توجد صفقات خاسرة ضمن العرض الحالي (يتم تنظيف المنتهي تلقائيًا)</td></tr>`;
 
                 document.getElementById('timestamp').textContent = `آخر تحديث: ${data.timestamp || ''}`;
             } catch (err) {
@@ -228,5 +231,4 @@
         fetchTrades();
         setInterval(fetchTrades, 20000);
     </script>
-</body>
-</html>
+{% endblock %}

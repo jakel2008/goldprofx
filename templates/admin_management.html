@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة صلاحيات الأدمن - Admin Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}إدارة صلاحيات الأدمن - GOLD PRO{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 60%, #c49b2e 100%);
             min-height: 100vh;
             padding: 20px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -54,16 +52,28 @@
             display: inline-block;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             border: none;
+            color: #1f2937;
             border-radius: 25px;
             padding: 10px 30px;
             font-weight: bold;
             transition: all 0.3s;
         }
+        .btn-primary:hover,
+        .btn-primary:focus {
+            color: #111827;
+        }
         .btn-primary:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 5px 20px rgba(212, 167, 47, 0.5);
+        }
+        .btn-secondary,
+        .btn-danger,
+        .btn-success,
+        .btn-warning,
+        .btn-info {
+            font-weight: 700;
         }
         .btn-danger {
             border-radius: 25px;
@@ -79,8 +89,8 @@
             padding: 12px;
         }
         .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #d4a72f;
+            box-shadow: 0 0 0 0.2rem rgba(212, 167, 47, 0.25);
         }
         .alert {
             border-radius: 15px;
@@ -91,12 +101,12 @@
             border: none;
         }
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             color: white;
             border-radius: 20px 20px 0 0;
         }
         .stats-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             color: white;
             border-radius: 15px;
             padding: 20px;
@@ -126,8 +136,9 @@
             color: #999;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <!-- Header -->
         <div class="header-card">
@@ -195,7 +206,7 @@
                     <h5 class="modal-title">
                         <i class="fas fa-user-plus"></i> إضافة مشرف جديد
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" title="إغلاق" aria-label="إغلاق"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addAdminForm">
@@ -203,7 +214,7 @@
                             <label class="form-label">
                                 <i class="fas fa-user"></i> اختر المستخدم
                             </label>
-                            <select class="form-control" id="selectUserForAdmin" required>
+                            <select class="form-control" id="selectUserForAdmin" required title="اختر المستخدم" aria-label="اختر المستخدم">
                                 <option value="">-- اختر مستخدم --</option>
                             </select>
                             <small class="text-muted">سيتم عرض المستخدمين العاديين فقط</small>
@@ -230,7 +241,9 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
     <script>
         let allUsers = [];
 
@@ -453,5 +466,4 @@
             }, 5000);
         }
     </script>
-</body>
-</html>
+{% endblock %}

@@ -606,6 +606,11 @@ def detect_comprehensive_signals(df, symbol, interval):
     signals.append(f"⏰ التاريخ: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     signals.append(f"{'='*50}")
     
+    risk_amount = abs(entry_price - sl)
+    reward_amount_tp1 = abs(tp1 - entry_price)
+    rr_tp1 = round(reward_amount_tp1 / risk_amount, 2) if risk_amount > 0 else 0.0
+    score_gap = round(abs(buy_score - sell_score), 2)
+
     levels = {
         "TP1": round(tp1, 5),
         "TP2": round(tp2, 5),
@@ -618,7 +623,13 @@ def detect_comprehensive_signals(df, symbol, interval):
         "Support 1": round(s1, 5) if s1 else None,
         "Support 2": round(s2, 5) if s2 else None,
         "Recommendation": final_recommendation,
-        "Confidence": confidence
+        "Confidence": confidence,
+        "Buy Score": round(buy_score, 2),
+        "Sell Score": round(sell_score, 2),
+        "Score Gap": score_gap,
+        "Risk Reward TP1": rr_tp1,
+        "Volatility": round(float(volatility), 4),
+        "ATR": round(float(atr_value), 6)
     }
     
     return signals, final_recommendation, levels, fib_levels
@@ -684,7 +695,13 @@ def perform_full_analysis(symbol, interval):
             'explanation': analysis_text,  # النص الكامل للشرح
             'chart_data': chart_data,
             'confidence': levels.get('Confidence', ''),
-            'recommendation': recommendation
+            'recommendation': recommendation,
+            'buy_score': levels.get('Buy Score', 0),
+            'sell_score': levels.get('Sell Score', 0),
+            'score_gap': levels.get('Score Gap', 0),
+            'risk_reward_tp1': levels.get('Risk Reward TP1', 0),
+            'volatility': levels.get('Volatility', 0),
+            'atr': levels.get('ATR', 0)
         }
         
     except DataFetchError as e:

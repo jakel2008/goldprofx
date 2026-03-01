@@ -4,10 +4,10 @@
 
 {% block content %}
 <script>
-    // تحديث الصفحة كل 30 ثانية لإزالة الصفقات المنتهية
+    // تحديث الصفحة كل دقيقتين لمزامنة أي تغييرات كبيرة
     setInterval(function() {
         location.reload();
-    }, 30000);
+    }, 120000);
 
     // تحديث السعر الحالي كل ثانية
     setInterval(function() {
@@ -60,16 +60,19 @@
                 const active = summary.active ?? 0;
                 const winners = summary.winners ?? 0;
                 const losers = summary.losers ?? 0;
+                const archived = summary.archived_closed_trades ?? 0;
 
                 const totalEl = document.getElementById('stat-total');
                 const activeEl = document.getElementById('stat-active');
                 const winnersEl = document.getElementById('stat-winners');
                 const losersEl = document.getElementById('stat-losers');
+                const archivedEl = document.getElementById('stat-archived');
 
                 if (totalEl) totalEl.textContent = total;
                 if (activeEl) activeEl.textContent = active;
                 if (winnersEl) winnersEl.textContent = winners;
                 if (losersEl) losersEl.textContent = losers;
+                if (archivedEl) archivedEl.textContent = archived;
 
                 const winSet = new Set((data.closed_trades?.winners || []).map(t => `${t.pair}|${t.signal}`));
                 const lossSet = new Set((data.closed_trades?.losers || []).map(t => `${t.pair}|${t.signal}`));
@@ -86,10 +89,6 @@
             .catch(error => console.error('Error updating status:', error));
     }
 </script>
-<script>
-// تحديث تلقائي كل 30 ثانية
-// (تم نقل هذا الكود للأعلى، لا داعي لتكراره)
-</script>
 <style>
     body {
         background: linear-gradient(135deg, #f7e7b3 0%, #e6d19c 100%);
@@ -105,8 +104,33 @@
     }
     .signals-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 24px;
+        width: 100%;
+    }
+    .status-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+        width: 100%;
+        margin: 8px 0 20px;
+    }
+    .status-summary .stat {
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(122, 106, 60, 0.25);
+        border-radius: 14px;
+        padding: 10px 12px;
+        text-align: center;
+    }
+    .status-summary .label {
+        font-size: 13px;
+        color: #6f5f35;
+        font-weight: 700;
+    }
+    .status-summary .value {
+        font-size: 22px;
+        font-weight: 900;
+        color: #2c2c2c;
     }
     .signal-card {
         background: linear-gradient(135deg, #f7e7b3 0%, #e6d19c 100%);
@@ -114,60 +138,167 @@
         padding: 24px 18px 18px 18px;
         color: #2c2c2c;
         box-shadow: 0 8px 24px rgba(180,140,40,0.13), 0 2px 8px rgba(180,140,40,0.07);
-        width: 320px;
-        min-width: 280px;
-        max-width: 340px;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 8px;
+        align-items: stretch;
+        gap: 10px;
+        border: 2px solid rgba(122, 106, 60, 0.2);
+        height: auto;
+    }
+    .signal-card.buy-card {
+        border-color: rgba(34, 197, 94, 0.35);
+    }
+    .signal-card.sell-card {
+        border-color: rgba(239, 68, 68, 0.35);
     }
     .signal-title {
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 900;
         color: #2c2c2c;
-        margin-bottom: 8px;
+        margin-bottom: 2px;
         text-align: center;
     }
-    .signal-info {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 6px;
+    .signal-meta {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .meta-pill {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 800;
+        background: rgba(255,255,255,0.6);
+        border: 1px solid rgba(122,106,60,0.22);
+    }
+    .meta-pill.buy {
+        color: #166534;
+        border-color: rgba(34,197,94,0.35);
+        background: rgba(34,197,94,0.13);
+    }
+    .meta-pill.sell {
+        color: #991b1b;
+        border-color: rgba(239,68,68,0.35);
+        background: rgba(239,68,68,0.13);
+    }
+    .price-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .price-box {
+        background: rgba(255,255,255,0.58);
+        border: 1px solid rgba(122,106,60,0.2);
+        border-radius: 12px;
+        padding: 8px;
         text-align: center;
     }
-    .signal-label {
-        font-size: 14px;
+    .price-box .title {
+        font-size: 12px;
         color: #7a6a3c;
-        font-weight: 600;
-        margin-right: 6px;
+        font-weight: 700;
     }
-    .signal-value {
-        font-size: 16px;
+    .price-box .val {
+        font-size: 14px;
+        font-weight: 900;
         color: #2c2c2c;
+        margin-top: 2px;
+    }
+    .live-box {
+        background: rgba(255,255,255,0.5);
+        border-radius: 12px;
+        padding: 10px;
+        border: 1px solid rgba(122,106,60,0.2);
+    }
+    .pips-display {
+        font-size: 14px;
+        font-weight: 900;
+        text-align: center;
+        margin-top: 4px;
+    }
+    .pips-positive { color: #166534; }
+    .pips-negative { color: #991b1b; }
+    .progress-wrap {
+        margin-top: 6px;
+    }
+    .progress-track {
+        height: 7px;
+        background: rgba(122,106,60,0.22);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #3bb34a 0%, #1e7e34 100%);
+        transition: width 0.4s ease;
+    }
+    .progress-text {
+        margin-top: 4px;
+        text-align: center;
+        font-size: 12px;
+        color: #5e5330;
         font-weight: 700;
     }
     .buy-btn {
         background: linear-gradient(135deg, #3bb34a 0%, #1e7e34 100%);
         color: #fff;
         font-weight: 900;
-        font-size: 18px;
+        font-size: 15px;
         border: none;
-        border-radius: 18px;
-        padding: 10px 38px;
-        margin-top: 12px;
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-top: 4px;
         box-shadow: 0 4px 18px rgba(60,180,60,0.13);
         cursor: pointer;
         transition: background 0.3s;
+        width: 100%;
     }
     .buy-btn:hover {
         background: linear-gradient(135deg, #1e7e34 0%, #3bb34a 100%);
+    }
+    .sell-btn {
+        background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+    }
+    .sell-btn:hover {
+        background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%);
+    }
+    .auto-refresh-info {
+        font-size: 16px;
+        margin-top: 10px;
+        opacity: 0.9;
+    }
+    .signal-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        width: 100%;
+    }
+    .signal-hidden {
+        display: none !important;
+    }
+
+    @media (max-width: 1100px) {
+        .signals-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .signals-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
 <div class="signals-container">
     <h1 class="page-header">
         📊 إشارات التداول المباشرة
-        <div style="font-size: 18px; margin-top: 10px; opacity: 0.9;">⏱️ تحديث تلقائي كل 30 ثانية</div>
+        <div class="auto-refresh-info">⏱️ تحديث ذكي مباشر + مزامنة كاملة كل دقيقتين</div>
     </h1>
 
     <div class="status-summary" id="status-summary">
@@ -175,6 +306,7 @@
         <div class="stat"><div class="label">نشطة</div><div class="value" id="stat-active">0</div></div>
         <div class="stat"><div class="label">رابحة</div><div class="value" id="stat-winners">0</div></div>
         <div class="stat"><div class="label">خاسرة</div><div class="value" id="stat-losers">0</div></div>
+        <div class="stat"><div class="label">مؤرشفة</div><div class="value" id="stat-archived">0</div></div>
     </div>
     
     {% if is_admin %}
@@ -185,22 +317,67 @@
     
     {% if signals %}
         {% for signal in signals %}
-        <div class="signal-card">
-            <div class="signal-title">{{ signal.symbol }} {{ signal.signal_type|upper }} Signal</div>
-            <div class="signal-info">
-                <span class="signal-label">Entry:</span>
-                <span class="signal-value">{{ '%.5f'|format(signal.entry_price) }}</span>
+        <a href="/signal/{{ signal.signal_id }}" class="signal-link">
+            <div class="signal-card {% if signal.signal_type == 'sell' %}sell-card{% else %}buy-card{% endif %}" data-symbol="{{ signal.symbol }}" data-signal="{{ signal.signal_type }}">
+                <div class="signal-title">{{ signal.symbol }} • إشارة {{ signal.signal_type|upper }}</div>
+
+                <div class="signal-meta">
+                    <span class="meta-pill {% if signal.signal_type == 'sell' %}sell{% else %}buy{% endif %}">
+                        {% if signal.signal_type == 'sell' %}🔴 بيع{% else %}🟢 شراء{% endif %}
+                    </span>
+                    <span class="meta-pill">جودة: {{ signal.quality_score or 0 }}/100</span>
+                    <span class="meta-pill">{{ signal.timeframe or '1h' }}</span>
+                </div>
+
+                <div class="price-grid">
+                    <div class="price-box">
+                        <div class="title">الدخول</div>
+                        <div class="val">{{ '%.5f'|format(signal.entry_price) }}</div>
+                    </div>
+                    <div class="price-box">
+                        <div class="title">السعر الحالي</div>
+                        <div class="val" id="current-price-{{ signal.signal_id }}">{{ '%.5f'|format(signal.current_price or signal.entry_price) }}</div>
+                    </div>
+                    <div class="price-box">
+                        <div class="title">TP1</div>
+                        <div class="val">{{ '%.5f'|format(signal.take_profit_1) }}</div>
+                    </div>
+                    <div class="price-box">
+                        <div class="title">TP2</div>
+                        <div class="val">{{ '%.5f'|format(signal.take_profit_2 or signal.take_profit_1) }}</div>
+                    </div>
+                    <div class="price-box">
+                        <div class="title">TP3</div>
+                        <div class="val">{{ '%.5f'|format(signal.take_profit_3 or signal.take_profit_1) }}</div>
+                    </div>
+                    <div class="price-box">
+                        <div class="title">SL</div>
+                        <div class="val">{{ '%.5f'|format(signal.stop_loss) }}</div>
+                    </div>
+                </div>
+
+                <div class="live-box">
+                    <div class="pips-display {% if (signal.pips or 0) >= 0 %}pips-positive{% else %}pips-negative{% endif %}" id="pips-{{ signal.signal_id }}">
+                        {% if signal.pips is not none %}{% if signal.pips > 0 %}+{% endif %}{{ '%.2f'|format(signal.pips) }} نقطة{% else %}0.00 نقطة{% endif %}
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-track">
+                            <div class="progress-bar" id="progress-bar-{{ signal.signal_id }}" data-progress="{{ signal.progress or 0 }}"></div>
+                        </div>
+                        <div class="progress-text" id="progress-{{ signal.signal_id }}">{{ signal.progress or 0 }}%</div>
+                    </div>
+                </div>
+
+                <div class="price-box">
+                    <div class="title">وقت الإشارة</div>
+                    <div class="val">{{ signal.timestamp or '-' }}</div>
+                </div>
+
+                <button class="buy-btn {% if signal.signal_type == 'sell' %}sell-btn{% endif %}" onclick="event.preventDefault(); event.stopPropagation(); window.open('https://www.tradingview.com/chart/?symbol={{ signal.symbol }}', '_blank')">
+                    {% if signal.signal_type == 'sell' %}فتح الرسم (SELL){% else %}فتح الرسم (BUY){% endif %}
+                </button>
             </div>
-            <div class="signal-info">
-                <span class="signal-label">Target:</span>
-                <span class="signal-value">{{ '%.5f'|format(signal.take_profit_1) }}</span>
-            </div>
-            <div class="signal-info">
-                <span class="signal-label">Stop Loss:</span>
-                <span class="signal-value">{{ '%.5f'|format(signal.stop_loss) }}</span>
-            </div>
-            <button class="buy-btn" onclick="window.open('https://www.tradingview.com/chart/?symbol={{ signal.symbol }}', '_blank')">BUY</button>
-        </div>
+        </a>
         {% endfor %}
     {% else %}
         <div class="no-signals">
@@ -213,8 +390,8 @@
 </div>
 
 <script>
-// تحديث تلقائي كل 30 ثانية
-let countdown = 30;
+// عداد مزامنة كاملة كل دقيقتين
+let countdown = 120;
 const countdownElement = document.createElement('div');
 countdownElement.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 9999; font-size: 16px;';
 document.body.appendChild(countdownElement);
@@ -240,6 +417,12 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
         }, index * 100);
+    });
+
+    document.querySelectorAll('.progress-bar[data-progress]').forEach((bar) => {
+        const raw = Number(bar.dataset.progress || 0);
+        const progress = Math.max(0, Math.min(100, raw));
+        bar.style.width = progress + '%';
     });
 });
 </script>

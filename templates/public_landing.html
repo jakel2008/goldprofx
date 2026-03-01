@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}GOLD PRO - الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<div class="landing-wrap">
+    <section class="breaking-news" id="economic-news-section-public" aria-label="الأخبار العاجلة">
+        <div class="breaking-label">🌍 اقتصاد مباشر</div>
+        <div class="breaking-track-wrap">
+            <div class="breaking-track breaking-track-economic" id="breaking-news-track-public">جاري تحميل الأخبار العاجلة...</div>
+        </div>
+    </section>
+
+    <section class="breaking-news" id="site-news-section-public" aria-label="أخبار المنصة">
+        <div class="breaking-label">🏛️ أخبار المنصة</div>
+        <div class="breaking-track-wrap">
+            <div class="breaking-track" id="site-news-track-public">جاري تحميل أخبار المنصة...</div>
+        </div>
+    </section>
+
+    <section class="hero-card">
+        <h1>منصة GOLD PRO</h1>
+        <p class="hero-sub">منصة تداول وإشارات احترافية قبل تسجيل الدخول يمكنك تصفح الإعلانات والعروض، ثم الدخول أو إنشاء حساب لأول مرة.</p>
+        <div class="hero-actions">
+            <a href="/login?first=1" class="btn btn-primary">تسجيل الدخول</a>
+            <a href="/register?first=1" class="btn btn-outline-dark">تسجيل لأول مرة</a>
+        </div>
+    </section>
+
+    <section class="ads-section">
+        <h2>الإعلانات والعروض</h2>
+        <div class="ads-grid">
+            {% for ad in ads %}
+            <article class="ad-card">
+                <div class="ad-badge">{{ ad.badge or 'إعلان' }}</div>
+                <h3>{{ ad.title }}</h3>
+                <p>{{ ad.text }}</p>
+                <a class="ad-link" href="{{ ad.cta_url or '/plans' }}">{{ ad.cta_text or 'عرض التفاصيل' }}</a>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="quick-section">
+        <div class="quick-card">
+            <h3>جاهز للبدء؟</h3>
+            <p>أنشئ حسابك الآن وابدأ متابعة الإشارات والتقارير.</p>
+            <a href="/register?first=1" class="btn btn-primary">إنشاء حساب</a>
+        </div>
+    </section>
+</div>
+
+<style>
+.landing-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.breaking-news {
+    display: flex;
+    align-items: center;
+    background: #0f1a2d;
+    border: 1px solid rgba(245, 197, 66, 0.35);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.breaking-label {
+    background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+    color: #1f2937;
+    font-weight: 800;
+    padding: 0.7rem 1rem;
+    white-space: nowrap;
+}
+
+.breaking-track-wrap {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.breaking-track {
+    display: inline-block;
+    white-space: nowrap;
+    color: #f5e9c5;
+    padding: 0.55rem 0;
+    animation: tickerMove 110s linear infinite;
+}
+
+.breaking-track-economic {
+    animation-duration: 320s;
+}
+
+@keyframes tickerMove {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+
+.hero-card {
+    background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 65%, #c49b2e 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid rgba(245, 197, 66, 0.35);
+}
+
+.hero-card h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.hero-sub {
+    margin-top: 0.75rem;
+    margin-bottom: 1.2rem;
+    color: #f5e9c5;
+    max-width: 800px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.ads-section h2 {
+    color: #8e6c0d;
+    margin: 0;
+}
+
+.ads-grid {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.ad-card {
+    background: #fff;
+    border: 1px solid #f0e1b8;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+}
+
+.ad-badge {
+    display: inline-block;
+    background: #fff3d8;
+    color: #8e6c0d;
+    border: 1px solid #d4a72f;
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+}
+
+.ad-card h3 {
+    margin: 0 0 0.4rem 0;
+    color: #1f2a44;
+    font-size: 1.1rem;
+}
+
+.ad-card p {
+    margin: 0 0 0.9rem 0;
+    color: #5b6475;
+    line-height: 1.6;
+}
+
+.ad-link {
+    color: #8e6c0d;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.quick-card {
+    background: #fff;
+    border: 1px solid #f0e1b8;
+    border-radius: 14px;
+    padding: 1.2rem;
+}
+
+.quick-card h3 {
+    color: #8e6c0d;
+    margin: 0 0 0.4rem 0;
+}
+
+.quick-card p {
+    color: #5b6475;
+    margin-bottom: 0.8rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const economicTrack = document.getElementById('breaking-news-track-public');
+    const siteTrack = document.getElementById('site-news-track-public');
+    const economicSection = document.getElementById('economic-news-section-public');
+    const siteSection = document.getElementById('site-news-section-public');
+    if (!economicTrack && !siteTrack) {
+        return;
+    }
+
+    let streamMode = 'both';
+    let economicLangParam = '';
+
+    function applyModeToView() {
+        if (economicSection) {
+            economicSection.style.display = '';
+        }
+        if (siteSection) {
+            siteSection.style.display = streamMode === 'both' ? '' : 'none';
+        }
+
+        if (streamMode === 'arabic' && economicTrack) {
+            economicTrack.textContent = 'جاري تحميل الأخبار الاقتصادية العربية...';
+        }
+    }
+
+    function loadStreamConfig() {
+        return fetch('/api/news-stream-config')
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success && ['both', 'economic', 'arabic'].includes(data.mode)) {
+                    streamMode = data.mode;
+                }
+                economicLangParam = streamMode === 'arabic' ? '?lang=ar' : '';
+                applyModeToView();
+            })
+            .catch(() => {
+                streamMode = 'both';
+                economicLangParam = '';
+                applyModeToView();
+            });
+    }
+
+    function refreshEconomicTicker() {
+        fetch('/api/news-ticker' + economicLangParam)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success || !Array.isArray(data.items) || data.items.length === 0) {
+                    if (economicTrack) {
+                        economicTrack.textContent = '⚡ لا توجد أخبار اقتصادية عاجلة حالياً';
+                    }
+                    return;
+                }
+                const text = data.items.join('   ✦   ');
+                if (economicTrack) {
+                    economicTrack.textContent = text + '   ✦   ' + text;
+                }
+            })
+            .catch(() => {
+                if (economicTrack) {
+                    economicTrack.textContent = '⚡ تعذر تحميل الأخبار الاقتصادية حالياً';
+                }
+            });
+    }
+
+    function refreshSiteTicker() {
+        fetch('/api/site-news-ticker')
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success || !Array.isArray(data.items) || data.items.length === 0) {
+                    if (siteTrack) {
+                        siteTrack.textContent = '🏛️ لا توجد أخبار جديدة من المنصة حالياً';
+                    }
+                    return;
+                }
+                const text = data.items.join('   ✦   ');
+                if (siteTrack) {
+                    siteTrack.textContent = text + '   ✦   ' + text;
+                }
+            })
+            .catch(() => {
+                if (siteTrack) {
+                    siteTrack.textContent = '🏛️ تعذر تحميل أخبار المنصة حالياً';
+                }
+            });
+    }
+
+    loadStreamConfig().finally(() => {
+        refreshEconomicTicker();
+        if (streamMode === 'both') {
+            refreshSiteTicker();
+        }
+    });
+
+    setInterval(() => {
+        refreshEconomicTicker();
+        if (streamMode === 'both') {
+            refreshSiteTicker();
+        }
+    }, 180000);
+});
+</script>
+{% endblock %}

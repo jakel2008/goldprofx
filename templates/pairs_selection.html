@@ -13,7 +13,10 @@
         <button id="save-preferences-btn" class="btn btn-primary">💾 حفظ التفضيلات</button>
         <button id="select-all-btn" class="btn btn-secondary">✓ تحديد الكل</button>
         <button id="clear-all-btn" class="btn btn-secondary">✗ إلغاء التحديد</button>
+        <a href="/dashboard" class="btn btn-secondary">↩ العودة للوحة التحكم</a>
     </div>
+
+    <div id="status-message" style="display:none; margin-bottom:1rem; padding:0.9rem 1rem; border-radius:10px; font-weight:600;"></div>
 
     <div id="categories-container"></div>
     
@@ -165,11 +168,37 @@
         color: #666;
         margin-left: 0.5rem;
     }
+
+    .status-success {
+        display: block !important;
+        background: #e8f5e9;
+        color: #1b5e20;
+        border: 1px solid #a5d6a7;
+    }
+
+    .status-error {
+        display: block !important;
+        background: #ffebee;
+        color: #b71c1c;
+        border: 1px solid #ef9a9a;
+    }
 </style>
 
 <script>
     let selectedPairs = [];
     let allPairs = {};
+
+    function showStatus(message, type = 'success') {
+        const el = document.getElementById('status-message');
+        el.textContent = message;
+        el.classList.remove('status-success', 'status-error');
+        el.classList.add(type === 'success' ? 'status-success' : 'status-error');
+
+        setTimeout(() => {
+            el.style.display = 'none';
+            el.classList.remove('status-success', 'status-error');
+        }, 3500);
+    }
     
     // تحميل الأزواج المتاحة
     async function loadAvailablePairs() {
@@ -334,13 +363,13 @@
             const result = await response.json();
             
             if (result.success) {
-                alert('✅ تم حفظ تفضيلاتك بنجاح!');
+                showStatus('✅ تم حفظ تفضيلاتك بنجاح!', 'success');
             } else {
-                alert('❌ حدث خطأ: ' + (result.message || 'غير معروف'));
+                showStatus('❌ حدث خطأ: ' + (result.message || 'غير معروف'), 'error');
             }
         } catch (error) {
             console.error('خطأ في حفظ التفضيلات:', error);
-            alert('❌ حدث خطأ في الاتصال');
+            showStatus('❌ حدث خطأ في الاتصال', 'error');
         }
     }
     

@@ -1,21 +1,20 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☬🌍MONEY MAKER IRAQ🌍☬ - المحلل المتقدم</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}المحلل المتقدم - GOLD PRO{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 60%, #c49b2e 100%);
             min-height: 100vh;
             font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         .header {
             background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 15px;
@@ -32,6 +31,7 @@
         
         .control-panel {
             background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 15px;
@@ -41,6 +41,7 @@
         
         .analysis-section {
             background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 15px;
@@ -88,7 +89,7 @@
             margin: 5px 0;
             background: #f8f9fa;
             border-radius: 5px;
-            border-right: 4px solid #667eea;
+            border-right: 4px solid #d4a72f;
         }
         
         .level-item {
@@ -112,29 +113,38 @@
         }
         
         .btn-analyze {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #d4a72f, #b68a13);
             border: none;
+            color: #1f2937;
             padding: 12px 40px;
             font-size: 1.1em;
             font-weight: bold;
             transition: all 0.3s;
         }
+        .btn-analyze:hover,
+        .btn-analyze:focus {
+            color: #111827;
+        }
         
         .btn-analyze:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(212, 167, 47, 0.35);
         }
         
         .btn-export {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             border: none;
             margin-right: 10px;
+            color: #ffffff;
+            font-weight: 700;
         }
         
         .btn-share {
             background: linear-gradient(135deg, #3498db, #2980b9);
             border: none;
             margin-right: 10px;
+            color: #ffffff;
+            font-weight: 700;
         }
         
         .loading-spinner {
@@ -190,21 +200,31 @@
             text-align: center;
             border-radius: 5px;
             background: linear-gradient(135deg, #e8f4f8, #d4e6f1);
-            border: 1px solid #3498db;
+            border: 1px solid #d4a72f;
         }
         
         .nav-tabs .nav-link {
-            color: #667eea;
+            color: #7a5b0a;
+            background: #fff8e7;
+            border-color: #ead7a1;
             font-weight: bold;
+        }
+
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            color: #5a4307;
+            background: #fff3d8;
+            border-color: #d8b75a;
         }
         
         .nav-tabs .nav-link.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            background: linear-gradient(135deg, #d4a72f, #b68a13);
+            color: #1f2937;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container py-4">
         <!-- Header -->
         <div class="header text-center">
@@ -218,7 +238,7 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label fw-bold">اختر الزوج</label>
-                    <select class="form-select" id="symbolSelect">
+                    <select class="form-select" id="symbolSelect" title="اختر الزوج">
                         <option value="EUR/USD">EUR/USD</option>
                         <option value="USD/JPY">USD/JPY</option>
                         <option value="GBP/USD">GBP/USD</option>
@@ -235,7 +255,7 @@
                 
                 <div class="col-md-3">
                     <label class="form-label fw-bold">الفترة الزمنية</label>
-                    <select class="form-select" id="intervalSelect">
+                    <select class="form-select" id="intervalSelect" title="اختر الفترة الزمنية">
                         <option value="1min">1 دقيقة</option>
                         <option value="5min">5 دقائق</option>
                         <option value="15min">15 دقيقة</option>
@@ -248,7 +268,7 @@
                 
                 <div class="col-md-3">
                     <label class="form-label fw-bold">الاستراتيجية</label>
-                    <select class="form-select" id="strategySelect">
+                    <select class="form-select" id="strategySelect" title="اختر الاستراتيجية">
                         <option value="harmonic">Harmonic Patterns</option>
                         <option value="elliott">Elliott Wave</option>
                         <option value="head_shoulders">Head & Shoulders</option>
@@ -363,7 +383,9 @@
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
     <script>
         let currentAnalysisData = null;
         
@@ -675,7 +697,7 @@ TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFix
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    symbol: document.getElementById('symbol').value,
+                    symbol: document.getElementById('symbolSelect').value,
                     recommendation: currentAnalysisData.recommendation || currentAnalysisData.signal,
                     entry_point: currentAnalysisData.entry_point,
                     tp1: currentAnalysisData.take_profit1,
@@ -684,7 +706,7 @@ TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFix
                     stop_loss: currentAnalysisData.stop_loss,
                     analysis_text: currentAnalysisData.analysis_text || '',
                     confidence: currentAnalysisData.confidence || '',
-                    interval: document.getElementById('interval').value
+                    interval: document.getElementById('intervalSelect').value
                 })
             })
             .then(response => response.json())
@@ -716,7 +738,7 @@ TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFix
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    symbol: document.getElementById('symbol').value,
+                    symbol: document.getElementById('symbolSelect').value,
                     recommendation: currentAnalysisData.recommendation || currentAnalysisData.signal,
                     entry_point: currentAnalysisData.entry_point,
                     tp1: currentAnalysisData.take_profit1,
@@ -724,7 +746,7 @@ TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFix
                     tp3: currentAnalysisData.take_profit3,
                     stop_loss: currentAnalysisData.stop_loss,
                     confidence: currentAnalysisData.confidence || '',
-                    interval: document.getElementById('interval').value
+                    interval: document.getElementById('intervalSelect').value
                 })
             })
             .then(response => response.json())
@@ -745,5 +767,4 @@ TP3: ${currentAnalysisData.take_profit3 ? currentAnalysisData.take_profit3.toFix
             runAnalysis();
         };
     </script>
-</body>
-</html>
+{% endblock %}

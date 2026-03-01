@@ -3,16 +3,31 @@ Telegram Sender Module
 وحدة إرسال الرسائل عبر التليجرام - دعم البوتات المتعددة
 """
 import os
+import importlib
 import requests
 import json
 from pathlib import Path
 from datetime import datetime
-from vip_subscription_system import SubscriptionManager
+try:
+    _subscription_mod = importlib.import_module("vip_subscription_system")
+    SubscriptionManager = getattr(_subscription_mod, "SubscriptionManager")
+except Exception:  # Fallback for missing dependency
+    class SubscriptionManager:  # type: ignore
+        def get_all_active_users(self):
+            return []
+
+        def can_receive_signal(self, user_id, signal_quality_bucket):
+            return False, "subscription system unavailable"
+
+        def log_signal_sent(self, user_id, signal_data, signal_quality_bucket):
+            return False
 
 # Settings
 BOT_TOKEN = os.environ.get("MM_TELEGRAM_BOT_TOKEN", "8253445917:AAEajrjXavN5Ebz8pSKeU8frqIyI84zi26A")
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 BOTS_CONFIG_FILE = Path(__file__).parent / "bots_config.json"
+BROADCAST_TARGETS_FILE = Path(__file__).parent / "broadcast_targets.json"
+SITE_SETTINGS_FILE = Path(__file__).parent / "site_settings.json"
 
 subscription_manager = SubscriptionManager()
 
@@ -44,6 +59,170 @@ def get_active_bots():
     """الحصول على البوتات النشطة"""
     config = load_bots_config()
     return [bot for bot in config.get('bots', []) if bot.get('status') == 'active']
+
+
+def _get_active_bot_tokens():
+    """إرجاع توكنات البوتات النشطة الصالحة للإرسال."""
+    tokens = []
+    for bot in get_active_bots():
+        token = str(bot.get('token', '')).strip()
+        if token:
+            tokens.append(token)
+
+    if not tokens and str(BOT_TOKEN or '').strip():
+        tokens = [BOT_TOKEN]
+
+    return tokens
+
+
+def load_broadcast_targets():
+    """تحميل أهداف البث الخارجية (قنوات تيليجرام / واتساب Webhook)."""
+    try:
+        if BROADCAST_TARGETS_FILE.exists():
+            with open(BROADCAST_TARGETS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f) or {}
+            if isinstance(data, dict):
+                targets = data.get('targets')
+                if isinstance(targets, list):
+                    return {'targets': targets}
+        return {'targets': []}
+    except Exception:
+        return {'targets': []}
+
+
+def _load_recommendation_footer_settings():
+    """قراءة الرسالة والرابط المنفصلين أسفل التوصيات من إعدادات الموقع."""
+    try:
+        if not SITE_SETTINGS_FILE.exists():
+            return {'enabled': True, 'message': '', 'link': ''}
+        with open(SITE_SETTINGS_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f) or {}
+        if not isinstance(data, dict):
+            return {'enabled': True, 'message': '', 'link': ''}
+        footer_enabled = data.get('recommendation_footer_enabled', True)
+        if isinstance(footer_enabled, str):
+            footer_enabled = footer_enabled.strip().lower() in ('1', 'true', 'yes', 'on')
+        footer_message = str(data.get('recommendation_footer_message') or '').strip()
+        footer_link = str(data.get('recommendation_footer_link') or '').strip()
+        return {'enabled': bool(footer_enabled), 'message': footer_message, 'link': footer_link}
+    except Exception:
+        return {'enabled': True, 'message': '', 'link': ''}
+
+
+def save_broadcast_targets(config):
+    """حفظ أهداف البث الخارجية."""
+    try:
+        if not isinstance(config, dict):
+            return False
+        targets = config.get('targets', [])
+        if not isinstance(targets, list):
+            return False
+        with open(BROADCAST_TARGETS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'targets': targets}, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+def _send_to_telegram_target(text, parse_mode, target):
+    """إرسال رسالة إلى قناة/جروب تيليجرام عبر البوتات النشطة."""
+    chat_id = str(target.get('chat_id') or target.get('telegram_chat_id') or '').strip()
+    if not chat_id:
+        return {'success': False, 'sent_count': 0, 'failed_count': 1, 'error': 'missing telegram chat_id'}
+
+    bot_mode = str(target.get('bot_mode') or 'all_active').strip().lower()
+    tokens = _get_active_bot_tokens()
+    if bot_mode == 'single' and tokens:
+        tokens = tokens[:1]
+
+    sent_count = 0
+    failed_count = 0
+    details = []
+
+    for token in tokens:
+        result = send_telegram_message(chat_id, text, parse_mode=parse_mode, bot_token=token)
+        if result.get('success'):
+            sent_count += 1
+            details.append({'status': 'sent'})
+        else:
+            failed_count += 1
+            details.append({'status': 'failed', 'error': result.get('error')})
+
+    return {
+        'success': sent_count > 0,
+        'sent_count': sent_count,
+        'failed_count': failed_count,
+        'details': details
+    }
+
+
+def _send_to_whatsapp_target(text, target):
+    """إرسال رسالة واتساب عبر Webhook/API خارجي مخصص."""
+    webhook_url = str(target.get('webhook_url') or target.get('url') or '').strip()
+    if not webhook_url:
+        return {'success': False, 'sent_count': 0, 'failed_count': 1, 'error': 'missing whatsapp webhook_url'}
+
+    headers = {'Content-Type': 'application/json'}
+    auth_token = str(target.get('auth_token') or '').strip()
+    if auth_token:
+        headers['Authorization'] = f'Bearer {auth_token}'
+
+    payload = {
+        'message': text,
+        'group_id': target.get('group_id') or target.get('to') or '',
+        'name': target.get('name') or 'whatsapp-target'
+    }
+
+    try:
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=12)
+        ok = response.status_code >= 200 and response.status_code < 300
+        return {
+            'success': ok,
+            'sent_count': 1 if ok else 0,
+            'failed_count': 0 if ok else 1,
+            'status_code': response.status_code,
+            'error': None if ok else response.text[:500]
+        }
+    except Exception as e:
+        return {'success': False, 'sent_count': 0, 'failed_count': 1, 'error': str(e)}
+
+
+def send_broadcast_to_configured_targets(text, parse_mode='HTML'):
+    """إرسال رسالة إلى أهداف البث المفعلة (Telegram targets + WhatsApp targets)."""
+    config = load_broadcast_targets()
+    targets = config.get('targets', []) if isinstance(config, dict) else []
+
+    enabled_targets = [t for t in targets if isinstance(t, dict) and t.get('enabled', True)]
+    results = {
+        'total_targets': len(enabled_targets),
+        'sent_count': 0,
+        'failed_count': 0,
+        'details': []
+    }
+
+    for target in enabled_targets:
+        platform = str(target.get('platform') or target.get('type') or 'telegram').strip().lower()
+        name = str(target.get('name') or platform)
+
+        if platform in ('telegram', 'telegram_channel', 'telegram_group'):
+            res = _send_to_telegram_target(text, parse_mode, target)
+        elif platform in ('whatsapp', 'whatsapp_group'):
+            res = _send_to_whatsapp_target(text, target)
+        else:
+            res = {'success': False, 'sent_count': 0, 'failed_count': 1, 'error': f'unsupported platform: {platform}'}
+
+        results['sent_count'] += int(res.get('sent_count', 0) or 0)
+        results['failed_count'] += int(res.get('failed_count', 0) or 0)
+        results['details'].append({
+            'name': name,
+            'platform': platform,
+            'success': bool(res.get('success', False)),
+            'sent_count': int(res.get('sent_count', 0) or 0),
+            'failed_count': int(res.get('failed_count', 0) or 0),
+            'error': res.get('error')
+        })
+
+    return results
 
 
 def send_telegram_message(chat_id, text, parse_mode="HTML", bot_token=None):
@@ -115,24 +294,65 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
         
         # تنسيق رسالة الإشارة
         message = format_signal_message(signal_data)
+        bot_tokens = _get_active_bot_tokens()
         
+        plan_quality_threshold = {
+            'free': 90,
+            'bronze': 80,
+            'silver': 70,
+            'gold': 60,
+            'platinum': 50
+        }
+
+        signal_quality_bucket = 'high'
+        if quality_score < 70:
+            signal_quality_bucket = 'low'
+        elif quality_score < 85:
+            signal_quality_bucket = 'medium'
+
         for user_data in subscribers:
             try:
                 # Handle both dict and tuple formats
                 if isinstance(user_data, dict):
                     user_id = user_data.get('user_id')
                     plan = user_data.get('plan', 'free')
+                    chat_id = user_data.get('chat_id') or user_data.get('telegram_id') or user_id
                 else:
                     user_id = user_data[0]
                     plan = user_data[1] if len(user_data) > 1 else 'free'
+                    chat_id = user_id
                 
                 if not user_id:
                     continue
+
+                # فلترة حسب الخطة والجودة
+                min_quality = plan_quality_threshold.get(plan, 90)
+                if quality_score < min_quality:
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'skipped_quality',
+                        'reason': f'min_quality={min_quality}, signal_quality={quality_score}'
+                    })
+                    continue
+
+                # احترام الحد اليومي من نظام الاشتراكات
+                can_receive, reason = subscription_manager.can_receive_signal(user_id, signal_quality_bucket)
+                if not can_receive:
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'skipped_plan_limit',
+                        'reason': reason
+                    })
+                    continue
                 
-                # إرسال الرسالة
-                result = send_telegram_message(user_id, message)
+                # إرسال الرسالة عبر البوتات الفعالة (توزيع بالتناوب)
+                selected_token = bot_tokens[results['sent_count'] % len(bot_tokens)] if bot_tokens else None
+                result = send_telegram_message(chat_id, message, bot_token=selected_token)
                 
                 if result['success']:
+                    subscription_manager.log_signal_sent(user_id, signal_data, signal_quality_bucket)
                     results['sent_count'] += 1
                     results['details'].append({
                         'user_id': user_id,
@@ -181,6 +401,9 @@ def send_recommendation_to_subscribers(recommendation_data):
         
         # تنسيق رسالة التوصية
         message = format_recommendation_message(recommendation_data)
+        bot_tokens = _get_active_bot_tokens()
+
+        sent_counter = 0
         
         for user_data in subscribers:
             try:
@@ -192,9 +415,11 @@ def send_recommendation_to_subscribers(recommendation_data):
                 if not user_id:
                     continue
                 
-                result = send_telegram_message(user_id, message)
+                selected_token = bot_tokens[sent_counter % len(bot_tokens)] if bot_tokens else None
+                result = send_telegram_message(user_id, message, bot_token=selected_token)
                 
                 if result['success']:
+                    sent_counter += 1
                     results['sent_count'] += 1
                 else:
                     results['failed_count'] += 1
@@ -223,6 +448,8 @@ def send_report_to_subscribers(report_text):
             'sent_count': 0,
             'failed_count': 0
         }
+        bot_tokens = _get_active_bot_tokens()
+        sent_counter = 0
         
         for user_data in subscribers:
             try:
@@ -234,9 +461,11 @@ def send_report_to_subscribers(report_text):
                 if not user_id:
                     continue
                 
-                result = send_telegram_message(user_id, report_text)
+                selected_token = bot_tokens[sent_counter % len(bot_tokens)] if bot_tokens else None
+                result = send_telegram_message(user_id, report_text, bot_token=selected_token)
                 
                 if result['success']:
+                    sent_counter += 1
                     results['sent_count'] += 1
                 else:
                     results['failed_count'] += 1
@@ -270,6 +499,15 @@ def format_signal_message(signal):
     tp1_distance = abs(tp1 - entry)
     tp2_distance = abs(tp2 - entry) if tp2 else 0
     tp3_distance = abs(tp3 - entry) if tp3 else 0
+    rr_tp1 = 0.0
+    if sl_distance > 0:
+        rr_tp1 = round(tp1_distance / sl_distance, 2)
+
+    confidence_text = signal.get('confidence', 'N/A')
+    follow_up_status = signal.get('follow_up_status', 'active')
+    adaptive_mode = signal.get('adaptive_mode', '')
+    adaptive_min_quality = signal.get('adaptive_min_quality_score', '')
+    adaptive_min_rr = signal.get('adaptive_min_rr', '')
     
     msg = f"""
 ╔═══════════════════════════
@@ -280,6 +518,10 @@ def format_signal_message(signal):
 📈 <b>الاتجاه / Direction:</b> {signal_ar}
 ⏰ <b>الإطار / Timeframe:</b> {signal.get('timeframe', signal.get('tf', 'N/A'))}
 ⭐ <b>الجودة / Quality:</b> {signal.get('quality_score', 'N/A')}/100
+📐 <b>العائد/المخاطرة TP1:</b> 1:{rr_tp1}
+🔰 <b>الثقة / Confidence:</b> {confidence_text}
+🧭 <b>المتابعة / Follow-up:</b> {follow_up_status}
+🧠 <b>وضع الفلترة / Adaptive:</b> {adaptive_mode or 'baseline'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -321,6 +563,8 @@ def format_signal_message(signal):
 
 ⚠️ <b>تحذير:</b> لا تخاطر بأكثر من 2% من رأس المال
 💼 <b>إدارة المخاطر:</b> استخدم حجم عقد مناسب
+🔒 <b>خطة المتابعة:</b> بعد TP1 يتم نقل وقف الخسارة للتعادل، وبعد TP2 يتم تأمين ربح عند TP1
+📊 <b>حدود القبول:</b> جودة≥{adaptive_min_quality or 'N/A'} | RR≥{adaptive_min_rr or 'N/A'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 {signal.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
@@ -344,6 +588,10 @@ def format_recommendation_message(rec):
     tp1_distance = abs(tp1 - entry)
     tp2_distance = abs(tp2 - entry)
     tp3_distance = abs(tp3 - entry)
+    footer_settings = _load_recommendation_footer_settings()
+    footer_enabled = bool(footer_settings.get('enabled', True))
+    footer_message = footer_settings.get('message', '')
+    footer_link = footer_settings.get('link', '')
     
     msg = f"""
 ╔═══════════════════════════
@@ -389,6 +637,9 @@ def format_recommendation_message(rec):
 {rec.get('reason', '• تحليل فني متقدم\n• اتبع إدارة المخاطر')}
 
 ⚠️ <b>تحذير:</b> لا تخاطر بأكثر من 2% من رأس المال
+
+{f"📝 <b>رسالة إضافية:</b>\n{footer_message}\n" if footer_enabled and footer_message else ""}
+{f"🔗 <b>رابط إضافي:</b>\n{footer_link}\n" if footer_enabled and footer_link else ""}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 {rec.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}

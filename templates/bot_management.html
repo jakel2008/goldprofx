@@ -1,17 +1,21 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة البوتات - Bot Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}إدارة البوتات - GOLD PRO{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 60%, #c49b2e 100%);
             min-height: 100vh;
             padding: 20px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .stats-box-active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .stats-box-paused {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         .container {
             max-width: 1400px;
@@ -55,28 +59,41 @@
             color: #721c24;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             border: none;
+            color: #1f2937;
             border-radius: 25px;
             padding: 10px 30px;
             font-weight: bold;
             transition: all 0.3s;
         }
+        .btn-primary:hover,
+        .btn-primary:focus {
+            color: #111827;
+        }
         .btn-primary:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 5px 20px rgba(212, 167, 47, 0.5);
         }
         .btn-warning {
             border-radius: 25px;
             padding: 8px 20px;
+            color: #3f2f07;
+            font-weight: 700;
         }
         .btn-danger {
             border-radius: 25px;
             padding: 8px 20px;
+            font-weight: 700;
         }
         .btn-success {
             border-radius: 25px;
             padding: 8px 20px;
+            font-weight: 700;
+        }
+        .btn-secondary,
+        .btn-info {
+            font-weight: 700;
         }
         .form-control, .form-select {
             border-radius: 10px;
@@ -84,8 +101,8 @@
             padding: 12px;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #d4a72f;
+            box-shadow: 0 0 0 0.2rem rgba(212, 167, 47, 0.25);
         }
         .default-badge {
             background: linear-gradient(135deg, #ffd700, #ffed4e);
@@ -104,17 +121,20 @@
             border: none;
         }
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             color: white;
             border-radius: 20px 20px 0 0;
         }
         .stats-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
             color: white;
             border-radius: 15px;
             padding: 20px;
             text-align: center;
             margin-bottom: 20px;
+        }
+        .stats-box-deleted {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
         .stats-box h3 {
             font-size: 2.5rem;
@@ -125,8 +145,9 @@
             font-size: 1.1rem;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <!-- Header -->
         <div class="header-card">
@@ -161,19 +182,19 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <div class="stats-box stats-box-active">
                     <h3 id="activeBots">0</h3>
                     <p>بوتات نشطة</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stats-box stats-box-paused">
                     <h3 id="pausedBots">0</h3>
                     <p>بوتات متوقفة</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stats-box stats-box-deleted">
                     <h3 id="deletedBots">0</h3>
                     <p>بوتات محذوفة</p>
                 </div>
@@ -197,7 +218,7 @@
                     <h5 class="modal-title">
                         <i class="fas fa-plus-circle"></i> إضافة بوت جديد
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" title="إغلاق" aria-label="إغلاق"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addBotForm">
@@ -215,7 +236,7 @@
                             <input type="text" class="form-control" id="botToken" required 
                                    placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz">
                             <small class="text-muted">
-                                احصل على التوكن من <a href="https://t.me/BotFather" target="_blank">@BotFather</a>
+                                احصل على التوكن من <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>
                             </small>
                         </div>
                         <div class="mb-3">
@@ -257,22 +278,22 @@
                     <h5 class="modal-title">
                         <i class="fas fa-edit"></i> تعديل البوت
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" title="إغلاق" aria-label="إغلاق"></button>
                 </div>
                 <div class="modal-body">
                     <form id="editBotForm">
                         <input type="hidden" id="editBotId">
                         <div class="mb-3">
                             <label class="form-label">اسم البوت</label>
-                            <input type="text" class="form-control" id="editBotName" required>
+                            <input type="text" class="form-control" id="editBotName" required placeholder="اسم البوت" title="اسم البوت">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">توكن البوت</label>
-                            <input type="text" class="form-control" id="editBotToken" required>
+                            <input type="text" class="form-control" id="editBotToken" required placeholder="توكن البوت" title="توكن البوت">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">الوصف</label>
-                            <textarea class="form-control" id="editBotDescription" rows="3"></textarea>
+                            <label class="form-label" for="editBotDescription">الوصف</label>
+                            <textarea class="form-control" id="editBotDescription" rows="3" title="الوصف" placeholder="وصف البوت والغرض منه..." ></textarea>
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="editSetAsDefault">
@@ -292,7 +313,9 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
     <script>
         // تحميل البوتات عند فتح الصفحة
         document.addEventListener('DOMContentLoaded', function() {
@@ -652,5 +675,4 @@
             }, 5000);
         }
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}الفيديوهات التعليمية{% endblock %}
+
+{% block content %}
+<div class="tutorials-page">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h3 class="mb-2">🎓 المكتبة التعليمية</h3>
+            <p class="text-muted mb-0">شاهد الشروحات المرئية الخاصة بالمنصة والتداول خطوة بخطوة.</p>
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <div class="card mb-4 shadow-sm border-warning">
+        <div class="card-header bg-warning text-dark">
+            <strong>⬆️ رفع فيديو تعليمي جديد</strong>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('upload_tutorial_video') }}" method="post" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="title">عنوان الفيديو</label>
+                        <input class="form-control" id="title" name="title" type="text" placeholder="مثال: شرح إدارة المخاطر" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="video">ملف الفيديو</label>
+                        <input class="form-control" id="video" name="video" type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime,.m4v" required>
+                        <div class="form-text">الصيغ المدعومة: MP4, WEBM, OGG, MOV, M4V</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="description">وصف مختصر (اختياري)</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="اكتب ملخصًا سريعًا عن محتوى الفيديو"></textarea>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" type="submit">💾 رفع الفيديو</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if videos %}
+    <div class="row g-4">
+        {% for video in videos %}
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ video.title }}</h5>
+                    {% if video.description %}
+                    <p class="text-muted small mb-3">{{ video.description }}</p>
+                    {% endif %}
+
+                    <div class="video-frame mb-3" data-protected-video>
+                        <video class="w-100 rounded border" controls preload="metadata" disablePictureInPicture oncontextmenu="return false;" style="max-height: 320px; background: #000;">
+                            <source src="{{ url_for('static', filename='uploads/tutorials/' + video.filename) }}">
+                            متصفحك لا يدعم تشغيل الفيديو.
+                        </video>
+                        <div class="video-watermark">GOLD PRO • {{ user.username if user and user.username else 'User' }}</div>
+                    </div>
+
+                    {% if is_admin %}
+                    <form action="{{ url_for('delete_tutorial_video', video_id=video.id) }}" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الفيديو؟');" class="mb-3">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ حذف الفيديو</button>
+                    </form>
+                    {% endif %}
+
+                    <div class="small text-muted mt-auto">
+                        <div>📅 {{ video.uploaded_at or '—' }}</div>
+                        {% if video.uploaded_by %}
+                        <div>👤 {{ video.uploaded_by }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        لا توجد فيديوهات تعليمية مرفوعة حتى الآن.
+    </div>
+    {% endif %}
+
+    <div class="alert alert-secondary mt-4">
+        <strong>ملاحظة حماية:</strong> تم تعطيل التنزيل المباشر ومنع النقر الأيمن وإضافة علامة مائية.
+        منع تصوير الشاشة بالكامل غير ممكن تقنيًا بدون حلول DRM متقدمة على مستوى المنصة.
+    </div>
+</div>
+
+<style>
+.video-frame {
+    position: relative;
+}
+
+.video-watermark {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-protected-video] video').forEach((video) => {
+        video.addEventListener('contextmenu', (event) => event.preventDefault());
+    });
+});
+</script>
+{% endblock %}

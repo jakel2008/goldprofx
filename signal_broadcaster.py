@@ -79,10 +79,9 @@ def get_active_users_by_plan():
         
         active_users_count = 0
         
-        for user_id, plan, chat_id in users:
+        for _, plan, chat_id in users:
             if plan not in users_by_plan:
                 continue
-            
             # تحويل Chat ID إلى رقم صحيح
             try:
                 target_chat_id = int(str(chat_id).strip())
@@ -159,11 +158,11 @@ def send_signal_to_users(signal_data, quality_score):
         entry = float(entry)
         sl = float(sl)
         tp1 = float(tp1) if tp1 is not None else 0
-        risk = abs(entry - sl)
-        reward = abs(tp1 - entry)
-        rr = (reward / risk) if risk > 0 and reward > 0 else 0
+        # risk = abs(entry - sl)
+        # reward = abs(tp1 - entry)
+        # rr = (reward / risk) if risk > 0 and reward > 0 else 0
     except Exception:
-        rr = 0
+        pass
 
     # تم تعطيل فلترة الجودة/العائد لإرسال جميع الإشارات
 
@@ -313,13 +312,16 @@ def read_and_broadcast_signals():
             print(f"❌ خطأ في قراءة {signal_file.name}: {e}")
             continue
 
+
     # حذف ملفات الإشارات المنتهية
     for expired_file in set(expired_files):
-        try:
-            expired_file.unlink()
-            print(f"🗑️ تم حذف إشارة منتهية: {expired_file.name}")
-        except Exception as e:
-            print(f"❌ تعذر حذف {expired_file.name}: {e}")
+        # تأكد أن expired_file هو كائن Path وليس dict
+        if isinstance(expired_file, Path):
+            try:
+                expired_file.unlink()
+                print(f"🗑️ تم حذف إشارة منتهية: {expired_file.name}")
+            except Exception as e:
+                print(f"❌ تعذر حذف {expired_file.name}: {e}")
 
     return new_signals_count
 

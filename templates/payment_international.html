@@ -1,29 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}الدفع الدولي - International Payment{% endblock %}
+{% block title %}الدفع الدولي{% endblock %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
+    {% set plan_labels = {
+        'bronze': 'برونزي',
+        'silver': 'فضي',
+        'gold': 'ذهبي VIP',
+        'platinum': 'بلاتيني VIP'
+    } %}
+    {% set plan_label = plan_labels.get(plan, plan_data.name) %}
+    {% set months = (plan_data.duration_days / 30) if plan_data.duration_days else 1 %}
+    {% set monthly_usd = (plan_data.price / months) if months else plan_data.price %}
+    {% set has_crypto_addresses = site_settings.crypto_btc_address or site_settings.crypto_eth_address or site_settings.crypto_usdt_address %}
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <!-- ملخص الطلب -->
             <div class="card shadow mb-4">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-globe"></i> International Payment</h4>
+                    <h4 class="mb-0"><i class="fas fa-globe"></i> الدفع الدولي</h4>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h5>{{ plan_data.name }} Plan</h5>
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-clock"></i> Duration: {{ plan_data.duration_days }} days
-                                <span class="mx-2">|</span>
-                                <i class="fas fa-signal"></i> Signals: {{ plan_data.signals }}/day
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <h3 class="text-success mb-0">${{ plan_data.price }} USD</h3>
-                            <small class="text-muted">One-time payment</small>
+                    <div class="alert alert-info text-center mb-0 selected-plan-summary">
+                        <h5 class="mb-2"><i class="fas fa-crown"></i> الخطة المختارة: {{ plan_label }}</h5>
+                        <div class="summary-chips">
+                            <span class="summary-chip">${{ plan_data.price }} إجمالي</span>
+                            <span class="summary-chip">${{ "%.2f"|format(monthly_usd) }} / شهر</span>
+                            <span class="summary-chip">{{ plan_data.duration_days }} يوم</span>
+                            <span class="summary-chip">{{ plan_data.signals }} إشارات يوميًا</span>
                         </div>
                     </div>
                 </div>
@@ -38,7 +43,7 @@
                             <h5 class="mb-0">
                                 <i class="fab fa-cc-visa"></i>
                                 <i class="fab fa-cc-mastercard"></i>
-                                Credit/Debit Card
+                                بطاقة ائتمان/خصم
                             </h5>
                         </div>
                         <div class="card-body">
@@ -48,48 +53,48 @@
                                     <i class="fab fa-cc-mastercard fa-3x text-danger mx-2"></i>
                                     <i class="fab fa-cc-amex fa-3x text-info mx-2"></i>
                                 </div>
-                                <p class="text-muted">Secure payment powered by Stripe</p>
+                                <p class="text-muted">دفع آمن عبر Stripe</p>
                             </div>
 
                             <div class="features mb-4">
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    Instant activation
+                                    تفعيل فوري
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    100% secure payment
+                                    حماية عالية للمدفوعات
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    SSL encryption
+                                    تشفير SSL
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    No extra fees
+                                    بدون رسوم إضافية
                                 </div>
                             </div>
 
                             <div class="alert alert-info">
                                 <small>
                                     <i class="fas fa-info-circle"></i>
-                                    Your subscription will be activated immediately after payment
+                                    يتم تفعيل الاشتراك مباشرة بعد إتمام الدفع
                                 </small>
                             </div>
 
                             <button class="btn btn-primary btn-lg w-100" onclick="selectPaymentMethod('visa')">
-                                <i class="fas fa-credit-card"></i> Pay with Card
+                                <i class="fas fa-credit-card"></i> الدفع بالبطاقة
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cryptocurrency -->
+                <!-- العملات الرقمية -->
                 <div class="col-md-6">
                     <div class="card h-100 shadow-sm payment-option" id="crypto-option">
                         <div class="card-header bg-warning text-dark">
                             <h5 class="mb-0">
-                                <i class="fab fa-bitcoin"></i> Cryptocurrency
+                                <i class="fab fa-bitcoin"></i> العملات الرقمية
                             </h5>
                         </div>
                         <div class="card-body">
@@ -99,37 +104,37 @@
                                     <i class="fab fa-ethereum fa-3x text-primary mx-1"></i>
                                     <span class="badge bg-success fs-5 mx-1">USDT</span>
                                 </div>
-                                <p class="text-muted">Bitcoin, Ethereum, USDT & more</p>
+                                <p class="text-muted">بيتكوين، إيثيريوم، USDT والمزيد</p>
                             </div>
 
                             <div class="features mb-4">
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    Anonymous payment
+                                    خصوصية أعلى في الدفع
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    Low transaction fees
+                                    رسوم تحويل منخفضة
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    Blockchain secured
+                                    حماية عبر البلوكشين
                                 </div>
                                 <div class="feature-item mb-2">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    Multiple coins accepted
+                                    دعم عملات متعددة
                                 </div>
                             </div>
 
                             <div class="alert alert-warning">
                                 <small>
                                     <i class="fas fa-clock"></i>
-                                    Activation after blockchain confirmation (5-30 mins)
+                                    التفعيل بعد تأكيد الشبكة (5-30 دقيقة)
                                 </small>
                             </div>
 
                             <button class="btn btn-warning btn-lg w-100 text-dark" onclick="selectPaymentMethod('crypto')">
-                                <i class="fab fa-bitcoin"></i> Pay with Crypto
+                                <i class="fab fa-bitcoin"></i> الدفع بالعملات الرقمية
                             </button>
                         </div>
                     </div>
@@ -139,30 +144,30 @@
             <!-- Stripe Payment Form -->
             <div class="card shadow mt-4" id="stripe-form" style="display: none;">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Card Payment</h5>
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> دفع البطاقة</h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i>
-                        <strong>Coming Soon!</strong> Stripe integration is being configured. 
-                        For now, please contact support at <strong>mahmoodalqaise750@gmail.com</strong>
+                        <strong>قريبًا!</strong> يتم الآن إعداد التكامل المباشر مع Stripe.
+                        حاليًا يرجى التواصل عبر <strong>{{ site_settings.support_email }}</strong>
                     </div>
                     
                     <form id="stripePaymentForm">
                         <div class="mb-3">
-                            <label class="form-label">Card Holder Name</label>
-                            <input type="text" class="form-control" placeholder="John Doe" required>
+                            <label class="form-label">اسم حامل البطاقة</label>
+                            <input type="text" class="form-control" placeholder="الاسم كما على البطاقة" required>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Card Number</label>
+                            <label class="form-label">رقم البطاقة</label>
                             <input type="text" class="form-control" placeholder="4242 4242 4242 4242" 
                                    maxlength="19" required>
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Expiry Date</label>
+                                <label class="form-label">تاريخ الانتهاء</label>
                                 <input type="text" class="form-control" placeholder="MM/YY" 
                                        maxlength="5" required>
                             </div>
@@ -174,12 +179,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Email for Receipt</label>
+                            <label class="form-label">البريد الإلكتروني للإيصال</label>
                             <input type="email" class="form-control" value="{{ user.email }}" required>
                         </div>
 
                         <button type="button" class="btn btn-secondary w-100" onclick="contactSupport('visa')">
-                            <i class="fas fa-envelope"></i> Contact Support for Payment
+                            <i class="fas fa-envelope"></i> تواصل مع الدعم لإتمام الدفع
                         </button>
                     </form>
                 </div>
@@ -188,17 +193,24 @@
             <!-- Crypto Payment Form -->
             <div class="card shadow mt-4" id="crypto-form" style="display: none;">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fab fa-bitcoin"></i> Cryptocurrency Payment</h5>
+                    <h5 class="mb-0"><i class="fab fa-bitcoin"></i> دفع العملات الرقمية</h5>
                 </div>
                 <div class="card-body">
+                    {% if has_crypto_addresses %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        تم تفعيل عناوين الدفع بالعملات المشفرة. اختر العملة وانسخ العنوان ثم أرسل TX Hash بعد التحويل.
+                    </div>
+                    {% else %}
                     <div class="alert alert-warning">
                         <i class="fas fa-info-circle"></i>
-                        <strong>Coming Soon!</strong> Cryptocurrency payment integration is being configured.
-                        For now, please contact support at <strong>mahmoodalqaise750@gmail.com</strong>
+                        <strong>غير متاح حاليًا:</strong> عناوين العملات المشفرة لم تُضف بعد.
+                        يرجى التواصل عبر <strong>{{ site_settings.support_email }}</strong>
                     </div>
+                    {% endif %}
 
                     <div class="crypto-options mb-4">
-                        <h6 class="mb-3">Select Cryptocurrency:</h6>
+                        <h6 class="mb-3">اختر العملة الرقمية:</h6>
                         <div class="btn-group w-100 mb-3" role="group">
                             <input type="radio" class="btn-check" name="crypto-type" id="btc" checked>
                             <label class="btn btn-outline-warning" for="btc">
@@ -220,23 +232,27 @@
                     <div class="payment-address text-center mb-4">
                         <div class="qr-placeholder mb-3 p-4 bg-light rounded">
                             <i class="fas fa-qrcode" style="font-size: 100px; color: #ccc;"></i>
-                            <p class="mt-2 mb-0">Scan to pay</p>
+                            <p class="mt-2 mb-0">امسح الرمز للدفع</p>
                         </div>
                         
                         <div class="alert alert-dark">
-                            <p class="mb-1"><strong>Wallet Address:</strong></p>
-                            <code class="d-block">Will be provided after setup</code>
+                            <p class="mb-1"><strong>عنوان المحفظة:</strong></p>
+                            <code class="d-block" id="crypto-wallet-address">—</code>
+                            <small class="text-muted d-block mt-2" id="crypto-address-note">اختر العملة لعرض العنوان الصحيح</small>
                         </div>
+                        <button type="button" class="btn btn-outline-dark mb-3" id="copy-crypto-address-btn">
+                            <i class="fas fa-copy"></i> نسخ العنوان
+                        </button>
                         
                         <div class="mb-3">
-                            <label class="form-label">Transaction Hash:</label>
+                            <label class="form-label">معرّف المعاملة (TX Hash):</label>
                             <input type="text" class="form-control" id="tx-hash" 
-                                   placeholder="Enter transaction hash after payment">
+                                   placeholder="أدخل معرّف المعاملة بعد الدفع">
                         </div>
                     </div>
 
                     <button type="button" class="btn btn-secondary w-100" onclick="contactSupport('crypto')">
-                        <i class="fas fa-envelope"></i> Contact Support for Payment
+                        <i class="fas fa-envelope"></i> تواصل مع الدعم لإتمام الدفع
                     </button>
                 </div>
             </div>
@@ -244,10 +260,10 @@
             <!-- Alternative: Contact Support -->
             <div class="card shadow mt-4">
                 <div class="card-body text-center">
-                    <h5><i class="fas fa-headset"></i> Need Help?</h5>
-                    <p class="text-muted mb-3">Contact our support team for payment assistance</p>
-                    <a href="mailto:mahmoodalqaise750@gmail.com" class="btn btn-outline-primary">
-                        <i class="fas fa-envelope"></i> mahmoodalqaise750@gmail.com
+                    <h5><i class="fas fa-headset"></i> هل تحتاج مساعدة؟</h5>
+                    <p class="text-muted mb-3">تواصل مع فريق الدعم للمساعدة في إتمام الدفع</p>
+                    <a href="mailto:{{ site_settings.support_email }}" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i> {{ site_settings.support_email }}
                     </a>
                 </div>
             </div>
@@ -258,6 +274,56 @@
 
 <script>
 let selectedMethod = '';
+
+function getSelectedCryptoType() {
+    return document.querySelector('input[name="crypto-type"]:checked')?.id || 'btc';
+}
+
+function getCryptoAddressMap() {
+    return {
+        btc: (document.getElementById('crypto-btc-address-data')?.value || '').trim(),
+        eth: (document.getElementById('crypto-eth-address-data')?.value || '').trim(),
+        usdt: (document.getElementById('crypto-usdt-address-data')?.value || '').trim()
+    };
+}
+
+function updateCryptoAddressUI() {
+    const selectedType = getSelectedCryptoType();
+    const addressMap = getCryptoAddressMap();
+    const address = addressMap[selectedType] || '';
+    const walletAddressEl = document.getElementById('crypto-wallet-address');
+    const noteEl = document.getElementById('crypto-address-note');
+    const copyBtn = document.getElementById('copy-crypto-address-btn');
+
+    if (!walletAddressEl || !noteEl || !copyBtn) {
+        return;
+    }
+
+    if (address) {
+        walletAddressEl.textContent = address;
+        noteEl.textContent = `عنوان ${selectedType.toUpperCase()} جاهز للدفع`;
+        copyBtn.disabled = false;
+    } else {
+        walletAddressEl.textContent = 'لا يوجد عنوان مضاف لهذه العملة بعد';
+        noteEl.textContent = `الرجاء التواصل مع الدعم لتوفير عنوان ${selectedType.toUpperCase()}`;
+        copyBtn.disabled = true;
+    }
+}
+
+function copyCryptoAddress() {
+    const text = document.getElementById('crypto-wallet-address')?.textContent?.trim() || '';
+    if (!text || text.startsWith('لا يوجد')) {
+        alert('لا يوجد عنوان متاح للنسخ حاليًا');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => alert('✅ تم نسخ عنوان المحفظة'))
+            .catch(() => alert('❌ تعذر نسخ العنوان. انسخه يدويًا.'));
+        return;
+    }
+    alert('❌ متصفحك لا يدعم النسخ التلقائي. انسخ العنوان يدويًا.');
+}
 
 function selectPaymentMethod(method) {
     selectedMethod = method;
@@ -287,12 +353,30 @@ function selectPaymentMethod(method) {
 }
 
 function contactSupport(method) {
-    var paymentMethod = (method === 'visa') ? 'Credit/Debit Card' : 'Cryptocurrency';
-    const subject = `Payment Request - {{ plan_data.name }} Plan - ${method}`;
-    const body = `Hello,%0D%0A%0D%0AI would like to subscribe to the {{ plan_data.name }} Plan (${{ plan_daice }}) using ${method === 'visa' ? 'Credit/Debit Card' : 'Cryptocurrency'}.%0D%0APlan Details:%0D%0A - Price: ${{ plan_data,price }}%0D%0APlease provide payment instructions.%0D%0AThank you!`;
-    window.location.href = `mailto:mahmoodalqaise750@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const paymentMethod = (method === 'visa') ? 'بطاقة ائتمان/خصم' : 'عملات رقمية';
+    const cryptoType = method === 'crypto' ? getSelectedCryptoType().toUpperCase() : '';
+    const txHash = method === 'crypto' ? (document.getElementById('tx-hash')?.value || '').trim() : '';
+    const supportEmail = document.getElementById('support-email-data').value;
+    const subject = `طلب دفع - خطة {{ plan_label }} - ${paymentMethod}`;
+    const cryptoDetails = method === 'crypto'
+        ? `\n- العملة: ${cryptoType}\n- TX Hash: ${txHash || 'غير مضاف بعد'}`
+        : '';
+    const body = `مرحبًا،\n\nأرغب في الاشتراك في خطة {{ plan_label }} باستخدام ${paymentMethod}.\n\nتفاصيل الخطة:\n- السعر: \u0024{{ plan_data.price }}\n- المدة: {{ plan_data.duration_days }} يوم\n- الإشارات: {{ plan_data.signals }} يوميًا${cryptoDetails}\n\nيرجى تزويدي بخطوات إتمام الدفع.\nشكرًا لكم.`;
+    window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[name="crypto-type"]').forEach((radio) => {
+        radio.addEventListener('change', updateCryptoAddressUI);
+    });
+    document.getElementById('copy-crypto-address-btn')?.addEventListener('click', copyCryptoAddress);
+    updateCryptoAddressUI();
+});
 </script>
+<input type="hidden" id="support-email-data" value="{{ site_settings.support_email }}">
+<input type="hidden" id="crypto-btc-address-data" value="{{ site_settings.crypto_btc_address }}">
+<input type="hidden" id="crypto-eth-address-data" value="{{ site_settings.crypto_eth_address }}">
+<input type="hidden" id="crypto-usdt-address-data" value="{{ site_settings.crypto_usdt_address }}">
 <style>
 
     .payment-option {
@@ -325,6 +409,27 @@ function contactSupport(method) {
     code {
         font-size: 0.9rem;
         word-break: break-all;
+    }
+
+    .selected-plan-summary {
+        border: 1px solid rgba(13, 110, 253, 0.2);
+    }
+
+    .summary-chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .summary-chip {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
     }
 </style>
 {% endblock %}

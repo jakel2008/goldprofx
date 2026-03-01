@@ -1,146 +1,250 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOLD PRO FX - Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #23243a 0%, #bfa76a 100%);
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-        }
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 32px 60px 0 60px;
-        }
-        .logo {
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: #FFD700;
-            letter-spacing: 2px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 32px;
-        }
-        .nav-links a {
-            color: #FFD700;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            padding-bottom: 4px;
-            border-bottom: 2px solid transparent;
-            transition: border-color 0.2s;
-        }
-        .nav-links a.active, .nav-links a:hover {
-            border-bottom: 2px solid #FFD700;
-        }
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 40px;
-        }
-        .hero-img {
-            width: 340px;
-            margin-bottom: 32px;
-        }
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #FFD700;
-            margin-bottom: 18px;
-            text-shadow: 0 2px 8px #23243a;
-        }
-        .hero-subtitle {
-            font-size: 2rem;
-            font-weight: 500;
-            margin-bottom: 18px;
-        }
-        .hero-desc {
-            font-size: 1.1rem;
-            color: #e6d19c;
-            margin-bottom: 32px;
-            max-width: 600px;
-            text-align: center;
-        }
-        .get-started {
-            background: linear-gradient(135deg, #FFD700 0%, #bfa76a 100%);
-            color: #23243a;
-            font-size: 1.2rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 18px;
-            padding: 16px 48px;
-            margin-bottom: 32px;
-            cursor: pointer;
-            box-shadow: 0 4px 18px rgba(255,215,0,0.13);
-            transition: background 0.3s;
-        }
-        .get-started:hover {
-            background: linear-gradient(135deg, #bfa76a 0%, #FFD700 100%);
-        }
-        .footer {
-            background: #23243a;
-            color: #FFD700;
-            text-align: center;
-            padding: 32px 0 16px 0;
-            margin-top: 60px;
-        }
-        .footer-icons {
-            margin-top: 12px;
-        }
-        .footer-icons a {
-            color: #FFD700;
-            margin: 0 12px;
-            font-size: 1.5rem;
-            transition: color 0.2s;
-        }
-        .footer-icons a:hover {
-            color: #fff;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="logo">GOLD PRO FX</div>
-        <div class="nav-links">
-            <a href="/" class="active">Home</a>
-            <a href="/about">About Us</a>
-            <a href="/services">Services</a>
-            <a href="/contact">Contact</a>
-            <a href="/register" id="login-link">Login</a>
-        </div>
+{% extends "base.html" %}
+
+{% block title %}الرئيسية - GOLD PRO{% endblock %}
+
+{% block head %}
+<style>
+    .home-hero {
+        background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 60%, #29456d 100%);
+        border: 1px solid rgba(245, 197, 66, 0.35);
+        border-radius: 18px;
+        color: #fff;
+        padding: 2.2rem;
+        box-shadow: 0 10px 28px rgba(12, 24, 46, 0.28);
+    }
+
+    .hero-title {
+        color: #f5c542;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+    }
+
+    .hero-subtitle {
+        color: #f5e9c5;
+        font-size: 1.06rem;
+        margin-bottom: 1rem;
+    }
+
+    .home-actions {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .stats-grid {
+        margin-top: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #efe3bf;
+        border-right: 4px solid #d4a72f;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .stat-card .label {
+        color: #7a6a45;
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .stat-card .value {
+        color: #1d2a40;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    .breaking-news {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        background: #0f1a2d;
+        border: 1px solid rgba(245, 197, 66, 0.35);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .breaking-label {
+        background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+        color: #1f2937;
+        font-weight: 800;
+        padding: 0.7rem 1rem;
+        white-space: nowrap;
+    }
+
+    .breaking-track-wrap {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .breaking-track {
+        display: inline-block;
+        white-space: nowrap;
+        color: #f5e9c5;
+        padding: 0.55rem 0;
+        animation: tickerMove 110s linear infinite;
+    }
+
+    .breaking-track-economic {
+        animation-duration: 320s;
+    }
+
+    @keyframes tickerMove {
+        from { transform: translateX(100%); }
+        to { transform: translateX(-100%); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="breaking-news" id="economic-news-section-home" aria-label="الأخبار العاجلة">
+    <div class="breaking-label">🌍 اقتصاد مباشر</div>
+    <div class="breaking-track-wrap">
+        <div class="breaking-track breaking-track-economic" id="breaking-news-track-home">جاري تحميل الأخبار العاجلة...</div>
     </div>
-    <div class="hero">
-        <img src="/static/gold_bars.png" alt="Gold Bars" class="hero-img">
-        <div class="hero-title">GOLD PRO FX</div>
-        <div class="hero-subtitle">Your Trusted Partner in Gold Trading</div>
-        <button class="get-started">Get Started</button>
-                <script>
-                    document.querySelector('.get-started').onclick = function() {
-                        window.location.href = '/signals';
-                    };
-                </script>
-        <div class="hero-desc">
-            Lorem ipsum dolor sit amet, dusting haps dca consurut adiqers en dusignuit unit dilig nesio qu'rniens cosmodit miquie volquer anti ited, in quiem, lcanpinteus end trodgine.
-        </div>
+</section>
+
+<section class="breaking-news" id="site-news-section-home" aria-label="أخبار المنصة">
+    <div class="breaking-label">🏛️ أخبار المنصة</div>
+    <div class="breaking-track-wrap">
+        <div class="breaking-track" id="site-news-track-home">جاري تحميل أخبار المنصة...</div>
     </div>
-    <div class="footer">
-                <!-- تم إزالة إعادة تحميل الصفحة لأن الزر الآن يوجه مباشرة إلى صفحة التسجيل الحقيقية -->
-        <div>© 2023 Gold Pro FX. All rights reserved.</div>
-        <div class="footer-icons">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-        </div>
+</section>
+
+<section class="home-hero">
+    <div class="hero-title">⭐ GOLD PRO</div>
+    <div class="hero-subtitle">منصة إشارات وتحليلات بواجهة موحّدة وهوية ذهبية احترافية.</div>
+    <div class="home-actions">
+        <a href="/signals" class="btn btn-primary">عرض الإشارات</a>
+        <a href="/plans" class="btn btn-outline-light">الخطط والاشتراكات</a>
     </div>
-</body>
-</html>
+</section>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="label">إجمالي الإشارات</div>
+        <div class="value">{{ stats.get('total_signals', 0) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">إجمالي التوصيات</div>
+        <div class="value">{{ stats.get('total_recommendations', 0) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">حالة الجلسة</div>
+        <div class="value" style="font-size:1.2rem;">{{ 'نشطة' if is_logged_in else 'غير مسجل' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">المستخدم الحالي</div>
+        <div class="value" style="font-size:1.2rem;">{{ user.get('username', '-') if user else '-' }}</div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const economicTrack = document.getElementById('breaking-news-track-home');
+    const siteTrack = document.getElementById('site-news-track-home');
+    const economicSection = document.getElementById('economic-news-section-home');
+    const siteSection = document.getElementById('site-news-section-home');
+    if (!economicTrack && !siteTrack) {
+        return;
+    }
+
+    let streamMode = 'both';
+    let economicLangParam = '';
+
+    function applyModeToView() {
+        if (economicSection) {
+            economicSection.style.display = '';
+        }
+        if (siteSection) {
+            siteSection.style.display = streamMode === 'both' ? '' : 'none';
+        }
+
+        if (streamMode === 'arabic' && economicTrack) {
+            economicTrack.textContent = 'جاري تحميل الأخبار الاقتصادية العربية...';
+        }
+    }
+
+    function loadStreamConfig() {
+        return fetch('/api/news-stream-config')
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success && ['both', 'economic', 'arabic'].includes(data.mode)) {
+                    streamMode = data.mode;
+                }
+                economicLangParam = streamMode === 'arabic' ? '?lang=ar' : '';
+                applyModeToView();
+            })
+            .catch(() => {
+                streamMode = 'both';
+                economicLangParam = '';
+                applyModeToView();
+            });
+    }
+
+    function refreshEconomicTicker() {
+        fetch('/api/news-ticker' + economicLangParam)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success || !Array.isArray(data.items) || data.items.length === 0) {
+                    if (economicTrack) {
+                        economicTrack.textContent = '⚡ لا توجد أخبار اقتصادية عاجلة حالياً';
+                    }
+                    return;
+                }
+                const text = data.items.join('   ✦   ');
+                if (economicTrack) {
+                    economicTrack.textContent = text + '   ✦   ' + text;
+                }
+            })
+            .catch(() => {
+                if (economicTrack) {
+                    economicTrack.textContent = '⚡ تعذر تحميل الأخبار الاقتصادية حالياً';
+                }
+            });
+    }
+
+    function refreshSiteTicker() {
+        fetch('/api/site-news-ticker')
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success || !Array.isArray(data.items) || data.items.length === 0) {
+                    if (siteTrack) {
+                        siteTrack.textContent = '🏛️ لا توجد أخبار جديدة من المنصة حالياً';
+                    }
+                    return;
+                }
+                const text = data.items.join('   ✦   ');
+                if (siteTrack) {
+                    siteTrack.textContent = text + '   ✦   ' + text;
+                }
+            })
+            .catch(() => {
+                if (siteTrack) {
+                    siteTrack.textContent = '🏛️ تعذر تحميل أخبار المنصة حالياً';
+                }
+            });
+    }
+
+    loadStreamConfig().finally(() => {
+        refreshEconomicTicker();
+        if (streamMode === 'both') {
+            refreshSiteTicker();
+        }
+    });
+
+    setInterval(() => {
+        refreshEconomicTicker();
+        if (streamMode === 'both') {
+            refreshSiteTicker();
+        }
+    }, 180000);
+});
+</script>
+{% endblock %}

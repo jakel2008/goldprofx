@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}التقارير - GOLD PRO{% endblock %}
+
 {% block content %}
 <div class="reports-container">
     <div class="reports-header">
@@ -190,7 +192,7 @@
     }
 
     .reports-header h2 {
-        color: #667eea;
+        color: #8e6c0d;
         margin: 0;
     }
 
@@ -210,7 +212,8 @@
         background: white;
         border-radius: 15px;
         padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+        border: 1px solid #f0e1b8;
         display: flex;
         gap: 1rem;
         transition: transform 0.3s;
@@ -221,10 +224,10 @@
         box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
 
-    .stat-card-advanced.blue { border-left: 5px solid #667eea; }
-    .stat-card-advanced.purple { border-left: 5px solid #764ba2; }
-    .stat-card-advanced.green { border-left: 5px solid #28a745; }
-    .stat-card-advanced.orange { border-left: 5px solid #ffc107; }
+    .stat-card-advanced.blue { border-left: 5px solid #d4a72f; }
+    .stat-card-advanced.purple { border-left: 5px solid #b68a13; }
+    .stat-card-advanced.green { border-left: 5px solid #8e6c0d; }
+    .stat-card-advanced.orange { border-left: 5px solid #1c2f4b; }
 
     .stat-icon {
         font-size: 3rem;
@@ -237,14 +240,14 @@
 
     .stat-label {
         font-size: 0.9rem;
-        color: #666;
+        color: #7a6a45;
         margin-bottom: 0.5rem;
     }
 
     .stat-value {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #333;
+        color: #1f2a44;
         margin-bottom: 0.5rem;
     }
 
@@ -275,11 +278,12 @@
         background: white;
         border-radius: 15px;
         padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+        border: 1px solid #f0e1b8;
     }
 
     .chart-card h3 {
-        color: #333;
+        color: #8e6c0d;
         margin-bottom: 1rem;
         font-size: 1.1rem;
     }
@@ -295,11 +299,12 @@
         background: white;
         border-radius: 15px;
         padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+        border: 1px solid #f0e1b8;
     }
 
     .table-card h3 {
-        color: #333;
+        color: #8e6c0d;
         margin-bottom: 1rem;
         font-size: 1.1rem;
     }
@@ -314,12 +319,12 @@
     }
 
     .data-table th {
-        background: #f8f9fa;
+        background: #fff9eb;
         padding: 0.75rem;
         text-align: right;
         font-weight: 600;
-        color: #667eea;
-        border-bottom: 2px solid #667eea;
+        color: #8e6c0d;
+        border-bottom: 2px solid #d4a72f;
     }
 
     .data-table td {
@@ -328,18 +333,19 @@
     }
 
     .data-table tbody tr:hover {
-        background: #f8f9fa;
+        background: #fffdf5;
     }
 
     .detailed-report-section {
         background: white;
         border-radius: 15px;
         padding: 2rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+        border: 1px solid #f0e1b8;
     }
 
     .detailed-report-section h3 {
-        color: #333;
+        color: #8e6c0d;
         margin-bottom: 1.5rem;
     }
 
@@ -356,13 +362,24 @@
     }
 
     .metric-label {
-        color: #666;
+        color: #7a6a45;
         font-weight: 500;
     }
 
     .metric-value {
-        color: #333;
+        color: #1f2a44;
         font-weight: bold;
+    }
+
+    .report-actions .btn-secondary {
+        background: #1c2f4b;
+        color: #f5e9c5;
+        border: 1px solid rgba(245, 197, 66, 0.35);
+    }
+
+    .report-actions .btn-secondary:hover {
+        background: #0f1a2d;
+        color: #fff;
     }
 </style>
 
@@ -371,49 +388,40 @@
     let signalsChart, qualityChart;
 
     async function loadReportsData() {
-        try {
-            // تحميل الإحصائيات
-            const statsResponse = await fetch('/api/stats');
-            const stats = await statsResponse.json();
+        const [statsResult, reportResult, tradesResult] = await Promise.allSettled([
+            fetch('/api/stats').then((r) => r.json()),
+            fetch('/api/detailed-report').then((r) => r.json()),
+            fetch('/api/trades-report').then((r) => r.json())
+        ]);
 
-            // تحميل التقرير التفصيلي
-            const reportResponse = await fetch('/api/detailed-report');
-            const report = await reportResponse.json();
+        const stats = statsResult.status === 'fulfilled' ? (statsResult.value || {}) : {};
+        const report = reportResult.status === 'fulfilled' ? (reportResult.value || {}) : {};
+        const trades = tradesResult.status === 'fulfilled' ? (tradesResult.value || {}) : {};
 
-            // تحميل تقرير الصفقات
-            const tradesResponse = await fetch('/api/trades-report');
-            const trades = await tradesResponse.json();
+        // تحديث البطاقات الأساسية حتى لو فشل API آخر
+        document.getElementById('total-signals').textContent = stats.signals_count || 0;
+        document.getElementById('buy-count').textContent = stats.buy_signals || 0;
+        document.getElementById('sell-count').textContent = stats.sell_signals || 0;
+        document.getElementById('total-recommendations').textContent = stats.recommendations_count || 0;
+        document.getElementById('avg-quality').textContent = (stats.average_quality || 0) + '%';
+        document.getElementById('high-quality').textContent = stats.high_quality_recommendations || 0;
+        document.getElementById('subscribers').textContent = stats.subscribers_count || 0;
 
-            // تحديث البطاقات
-            document.getElementById('total-signals').textContent = stats.signals_count || 0;
-            document.getElementById('buy-count').textContent = stats.buy_signals || 0;
-            document.getElementById('sell-count').textContent = stats.sell_signals || 0;
-            document.getElementById('total-recommendations').textContent = stats.recommendations_count || 0;
-            document.getElementById('avg-quality').textContent = (stats.average_quality || 0) + '%';
-            document.getElementById('high-quality').textContent = stats.high_quality_recommendations || 0;
-            document.getElementById('subscribers').textContent = stats.subscribers_count || 0;
+        const planDist = Object.entries(stats.plans || {}).map(([plan, count]) => `${plan}: ${count}`).join(' | ');
+        document.getElementById('plan-distribution').textContent = planDist || 'لا توجد بيانات';
 
-            // تحديث توزيع الخطط
-            const planDist = Object.entries(stats.plans || {}).map(([plan, count]) => `${plan}: ${count}`).join(' | ');
-            document.getElementById('plan-distribution').textContent = planDist || 'لا توجد بيانات';
+        updateTopPairsTable(stats.top_pairs || {}, stats.subscribers_count || 0);
+        updatePlansTable(stats.plans || {}, stats.subscribers_count || 0);
+        updateCharts(stats, report);
+        updateDetailedReport(report);
+        updateTradesReport(trades);
 
-            // تحديث جدول أكثر الأزواج طلباً
-            updateTopPairsTable(stats.top_pairs || {}, stats.subscribers_count);
-
-            // تحديث جدول الخطط
-            updatePlansTable(stats.plans || {}, stats.subscribers_count);
-
-            // تحديث الرسوم البيانية
-            updateCharts(stats, report);
-
-            // تحديث التقرير التفصيلي
-            updateDetailedReport(report);
-
-            // تحديث تقرير الصفقات
-            updateTradesReport(trades);
-
-        } catch (error) {
-            console.error('خطأ في تحميل التقارير:', error);
+        if (statsResult.status === 'rejected' || reportResult.status === 'rejected' || tradesResult.status === 'rejected') {
+            console.error('بعض بيانات التقارير فشلت في التحميل', {
+                statsError: statsResult.status === 'rejected' ? statsResult.reason : null,
+                reportError: reportResult.status === 'rejected' ? reportResult.reason : null,
+                tradesError: tradesResult.status === 'rejected' ? tradesResult.reason : null,
+            });
         }
     }
 

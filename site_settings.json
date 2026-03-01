@@ -1,0 +1,17 @@
+{
+  "support_email": "admin.support@example.com",
+  "support_phone": "00962770078321",
+  "support_whatsapp": "00962770078321",
+  "support_help_url": "/plans",
+  "support_bug_url": "/profile",
+  "support_feature_url": "/profile",
+  "payment_cliq_number": "jakel2008",
+  "payment_cliq_alias": "jakel2008",
+  "payment_iban": "JO94CBJO0010000000000131000302",
+  "payment_account_name": "mahmoud atef alqaisi",
+  "payment_bank_name": "بنك الاسكان للتجاره والتمويل",
+  "crypto_btc_address": "bc1qtestbtcaddress000000000000",
+  "crypto_eth_address": "0x1234567890abcdef1234567890abcdef12345678",
+  "crypto_usdt_address": "TTestUsdtAddressTRC20xyz123456",
+  "news_ticker_mode": "both"
+}

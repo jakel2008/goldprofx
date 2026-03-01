@@ -1,0 +1,21 @@
+{
+  "targets": [
+    {
+      "id": "t1",
+      "name": "TG Test",
+      "platform": "telegram",
+      "enabled": true,
+      "chat_id": "@test_channel",
+      "bot_mode": "all_active"
+    },
+    {
+      "id": "w1",
+      "name": "WA Test",
+      "platform": "whatsapp_group",
+      "enabled": false,
+      "webhook_url": "https://example.invalid/hook",
+      "group_id": "1203630xxx@g.us",
+      "auth_token": ""
+    }
+  ]
+}

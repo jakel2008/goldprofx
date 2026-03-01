@@ -7,7 +7,7 @@
     <div class="plans-grid">
         <div class="plan-card" data-plan="free">
             <div class="plan-name">مجاني</div>
-            <div class="plan-price">0 $</div>
+            <div class="plan-price">$0 / الشهر</div>
             <ul class="plan-features">
                 <li>✓ 5 إشارات يومية</li>
                 <li>✓ إشارات عالية الجودة فقط (75%+)</li>
@@ -15,12 +15,12 @@
                 <li>✗ بدون تحليل متقدم</li>
                 <li>✗ بدون دعم أولوية</li>
             </ul>
-            <button class="btn btn-primary plan-btn" disabled>مشترك بالفعل</button>
+            <button class="btn btn-primary plan-btn" disabled>الخطة الحالية</button>
         </div>
         
         <div class="plan-card" data-plan="bronze">
             <div class="plan-name">برونزي</div>
-            <div class="plan-price">$9/الشهر</div>
+            <div class="plan-price">$9 / الشهر</div>
             <ul class="plan-features">
                 <li>✓ 15 إشارة يومية</li>
                 <li>✓ جودة عالية ومتوسطة (50%+)</li>
@@ -32,8 +32,8 @@
         </div>
         
         <div class="plan-card popular" data-plan="silver">
-            <div class="plan-name">🌟 فضي</div>
-            <div class="plan-price">$29/الشهر</div>
+            <div class="plan-name">فضي</div>
+            <div class="plan-price">$29 / الشهر</div>
             <ul class="plan-features">
                 <li>✓ 30 إشارة يومية</li>
                 <li>✓ جميع مستويات الجودة</li>
@@ -46,7 +46,7 @@
         
         <div class="plan-card" data-plan="gold">
             <div class="plan-name">ذهبي VIP</div>
-            <div class="plan-price">$99/الشهر</div>
+            <div class="plan-price">$99 / الشهر</div>
             <ul class="plan-features">
                 <li>✓ إشارات غير محدودة</li>
                 <li>✓ جميع مستويات الجودة</li>
@@ -58,55 +58,54 @@
         </div>
     </div>
     
-    <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px; text-align: center;">
+    <div class="comparison-section">
         <h3>🎯 المقارنة التفصيلية</h3>
-        <table style="width: 100%; margin-top: 1rem; text-align: right;">
+        <table class="comparison-table">
             <thead>
-                <tr style="background: #667eea; color: white;">
-                    <th style="padding: 1rem;">الميزة</th>
-                    <th style="padding: 1rem;">مجاني</th>
-                    <th style="padding: 1rem;">برونزي</th>
-                    <th style="padding: 1rem;">فضي</th>
-                    <th style="padding: 1rem;">ذهبي</th>
+                <tr class="comparison-header-row">
+                    <th class="comparison-cell">الميزة</th>
+                    <th class="comparison-cell">مجاني</th>
+                    <th class="comparison-cell">برونزي</th>
+                    <th class="comparison-cell">فضي</th>
+                    <th class="comparison-cell">ذهبي VIP</th>
                 </tr>
             </thead>
             <tbody>
-                <tr style="border-bottom: 1px solid #e9ecef;">
-                    <td style="padding: 1rem;">الإشارات يومياً</td>
-                    <td>5</td>
-                    <td>15</td>
-                    <td>30</td>
-                    <td>∞</td>
+                <tr class="comparison-row">
+                    <td class="comparison-cell">الإشارات يومياً</td>
+                    <td class="comparison-cell">5</td>
+                    <td class="comparison-cell">15</td>
+                    <td class="comparison-cell">30</td>
+                    <td class="comparison-cell">∞</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #e9ecef;">
-                    <td style="padding: 1rem;">الحد الأدنى للجودة</td>
-                    <td>75%</td>
-                    <td>50%</td>
-                    <td>كل المستويات</td>
-                    <td>كل المستويات</td>
+                <tr class="comparison-row">
+                    <td class="comparison-cell">الحد الأدنى للجودة</td>
+                    <td class="comparison-cell">75%</td>
+                    <td class="comparison-cell">50%</td>
+                    <td class="comparison-cell">كل المستويات</td>
+                    <td class="comparison-cell">كل المستويات</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #e9ecef;">
-                    <td style="padding: 1rem;">عدد الأزواج</td>
-                    <td>محدود</td>
-                    <td>أساسي</td>
-                    <td>شامل</td>
-                    <td>كامل</td>
+                <tr class="comparison-row">
+                    <td class="comparison-cell">عدد الأزواج</td>
+                    <td class="comparison-cell">محدود</td>
+                    <td class="comparison-cell">أساسي</td>
+                    <td class="comparison-cell">شامل</td>
+                    <td class="comparison-cell">كامل</td>
                 </tr>
-                <tr>
-                    <td style="padding: 1rem;">الدعم</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>أولوية</td>
-                    <td>VIP 24/7</td>
+                <tr class="comparison-row">
+                    <td class="comparison-cell">الدعم</td>
+                    <td class="comparison-cell">-</td>
+                    <td class="comparison-cell">-</td>
+                    <td class="comparison-cell">أولوية</td>
+                    <td class="comparison-cell">VIP 24/7</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
-</div>
 
 <script>
-// مناول اشتراك الخطط
+// مناولة اشتراك الخطط
 document.addEventListener('DOMContentLoaded', async () => {
     const buttons = document.querySelectorAll('.plan-btn');
     let currentUser = null;
@@ -127,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // إذا لم يكن المستخدم مسجل الدخول، توجيه لصفحة تسجيل الدخول فقط
             if (!currentUser || !currentUser.success) {
                 alert('يجب تسجيل الدخول بحسابك الحالي لإتمام الترقية.');
-                window.location.href = '/login';
+                window.location.href = '/login?first=1';
                 return;
             }
 
@@ -137,8 +136,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // توجيه إلى صفحة الدفع مع تمرير الخطة
-            window.location.href = `/payment_jordan/${plan}`;
+            // توجيه احترافي: اختيار الدولة أولاً ثم صفحة الدفع المناسبة
+            window.location.href = `/select_location/${plan}`;
         });
     });
 });

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}تسجيل الدخول - GOLD PRO{% endblock %}
+
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
@@ -50,7 +52,7 @@
         </form>
         
         <div class="auth-footer">
-            ليس لديك حساب؟ <a href="/register">سجل الآن</a>
+                        ليس لديك حساب؟ <a href="/register?first=1">سجل الآن</a>
         </div>
         <div class="auth-links">
           <a href="/forgot-password">نسيت كلمة المرور؟</a>
@@ -76,7 +78,7 @@
     gap: 2rem;
     max-width: 1000px;
     margin: 3rem auto;
-    padding: 2rem;
+    padding: 1rem;
     align-items: center;
 }
 
@@ -84,11 +86,12 @@
     background: white;
     border-radius: 15px;
     padding: 2.5rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f0e1b8;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .auth-card h2 {
-    color: #667eea;
+    color: #b68a13;
     margin-bottom: 0.5rem;
     font-size: 1.8rem;
 }
@@ -132,8 +135,8 @@
 .form-group input[type="email"]:focus,
 .form-group input[type="password"]:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #d4a72f;
+    box-shadow: 0 0 0 3px rgba(212, 167, 47, 0.16);
 }
 
 .form-icon {
@@ -164,8 +167,8 @@
 
 .btn-submit {
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -180,7 +183,7 @@
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 25px rgba(212, 167, 47, 0.3);
 }
 
 .btn-submit:active {
@@ -196,22 +199,22 @@
 }
 
 .auth-footer a {
-    color: #667eea;
+    color: #b68a13;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 .auth-footer a:hover {
-    color: #764ba2;
+    color: #8e6c0d;
 }
 
 .auth-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0f1a2d 0%, #1c2f4b 65%, #c49b2e 100%);
     color: white;
     padding: 2rem;
     border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.22);
 }
 
 .auth-info h3 {
@@ -243,6 +246,21 @@
     background-color: #fee;
     color: #c33;
     border: 1px solid #fcc;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 0.7rem;
+}
+
+.auth-links a {
+    color: #8e6c0d;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 768px) {

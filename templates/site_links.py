@@ -6,17 +6,22 @@ links = [
     {"name": "لوحة التحكم", "url": "/dashboard", "icon": "📊"},
     {"name": "الإشارات", "url": "/signals", "icon": "📈"},
     {"name": "الصفقات", "url": "/trades", "icon": "💹"},
-    {"name": "الخطط", "url": "/plans", "icon": "💰"},
-    {"name": "اختر خطتك", "url": "/payment_jordan", "icon": "🛒"},
-    {"name": "الدفع الأردن", "url": "/payment_jordan", "icon": "💳"},
-    {"name": "الدفع الدولي", "url": "/payment_international", "icon": "🌍"},
     {"name": "التقارير", "url": "/reports", "icon": "📑"},
-    {"name": "الاشتراكات", "url": "/subscriptions_management", "icon": "👥"},
+    {"name": "الخطط", "url": "/plans", "icon": "💰"},
+    {"name": "التعليم", "url": "/tutorials", "icon": "🎓", "auth": True},
+    {"name": "اختيار الأزواج", "url": "/pairs-selection", "icon": "🎯"},
     {"name": "الملف الشخصي", "url": "/profile", "icon": "👤"},
-    {"name": "بوتات التداول", "url": "/bot_management", "icon": "🤖"},
-    {"name": "المحلل الذكي", "url": "/advanced_analyzer", "icon": "📈"},
-    {"name": "الإدارة", "url": "/admin", "icon": "🔐", "admin": True},
-    {"name": "تسجيل الدخول", "url": "/login", "icon": "🔓", "guest": True},
-    {"name": "تسجيل جديد", "url": "/register", "icon": "✍️", "guest": True},
+
+    # روابط الأدمن فقط
+    {"name": "لوحة الأدمن", "url": "/admin-panel", "icon": "🔐", "admin": True},
+    {"name": "إدارة الاشتراكات", "url": "/subscriptions_management", "icon": "👥", "admin": True},
+    {"name": "بوتات التداول", "url": "/bot-management", "icon": "🤖", "admin": True},
+    {"name": "المحلل الذكي", "url": "/advanced_analyzer", "icon": "🧠", "admin": True},
+
+    # روابط الضيف فقط
+    {"name": "تسجيل الدخول", "url": "/login?first=1", "icon": "🔓", "guest": True},
+    {"name": "تسجيل جديد", "url": "/register?first=1", "icon": "✍️", "guest": True},
+
+    # روابط المستخدم المسجل
     {"name": "خروج", "url": "/logout", "icon": "🚪", "auth": True}
 ]

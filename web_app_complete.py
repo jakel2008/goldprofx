@@ -5,26 +5,117 @@ import secrets
 import smtplib
 from email.mime.text import MIMEText
 import hashlib
+import importlib.util
+import sys
+from pathlib import Path
+import os  # <-- Add this line
+import threading
+import time
+import xml.etree.ElementTree as ET
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import sqlite3
-import os
+from werkzeug.utils import secure_filename
+import requests
 # ============== Bot Management Routes ==============
 
 # Define CHAT_ID for bot test send (replace with your actual chat id)
 CHAT_ID = os.environ.get('MM_TELEGRAM_CHAT_ID', '')
 from functools import wraps
 import json
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from vip_subscription_system import SubscriptionManager
-from user_manager import user_manager
-from email_service import email_service
-import telegram_sender
+
+# --- Fix ImportError for vip_subscription_system ---
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent))
+
+# --- Fix ImportError for vip_subscription_system ---
+try:
+    import vip_subscription_system # type: ignore
+except ImportError as e:
+    print(f"[ERROR] Could not import vip_subscription_system: {e}")
+    # Optionally, you can raise or handle as needed
+    raise
+
+try:
+
+    try:
+
+        # --- Fix ImportError for user_manager ---
+        try:
+
+            # --- Fix ImportError for user_manager ---
+            try:
+
+                # --- Fix ImportError for user_manager ---
+                try:
+                    from user_manager import user_manager # type: ignore
+                except ImportError:
+                    import importlib.util
+                    import sys
+                    from pathlib import Path
+                    user_manager_path = Path(__file__).parent / 'user_manager.py'
+                    spec = importlib.util.spec_from_file_location('user_manager', str(user_manager_path))
+                    user_manager_module = importlib.util.module_from_spec(spec)
+                    sys.modules['user_manager'] = user_manager_module
+                    spec.loader.exec_module(user_manager_module)
+                    user_manager = user_manager_module.user_manager
+            except ImportError:
+                import importlib.util
+                import sys
+                from pathlib import Path
+                user_manager_path = Path(__file__).parent / 'user_manager.py'
+                spec = importlib.util.spec_from_file_location('user_manager', str(user_manager_path))
+                user_manager_module = importlib.util.module_from_spec(spec)
+                sys.modules['user_manager'] = user_manager_module
+                spec.loader.exec_module(user_manager_module)
+                user_manager = user_manager_module.user_manager
+        except ImportError:
+            import importlib.util
+            import sys
+            from pathlib import Path
+            user_manager_path = Path(__file__).parent / 'user_manager.py'
+            spec = importlib.util.spec_from_file_location('user_manager', str(user_manager_path))
+            user_manager_module = importlib.util.module_from_spec(spec)
+            sys.modules['user_manager'] = user_manager_module
+            spec.loader.exec_module(user_manager_module)
+            user_manager = user_manager_module.user_manager
+    except ImportError:
+        # Try relative import if direct import fails
+        import importlib.util
+        import sys
+        from pathlib import Path
+        user_manager_path = Path(__file__).parent / 'user_manager.py'
+        spec = importlib.util.spec_from_file_location('user_manager', str(user_manager_path))
+        user_manager_module = importlib.util.module_from_spec(spec)
+        sys.modules['user_manager'] = user_manager_module
+        spec.loader.exec_module(user_manager_module)
+        user_manager = user_manager_module.user_manager
+except ImportError:
+    # Try relative import if direct import fails
+    import importlib.util
+    import sys
+    from pathlib import Path
+    user_manager_path = Path(__file__).parent / 'user_manager.py'
+    spec = importlib.util.spec_from_file_location('user_manager', str(user_manager_path))
+    user_manager_module = importlib.util.module_from_spec(spec)
+    sys.modules['user_manager'] = user_manager_module
+    spec.loader.exec_module(user_manager_module)
+    user_manager = user_manager_module.user_manager
+from email_service import email_service  # type: ignore
+import telegram_sender  # type: ignore
 
 # استيراد قائمة الروابط المركزية
 import sys
 sys.path.append(str(Path(__file__).parent / 'templates'))
+# دعم إخراج UTF-8 للكونسول على ويندوز
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 try:
     import site_links # pyright: ignore[reportMissingImports]
 except Exception:
@@ -32,6 +123,13 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
+
+ADMIN_USERNAME = 'jakel2008'
+ADMIN_PASSWORD = 'JAKEL2008'
+
+
+def _is_local_admin_session():
+    return session.get('local_admin_username') == ADMIN_USERNAME
 
 # ============ صفحة استرجاع كلمة المرور ============
 def ensure_password_reset_table():
@@ -137,20 +235,818 @@ def forgot_password():
             print(f'Error sending reset email: {e}')
         return render_template('forgot_password.html', success='تم إرسال رابط الاستعادة إلى بريدك إذا كان مسجلاً.')
     return render_template('forgot_password.html')
-subscription_manager = SubscriptionManager()
+subscription_manager = vip_subscription_system.SubscriptionManager()
 SIGNALS_DIR = Path(__file__).parent / "signals"
 SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
+AUTO_BROADCAST_REGISTRY_FILE = Path(__file__).parent / "auto_broadcast_registry.json"
 RECOMMENDATIONS_DIR = Path(__file__).parent / "recommendations"
 ANALYSIS_DIR = Path(__file__).parent / "analysis"
 USER_PREFERENCES_FILE = Path(__file__).parent / "user_pairs_preferences.json"
+CLOSED_TRADES_ARCHIVE_FILE = Path(__file__).parent / "closed_trades.json"
+PUBLIC_ADS_FILE = Path(__file__).parent / 'public_ads.json'
+ECONOMIC_NEWS_CACHE_FILE = Path(__file__).parent / 'economic_news_cache.json'
+ECONOMIC_NEWS_SOURCES_FILE = Path(__file__).parent / 'economic_news_sources.json'
+
+ECONOMIC_NEWS_SOURCES = [
+    {
+        'name': 'FXStreet',
+        'url': 'https://www.fxstreet.com/rss/news',
+        'enabled': True
+    },
+    {
+        'name': 'DailyFX',
+        'url': 'https://www.dailyfx.com/feeds/market-news',
+        'enabled': True
+    },
+    {
+        'name': 'Investing',
+        'url': 'https://www.investing.com/rss/news_25.rss',
+        'enabled': True
+    },
+    {
+        'name': 'ArgaamAR',
+        'url': 'https://www.argaam.com/ar/rss',
+        'enabled': True
+    },
+    {
+        'name': 'MubasherAR',
+        'url': 'https://www.mubasher.info/rss/news',
+        'enabled': True
+    },
+    {
+        'name': 'SkyNewsArabiaEco',
+        'url': 'https://www.skynewsarabia.com/web/rss/7-1',
+        'enabled': True
+    }
+]
+
+ECONOMIC_KEYWORDS = [
+    'cpi', 'inflation', 'fomc', 'fed', 'ecb', 'boe', 'boj', 'rate', 'rates',
+    'interest', 'nfp', 'payroll', 'gdp', 'pmi', 'jobless', 'unemployment',
+    'retail sales', 'consumer confidence', 'crude', 'oil', 'gold', 'dollar',
+    'forex', 'economy', 'economic', 'bank of', 'قرار الفائدة', 'التضخم', 'البطالة',
+    'الناتج المحلي', 'الفيدرالي', 'اقتصاد', 'النفط', 'الذهب', 'الدولار'
+]
+
+DEFAULT_PUBLIC_ADS = [
+    {
+        'badge': 'إعلان مميز',
+        'title': 'خصم 30% على باقة Silver',
+        'text': 'لفترة محدودة، احصل على مزايا التحليل المتقدم مع سعر خاص.',
+        'cta_text': 'عرض الخطط',
+        'cta_url': '/plans'
+    },
+    {
+        'badge': 'جديد',
+        'title': 'إشارات يومية محدثة',
+        'text': 'تابع توصيات السوق بشكل يومي مع تحديثات مستمرة وجودة عالية.',
+        'cta_text': 'تسجيل لأول مرة',
+        'cta_url': '/register?first=1'
+    },
+    {
+        'badge': 'دعم',
+        'title': 'دعم مباشر للمشتركين',
+        'text': 'فريق الدعم متاح للرد على الاستفسارات ومتابعة طلبات الاشتراك.',
+        'cta_text': 'تسجيل الدخول',
+        'cta_url': '/login?first=1'
+    }
+]
 
 # خريطة رموز Yahoo Finance
 YF_SYMBOLS = {
     'XAUUSD': 'GC=F', 'EURUSD': 'EURUSD=X', 'GBPUSD': 'GBPUSD=X',
     'USDJPY': 'USDJPY=X', 'AUDUSD': 'AUDUSD=X', 'USDCAD': 'USDCAD=X',
     'NZDUSD': 'NZDUSD=X', 'USDCHF': 'USDCHF=X', 'BTCUSD': 'BTC-USD',
-    'ETHUSD': 'ETH-USD', 'US30': '^DJI', 'NAS100': '^IXIC', 'SPX500': '^GSPC'
+    'ETHUSD': 'ETH-USD', 'XAGUSD': 'SI=F',
+    'EURJPY': 'EURJPY=X', 'GBPJPY': 'GBPJPY=X', 'EURGBP': 'EURGBP=X',
+    'CADJPY': 'CADJPY=X', 'CHFJPY': 'CHFJPY=X',
+    'US30': '^DJI', 'NAS100': '^IXIC', 'SPX500': '^GSPC'
 }
+
+BINANCE_PRICE_URL = 'https://api.binance.com/api/v3/ticker/price'
+BINANCE_SYMBOLS = {
+    'BTCUSD': 'BTCUSDT',
+    'ETHUSD': 'ETHUSDT',
+    'BTCUSDT': 'BTCUSDT',
+    'ETHUSDT': 'ETHUSDT'
+}
+TWELVEDATA_PRICE_URL = 'https://api.twelvedata.com/price'
+TWELVEDATA_API_KEY = os.environ.get('TWELVEDATA_API_KEY', '079cdb64bbc8415abcf8f7be7e389349')
+LIVE_PRICE_CACHE_TTL_SECONDS = int(os.environ.get('LIVE_PRICE_CACHE_TTL_SECONDS', '20'))
+LIVE_PRICE_FAIL_CACHE_TTL_SECONDS = int(os.environ.get('LIVE_PRICE_FAIL_CACHE_TTL_SECONDS', '8'))
+YF_COOLDOWN_SECONDS = int(os.environ.get('YF_COOLDOWN_SECONDS', '45'))
+YF_MAX_RETRIES = int(os.environ.get('YF_MAX_RETRIES', '2'))
+YF_RETRY_BACKOFF_SECONDS = float(os.environ.get('YF_RETRY_BACKOFF_SECONDS', '0.8'))
+LIVE_PRICE_CACHE = {}
+YF_FAILURE_UNTIL = {}
+LIVE_PRICE_CACHE_LOCK = threading.Lock()
+
+CONTINUOUS_ANALYZER_SYMBOLS = [
+    # Forex
+    'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
+    'EURJPY', 'GBPJPY', 'EURGBP', 'CADJPY', 'CHFJPY',
+    # Commodities
+    'XAUUSD', 'XAGUSD',
+    # Indices
+    'US30', 'NAS100', 'SPX500',
+    # Crypto
+    'BTCUSD', 'ETHUSD'
+]
+
+_symbols_from_env = os.environ.get('CONTINUOUS_ANALYZER_SYMBOLS', '').strip()
+if _symbols_from_env:
+    parsed_symbols = [s.strip().upper().replace('/', '') for s in _symbols_from_env.split(',') if s.strip()]
+    if parsed_symbols:
+        CONTINUOUS_ANALYZER_SYMBOLS = parsed_symbols
+
+CONTINUOUS_ANALYZER_INTERVAL_DEFAULT = int(os.environ.get('CONTINUOUS_ANALYZER_INTERVAL_SECONDS', '120'))
+MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '78'))
+MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.35'))
+MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '3.8'))
+CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
+
+CONTINUOUS_ANALYZER_STATE = {
+    'running': False,
+    'interval_seconds': CONTINUOUS_ANALYZER_INTERVAL_DEFAULT,
+    'last_run': None,
+    'last_error': None,
+    'last_new_signals': 0,
+    'last_deduplicated': 0,
+    'total_generated': 0,
+    'total_broadcasted': 0
+}
+CONTINUOUS_ANALYZER_THREAD = None
+CONTINUOUS_ANALYZER_LOCK = threading.Lock()
+CLEANUP_AUDIT_FILE = Path(__file__).parent / 'cleanup_audit_log.json'
+CLEANUP_SCHEDULER_STATE = {
+    'running': False,
+    'interval_seconds': CLEANUP_INTERVAL_DEFAULT,
+    'last_run': None,
+    'last_error': None,
+    'last_cleaned_closed': 0,
+    'last_deduplicated': 0,
+    'last_site_synced': 0,
+    'total_cleaned_closed': 0,
+    'total_deduplicated': 0,
+    'total_site_synced': 0
+}
+CLEANUP_SCHEDULER_THREAD = None
+CLEANUP_SCHEDULER_LOCK = threading.Lock()
+
+
+def _normalize_symbol_for_engine(symbol):
+    """تحويل الرمز لصيغة محلل TwelveData (مثال EURUSD -> EUR/USD)."""
+    clean_symbol = (symbol or '').upper().replace('-', '').replace('_', '').replace(' ', '')
+    if '/' in clean_symbol:
+        return clean_symbol
+    if clean_symbol in ('US30', 'NAS100', 'SPX500'):
+        return clean_symbol
+    if len(clean_symbol) == 6:
+        return f"{clean_symbol[:3]}/{clean_symbol[3:]}"
+    return clean_symbol
+
+
+def _ensure_signals_table():
+    """التأكد من وجود جدول الإشارات الأساسي."""
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS signals (
+            signal_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol TEXT,
+            signal_type TEXT,
+            entry_price REAL,
+            stop_loss REAL,
+            take_profit_1 REAL,
+            take_profit_2 REAL,
+            take_profit_3 REAL,
+            quality_score INTEGER DEFAULT 80,
+            timeframe TEXT DEFAULT '1h',
+            status TEXT DEFAULT 'active',
+            result TEXT,
+            current_price REAL,
+            close_price REAL,
+            tp1_locked INTEGER DEFAULT 0,
+            tp2_locked INTEGER DEFAULT 0,
+            tp3_locked INTEGER DEFAULT 0,
+            activated INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def _ensure_signals_archive_table():
+    """إنشاء جدول أرشيف الصفقات المنتهية للاحتفاظ بالنتائج والمقارنات والتقارير."""
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS signals_archive (
+            signal_id INTEGER PRIMARY KEY,
+            symbol TEXT,
+            signal_type TEXT,
+            entry_price REAL,
+            stop_loss REAL,
+            take_profit_1 REAL,
+            take_profit_2 REAL,
+            take_profit_3 REAL,
+            quality_score INTEGER,
+            timeframe TEXT,
+            status TEXT,
+            result TEXT,
+            current_price REAL,
+            close_price REAL,
+            tp1_locked INTEGER DEFAULT 0,
+            tp2_locked INTEGER DEFAULT 0,
+            tp3_locked INTEGER DEFAULT 0,
+            activated INTEGER DEFAULT 1,
+            created_at TEXT,
+            archived_at TEXT,
+            archive_reason TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def _deduplicate_signals_continuously():
+    """إزالة الإشارات المكررة بشكل دوري مع الاحتفاظ بأحدث سجل."""
+    _ensure_signals_table()
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+
+    c.execute('SELECT COUNT(*) FROM signals')
+    before_count = c.fetchone()[0] or 0
+
+    # 1) إبقاء أحدث صفقة فعالة فقط لكل زوج/فريم
+    c.execute('''
+        DELETE FROM signals
+        WHERE status = 'active'
+          AND signal_id NOT IN (
+              SELECT MAX(signal_id)
+              FROM signals
+              WHERE status = 'active'
+              GROUP BY symbol, COALESCE(timeframe, '1h')
+          )
+    ''')
+
+    # 2) إزالة التكرار التاريخي (نفس الزوج/الاتجاه/الفريم ضمن نفس الساعة)
+    c.execute('''
+        DELETE FROM signals
+        WHERE signal_id NOT IN (
+            SELECT MAX(signal_id)
+            FROM signals
+            GROUP BY symbol, signal_type, COALESCE(timeframe, '1h'), strftime('%Y-%m-%d %H', created_at)
+        )
+    ''')
+
+    # 3) إزالة الإشارات المتشابهة جداً (نفس الزوج/الاتجاه/الفريم وسعر دخول قريب)
+    c.execute('''
+        SELECT signal_id, symbol, signal_type, COALESCE(timeframe, '1h') AS timeframe, COALESCE(entry_price, 0) AS entry_price
+        FROM signals
+        WHERE status = 'active'
+        ORDER BY signal_id DESC
+    ''')
+    active_rows = c.fetchall()
+    kept_rows = []
+    duplicate_ids = []
+
+    for row in active_rows:
+        signal_id, symbol, signal_type, timeframe, entry_price = row
+        entry_val = float(entry_price or 0)
+        tolerance = max(0.0005, abs(entry_val) * 0.0015)
+
+        is_duplicate = False
+        for kept in kept_rows:
+            if kept['symbol'] != symbol:
+                continue
+            if kept['signal_type'] != signal_type:
+                continue
+            if kept['timeframe'] != timeframe:
+                continue
+            if abs(float(kept['entry_price']) - entry_val) <= tolerance:
+                is_duplicate = True
+                break
+
+        if is_duplicate:
+            duplicate_ids.append(signal_id)
+        else:
+            kept_rows.append({
+                'signal_id': signal_id,
+                'symbol': symbol,
+                'signal_type': signal_type,
+                'timeframe': timeframe,
+                'entry_price': entry_val
+            })
+
+    if duplicate_ids:
+        placeholders = ','.join(['?'] * len(duplicate_ids))
+        c.execute(f"DELETE FROM signals WHERE signal_id IN ({placeholders})", duplicate_ids)
+
+    conn.commit()
+    c.execute('SELECT COUNT(*) FROM signals')
+    after_count = c.fetchone()[0] or 0
+    conn.close()
+    return max(0, before_count - after_count)
+
+
+def _compute_risk_reward(entry_price, stop_loss, take_profit_1):
+    """حساب نسبة المخاطرة/العائد للهدف الأول بشكل آمن."""
+    try:
+        entry_val = float(entry_price or 0)
+        sl_val = float(stop_loss or 0)
+        tp1_val = float(take_profit_1 or 0)
+        risk = abs(entry_val - sl_val)
+        reward = abs(tp1_val - entry_val)
+        if risk <= 0:
+            return 0.0
+        return round(reward / risk, 2)
+    except Exception:
+        return 0.0
+
+
+def _calculate_quality_score(analysis_result):
+    """تقدير جودة الإشارة من نتيجة التحليل عبر نموذج نقاط متعدد العوامل."""
+    recommendation = str(analysis_result.get('recommendation', analysis_result.get('signal', '')))
+    confidence = str(analysis_result.get('confidence', ''))
+
+    score = 50
+
+    # 1) مستوى الثقة النصي
+    conf_upper = confidence.upper()
+    if 'قوي' in recommendation or 'STRONG' in recommendation.upper() or 'HIGH' in conf_upper or 'عالية' in confidence or 'عالي' in confidence:
+        score += 20
+    elif 'محتمل' in recommendation or 'LOW' in conf_upper or 'منخفض' in confidence:
+        score -= 8
+    elif 'MEDIUM' in conf_upper or 'متوسطة' in confidence or 'متوسط' in confidence:
+        score += 6
+
+    # 2) قوة التفوق بين الشراء/البيع من المحلل
+    try:
+        buy_score = float(analysis_result.get('buy_score') or 0)
+        sell_score = float(analysis_result.get('sell_score') or 0)
+        score_gap = float(analysis_result.get('score_gap') or abs(buy_score - sell_score))
+        dominant_score = max(buy_score, sell_score)
+
+        if dominant_score >= 4:
+            score += 12
+        elif dominant_score >= 3:
+            score += 8
+        elif dominant_score >= 2.5:
+            score += 4
+
+        if score_gap >= 2:
+            score += 10
+        elif score_gap >= 1:
+            score += 6
+        elif score_gap < 0.4:
+            score -= 8
+    except Exception:
+        pass
+
+    # 3) نسبة العائد إلى المخاطرة
+    rr_tp1 = analysis_result.get('risk_reward_tp1')
+    try:
+        rr_tp1 = float(rr_tp1) if rr_tp1 is not None else _compute_risk_reward(
+            analysis_result.get('entry_point'),
+            analysis_result.get('stop_loss'),
+            analysis_result.get('take_profit1')
+        )
+    except Exception:
+        rr_tp1 = 0.0
+
+    if rr_tp1 >= 2.0:
+        score += 16
+    elif rr_tp1 >= 1.6:
+        score += 12
+    elif rr_tp1 >= 1.35:
+        score += 8
+    elif rr_tp1 >= 1.2:
+        score += 3
+    else:
+        score -= 14
+
+    # 4) فلتر التقلبات
+    try:
+        volatility = float(analysis_result.get('volatility') or 0)
+        if volatility >= 4.5:
+            score -= 16
+        elif volatility >= MAX_SIGNAL_VOLATILITY:
+            score -= 10
+        elif 0.4 <= volatility <= 2.8:
+            score += 6
+    except Exception:
+        pass
+
+    if 'حياد' in recommendation or 'NEUTRAL' in recommendation.upper():
+        score = min(score, 58)
+
+    return max(0, min(100, int(round(score))))
+
+
+def _extract_signal_type(recommendation_text):
+    text = str(recommendation_text or '').upper()
+    if 'BUY' in text or 'شراء' in text:
+        return 'buy'
+    if 'SELL' in text or 'بيع' in text:
+        return 'sell'
+    return None
+
+
+def _signal_exists_recently(symbol, signal_type, timeframe, entry_price):
+    try:
+        entry_val = float(entry_price or 0)
+    except Exception:
+        entry_val = 0.0
+
+    # 0.15% من السعر أو 0.0005 كحد أدنى
+    tolerance = max(0.0005, abs(entry_val) * 0.0015)
+
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    c.execute('''
+        SELECT 1
+        FROM signals
+        WHERE symbol = ?
+          AND signal_type = ?
+          AND COALESCE(timeframe, '1h') = ?
+          AND ABS(COALESCE(entry_price, 0) - ?) <= ?
+          AND datetime(created_at) >= datetime('now', '-12 hours')
+        LIMIT 1
+    ''', (symbol, signal_type, timeframe, entry_val, tolerance))
+    exists = c.fetchone() is not None
+    conn.close()
+    return exists
+
+
+def _get_adaptive_thresholds(symbol, timeframe='1h'):
+    """ضبط حدود الاختيار تلقائياً حسب أداء الزوج/الفريم في الصفقات المغلقة."""
+    adaptive = {
+        'min_quality_score': int(MIN_SIGNAL_QUALITY_SCORE),
+        'min_rr': float(MIN_SIGNAL_RR),
+        'max_volatility': float(MAX_SIGNAL_VOLATILITY),
+        'sample_size': 0,
+        'win_rate': 0.0,
+        'recent_win_rate': 0.0,
+        'mode': 'baseline'
+    }
+
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT result, quality_score
+            FROM signals
+            WHERE symbol = ?
+              AND COALESCE(timeframe, '1h') = ?
+              AND status = 'closed'
+              AND result IN ('win', 'loss')
+            ORDER BY signal_id DESC
+            LIMIT 40
+        ''', (symbol, timeframe))
+        rows = c.fetchall()
+        conn.close()
+    except Exception:
+        rows = []
+
+    if not rows:
+        return adaptive
+
+    sample_size = len(rows)
+    wins = sum(1 for row in rows if str(row['result']).lower() == 'win')
+    win_rate = wins / sample_size if sample_size > 0 else 0.0
+
+    recent_rows = rows[:10]
+    recent_size = len(recent_rows)
+    recent_wins = sum(1 for row in recent_rows if str(row['result']).lower() == 'win')
+    recent_win_rate = (recent_wins / recent_size) if recent_size > 0 else 0.0
+
+    avg_quality = 0.0
+    try:
+        avg_quality = sum(float(row['quality_score'] or 0) for row in rows) / sample_size
+    except Exception:
+        avg_quality = 0.0
+
+    min_quality_score = float(MIN_SIGNAL_QUALITY_SCORE)
+    min_rr = float(MIN_SIGNAL_RR)
+    max_volatility = float(MAX_SIGNAL_VOLATILITY)
+    mode = 'baseline'
+
+    # لا نطبق التكيف إلا بعينة كافية
+    if sample_size >= 8:
+        if win_rate >= 0.68 and recent_win_rate >= 0.6:
+            # أداء جيد => مرونة بسيطة لزيادة الفرص
+            min_quality_score -= 4
+            min_rr -= 0.10
+            max_volatility += 0.35
+            mode = 'aggressive'
+        elif win_rate <= 0.50 or recent_win_rate <= 0.40:
+            # أداء ضعيف => تشديد الفلترة
+            min_quality_score += 4
+            min_rr += 0.10
+            max_volatility -= 0.30
+            mode = 'defensive'
+
+        # طبقة ضبط إضافية للأداء الحديث
+        if sample_size >= 15:
+            if recent_win_rate <= 0.30:
+                min_quality_score += 3
+                min_rr += 0.08
+                max_volatility -= 0.15
+                mode = 'defensive'
+            elif recent_win_rate >= 0.75 and avg_quality >= 82:
+                min_quality_score -= 2
+                min_rr -= 0.05
+                max_volatility += 0.15
+                mode = 'aggressive'
+
+    adaptive['min_quality_score'] = int(max(70, min(92, round(min_quality_score))))
+    adaptive['min_rr'] = round(max(1.20, min(2.20, float(min_rr))), 2)
+    adaptive['max_volatility'] = round(max(2.20, min(5.20, float(max_volatility))), 2)
+    adaptive['sample_size'] = sample_size
+    adaptive['win_rate'] = round(win_rate, 3)
+    adaptive['recent_win_rate'] = round(recent_win_rate, 3)
+    adaptive['mode'] = mode
+    return adaptive
+
+
+def _build_adaptive_thresholds_overview(limit_rows=30):
+    """إنشاء نظرة عامة عن حدود الاختيار التكيفية لكل زوج/فريم (للأدمن)."""
+    pair_timeframes = set()
+
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT symbol, COALESCE(timeframe, '1h') AS timeframe
+            FROM signals
+            GROUP BY symbol, COALESCE(timeframe, '1h')
+            ORDER BY MAX(signal_id) DESC
+            LIMIT 120
+        ''')
+        rows = c.fetchall()
+        conn.close()
+
+        for row in rows:
+            symbol = str(row['symbol'] or '').upper().strip()
+            timeframe = str(row['timeframe'] or '1h').strip()
+            if symbol:
+                pair_timeframes.add((symbol, timeframe))
+    except Exception:
+        pass
+
+    # ضمان وجود الأزواج الافتراضية حتى لو لم تتوفر بيانات تاريخية
+    for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
+        normalized_symbol = str(symbol or '').upper().replace('/', '').strip()
+        if normalized_symbol:
+            pair_timeframes.add((normalized_symbol, '1h'))
+
+    rows_out = []
+    for symbol, timeframe in sorted(pair_timeframes):
+        adaptive = _get_adaptive_thresholds(symbol, timeframe)
+        rows_out.append({
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'mode': adaptive.get('mode', 'baseline'),
+            'sample_size': int(adaptive.get('sample_size', 0) or 0),
+            'win_rate': float(adaptive.get('win_rate', 0) or 0),
+            'recent_win_rate': float(adaptive.get('recent_win_rate', 0) or 0),
+            'min_quality_score': int(adaptive.get('min_quality_score', MIN_SIGNAL_QUALITY_SCORE) or MIN_SIGNAL_QUALITY_SCORE),
+            'min_rr': float(adaptive.get('min_rr', MIN_SIGNAL_RR) or MIN_SIGNAL_RR),
+            'max_volatility': float(adaptive.get('max_volatility', MAX_SIGNAL_VOLATILITY) or MAX_SIGNAL_VOLATILITY)
+        })
+
+    rows_out.sort(key=lambda item: (item.get('sample_size', 0), item.get('win_rate', 0)), reverse=True)
+    rows_out = rows_out[:max(1, int(limit_rows or 30))]
+
+    tracked_pairs = len(rows_out)
+    defensive_pairs = sum(1 for row in rows_out if row.get('mode') == 'defensive')
+    aggressive_pairs = sum(1 for row in rows_out if row.get('mode') == 'aggressive')
+    baseline_pairs = tracked_pairs - defensive_pairs - aggressive_pairs
+    avg_win_rate = round(
+        (sum(float(row.get('win_rate') or 0) for row in rows_out) / tracked_pairs), 3
+    ) if tracked_pairs > 0 else 0.0
+
+    return {
+        'summary': {
+            'tracked_pairs': tracked_pairs,
+            'defensive_pairs': defensive_pairs,
+            'aggressive_pairs': aggressive_pairs,
+            'baseline_pairs': baseline_pairs,
+            'avg_win_rate': avg_win_rate
+        },
+        'rows': rows_out
+    }
+
+
+def _insert_generated_signal(signal_row):
+    _ensure_signals_table()
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO signals (
+            symbol, signal_type, entry_price, stop_loss,
+            take_profit_1, take_profit_2, take_profit_3,
+            quality_score, timeframe, status, result,
+            current_price, close_price, tp1_locked, tp2_locked, tp3_locked, activated
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NULL, ?, NULL, 0, 0, 0, 1)
+    ''', (
+        signal_row['symbol'],
+        signal_row['signal_type'],
+        signal_row['entry_price'],
+        signal_row['stop_loss'],
+        signal_row['take_profit_1'],
+        signal_row['take_profit_2'],
+        signal_row['take_profit_3'],
+        signal_row['quality_score'],
+        signal_row['timeframe'],
+        signal_row['entry_price']
+    ))
+    conn.commit()
+    signal_id = c.lastrowid
+
+    # حذف أي صفقات فعّالة أقدم لنفس الزوج/الفريم والإبقاء على الأحدث
+    c.execute('''
+        DELETE FROM signals
+        WHERE symbol = ?
+          AND COALESCE(timeframe, '1h') = ?
+          AND status = 'active'
+          AND signal_id <> ?
+    ''', (signal_row['symbol'], signal_row['timeframe'], signal_id))
+    conn.commit()
+
+    conn.close()
+    return signal_id
+
+
+def _analyze_and_generate_signal(symbol, interval='1h'):
+    """تحليل رمز واحد وتوليد إشارة إذا كانت صالحة وغير مكررة."""
+    try:
+        from advanced_analyzer_engine import perform_full_analysis  # type: ignore
+    except ImportError:
+        analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
+        spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
+        analyzer_module = importlib.util.module_from_spec(spec)
+        sys.modules['advanced_analyzer_engine'] = analyzer_module
+        spec.loader.exec_module(analyzer_module)
+        perform_full_analysis = analyzer_module.perform_full_analysis
+
+    engine_symbol = _normalize_symbol_for_engine(symbol)
+    result = perform_full_analysis(engine_symbol, interval)
+
+    if not result or not result.get('success'):
+        return None
+
+    recommendation = result.get('recommendation', result.get('signal', ''))
+    signal_type = _extract_signal_type(recommendation)
+    if not signal_type:
+        return None
+
+    entry_price = result.get('entry_point')
+    if entry_price in (None, 0):
+        return None
+
+    stop_loss = float(result.get('stop_loss') or 0)
+    take_profit_1 = float(result.get('take_profit1') or 0)
+    take_profit_2 = float(result.get('take_profit2') or 0)
+    take_profit_3 = float(result.get('take_profit3') or 0)
+    entry_price = float(entry_price)
+
+    if stop_loss <= 0 or take_profit_1 <= 0 or take_profit_2 <= 0 or take_profit_3 <= 0:
+        return None
+
+    if signal_type == 'buy':
+        if not (stop_loss < entry_price < take_profit_1 <= take_profit_2 <= take_profit_3):
+            return None
+    elif signal_type == 'sell':
+        if not (stop_loss > entry_price > take_profit_1 >= take_profit_2 >= take_profit_3):
+            return None
+
+    normalized_symbol = symbol.upper().replace('/', '')
+    adaptive_thresholds = _get_adaptive_thresholds(normalized_symbol, interval)
+    min_quality_score = int(adaptive_thresholds.get('min_quality_score', MIN_SIGNAL_QUALITY_SCORE))
+    min_rr = float(adaptive_thresholds.get('min_rr', MIN_SIGNAL_RR))
+    max_volatility = float(adaptive_thresholds.get('max_volatility', MAX_SIGNAL_VOLATILITY))
+
+    rr_tp1 = _compute_risk_reward(entry_price, stop_loss, take_profit_1)
+    if rr_tp1 < min_rr:
+        return None
+
+    quality_score = _calculate_quality_score(result)
+    if quality_score < min_quality_score:
+        return None
+
+    try:
+        volatility = float(result.get('volatility') or 0)
+    except Exception:
+        volatility = 0.0
+    if volatility > max_volatility and quality_score < 90:
+        return None
+
+    if _signal_exists_recently(normalized_symbol, signal_type, interval, entry_price):
+        return None
+
+    signal_row = {
+        'symbol': normalized_symbol,
+        'signal_type': signal_type,
+        'entry_price': float(entry_price),
+        'stop_loss': stop_loss,
+        'take_profit_1': take_profit_1,
+        'take_profit_2': take_profit_2,
+        'take_profit_3': take_profit_3,
+        'quality_score': int(quality_score),
+        'timeframe': interval,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'risk_reward_tp1': rr_tp1,
+        'confidence': str(result.get('confidence') or ''),
+        'score_gap': float(result.get('score_gap') or 0),
+        'volatility': volatility,
+        'adaptive_mode': adaptive_thresholds.get('mode'),
+        'adaptive_min_quality_score': min_quality_score,
+        'adaptive_min_rr': min_rr,
+        'adaptive_max_volatility': max_volatility,
+        'adaptive_sample_size': adaptive_thresholds.get('sample_size', 0),
+        'adaptive_win_rate': adaptive_thresholds.get('win_rate', 0)
+    }
+    signal_id = _insert_generated_signal(signal_row)
+    signal_row['signal_id'] = signal_id
+    signal_row['signal'] = signal_type
+    signal_row['rec'] = signal_type.upper()
+    signal_row['sl'] = signal_row['stop_loss']
+    signal_row['tp1'] = signal_row['take_profit_1']
+    signal_row['tp2'] = signal_row['take_profit_2']
+    signal_row['tp3'] = signal_row['take_profit_3']
+    signal_row['entry'] = signal_row['entry_price']
+    return signal_row
+
+
+def _continuous_analyzer_loop():
+    """حلقة التحليل والبث المستمر لجميع الأزواج المتاحة."""
+    while CONTINUOUS_ANALYZER_STATE.get('running'):
+        generated_count = 0
+        broadcast_count = 0
+        deduplicated_count = 0
+
+        try:
+            for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
+                if not CONTINUOUS_ANALYZER_STATE.get('running'):
+                    break
+
+                signal_data = _analyze_and_generate_signal(symbol, interval='1h')
+                if not signal_data:
+                    continue
+
+                generated_count += 1
+                send_result = telegram_sender.send_signal_to_subscribers(
+                    signal_data,
+                    quality_score=signal_data.get('quality_score', 80)
+                )
+                if isinstance(send_result, dict):
+                    broadcast_count += int(send_result.get('sent_count', 0) or 0)
+
+                time.sleep(1)
+
+            deduplicated_count = _deduplicate_signals_continuously()
+            deduplicated_count += archive_and_cleanup_closed_signals()
+
+            CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
+            CONTINUOUS_ANALYZER_STATE['last_deduplicated'] = deduplicated_count
+            CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
+            CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
+            CONTINUOUS_ANALYZER_STATE['last_error'] = None
+        except Exception as e:
+            CONTINUOUS_ANALYZER_STATE['last_error'] = str(e)
+
+        sleep_seconds = int(CONTINUOUS_ANALYZER_STATE.get('interval_seconds', 300))
+        for _ in range(max(1, sleep_seconds)):
+            if not CONTINUOUS_ANALYZER_STATE.get('running'):
+                break
+            time.sleep(1)
+
+
+def start_continuous_analyzer(interval_seconds=300):
+    """تشغيل خدمة التحليل المستمر."""
+    global CONTINUOUS_ANALYZER_THREAD
+    with CONTINUOUS_ANALYZER_LOCK:
+        if CONTINUOUS_ANALYZER_STATE.get('running') and CONTINUOUS_ANALYZER_THREAD and CONTINUOUS_ANALYZER_THREAD.is_alive():
+            return False, 'الخدمة تعمل بالفعل'
+
+        CONTINUOUS_ANALYZER_STATE['interval_seconds'] = int(interval_seconds or CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+        CONTINUOUS_ANALYZER_STATE['running'] = True
+        CONTINUOUS_ANALYZER_THREAD = threading.Thread(target=_continuous_analyzer_loop, daemon=True)
+        CONTINUOUS_ANALYZER_THREAD.start()
+        return True, 'تم تشغيل خدمة التحليل المستمر'
+
+
+def stop_continuous_analyzer():
+    """إيقاف خدمة التحليل المستمر."""
+    with CONTINUOUS_ANALYZER_LOCK:
+        CONTINUOUS_ANALYZER_STATE['running'] = False
+    return True, 'تم إيقاف خدمة التحليل المستمر'
 
 
 def get_live_price(symbol):
@@ -158,65 +1054,155 @@ def get_live_price(symbol):
     الحصول على السعر الحالي للزوج بطرق متعددة
     Get current price with multiple fallback methods
     """
-    if symbol not in YF_SYMBOLS:
+    clean_symbol = (symbol or '').upper().replace('/', '').replace('-', '').replace('_', '').strip()
+    now_ts = time.time()
+
+    if not clean_symbol:
         return None
 
-    try:
-        import yfinance as yf  # heavy; lazy import to keep server startup fast
-    except Exception:
-        return None
-    
-    yf_symbol = YF_SYMBOLS[symbol]
-    
-    # الطريقة 1: من ticker.info
-    try:
-        ticker = yf.Ticker(yf_symbol)
-        info = ticker.info
-        
-        price_fields = ['regularMarketPrice', 'currentPrice', 'bid', 'ask', 'previousClose']
-        for field in price_fields:
-            if field in info and info[field]:
-                price = float(info[field])
-                if price > 0:
-                    return price
-    except:
-        pass
-    
-    # الطريقة 2: من البيانات التاريخية
-    try:
-        ticker = yf.Ticker(yf_symbol)
-        periods_intervals = [('1d', '1m'), ('5d', '5m'), ('1mo', '1h')]
-        
-        for period, interval in periods_intervals:
+    with LIVE_PRICE_CACHE_LOCK:
+        cached_item = LIVE_PRICE_CACHE.get(clean_symbol)
+        if cached_item and cached_item.get('expires_at', 0) > now_ts:
+            return cached_item.get('price')
+
+    def _is_valid_price(value):
+        try:
+            price = float(value)
+            return price if price > 0 else None
+        except Exception:
+            return None
+
+    def _price_from_twelvedata():
+        if not TWELVEDATA_API_KEY:
+            return None
+        try:
+            import requests
+            td_symbol = _normalize_symbol_for_engine(clean_symbol)
+            resp = requests.get(
+                TWELVEDATA_PRICE_URL,
+                params={'symbol': td_symbol, 'apikey': TWELVEDATA_API_KEY},
+                timeout=10
+            )
+            resp.raise_for_status()
+            data = resp.json() or {}
+            return _is_valid_price(data.get('price'))
+        except Exception:
+            return None
+
+    def _price_from_binance():
+        try:
+            import requests
+            binance_symbol = BINANCE_SYMBOLS.get(clean_symbol)
+            if not binance_symbol:
+                return None
+            resp = requests.get(BINANCE_PRICE_URL, params={'symbol': binance_symbol}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json() or {}
+            return _is_valid_price(data.get('price'))
+        except Exception:
+            return None
+
+    def _price_from_yfinance():
+        yf_symbol = YF_SYMBOLS.get(clean_symbol)
+        if not yf_symbol:
+            return None
+
+        now_local = time.time()
+        with LIVE_PRICE_CACHE_LOCK:
+            blocked_until = float(YF_FAILURE_UNTIL.get(clean_symbol, 0) or 0)
+        if blocked_until > now_local:
+            return None
+
+        try:
+            import yfinance as yf
+        except Exception:
+            return None
+
+        for attempt in range(max(1, YF_MAX_RETRIES)):
             try:
-                hist = ticker.history(period=period, interval=interval)
-                if not hist.empty:
-                    price = float(hist['Close'].iloc[-1])
-                    if price > 0:
+                ticker = yf.Ticker(yf_symbol)
+                info = ticker.info
+                price_fields = ['regularMarketPrice', 'currentPrice', 'bid', 'ask', 'previousClose']
+                for field in price_fields:
+                    price = _is_valid_price(info.get(field)) if isinstance(info, dict) else None
+                    if price:
+                        with LIVE_PRICE_CACHE_LOCK:
+                            YF_FAILURE_UNTIL.pop(clean_symbol, None)
                         return price
-            except:
-                continue
-    except:
-        pass
-    
-    # الطريقة 3: download
-    try:
-        data = yf.download(yf_symbol, period='1d', interval='1m', progress=False)
-        if not data.empty:
-            close_val = data['Close'].iloc[-1]
-            price = float(close_val.iloc[0] if hasattr(close_val, 'iloc') else close_val)
-            if price > 0:
-                return price
-    except:
-        pass
-    
-    return None
+            except Exception:
+                pass
+
+            try:
+                ticker = yf.Ticker(yf_symbol)
+                periods_intervals = [('1d', '1m'), ('5d', '5m'), ('1mo', '1h')]
+                for period, interval in periods_intervals:
+                    try:
+                        hist = ticker.history(period=period, interval=interval)
+                        if not hist.empty:
+                            price = _is_valid_price(hist['Close'].iloc[-1])
+                            if price:
+                                with LIVE_PRICE_CACHE_LOCK:
+                                    YF_FAILURE_UNTIL.pop(clean_symbol, None)
+                                return price
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+
+            try:
+                data = yf.download(yf_symbol, period='1d', interval='1m', progress=False)
+                if not data.empty:
+                    close_val = data['Close'].iloc[-1]
+                    price = _is_valid_price(close_val.iloc[0] if hasattr(close_val, 'iloc') else close_val)
+                    if price:
+                        with LIVE_PRICE_CACHE_LOCK:
+                            YF_FAILURE_UNTIL.pop(clean_symbol, None)
+                        return price
+            except Exception:
+                pass
+
+            if attempt < max(1, YF_MAX_RETRIES) - 1:
+                time.sleep(YF_RETRY_BACKOFF_SECONDS * (attempt + 1))
+
+        with LIVE_PRICE_CACHE_LOCK:
+            YF_FAILURE_UNTIL[clean_symbol] = time.time() + max(1, YF_COOLDOWN_SECONDS)
+
+        return None
+
+    price = _price_from_twelvedata()
+    if price:
+        with LIVE_PRICE_CACHE_LOCK:
+            LIVE_PRICE_CACHE[clean_symbol] = {
+                'price': price,
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+            }
+        return price
+
+    price = _price_from_binance()
+    if price:
+        with LIVE_PRICE_CACHE_LOCK:
+            LIVE_PRICE_CACHE[clean_symbol] = {
+                'price': price,
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+            }
+        return price
+
+    price = _price_from_yfinance()
+    with LIVE_PRICE_CACHE_LOCK:
+        LIVE_PRICE_CACHE[clean_symbol] = {
+            'price': price,
+            'expires_at': time.time() + (max(1, LIVE_PRICE_CACHE_TTL_SECONDS) if price else max(1, LIVE_PRICE_FAIL_CACHE_TTL_SECONDS))
+        }
+    return price
 
 
 def login_required(f):
     """Decorator للتحقق من تسجيل الدخول"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if _is_local_admin_session():
+            return f(*args, **kwargs)
+
         session_token = session.get('session_token')
         if not session_token:
             return redirect(url_for('login'))
@@ -232,10 +1218,178 @@ def login_required(f):
 
 def get_current_user():
     """الحصول على بيانات المستخدم الحالي"""
+    if _is_local_admin_session():
+        return {
+            'success': True,
+            'user_id': 0,
+            'username': ADMIN_USERNAME,
+            'full_name': 'Administrator',
+            'email': 'admin@local',
+            'plan': 'enterprise',
+            'is_admin': True,
+        }
+
     session_token = session.get('session_token')
     if session_token:
         return user_manager.verify_session(session_token)
     return {'success': False}
+
+
+SITE_SETTINGS_FILE = Path(__file__).parent / 'site_settings.json'
+TUTORIAL_UPLOAD_DIR = Path(__file__).parent / 'static' / 'uploads' / 'tutorials'
+TUTORIAL_VIDEOS_FILE = Path(__file__).parent / 'tutorial_videos.json'
+ALLOWED_TUTORIAL_VIDEO_EXTENSIONS = {'mp4', 'webm', 'ogg', 'mov', 'm4v'}
+
+DEFAULT_SITE_SETTINGS = {
+    'support_email': 'mahmoodalqaise750@gmail.com',
+    'support_phone': '00962770078321',
+    'support_whatsapp': '00962770078321',
+    'support_help_url': '/plans',
+    'support_bug_url': '/profile',
+    'support_feature_url': '/profile',
+    'payment_cliq_number': '00962770078321',
+    'payment_cliq_alias': 'jakel2008',
+    'payment_iban': 'JO94CBJO0010000000000131000302',
+    'payment_account_name': 'mahmoud atef alqaisi',
+    'payment_bank_name': 'بنك الاسكان للتجاره والتمويل',
+    'crypto_btc_address': '',
+    'crypto_eth_address': '',
+    'crypto_usdt_address': '',
+    'recommendation_footer_enabled': True,
+    'recommendation_footer_message': '',
+    'recommendation_footer_link': '',
+    'news_ticker_mode': 'both'
+}
+
+
+def get_site_settings():
+    """قراءة إعدادات الدفع والدعم مع قيم افتراضية آمنة."""
+    settings = DEFAULT_SITE_SETTINGS.copy()
+    try:
+        if SITE_SETTINGS_FILE.exists():
+            with open(SITE_SETTINGS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                for key in DEFAULT_SITE_SETTINGS:
+                    value = data.get(key)
+                    default_value = DEFAULT_SITE_SETTINGS[key]
+                    if isinstance(default_value, bool):
+                        if isinstance(value, bool):
+                            settings[key] = value
+                        elif isinstance(value, str):
+                            lowered = value.strip().lower()
+                            if lowered in ('1', 'true', 'yes', 'on'):
+                                settings[key] = True
+                            elif lowered in ('0', 'false', 'no', 'off'):
+                                settings[key] = False
+                    elif isinstance(value, str):
+                        settings[key] = value.strip()
+    except Exception as e:
+        print(f"[WARN] Could not load site settings: {e}")
+    return settings
+
+
+def save_site_settings(new_values):
+    """حفظ إعدادات الدفع والدعم بعد التحقق من المفاتيح المسموح بها."""
+    settings = get_site_settings()
+    for key in DEFAULT_SITE_SETTINGS:
+        if key in new_values:
+            value = new_values.get(key)
+            default_value = DEFAULT_SITE_SETTINGS[key]
+            if isinstance(default_value, bool):
+                if isinstance(value, bool):
+                    settings[key] = value
+                elif isinstance(value, str):
+                    settings[key] = value.strip().lower() in ('1', 'true', 'yes', 'on')
+                elif isinstance(value, (int, float)):
+                    settings[key] = bool(value)
+            elif isinstance(value, str):
+                settings[key] = value.strip()
+
+    with open(SITE_SETTINGS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(settings, f, ensure_ascii=False, indent=2)
+
+    return settings
+
+
+def ensure_tutorial_storage():
+    """التأكد من وجود مجلد حفظ فيديوهات الشروحات."""
+    TUTORIAL_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def is_allowed_tutorial_video(filename):
+    """التحقق من امتداد ملف الفيديو."""
+    if not filename or '.' not in filename:
+        return False
+    extension = filename.rsplit('.', 1)[1].lower()
+    return extension in ALLOWED_TUTORIAL_VIDEO_EXTENSIONS
+
+
+def load_tutorial_videos():
+    """تحميل قائمة الفيديوهات التعليمية مع تجاهل الملفات غير المتاحة."""
+    ensure_tutorial_storage()
+    videos = []
+    try:
+        if TUTORIAL_VIDEOS_FILE.exists():
+            with open(TUTORIAL_VIDEOS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                for item in data:
+                    if not isinstance(item, dict):
+                        continue
+                    filename = str(item.get('filename') or '').strip()
+                    if not filename:
+                        continue
+                    if not (TUTORIAL_UPLOAD_DIR / filename).exists():
+                        continue
+
+                    videos.append({
+                        'id': str(item.get('id') or ''),
+                        'title': str(item.get('title') or 'فيديو تعليمي').strip() or 'فيديو تعليمي',
+                        'description': str(item.get('description') or '').strip(),
+                        'filename': filename,
+                        'uploaded_at': str(item.get('uploaded_at') or '').strip(),
+                        'uploaded_by': str(item.get('uploaded_by') or '').strip(),
+                    })
+    except Exception as e:
+        print(f"[WARN] Could not load tutorial videos: {e}")
+
+    videos.sort(key=lambda row: row.get('uploaded_at', ''), reverse=True)
+    return videos
+
+
+def save_tutorial_videos(videos):
+    """حفظ قائمة الفيديوهات التعليمية."""
+    with open(TUTORIAL_VIDEOS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(videos, f, ensure_ascii=False, indent=2)
+
+
+def validate_crypto_addresses(settings_payload):
+    """التحقق من صيغ عناوين العملات المشفرة عند التحديث."""
+    if not isinstance(settings_payload, dict):
+        return False, 'تنسيق إعدادات العملات المشفرة غير صالح'
+
+    btc_address = str(settings_payload.get('crypto_btc_address', '') or '').strip()
+    eth_address = str(settings_payload.get('crypto_eth_address', '') or '').strip()
+    usdt_address = str(settings_payload.get('crypto_usdt_address', '') or '').strip()
+
+    if btc_address:
+        btc_pattern = r'^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$'
+        if not re.match(btc_pattern, btc_address):
+            return False, 'عنوان BTC غير صالح. استخدم عنوان يبدأ بـ bc1 أو 1 أو 3'
+
+    if eth_address:
+        eth_pattern = r'^0x[a-fA-F0-9]{40}$'
+        if not re.match(eth_pattern, eth_address):
+            return False, 'عنوان ETH غير صالح. يجب أن يبدأ بـ 0x ويتكون من 40 خانة Hex'
+
+    if usdt_address:
+        usdt_trc20_pattern = r'^T[1-9A-HJ-NP-Za-km-z]{33}$'
+        usdt_erc20_pattern = r'^0x[a-fA-F0-9]{40}$'
+        if not re.match(usdt_trc20_pattern, usdt_address) and not re.match(usdt_erc20_pattern, usdt_address):
+            return False, 'عنوان USDT غير صالح. استخدم TRC20 (يبدأ بـ T) أو ERC20 (يبدأ بـ 0x)'
+
+    return True, ''
 
 
 
@@ -247,41 +1401,596 @@ def inject_user_and_links():
     return {
         'is_logged_in': user_info['success'],
         'user': user_info if user_info['success'] else None,
-        'site_links': site_links.links
+        'site_links': site_links.links,
+        'site_settings': get_site_settings()
     }
+
+
+@app.after_request
+def add_no_cache_headers(response):
+    """منع كاش الصفحات لضمان عدم إظهار الصفحات المحمية بعد تسجيل الخروج."""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 # Decorator لصلاحيات الأدمن
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        is_api_request = request.path.startswith('/api/')
+
+        if _is_local_admin_session():
+            return f(*args, **kwargs)
+
         session_token = session.get('session_token')
         if not session_token:
+            if is_api_request:
+                return jsonify({'success': False, 'error': 'Unauthorized', 'code': 'AUTH_REQUIRED'}), 401
             return redirect(url_for('login'))
         user_info = user_manager.verify_session(session_token)
         if not user_info['success'] or not user_info.get('is_admin'):
-            return redirect(url_for('index'))
+            if is_api_request:
+                return jsonify({'success': False, 'error': 'Forbidden', 'code': 'ADMIN_REQUIRED'}), 403
+            return redirect(url_for('home'))
         return f(*args, **kwargs)
     return decorated_function
 
 
-def load_signals():
+def archive_and_cleanup_closed_signals():
+    """أرشفة الصفقات المنتهية وحذفها من الجدول النشط أولاً بأول."""
+    archived_count = 0
+    try:
+        _ensure_signals_archive_table()
+
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+
+        c.execute('''
+            SELECT *
+            FROM signals
+            WHERE status = 'closed' OR result IN ('win', 'loss')
+            ORDER BY created_at ASC
+        ''')
+        closed_rows = c.fetchall()
+
+        if not closed_rows:
+            conn.close()
+            return 0
+
+        archived = []
+        if CLOSED_TRADES_ARCHIVE_FILE.exists():
+            try:
+                with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                    archived = json.load(f) or []
+            except Exception:
+                archived = []
+
+        archived_ids = {item.get('signal_id') for item in archived if isinstance(item, dict)}
+        archived_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        for row in closed_rows:
+            row_dict = dict(row)
+            signal_id = row_dict.get('signal_id')
+            if signal_id in archived_ids:
+                continue
+
+            # حفظ دائم في جدول الأرشيف داخل قاعدة البيانات للتقارير والمقارنات
+            try:
+                c.execute('''
+                    INSERT OR REPLACE INTO signals_archive (
+                        signal_id, symbol, signal_type, entry_price, stop_loss,
+                        take_profit_1, take_profit_2, take_profit_3,
+                        quality_score, timeframe, status, result,
+                        current_price, close_price,
+                        tp1_locked, tp2_locked, tp3_locked, activated,
+                        created_at, archived_at, archive_reason
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    row_dict.get('signal_id'),
+                    row_dict.get('symbol'),
+                    row_dict.get('signal_type'),
+                    row_dict.get('entry_price'),
+                    row_dict.get('stop_loss'),
+                    row_dict.get('take_profit_1'),
+                    row_dict.get('take_profit_2'),
+                    row_dict.get('take_profit_3'),
+                    row_dict.get('quality_score'),
+                    row_dict.get('timeframe'),
+                    row_dict.get('status'),
+                    row_dict.get('result'),
+                    row_dict.get('current_price'),
+                    row_dict.get('close_price'),
+                    row_dict.get('tp1_locked', 0),
+                    row_dict.get('tp2_locked', 0),
+                    row_dict.get('tp3_locked', 0),
+                    row_dict.get('activated', 1),
+                    row_dict.get('created_at'),
+                    archived_at,
+                    'auto_cleanup_protocol'
+                ))
+            except Exception:
+                pass
+
+            row_dict['archived_at'] = archived_at
+            row_dict['archive_reason'] = 'auto_cleanup_protocol'
+            archived.append(row_dict)
+            archived_ids.add(signal_id)
+            archived_count += 1
+
+        if archived_count > 0:
+            with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
+
+        c.execute("DELETE FROM signals WHERE status = 'closed' OR result IN ('win', 'loss')")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error in archive_and_cleanup_closed_signals: {e}")
+
+    return archived_count
+
+
+def _load_archived_trades(limit=2000):
+    """تحميل الصفقات المنتهية من أرشيف قاعدة البيانات مع رجوع احتياطي لملف JSON."""
+    _ensure_signals_archive_table()
+
+    rows = []
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT *
+            FROM signals_archive
+            ORDER BY COALESCE(archived_at, created_at) DESC
+            LIMIT ?
+        ''', (max(1, int(limit or 2000)),))
+        rows = [dict(item) for item in c.fetchall()]
+        conn.close()
+    except Exception:
+        rows = []
+
+    if rows:
+        return rows
+
+    if CLOSED_TRADES_ARCHIVE_FILE.exists():
+        try:
+            with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f) or []
+            if isinstance(data, list):
+                return list(reversed(data[-max(1, int(limit or 2000)):]))
+        except Exception:
+            return []
+
+    return []
+
+
+def _calc_archived_profit_percent(row):
+    """حساب نسبة الربح التقريبية للصفقة المؤرشفة."""
+    try:
+        entry = float(row.get('entry_price') or row.get('entry') or 0)
+        close_price = float(row.get('close_price') or row.get('current_price') or 0)
+        signal_type = str(row.get('signal_type') or row.get('signal') or '').lower()
+        if entry <= 0 or close_price <= 0:
+            return 0.0
+        if signal_type == 'sell':
+            profit = ((entry - close_price) / entry) * 100
+        else:
+            profit = ((close_price - entry) / entry) * 100
+
+        # حماية التقارير من القيم الشاذة في السجلات القديمة
+        if profit > 60:
+            profit = 60
+        elif profit < -60:
+            profit = -60
+
+        return round(profit, 2)
+    except Exception:
+        return 0.0
+
+def _build_closed_trades_comparison_report(days=7):
+    """تقرير مقارنة الأداء بين نافذتين زمنيتين من الصفقات المؤرشفة."""
+    rows = _load_archived_trades(limit=4000)
+    now = datetime.now()
+    window_days = max(1, int(days or 7))
+    current_start = now - timedelta(days=window_days)
+    previous_start = now - timedelta(days=window_days * 2)
+
+    current_period = []
+    previous_period = []
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        ts_raw = row.get('archived_at') or row.get('created_at')
+        if not ts_raw:
+            continue
+
+        ts = None
+        try:
+            ts = datetime.fromisoformat(str(ts_raw).replace('Z', '+00:00'))
+            if ts.tzinfo is not None:
+                ts = ts.replace(tzinfo=None)
+        except Exception:
+            ts = None
+
+        if ts is None:
+            continue
+
+        if ts >= current_start:
+            current_period.append(row)
+        elif previous_start <= ts < current_start:
+            previous_period.append(row)
+
+    def _summarize(data_rows):
+        wins = 0
+        losses = 0
+        quality_sum = 0.0
+        quality_count = 0
+        profit_sum = 0.0
+
+        for item in data_rows:
+            result = str(item.get('result') or '').lower()
+            if result == 'win':
+                wins += 1
+            elif result == 'loss':
+                losses += 1
+
+            try:
+                quality_sum += float(item.get('quality_score') or 0)
+                quality_count += 1
+            except Exception:
+                pass
+
+            profit_sum += _calc_archived_profit_percent(item)
+
+        total = wins + losses
+        win_rate = round((wins / total) * 100, 2) if total > 0 else 0.0
+        avg_quality = round((quality_sum / quality_count), 2) if quality_count > 0 else 0.0
+
+        return {
+            'total': total,
+            'wins': wins,
+            'losses': losses,
+            'win_rate': win_rate,
+            'avg_quality': avg_quality,
+            'net_profit_percent': round(profit_sum, 2)
+        }
+
+    current_stats = _summarize(current_period)
+    previous_stats = _summarize(previous_period)
+
+    return {
+        'window_days': window_days,
+        'current_period': current_stats,
+        'previous_period': previous_stats,
+        'delta': {
+            'win_rate': round(current_stats['win_rate'] - previous_stats['win_rate'], 2),
+            'net_profit_percent': round(current_stats['net_profit_percent'] - previous_stats['net_profit_percent'], 2),
+            'total_trades': current_stats['total'] - previous_stats['total']
+        }
+    }
+
+
+def _deduplicate_signal_objects(signal_rows):
+    """إزالة التكرار/التشابه من البيانات قبل العرض للمستخدم."""
+    if not isinstance(signal_rows, list) or not signal_rows:
+        return []
+
+    normalized_rows = []
+    for row in signal_rows:
+        if isinstance(row, dict):
+            normalized_rows.append(row)
+
+    normalized_rows.sort(
+        key=lambda item: (
+            str(item.get('timestamp') or item.get('created_at') or ''),
+            float(item.get('quality_score') or 0),
+            str(item.get('signal_id') or '')
+        ),
+        reverse=True
+    )
+
+    deduplicated = []
+    for row in normalized_rows:
+        symbol = str(row.get('symbol') or row.get('pair') or '').upper().replace('/', '').strip()
+        signal_type = str(row.get('signal') or row.get('signal_type') or '').lower().strip()
+        timeframe = str(row.get('timeframe') or row.get('tf') or '1h').strip()
+        try:
+            entry = float(row.get('entry') or row.get('entry_price') or 0)
+        except Exception:
+            entry = 0.0
+
+        tolerance = max(0.0005, abs(entry) * 0.0015)
+        is_duplicate = False
+
+        for kept in deduplicated:
+            kept_symbol = str(kept.get('symbol') or kept.get('pair') or '').upper().replace('/', '').strip()
+            kept_signal_type = str(kept.get('signal') or kept.get('signal_type') or '').lower().strip()
+            kept_timeframe = str(kept.get('timeframe') or kept.get('tf') or '1h').strip()
+            try:
+                kept_entry = float(kept.get('entry') or kept.get('entry_price') or 0)
+            except Exception:
+                kept_entry = 0.0
+
+            if symbol == kept_symbol and signal_type == kept_signal_type and timeframe == kept_timeframe:
+                if abs(entry - kept_entry) <= tolerance:
+                    is_duplicate = True
+                    break
+
+        if not is_duplicate:
+            deduplicated.append(row)
+
+    return deduplicated
+
+
+def _append_cleanup_audit_log(log_row):
+    """إضافة سجل تدقيق لعمليات التنظيف مع احتفاظ بآخر 2000 سجل."""
+    try:
+        records = []
+        if CLEANUP_AUDIT_FILE.exists():
+            try:
+                with open(CLEANUP_AUDIT_FILE, 'r', encoding='utf-8') as f:
+                    records = json.load(f) or []
+            except Exception:
+                records = []
+
+        if not isinstance(records, list):
+            records = []
+
+        records.append(log_row)
+        with open(CLEANUP_AUDIT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(records[-2000:], f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
+def _get_cleanup_audit_logs(limit=20):
+    """قراءة آخر سجلات تدقيق التنظيف بحد أقصى قابل للتحديد."""
+    safe_limit = max(1, min(500, int(limit or 20)))
+    if not CLEANUP_AUDIT_FILE.exists():
+        return []
+
+    try:
+        with open(CLEANUP_AUDIT_FILE, 'r', encoding='utf-8') as f:
+            records = json.load(f) or []
+        if not isinstance(records, list):
+            return []
+        return list(reversed(records[-safe_limit:]))
+    except Exception:
+        return []
+
+
+def _run_cleanup_protocol_once():
+    """تشغيل دورة تنظيف واحدة: إزالة التكرار + أرشفة الصفقات المنتهية."""
+    deduplicated_count = 0
+    cleaned_closed_count = 0
+    error_text = None
+    started_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    try:
+        deduplicated_count = _deduplicate_signals_continuously()
+        cleaned_closed_count = archive_and_cleanup_closed_signals()
+    except Exception as e:
+        error_text = str(e)
+
+    finished_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    _append_cleanup_audit_log({
+        'started_at': started_at,
+        'finished_at': finished_at,
+        'deduplicated_count': int(deduplicated_count or 0),
+        'cleaned_closed_count': int(cleaned_closed_count or 0),
+        'success': error_text is None,
+        'error': error_text
+    })
+
+    return int(deduplicated_count or 0), int(cleaned_closed_count or 0), error_text
+
+
+def _load_auto_broadcast_registry():
+    """تحميل سجل الإشارات التي تم بثها تلقائياً لتجنب الإرسال المكرر."""
+    if not AUTO_BROADCAST_REGISTRY_FILE.exists():
+        return {}
+    try:
+        with open(AUTO_BROADCAST_REGISTRY_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f) or {}
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    return {}
+
+
+def _save_auto_broadcast_registry(registry):
+    """حفظ سجل البث التلقائي مع الاحتفاظ بآخر 5000 إشارة."""
+    try:
+        if not isinstance(registry, dict):
+            return
+        items = list(registry.items())[-5000:]
+        trimmed = {k: v for k, v in items}
+        with open(AUTO_BROADCAST_REGISTRY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(trimmed, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
+def _signal_broadcast_key(row_dict):
+    """مفتاح فريد للإشارة لأغراض منع إعادة البث."""
+    signal_id = row_dict.get('signal_id')
+    if signal_id not in (None, ''):
+        return str(signal_id)
+    return f"{row_dict.get('symbol','')}_{row_dict.get('signal_type','')}_{row_dict.get('timeframe','1h')}_{row_dict.get('created_at','')}"
+
+
+def _build_signal_payload_from_row(row_dict):
+    """تحويل سجل DB إلى حمولة إشارة موحدة للبث."""
+    signal_type = str(row_dict.get('signal_type') or '').lower()
+    return {
+        'signal_id': row_dict.get('signal_id'),
+        'symbol': row_dict.get('symbol'),
+        'signal': signal_type,
+        'rec': signal_type.upper() if signal_type else 'N/A',
+        'timeframe': row_dict.get('timeframe') or '1h',
+        'entry': float(row_dict.get('entry_price') or 0),
+        'sl': float(row_dict.get('stop_loss') or 0),
+        'tp1': float(row_dict.get('take_profit_1') or 0),
+        'tp2': float(row_dict.get('take_profit_2') or 0),
+        'tp3': float(row_dict.get('take_profit_3') or 0),
+        'quality_score': int(row_dict.get('quality_score') or 80),
+        'timestamp': row_dict.get('created_at') or datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'risk_reward_tp1': _compute_risk_reward(
+            row_dict.get('entry_price'),
+            row_dict.get('stop_loss'),
+            row_dict.get('take_profit_1')
+        ),
+        'follow_up_status': (
+            'closed' if (row_dict.get('status') == 'closed') else
+            'tp3_locked' if int(row_dict.get('tp3_locked') or 0) else
+            'tp2_locked' if int(row_dict.get('tp2_locked') or 0) else
+            'tp1_locked' if int(row_dict.get('tp1_locked') or 0) else
+            'active'
+        )
+    }
+
+
+def _sync_site_signals_to_active_bots(limit=30):
+    """مزامنة الإشارات الظاهرة بالموقع إلى البوتات/الأهداف النشطة (مرة واحدة لكل إشارة)."""
+    synced_count = 0
+    registry = _load_auto_broadcast_registry()
+
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT *
+            FROM signals
+            WHERE status = 'active'
+            ORDER BY created_at DESC
+            LIMIT ?
+        ''', (max(1, int(limit or 30)),))
+        rows = [dict(item) for item in c.fetchall()]
+        conn.close()
+    except Exception:
+        rows = []
+
+    for row_dict in rows:
+        key = _signal_broadcast_key(row_dict)
+        if not key or key in registry:
+            continue
+
+        signal_data = _build_signal_payload_from_row(row_dict)
+        quality_score = int(signal_data.get('quality_score') or 80)
+
+        subscribers_result = telegram_sender.send_signal_to_subscribers(signal_data, quality_score)
+        formatted_message = telegram_sender.format_signal_message(signal_data)
+        targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
+
+        sent_total = int(subscribers_result.get('sent_count', 0) or 0) + int(targets_result.get('sent_count', 0) or 0)
+        failed_total = int(subscribers_result.get('failed_count', 0) or 0) + int(targets_result.get('failed_count', 0) or 0)
+
+        if sent_total > 0 or failed_total >= 0:
+            registry[key] = {
+                'synced_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'symbol': signal_data.get('symbol'),
+                'timeframe': signal_data.get('timeframe'),
+                'quality_score': quality_score,
+                'sent_count': sent_total,
+                'failed_count': failed_total
+            }
+            synced_count += 1
+
+    _save_auto_broadcast_registry(registry)
+    return synced_count
+
+
+def _cleanup_scheduler_loop():
+    """جدولة بروتوكول التنظيف بشكل دوري."""
+    while CLEANUP_SCHEDULER_STATE.get('running'):
+        deduplicated_count = 0
+        cleaned_closed_count = 0
+        synced_site_count = 0
+        error_text = None
+
+        try:
+            deduplicated_count, cleaned_closed_count, error_text = _run_cleanup_protocol_once()
+            synced_site_count = _sync_site_signals_to_active_bots(limit=40)
+        except Exception as e:
+            error_text = str(e)
+
+        CLEANUP_SCHEDULER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        CLEANUP_SCHEDULER_STATE['last_error'] = error_text
+        CLEANUP_SCHEDULER_STATE['last_deduplicated'] = int(deduplicated_count or 0)
+        CLEANUP_SCHEDULER_STATE['last_cleaned_closed'] = int(cleaned_closed_count or 0)
+        CLEANUP_SCHEDULER_STATE['last_site_synced'] = int(synced_site_count or 0)
+        CLEANUP_SCHEDULER_STATE['total_deduplicated'] += int(deduplicated_count or 0)
+        CLEANUP_SCHEDULER_STATE['total_cleaned_closed'] += int(cleaned_closed_count or 0)
+        CLEANUP_SCHEDULER_STATE['total_site_synced'] += int(synced_site_count or 0)
+
+        sleep_seconds = int(CLEANUP_SCHEDULER_STATE.get('interval_seconds', CLEANUP_INTERVAL_DEFAULT))
+        for _ in range(max(1, sleep_seconds)):
+            if not CLEANUP_SCHEDULER_STATE.get('running'):
+                break
+            time.sleep(1)
+
+
+def start_cleanup_scheduler(interval_seconds=None):
+    """تشغيل مجدول تنظيف الصفقات."""
+    global CLEANUP_SCHEDULER_THREAD
+    with CLEANUP_SCHEDULER_LOCK:
+        if CLEANUP_SCHEDULER_STATE.get('running') and CLEANUP_SCHEDULER_THREAD and CLEANUP_SCHEDULER_THREAD.is_alive():
+            return False, 'مجدول التنظيف يعمل بالفعل'
+
+        if interval_seconds is None:
+            interval_seconds = CLEANUP_INTERVAL_DEFAULT
+
+        CLEANUP_SCHEDULER_STATE['interval_seconds'] = int(interval_seconds or CLEANUP_INTERVAL_DEFAULT)
+        CLEANUP_SCHEDULER_STATE['running'] = True
+        CLEANUP_SCHEDULER_THREAD = threading.Thread(target=_cleanup_scheduler_loop, daemon=True)
+        CLEANUP_SCHEDULER_THREAD.start()
+        return True, 'تم تشغيل مجدول التنظيف'
+
+
+def stop_cleanup_scheduler():
+    """إيقاف مجدول تنظيف الصفقات."""
+    with CLEANUP_SCHEDULER_LOCK:
+        CLEANUP_SCHEDULER_STATE['running'] = False
+    return True, 'تم إيقاف مجدول التنظيف'
+
+
+def load_signals(include_closed=False):
     """تحميل الإشارات من قاعدة البيانات مع الأسعار الحالية والنتائج"""
     import sqlite3
     signals = []
+
+    # بروتوكول التنظيف قبل فتح اتصال القراءة لتجنب تعارض قفل قاعدة البيانات
+    _run_cleanup_protocol_once()
     
     try:
         conn = sqlite3.connect('vip_signals.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        
-        # جلب جميع الإشارات من اليوم
+
+        # جلب الإشارات من اليوم
         today = datetime.now().strftime('%Y-%m-%d')
-        c.execute('''
-            SELECT * FROM signals 
-            WHERE DATE(created_at) = ? 
-            ORDER BY created_at DESC 
-            LIMIT 50
-        ''', (today,))
+        if include_closed:
+            c.execute('''
+                SELECT * FROM signals
+                WHERE DATE(created_at) = ?
+                ORDER BY created_at DESC
+                LIMIT 50
+            ''', (today,))
+        else:
+            c.execute('''
+                SELECT * FROM signals
+                WHERE DATE(created_at) = ?
+                  AND status = 'active'
+                ORDER BY created_at DESC
+                LIMIT 50
+            ''', (today,))
         
         rows = c.fetchall()
         for row in rows:
@@ -307,6 +2016,7 @@ def load_signals():
             pips = 0
             progress = 0
             tp_levels_hit = 0
+            total_range = 0
             
             # استخدام الدالة المحسنة لجلب السعر
             current_price = get_live_price(symbol)
@@ -320,17 +2030,18 @@ def load_signals():
                         
                         # فحص إيقاف الخسارة
                         if current_price <= sl:
+                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
                             status = 'closed'
-                            result = 'loss'
+                            result = sl_outcome
                             close_price = current_price
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
                                     UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
+                                    SET status='closed', result=?, close_price=? 
                                     WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
+                                ''', (sl_outcome, current_price, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -365,14 +2076,19 @@ def load_signals():
                             tp2_locked = 1
                             tp1_locked = 1
                             result = 'win'
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = max(current_sl, float(tp1 or entry or 0))
+                            sl = new_sl
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
                                     UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
+                                    SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
                                     WHERE signal_id=?
-                                ''', (row['signal_id'],))
+                                ''', (new_sl, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -381,14 +2097,19 @@ def load_signals():
                             tp_levels_hit = 1
                             tp1_locked = 1
                             result = 'win'
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = max(current_sl, float(entry or 0))
+                            sl = new_sl
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
                                     UPDATE signals 
-                                    SET result='win', tp1_locked=1
+                                    SET result='win', tp1_locked=1, stop_loss=?
                                     WHERE signal_id=?
-                                ''', (row['signal_id'],))
+                                ''', (new_sl, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -398,24 +2119,24 @@ def load_signals():
                             tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
                             if tp1_locked:
                                 result = 'win'
-                                
-                    else:  # sell
+                    elif signal_type == 'sell':
                         pips = entry - current_price
                         total_range = entry - tp1
-                        
+
                         # فحص إيقاف الخسارة
                         if current_price >= sl:
+                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
                             status = 'closed'
-                            result = 'loss'
+                            result = sl_outcome
                             close_price = current_price
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result='loss', close_price=? 
+                                    UPDATE signals
+                                    SET status='closed', result=?, close_price=?
                                     WHERE signal_id=?
-                                ''', (current_price, row['signal_id']))
+                                ''', (sl_outcome, current_price, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -434,7 +2155,7 @@ def load_signals():
                                     conn2 = sqlite3.connect('vip_signals.db')
                                     c2 = conn2.cursor()
                                     c2.execute('''
-                                        UPDATE signals 
+                                        UPDATE signals
                                         SET status='closed', result='win', close_price=?,
                                             tp1_locked=1, tp2_locked=1, tp3_locked=1
                                         WHERE signal_id=?
@@ -450,14 +2171,19 @@ def load_signals():
                             tp2_locked = 1
                             tp1_locked = 1
                             result = 'win'
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = min(current_sl, float(tp1 or entry or 0))
+                            sl = new_sl
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1
+                                    UPDATE signals
+                                    SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
                                     WHERE signal_id=?
-                                ''', (row['signal_id'],))
+                                ''', (new_sl, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -466,14 +2192,19 @@ def load_signals():
                             tp_levels_hit = 1
                             tp1_locked = 1
                             result = 'win'
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = min(current_sl, float(entry or 0))
+                            sl = new_sl
                             try:
                                 conn2 = sqlite3.connect('vip_signals.db')
                                 c2 = conn2.cursor()
                                 c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1
+                                    UPDATE signals
+                                    SET result='win', tp1_locked=1, stop_loss=?
                                     WHERE signal_id=?
-                                ''', (row['signal_id'],))
+                                ''', (new_sl, row['signal_id']))
                                 conn2.commit()
                                 conn2.close()
                             except:
@@ -498,8 +2229,9 @@ def load_signals():
                 except:
                     pass
             
-            signals.append({
+            signal_obj = {
                 'signal_id': row['signal_id'],
+                'file': str(row['signal_id']),
                 'pair': symbol,
                 'symbol': symbol,
                 'signal': signal_type,
@@ -529,14 +2261,93 @@ def load_signals():
                 'tp1_locked': tp1_locked,
                 'tp2_locked': tp2_locked,
                 'tp3_locked': tp3_locked,
-                'activated': activated
-            })
+                'activated': activated,
+                'follow_up_status': (
+                    'closed' if status == 'closed' else
+                    'tp3_locked' if tp3_locked else
+                    'tp2_locked' if tp2_locked else
+                    'tp1_locked' if tp1_locked else
+                    'active' if activated else
+                    'pending'
+                )
+            }
+
+            if include_closed or signal_obj.get('status') == 'active':
+                signals.append(signal_obj)
         
         conn.close()
     except Exception as e:
         print(f"❌ خطأ في تحميل الإشارات: {e}")
     
-    return signals
+    return _deduplicate_signal_objects(signals)
+
+
+def load_admin_recent_signals(limit=5):
+    """تحميل آخر الإشارات للأدمن بسرعة بدون جلب أسعار حية لتخفيف بطء لوحة التحكم."""
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+
+        today = datetime.now().strftime('%Y-%m-%d')
+        c.execute('''
+            SELECT signal_id, symbol, signal_type, entry_price, stop_loss,
+                   take_profit_1, quality_score, timeframe, created_at
+            FROM signals
+            WHERE DATE(created_at) = ?
+              AND status = 'active'
+            ORDER BY created_at DESC
+            LIMIT ?
+        ''', (today, int(limit or 5)))
+        rows = c.fetchall()
+        conn.close()
+
+        signals = []
+        for row in rows:
+            signal_type = str(row['signal_type'] or '').lower()
+            signals.append({
+                'signal_id': row['signal_id'],
+                'file': str(row['signal_id']),
+                'pair': row['symbol'],
+                'symbol': row['symbol'],
+                'signal': signal_type,
+                'signal_type': signal_type,
+                'rec': signal_type.upper() if signal_type else 'N/A',
+                'entry': float(row['entry_price'] or 0),
+                'entry_price': float(row['entry_price'] or 0),
+                'sl': float(row['stop_loss'] or 0),
+                'stop_loss': float(row['stop_loss'] or 0),
+                'tp1': float(row['take_profit_1'] or 0),
+                'take_profit_1': float(row['take_profit_1'] or 0),
+                'quality_score': int(row['quality_score'] or 0),
+                'timeframe': row['timeframe'] or '1h',
+                'tf': row['timeframe'] or '1h',
+                'timestamp': row['created_at'],
+                'created_at': row['created_at']
+            })
+
+        return signals
+    except Exception:
+        return []
+
+
+def count_active_signals_today():
+    """عدّ الإشارات النشطة بسرعة من قاعدة البيانات بدون تتبع أسعار."""
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        today = datetime.now().strftime('%Y-%m-%d')
+        c.execute('''
+            SELECT COUNT(*)
+            FROM signals
+            WHERE DATE(created_at) = ?
+              AND status = 'active'
+        ''', (today,))
+        count = int((c.fetchone() or [0])[0] or 0)
+        conn.close()
+        return count
+    except Exception:
+        return 0
 
 
 def load_recommendations():
@@ -623,7 +2434,7 @@ def get_statistics():
         except:
             pass
     
-    # أكثر الأزواج طلباً
+    # الأكثر الأزواج طلباً
     top_pairs = sorted(pairs_distribution.items(), key=lambda x: x[1], reverse=True)[:10]
     
     return {
@@ -694,6 +2505,11 @@ def get_detailed_report():
 def login():
     """صفحة تسجيل الدخول"""
     try:
+        force_first_login_page = request.args.get('first') == '1'
+
+        if request.method == 'GET' and force_first_login_page:
+            return render_template('login.html')
+
         if request.method == 'POST':
             username = request.form.get('username', '').strip()
             password = request.form.get('password', '').strip()
@@ -701,6 +2517,14 @@ def login():
             if not username or not password:
                 print("[LOGIN] Missing username or password")
                 return render_template('login.html', error='يرجى ملء جميع الحقول')
+
+            if username.lower() == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+                session.clear()
+                session['local_admin_username'] = ADMIN_USERNAME
+                session['user_id'] = 0
+                print('[LOGIN] Local admin login success')
+                return redirect(url_for('home'))
+
             # محاولة تسجيل الدخول
             result = user_manager.login_user(
                 username, 
@@ -712,16 +2536,20 @@ def login():
                 session['session_token'] = result['session_token']
                 session['user_id'] = result['user_id']
                 print(f"[LOGIN] Session set successfully for user_id: {result['user_id']}")
-                print(f"[LOGIN] Redirecting to index...")
-                return redirect(url_for('index'))
+                print(f"[LOGIN] Redirecting to home...")
+                return redirect(url_for('home'))
             else:
                 print(f"[LOGIN] Login failed: {result['message']}")
                 return render_template('login.html', error=result['message'])
+
         # التحقق من وجود جلسة نشطة
+        if _is_local_admin_session():
+            return redirect(url_for('home'))
+
         if session.get('session_token'):
             user_info = user_manager.verify_session(session.get('session_token'))
             if user_info['success']:
-                return redirect(url_for('index'))
+                return redirect(url_for('home'))
         return render_template('login.html')
     except Exception as e:
         import traceback
@@ -733,6 +2561,11 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """صفحة التسجيل"""
+    force_first_register_page = request.args.get('first') == '1'
+
+    if request.method == 'GET' and force_first_register_page:
+        return render_template('register.html')
+
     if request.method == 'POST':
         full_name = request.form.get('full_name', '').strip()
         username = request.form.get('username', '').strip()
@@ -766,7 +2599,7 @@ def register():
             if login_result['success']:
                 session['session_token'] = login_result['session_token']
                 session['user_id'] = login_result['user_id']
-                return redirect(url_for('index'))
+                return redirect(url_for('home'))
         else:
             return render_template('register.html', error=result['message'])
     
@@ -774,7 +2607,7 @@ def register():
     if session.get('session_token'):
         user_info = user_manager.verify_session(session.get('session_token'))
         if user_info['success']:
-            return redirect(url_for('index'))
+            return redirect(url_for('home'))
     
     return render_template('register.html')
 
@@ -786,7 +2619,7 @@ def logout():
     if session_token:
         user_manager.logout_user(session_token)
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 
 @app.route('/profile')
@@ -800,20 +2633,503 @@ def profile():
     return redirect(url_for('login'))
 
 
+@app.route('/tutorials')
+@login_required
+def tutorials():
+    """صفحة الفيديوهات التعليمية للمستخدمين."""
+    user_info = get_current_user()
+    videos = load_tutorial_videos()
+    return render_template(
+        'tutorials.html',
+        videos=videos,
+        user=user_info,
+        is_admin=user_info.get('is_admin', False)
+    )
+
+
+@app.route('/admin/tutorials/upload', methods=['POST'])
+@admin_required
+def upload_tutorial_video():
+    """رفع فيديو تعليمي جديد من الأدمن."""
+    title = (request.form.get('title') or '').strip()
+    description = (request.form.get('description') or '').strip()
+    video_file = request.files.get('video')
+
+    if not video_file or not video_file.filename:
+        flash('يرجى اختيار ملف فيديو قبل الرفع', 'warning')
+        return redirect(url_for('tutorials'))
+
+    if not is_allowed_tutorial_video(video_file.filename):
+        flash('صيغة الفيديو غير مدعومة. الصيغ المتاحة: MP4, WEBM, OGG, MOV, M4V', 'danger')
+        return redirect(url_for('tutorials'))
+
+    ensure_tutorial_storage()
+    original_name = secure_filename(video_file.filename)
+    extension = Path(original_name).suffix.lower()
+    unique_name = f"tutorial_{datetime.now().strftime('%Y%m%d%H%M%S')}_{secrets.token_hex(4)}{extension}"
+    save_path = TUTORIAL_UPLOAD_DIR / unique_name
+
+    try:
+        video_file.save(save_path)
+        videos = load_tutorial_videos()
+        uploader = get_current_user().get('username', 'admin')
+
+        videos.insert(0, {
+            'id': f"vid_{datetime.now().strftime('%Y%m%d%H%M%S')}_{secrets.token_hex(3)}",
+            'title': title or (Path(original_name).stem or 'فيديو تعليمي'),
+            'description': description,
+            'filename': unique_name,
+            'uploaded_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'uploaded_by': uploader,
+        })
+        save_tutorial_videos(videos)
+        flash('تم رفع الفيديو التعليمي بنجاح', 'success')
+    except Exception as e:
+        try:
+            if save_path.exists():
+                save_path.unlink()
+        except Exception:
+            pass
+        flash(f'تعذر رفع الفيديو: {e}', 'danger')
+
+    return redirect(url_for('tutorials'))
+
+
+@app.route('/admin/tutorials/delete/<video_id>', methods=['POST'])
+@admin_required
+def delete_tutorial_video(video_id):
+    """حذف فيديو تعليمي من قبل الأدمن."""
+    target_id = (video_id or '').strip()
+    if not target_id:
+        flash('معرّف الفيديو غير صالح', 'warning')
+        return redirect(url_for('tutorials'))
+
+    videos = load_tutorial_videos()
+    remaining = []
+    deleted_video = None
+
+    for video in videos:
+        if str(video.get('id', '')).strip() == target_id and deleted_video is None:
+            deleted_video = video
+            continue
+        remaining.append(video)
+
+    if not deleted_video:
+        flash('لم يتم العثور على الفيديو المطلوب', 'warning')
+        return redirect(url_for('tutorials'))
+
+    try:
+        filename = str(deleted_video.get('filename') or '').strip()
+        if filename:
+            file_path = TUTORIAL_UPLOAD_DIR / filename
+            if file_path.exists():
+                file_path.unlink()
+        save_tutorial_videos(remaining)
+        flash('تم حذف الفيديو التعليمي بنجاح', 'success')
+    except Exception as e:
+        flash(f'تعذر حذف الفيديو: {e}', 'danger')
+
+    return redirect(url_for('tutorials'))
+
+
 # ============ الصفحات الرئيسية ============
 
+def get_public_ads():
+    """إرجاع إعلانات الصفحة العامة قبل تسجيل الدخول"""
+    default_ads = [dict(item) for item in DEFAULT_PUBLIC_ADS]
+
+    def normalize_ads(ads_list):
+        normalized = []
+        for item in ads_list or []:
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get('title') or '').strip()
+            text = str(item.get('text') or '').strip()
+            if not title or not text:
+                continue
+            normalized.append({
+                'badge': str(item.get('badge') or 'إعلان').strip() or 'إعلان',
+                'title': title,
+                'text': text,
+                'cta_text': str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل',
+                'cta_url': str(item.get('cta_url') or '/plans').strip() or '/plans'
+            })
+        return normalized[:12]
+
+    try:
+        if PUBLIC_ADS_FILE.exists():
+            with open(PUBLIC_ADS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            normalized_data = normalize_ads(data if isinstance(data, list) else [])
+            if normalized_data:
+                return normalized_data
+    except Exception as e:
+        print(f"[WARN] Could not load public_ads.json: {e}")
+
+    return default_ads
+
+
+def save_public_ads(new_ads):
+    """حفظ إعلانات الصفحة الرئيسية بعد التحقق من الحقول."""
+    if not isinstance(new_ads, list):
+        raise ValueError('تنسيق الإعلانات غير صالح')
+
+    normalized = []
+    for item in new_ads:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get('title') or '').strip()
+        text = str(item.get('text') or '').strip()
+        if not title or not text:
+            continue
+        normalized.append({
+            'badge': str(item.get('badge') or 'إعلان').strip() or 'إعلان',
+            'title': title,
+            'text': text,
+            'cta_text': str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل',
+            'cta_url': str(item.get('cta_url') or '/plans').strip() or '/plans'
+        })
+
+    normalized = normalized[:12]
+    if not normalized:
+        raise ValueError('يجب إضافة إعلان واحد على الأقل مع عنوان ونص')
+
+    with open(PUBLIC_ADS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(normalized, f, ensure_ascii=False, indent=2)
+
+    return normalized
+
+
+def get_latest_registered_users(limit=5):
+    """جلب آخر المستخدمين المسجلين من قاعدة المستخدمين."""
+    rows = []
+    try:
+        conn = sqlite3.connect(user_manager.db_file)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT username, full_name, created_at
+            FROM users
+            ORDER BY datetime(created_at) DESC
+            LIMIT ?
+        ''', (max(1, int(limit)),))
+        rows = [dict(item) for item in c.fetchall()]
+        conn.close()
+    except Exception as e:
+        print(f"[WARN] Could not load latest users: {e}")
+    return rows
+
+
+def get_recent_closed_trade_news(limit=8):
+    """جلب آخر أخبار إغلاقات الصفقات (رابحة/خاسرة)."""
+    items = []
+    try:
+        if CLOSED_TRADES_ARCHIVE_FILE.exists():
+            with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f) or []
+                for trade in reversed(data):
+                    if not isinstance(trade, dict):
+                        continue
+
+                    result = str(trade.get('result') or '').lower()
+                    if result not in ('win', 'loss'):
+                        continue
+
+                    pair = str(trade.get('symbol') or trade.get('pair') or 'N/A').upper()
+                    pips_val = trade.get('pips')
+                    profit_percent = trade.get('profit_percent')
+
+                    perf = ''
+                    if pips_val is not None:
+                        perf = f" ({pips_val} نقطة)"
+                    elif profit_percent is not None:
+                        perf = f" ({profit_percent}%)"
+
+                    label = 'رابحة' if result == 'win' else 'خاسرة'
+                    icon = '✅' if result == 'win' else '❌'
+                    items.append(f"{icon} إغلاق {pair} صفقة {label}{perf}")
+                    if len(items) >= max(1, int(limit)):
+                        break
+    except Exception as e:
+        print(f"[WARN] Could not load recent closed trades for ticker: {e}")
+    return items
+
+
+def load_cached_economic_news(max_age_minutes=45):
+    """قراءة كاش الأخبار الاقتصادية إذا كان لا يزال صالحًا."""
+    try:
+        if not ECONOMIC_NEWS_CACHE_FILE.exists():
+            return []
+        with open(ECONOMIC_NEWS_CACHE_FILE, 'r', encoding='utf-8') as f:
+            payload = json.load(f) or {}
+
+        updated_at = str(payload.get('updated_at') or '').strip()
+        items = payload.get('items') if isinstance(payload, dict) else []
+        if not isinstance(items, list) or not items:
+            return []
+
+        if updated_at:
+            try:
+                ts = datetime.strptime(updated_at, '%Y-%m-%d %H:%M:%S')
+                age = (datetime.now() - ts).total_seconds() / 60.0
+                if age <= max_age_minutes:
+                    return [str(item).strip() for item in items if str(item).strip()]
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"[WARN] Could not load economic news cache: {e}")
+    return []
+
+
+def save_economic_news_cache(items):
+    """حفظ كاش الأخبار الاقتصادية."""
+    try:
+        payload = {
+            'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'items': items[:30]
+        }
+        with open(ECONOMIC_NEWS_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[WARN] Could not save economic news cache: {e}")
+
+
+def get_economic_news_sources():
+    """إرجاع مصادر الأخبار الاقتصادية (مع إمكانية التعديل من لوحة الأدمن)."""
+    defaults = [dict(item) for item in ECONOMIC_NEWS_SOURCES]
+    try:
+        if not ECONOMIC_NEWS_SOURCES_FILE.exists():
+            return defaults
+        with open(ECONOMIC_NEWS_SOURCES_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f) or []
+
+        if not isinstance(data, list):
+            return defaults
+
+        source_map = {str(item.get('name') or '').strip().lower(): item for item in data if isinstance(item, dict)}
+        normalized = []
+        for default_source in defaults:
+            key = str(default_source.get('name') or '').strip().lower()
+            override = source_map.get(key, {}) if key else {}
+            normalized.append({
+                'name': default_source.get('name'),
+                'url': str(override.get('url') or default_source.get('url') or '').strip(),
+                'enabled': bool(override.get('enabled', default_source.get('enabled', True))),
+                'language': str(override.get('language') or default_source.get('language') or 'en').strip().lower()
+            })
+        return normalized
+    except Exception as e:
+        print(f"[WARN] Could not load economic news sources: {e}")
+        return defaults
+
+
+def save_economic_news_sources(sources_payload):
+    """حفظ إعدادات مصادر الأخبار الاقتصادية."""
+    if not isinstance(sources_payload, list):
+        raise ValueError('تنسيق مصادر الأخبار غير صالح')
+
+    defaults = [dict(item) for item in ECONOMIC_NEWS_SOURCES]
+    source_map = {str(item.get('name') or '').strip().lower(): item for item in sources_payload if isinstance(item, dict)}
+
+    normalized = []
+    for default_source in defaults:
+        name = str(default_source.get('name') or '').strip()
+        key = name.lower()
+        override = source_map.get(key, {}) if key else {}
+        url = str(override.get('url') or default_source.get('url') or '').strip()
+        enabled = bool(override.get('enabled', default_source.get('enabled', True)))
+        language = str(override.get('language') or default_source.get('language') or 'en').strip().lower()
+        if language not in ('ar', 'en'):
+            language = str(default_source.get('language') or 'en').strip().lower()
+        normalized.append({'name': name, 'url': url, 'enabled': enabled, 'language': language})
+
+    with open(ECONOMIC_NEWS_SOURCES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(normalized, f, ensure_ascii=False, indent=2)
+
+    return normalized
+
+
+def _is_economic_title(title):
+    lower_title = str(title or '').lower()
+    return any(keyword in lower_title for keyword in ECONOMIC_KEYWORDS)
+
+
+def _extract_feed_titles(root):
+    """استخراج عناوين من RSS (item/title) أو Atom (entry/title)."""
+    titles = []
+
+    for item in root.findall('.//item'):
+        title_node = item.find('title')
+        if title_node is None:
+            continue
+        title = str(title_node.text or '').strip()
+        if title:
+            titles.append(title)
+
+    if titles:
+        return titles
+
+    for entry in root.findall('.//{*}entry'):
+        title_node = entry.find('{*}title')
+        if title_node is None:
+            continue
+        title = str(title_node.text or '').strip()
+        if title:
+            titles.append(title)
+
+    return titles
+
+
+def _is_probably_arabic(text):
+    """تحقق مبسط إن كان النص عربيًا (احتواء حروف عربية)."""
+    text = str(text or '')
+    return bool(re.search(r'[\u0600-\u06FF]', text))
+
+
+def fetch_economic_news(limit=12, language_mode='all'):
+    """جلب الأخبار الاقتصادية من مصادر متعددة مع fallback على الكاش."""
+    items = []
+    seen = set()
+
+    configured_sources = get_economic_news_sources()
+    for source in configured_sources:
+        if not bool(source.get('enabled', True)):
+            continue
+
+        source_language = str(source.get('language') or 'en').strip().lower()
+        if language_mode == 'ar' and source_language != 'ar':
+            continue
+
+        url = source.get('url')
+        source_name = source.get('name', 'News')
+        if not url:
+            continue
+        try:
+            response = requests.get(
+                url,
+                headers={'User-Agent': 'Mozilla/5.0 GOLD-PRO-NewsBot/1.0'},
+                timeout=8
+            )
+            response.raise_for_status()
+            root = ET.fromstring(response.content)
+
+            titles = _extract_feed_titles(root)
+            for title in titles:
+                if not title:
+                    continue
+                if not _is_economic_title(title):
+                    continue
+
+                dedup_key = title.lower()
+                if dedup_key in seen:
+                    continue
+                seen.add(dedup_key)
+                items.append(f"🌍 {source_name}: {title}")
+                if len(items) >= max(1, int(limit)):
+                    break
+
+            if len(items) >= max(1, int(limit)):
+                break
+        except Exception as e:
+            print(f"[WARN] Economic source failed ({source_name}): {e}")
+
+    if items:
+        save_economic_news_cache(items)
+        return items[:max(1, int(limit))]
+
+    cached = load_cached_economic_news(max_age_minutes=180)
+    if language_mode == 'ar':
+        cached = [item for item in cached if _is_probably_arabic(item)]
+    if cached:
+        return cached[:max(1, int(limit))]
+
+    return [
+        '🌍 تحديث اقتصادي: تابع بيانات الفائدة والتضخم والبطالة لحظة بلحظة',
+        '📊 تنبيه: راقب مفكرة الأخبار الاقتصادية قبل فتح الصفقات'
+    ]
+
+
+def build_economic_news_items(language_mode='all'):
+    """بناء عناصر الأخبار الاقتصادية للشريط المتحرك."""
+    news_items = fetch_economic_news(limit=20, language_mode=language_mode)
+    if not news_items:
+        news_items = ['⚡ لا توجد أخبار اقتصادية عاجلة حالياً']
+    return news_items[:30]
+
+
+def build_site_news_items():
+    """بناء عناصر أخبار المنصة (مستقلة عن الأخبار الاقتصادية)."""
+    news_items = []
+    news_items.extend(get_recent_closed_trade_news(limit=10))
+
+    latest_users = get_latest_registered_users(limit=5)
+    for user_row in latest_users:
+        display_name = str(user_row.get('full_name') or user_row.get('username') or '').strip()
+        if display_name:
+            news_items.append(f"🎉 ترحيب: أهلاً بالمستخدم الجديد {display_name}")
+
+    if not news_items:
+        news_items = ['⚡ أخبار المنصة: تابع آخر الإشارات والتوصيات مباشرة من GOLD PRO']
+
+    return news_items[:30]
+
+
+def build_breaking_news_items():
+    """للتوافق الخلفي: دمج الاقتصادي + أخبار الموقع إذا استُخدمت دالة قديمة."""
+    merged = []
+    merged.extend(build_economic_news_items())
+    merged.extend(build_site_news_items())
+    return merged[:30]
+
+
+@app.route('/api/news-ticker')
+def api_news_ticker():
+    """API الأخبار الاقتصادية للشريط المتحرك."""
+    lang_param = str(request.args.get('lang') or '').strip().lower()
+    language_mode = 'ar' if lang_param in ('ar', 'arabic') else 'all'
+    return jsonify({
+        'success': True,
+        'type': 'economic',
+        'language_mode': language_mode,
+        'items': build_economic_news_items(language_mode=language_mode),
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+
+@app.route('/api/site-news-ticker')
+def api_site_news_ticker():
+    """API أخبار الموقع (منفصل عن الأخبار الاقتصادية)."""
+    return jsonify({
+        'success': True,
+        'type': 'site',
+        'items': build_site_news_items(),
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+
+@app.route('/api/news-stream-config')
+def api_news_stream_config():
+    """تهيئة عرض شريط الأخبار للواجهة العامة."""
+    settings = get_site_settings()
+    mode = str(settings.get('news_ticker_mode') or 'both').strip().lower()
+    if mode not in ('both', 'economic', 'arabic'):
+        mode = 'both'
+    return jsonify({'success': True, 'mode': mode})
+
 @app.route('/')
-def index():
-    """الصفحة الرئيسية"""
+def home():
+    """الصفحة الرئيسية الجديدة"""
     user_info = get_current_user()
-    
-    # إذا لم يكن هناك جلسة، تحويل لصفحة الدخول
     if not user_info['success']:
-        return redirect(url_for('login'))
-    
+        return render_template(
+            'public_landing.html',
+            ads=get_public_ads(),
+            is_logged_in=False,
+            user=None
+        )
     signals = load_signals()
     stats = get_statistics()
-    return render_template('index.html', 
+    return render_template('home.html', 
                          signals=signals,
                          stats=stats,
                          is_logged_in=True,
@@ -850,7 +3166,7 @@ def signals():
         threshold = quality_threshold.get(plan, 90)
         filtered_signals = [s for s in signals if s.get('quality_score', 0) >= threshold]
     
-    return render_template('signals.html', 
+    return render_template('signals_gold_card.html', 
                          signals=filtered_signals,
                          all_signals_count=len(signals),
                          is_logged_in=True,
@@ -872,6 +3188,258 @@ def trades():
                          user=user_info)
 
 
+@app.route('/api/trades_status')
+@login_required
+def api_trades_status():
+    """API لمتابعة حالة الصفقات (نشطة/رابحة/خاسرة)"""
+    try:
+        signals = load_signals(include_closed=False)
+
+        def calc_profit_percent(trade):
+            try:
+                entry = float(trade.get('entry') or trade.get('entry_price') or 0)
+                current = float(trade.get('current_price') or trade.get('close_price') or 0)
+                signal_type = (trade.get('signal') or trade.get('signal_type') or '').lower()
+                if entry <= 0 or current <= 0:
+                    return 0.0
+                if signal_type == 'sell':
+                    return round(((entry - current) / entry) * 100, 2)
+                return round(((current - entry) / entry) * 100, 2)
+            except Exception:
+                return 0.0
+
+        normalized = []
+        for trade in signals:
+            signal_type = (trade.get('signal') or trade.get('signal_type') or '').lower() or 'buy'
+            profit_percent = trade.get('profit_percent')
+            if profit_percent is None:
+                profit_percent = calc_profit_percent(trade)
+
+            normalized.append({
+                'pair': trade.get('pair') or trade.get('symbol') or 'N/A',
+                'signal': signal_type,
+                'entry': trade.get('entry') or trade.get('entry_price') or 0,
+                'current_price': trade.get('current_price') or trade.get('close_price') or 0,
+                'profit_percent': round(float(profit_percent), 2) if isinstance(profit_percent, (int, float, str)) else 0.0,
+                'status': (trade.get('status') or 'active').lower(),
+                'result': (trade.get('result') or '').lower(),
+                'timestamp': trade.get('timestamp') or trade.get('created_at') or ''
+            })
+
+        active_trades = [t for t in normalized if t.get('status') == 'active']
+
+        archived_rows = _load_archived_trades(limit=2500)
+        winners = []
+        losers = []
+        total_closed_profit = 0.0
+
+        for row in archived_rows:
+            if not isinstance(row, dict):
+                continue
+
+            result = str(row.get('result') or '').lower()
+            if result not in ('win', 'loss'):
+                continue
+
+            profit_percent = _calc_archived_profit_percent(row)
+            total_closed_profit += profit_percent
+
+            item = {
+                'pair': row.get('symbol') or row.get('pair') or 'N/A',
+                'signal': str(row.get('signal_type') or row.get('signal') or '').lower() or 'buy',
+                'entry': row.get('entry_price') or row.get('entry') or 0,
+                'close_price': row.get('close_price') or row.get('current_price') or 0,
+                'profit_percent': profit_percent,
+                'result': result,
+                'status': 'closed',
+                'timestamp': row.get('archived_at') or row.get('created_at') or ''
+            }
+
+            if result == 'win':
+                winners.append(item)
+            else:
+                losers.append(item)
+
+        archived_count = len(archived_rows)
+        winners.sort(key=lambda item: item.get('timestamp') or '', reverse=True)
+        losers.sort(key=lambda item: item.get('timestamp') or '', reverse=True)
+
+        return jsonify({
+            'summary': {
+                'total_trades': len(normalized),
+                'active': len(active_trades),
+                'winners': len(winners),
+                'losers': len(losers),
+                'net_profit_percent': round(total_closed_profit, 2),
+                'archived_closed_trades': archived_count
+            },
+            'active_trades': active_trades[:100],
+            'closed_trades': {
+                'winners': winners[:100],
+                'losers': losers[:100]
+            },
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/trades-report')
+@login_required
+def api_trades_report():
+    """API خفيف لتقرير الصفقات لصفحة التقارير."""
+    try:
+        active_count = 0
+        recent_closed = []
+
+        active_rows = load_signals(include_closed=False)
+        if isinstance(active_rows, list):
+            active_count = len([row for row in active_rows if (row.get('status') or 'active').lower() == 'active'])
+
+        archived_rows = _load_archived_trades(limit=2500)
+
+        now = datetime.now()
+        recent_window = now - timedelta(hours=1)
+        normalized_closed = []
+
+        for row in archived_rows[:500]:
+            if not isinstance(row, dict):
+                continue
+
+            close_time_raw = row.get('archived_at') or row.get('closed_at') or row.get('created_at')
+            close_dt = None
+            if close_time_raw:
+                try:
+                    close_dt = datetime.fromisoformat(str(close_time_raw).replace('Z', '+00:00'))
+                except Exception:
+                    close_dt = None
+
+            normalized_closed.append({
+                'symbol': row.get('symbol') or row.get('pair') or 'N/A',
+                'result': (row.get('result') or '').lower(),
+                'pips': row.get('pips') if row.get('pips') is not None else row.get('profit_percent'),
+                'close_time': close_time_raw,
+                '_close_dt': close_dt,
+            })
+
+        recent_closed = [
+            item for item in normalized_closed
+            if item['_close_dt'] is not None and item['_close_dt'] >= recent_window
+        ]
+
+        wins = len([item for item in normalized_closed if item.get('result') == 'win'])
+        losses = len([item for item in normalized_closed if item.get('result') == 'loss'])
+
+        recent_closed.sort(key=lambda item: item['_close_dt'] or datetime.min, reverse=True)
+
+        for item in recent_closed:
+            item.pop('_close_dt', None)
+
+        return jsonify({
+            'success': True,
+            'active_count': active_count,
+            'recent_closed_count': len(recent_closed),
+            'wins': wins,
+            'losses': losses,
+            'recent_closed': recent_closed[:25]
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'active_count': 0,
+            'recent_closed_count': 0,
+            'wins': 0,
+            'losses': 0,
+            'recent_closed': [],
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/admin/continuous-analyzer/status')
+@admin_required
+def api_continuous_analyzer_status():
+    """حالة خدمة التحليل المستمر."""
+    return jsonify({
+        'success': True,
+        'state': CONTINUOUS_ANALYZER_STATE
+    })
+
+
+@app.route('/api/admin/continuous-analyzer/start', methods=['POST'])
+@admin_required
+def api_continuous_analyzer_start():
+    """تشغيل خدمة التحليل والبث المستمر."""
+    data = request.get_json(silent=True) or {}
+    interval_seconds = int(data.get('interval_seconds', CONTINUOUS_ANALYZER_INTERVAL_DEFAULT))
+    success, message = start_continuous_analyzer(interval_seconds=interval_seconds)
+    return jsonify({
+        'success': success,
+        'message': message,
+        'state': CONTINUOUS_ANALYZER_STATE
+    })
+
+@app.route('/api/admin/closed-trades-comparison', methods=['GET'])
+@admin_required
+def api_admin_closed_trades_comparison():
+    """تقرير مقارنة أداء الصفقات المنتهية من الأرشيف دون تغيير واجهة العرض."""
+    try:
+        days = request.args.get('days', 7, type=int)
+        report = _build_closed_trades_comparison_report(days=days)
+        return jsonify({'success': True, 'report': report})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/continuous-analyzer/stop', methods=['POST'])
+@admin_required
+def api_continuous_analyzer_stop():
+    """إيقاف خدمة التحليل والبث المستمر."""
+    success, message = stop_continuous_analyzer()
+    return jsonify({
+        'success': success,
+        'message': message,
+        'state': CONTINUOUS_ANALYZER_STATE
+    })
+
+
+@app.route('/api/admin/cleanup-scheduler/status')
+@admin_required
+def api_cleanup_scheduler_status():
+    """حالة مجدول تنظيف الصفقات."""
+    return jsonify({'success': True, 'state': CLEANUP_SCHEDULER_STATE})
+
+
+@app.route('/api/admin/cleanup-scheduler/start', methods=['POST'])
+@admin_required
+def api_cleanup_scheduler_start():
+    """تشغيل مجدول تنظيف الصفقات."""
+    data = request.get_json(silent=True) or {}
+    interval_seconds = int(data.get('interval_seconds', CLEANUP_INTERVAL_DEFAULT))
+    success, message = start_cleanup_scheduler(interval_seconds=interval_seconds)
+    return jsonify({'success': success, 'message': message, 'state': CLEANUP_SCHEDULER_STATE})
+
+
+@app.route('/api/admin/cleanup-scheduler/stop', methods=['POST'])
+@admin_required
+def api_cleanup_scheduler_stop():
+    """إيقاف مجدول تنظيف الصفقات."""
+    success, message = stop_cleanup_scheduler()
+    return jsonify({'success': success, 'message': message, 'state': CLEANUP_SCHEDULER_STATE})
+
+
+@app.route('/api/admin/cleanup-audit', methods=['GET'])
+@admin_required
+def api_cleanup_audit():
+    """إرجاع آخر سجلات بروتوكول تنظيف الصفقات للأدمن."""
+    limit = request.args.get('limit', 20, type=int)
+    logs = _get_cleanup_audit_logs(limit=limit)
+    return jsonify({
+        'success': True,
+        'count': len(logs),
+        'items': logs
+    })
+
+
 @app.route('/select_location/<plan>')
 @login_required
 def select_location(plan):
@@ -887,7 +3455,7 @@ def select_location(plan):
     }
     
     if plan not in plans:
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
     
     return render_template('select_location.html', 
                          plan=plan,
@@ -909,7 +3477,7 @@ def payment_page(location, plan):
     }
     
     if plan not in plans or location not in ['jordan', 'international']:
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
     
     plan_data = plans[plan]
     
@@ -926,6 +3494,32 @@ def payment_page(location, plan):
                          plan=plan,
                          plan_data=plan_data,
                          user=user_info)
+
+
+@app.route('/payment_jordan')
+def payment_jordan_legacy():
+    """رابط قديم: تحويله إلى صفحة الخطط"""
+    return redirect(url_for('plans'))
+
+
+@app.route('/payment_international')
+def payment_international_legacy():
+    """رابط قديم: تحويله إلى صفحة الخطط"""
+    return redirect(url_for('plans'))
+
+
+@app.route('/payment_jordan/<plan>')
+@login_required
+def payment_jordan_plan(plan):
+    """توافق مع الروابط القديمة للدفع داخل الأردن"""
+    return redirect(url_for('payment_page', location='jordan', plan=plan))
+
+
+@app.route('/payment_international/<plan>')
+@login_required
+def payment_international_plan(plan):
+    """توافق مع الروابط القديمة للدفع الدولي"""
+    return redirect(url_for('payment_page', location='international', plan=plan))
 
 
 @app.route('/dashboard')
@@ -1030,8 +3624,50 @@ def api_available_pairs():
 
 # ===== Helper function for available pairs =====
 def get_all_available_pairs():
-    """جلب جميع الأزواج المتاحة من YF_SYMBOLS"""
-    return list(YF_SYMBOLS.keys())
+    """جلب جميع الأزواج المتاحة مصنفة بالشكل المتوقع في واجهة اختيار الأزواج."""
+    categorized = {
+        'forex_major': {},
+        'forex_minor': {},
+        'metals': {},
+        'energy': {},
+        'indices_us': {},
+        'indices_europe': {},
+        'indices_asia': {},
+        'crypto': {},
+    }
+
+    forex_major = {'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'}
+    forex_minor = {'EURJPY', 'GBPJPY', 'EURGBP', 'CADJPY', 'CHFJPY'}
+    metals = {'XAUUSD', 'XAGUSD'}
+    energy = {'WTI', 'BRENT', 'USOIL', 'UKOIL'}
+    indices_us = {'US30', 'NAS100', 'SPX500'}
+    indices_europe = {'GER40', 'UK100', 'FRA40', 'EU50'}
+    indices_asia = {'JPN225', 'HK50', 'CHN50'}
+    crypto = {'BTCUSD', 'ETHUSD'}
+
+    for symbol in YF_SYMBOLS.keys():
+        normalized = (symbol or '').upper().replace('/', '').replace('-', '')
+
+        if normalized in forex_major:
+            categorized['forex_major'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in forex_minor:
+            categorized['forex_minor'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in metals:
+            categorized['metals'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in energy:
+            categorized['energy'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in indices_us:
+            categorized['indices_us'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in indices_europe:
+            categorized['indices_europe'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in indices_asia:
+            categorized['indices_asia'][symbol] = YF_SYMBOLS[symbol]
+        elif normalized in crypto:
+            categorized['crypto'][symbol] = YF_SYMBOLS[symbol]
+        else:
+            categorized['forex_minor'][symbol] = YF_SYMBOLS[symbol]
+
+    return categorized
 
 
 @app.route('/api/user-pairs-preferences')
@@ -1069,7 +3705,7 @@ def api_save_pairs_preferences():
         return jsonify({'success': False, 'message': 'غير مسجل'}), 401
     
     user_id = user_info['user_id']
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     pairs = data.get('pairs', [])
     
     try:
@@ -1125,12 +3761,8 @@ def reports():
 @app.route('/admin')
 @admin_required
 def admin():
-    """صفحة لوحة تحكم الأدمن"""
-    user_info = get_current_user()
-    return render_template('admin.html',
-                         user=user_info,
-                         is_logged_in=True,
-                         is_admin=True)
+    """توافق مع الروابط القديمة: تحويل إلى لوحة الإدارة الموحدة"""
+    return redirect(url_for('admin_panel'))
 
 # ======= Admin APIs =======
 @app.route('/api/admin/users')
@@ -1506,15 +4138,16 @@ def admin_panel():
         plan = sub.get('plan', 'free') if isinstance(sub, dict) else (sub[3] if len(sub) > 3 else 'free')
         plans_stats[plan] = plans_stats.get(plan, 0) + 1
     
-    # آخر الإشارات والتوصيات
-    recent_signals = load_signals()[:5]
-    recent_recommendations = load_recommendations()[:5]
+    # آخر الإشارات والتوصيات (نسخة خفيفة لتسريع فتح لوحة التحكم)
+    recent_signals = load_admin_recent_signals(limit=5)
+    all_recommendations = load_recommendations()
+    recent_recommendations = all_recommendations[:5]
     
     stats = {
         'total_users': len(all_subscriptions),
         'active_users': len(active_users),
-        'total_signals': len(load_signals()),
-        'total_recommendations': len(load_recommendations()),
+        'total_signals': count_active_signals_today(),
+        'total_recommendations': len(all_recommendations),
         'plans_stats': plans_stats
     }
     
@@ -1527,20 +4160,118 @@ def admin_panel():
     )
 
 @app.route('/subscription-management')
+@app.route('/subscriptions-management')
+@app.route('/subscriptions_management')
 @admin_required
 def subscription_management():
     """صفحة إدارة الاشتراكات"""
     user_info = get_current_user()
     return render_template('subscriptions_management.html', user_info=user_info)
 
+
+@app.route('/api/admin/site-settings', methods=['GET'])
+@admin_required
+def api_get_site_settings():
+    """إرجاع إعدادات الدفع والدعم للأدمن."""
+    return jsonify({'success': True, 'settings': get_site_settings()})
+
+
+@app.route('/api/admin/site-settings', methods=['POST'])
+@admin_required
+def api_update_site_settings():
+    """تحديث إعدادات الدفع والدعم من لوحة الأدمن."""
+    try:
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({'success': False, 'error': 'تنسيق البيانات غير صالح'}), 400
+
+        is_valid, validation_error = validate_crypto_addresses(data)
+        if not is_valid:
+            return jsonify({'success': False, 'error': validation_error}), 400
+
+        updated = save_site_settings(data)
+        return jsonify({'success': True, 'settings': updated, 'message': 'تم حفظ الإعدادات بنجاح'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/adaptive-thresholds', methods=['GET'])
+@admin_required
+def api_admin_adaptive_thresholds():
+    """إرجاع إحصاءات الحدود التكيفية للأزواج والفريمات دون أي تغيير واجهة."""
+    try:
+        limit = request.args.get('limit', 30, type=int)
+        overview = _build_adaptive_thresholds_overview(limit_rows=limit)
+        return jsonify({'success': True, 'data': overview})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/public-ads', methods=['GET'])
+@admin_required
+def api_get_public_ads():
+    """إرجاع إعلانات الصفحة الرئيسية للأدمن."""
+    return jsonify({'success': True, 'ads': get_public_ads()})
+
+
+@app.route('/api/admin/public-ads', methods=['POST'])
+@admin_required
+def api_update_public_ads():
+    """تحديث إعلانات الصفحة الرئيسية من لوحة الأدمن."""
+    try:
+        data = request.get_json(silent=True)
+        ads_payload = data
+        if isinstance(data, dict):
+            ads_payload = data.get('ads')
+
+        if not isinstance(ads_payload, list):
+            return jsonify({'success': False, 'error': 'يرجى إرسال مصفوفة إعلانات بصيغة JSON'}), 400
+
+        updated_ads = save_public_ads(ads_payload)
+        return jsonify({'success': True, 'ads': updated_ads, 'message': 'تم تحديث الإعلانات بنجاح'})
+    except ValueError as ve:
+        return jsonify({'success': False, 'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/news-sources', methods=['GET'])
+@admin_required
+def api_get_news_sources():
+    """إرجاع إعدادات مصادر الأخبار الاقتصادية للأدمن."""
+    return jsonify({'success': True, 'sources': get_economic_news_sources()})
+
+
+@app.route('/api/admin/news-sources', methods=['POST'])
+@admin_required
+def api_update_news_sources():
+    """تحديث إعدادات مصادر الأخبار الاقتصادية من لوحة الأدمن."""
+    try:
+        data = request.get_json(silent=True) or {}
+        sources_payload = data.get('sources') if isinstance(data, dict) else data
+        updated_sources = save_economic_news_sources(sources_payload)
+        return jsonify({'success': True, 'sources': updated_sources, 'message': 'تم حفظ مصادر الأخبار بنجاح'})
+    except ValueError as ve:
+        return jsonify({'success': False, 'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/forex-analyzer')
 @admin_required
 def forex_analyzer():
-    """صفحة محلل الفوركس"""
+    """توافق مع المسار القديم: المحلل الذكي والمتقدم نفس الصفحة"""
+    return redirect(url_for('advanced_analyzer_page'))
+
+
+@app.route('/advanced_analyzer')
+@admin_required
+def advanced_analyzer_page():
+    """صفحة المحلل المتقدم"""
     user_info = get_current_user()
-    return render_template('forex_analyzer.html', user_info=user_info)
+    return render_template('advanced_analyzer.html', user_info=user_info)
 
 @app.route('/api/forex-analysis', methods=['POST'])
+@app.route('/api/advanced-analysis', methods=['POST'])
 @admin_required
 def api_forex_analysis():
     """API لتحليل الفوركس - يستخدم المحلل المتقدم"""
@@ -1549,7 +4280,20 @@ def api_forex_analysis():
     interval = data.get('interval', '1h')
     
     try:
-        from advanced_analyzer_engine import perform_full_analysis
+
+        # --- Fix ImportError for advanced_analyzer_engine ---
+        try:
+            from advanced_analyzer_engine import perform_full_analysis # type: ignore
+        except ImportError:
+            import importlib.util
+            import sys
+            from pathlib import Path
+            analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
+            spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
+            analyzer_module = importlib.util.module_from_spec(spec)
+            sys.modules['advanced_analyzer_engine'] = analyzer_module
+            spec.loader.exec_module(analyzer_module)
+            perform_full_analysis = analyzer_module.perform_full_analysis
         result = perform_full_analysis(symbol, interval)
         
         if result.get('success'):
@@ -1569,18 +4313,61 @@ def api_admin_send_signal():
     """إرسال إشارة من لوحة الأدمن"""
     try:
         data = request.json
-        signal_id = data.get('signal_id')
+        signal_id = str(data.get('signal_id') or '').strip()
         
         if not signal_id:
             return jsonify({'success': False, 'error': 'Signal ID is required'}), 400
-        
-        # البحث عن الإشارة
-        signal_file = SIGNALS_DIR / signal_id
-        if not signal_file.exists():
+
+        signal_data = None
+
+        # 1) دعم الإشارات المولدة في قاعدة البيانات (signal_id رقمي)
+        if signal_id.isdigit():
+            conn = sqlite3.connect('vip_signals.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute('SELECT * FROM signals WHERE signal_id = ? LIMIT 1', (int(signal_id),))
+            row = c.fetchone()
+            conn.close()
+
+            if row:
+                row_dict = dict(row)
+                signal_type = str(row_dict.get('signal_type') or '').lower()
+                signal_data = {
+                    'signal_id': row_dict.get('signal_id'),
+                    'symbol': row_dict.get('symbol'),
+                    'signal': signal_type,
+                    'rec': signal_type.upper() if signal_type else 'N/A',
+                    'timeframe': row_dict.get('timeframe') or '1h',
+                    'entry': float(row_dict.get('entry_price') or 0),
+                    'sl': float(row_dict.get('stop_loss') or 0),
+                    'tp1': float(row_dict.get('take_profit_1') or 0),
+                    'tp2': float(row_dict.get('take_profit_2') or 0),
+                    'tp3': float(row_dict.get('take_profit_3') or 0),
+                    'quality_score': int(row_dict.get('quality_score') or 80),
+                    'timestamp': row_dict.get('created_at') or datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'risk_reward_tp1': _compute_risk_reward(
+                        row_dict.get('entry_price'),
+                        row_dict.get('stop_loss'),
+                        row_dict.get('take_profit_1')
+                    ),
+                    'follow_up_status': (
+                        'closed' if (row_dict.get('status') == 'closed') else
+                        'tp3_locked' if int(row_dict.get('tp3_locked') or 0) else
+                        'tp2_locked' if int(row_dict.get('tp2_locked') or 0) else
+                        'tp1_locked' if int(row_dict.get('tp1_locked') or 0) else
+                        'active'
+                    )
+                }
+
+        # 2) دعم الإشارات القديمة من ملفات JSON
+        if signal_data is None:
+            signal_file = SIGNALS_DIR / signal_id
+            if signal_file.exists():
+                with open(signal_file, 'r', encoding='utf-8') as f:
+                    signal_data = json.load(f)
+
+        if signal_data is None:
             return jsonify({'success': False, 'error': 'Signal not found'}), 404
-        
-        with open(signal_file, 'r', encoding='utf-8') as f:
-            signal_data = json.load(f)
         
         # إرسال الإشارة إلى المشتركين
         result = telegram_sender.send_signal_to_subscribers(signal_data, signal_data.get('quality_score', 100))
@@ -1634,6 +4421,72 @@ def api_admin_send_recommendation():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/admin/broadcast-targets', methods=['GET'])
+@admin_required
+def api_admin_get_broadcast_targets():
+    """جلب أهداف البث الإضافية (تيليجرام/واتساب) من لوحة الأدمن."""
+    config = telegram_sender.load_broadcast_targets()
+    targets = config.get('targets', []) if isinstance(config, dict) else []
+    if not isinstance(targets, list):
+        targets = []
+    return jsonify({'success': True, 'targets': targets})
+
+
+@app.route('/api/admin/broadcast-targets', methods=['POST'])
+@admin_required
+def api_admin_save_broadcast_targets():
+    """حفظ أهداف البث الإضافية (إضافة/تعديل/حذف/إيقاف) من لوحة الأدمن."""
+    try:
+        data = request.get_json(silent=True) or {}
+        targets = data.get('targets', [])
+        if not isinstance(targets, list):
+            return jsonify({'success': False, 'error': 'targets must be a list'}), 400
+
+        normalized_targets = []
+        for idx, item in enumerate(targets):
+            if not isinstance(item, dict):
+                continue
+
+            platform = str(item.get('platform') or item.get('type') or '').strip().lower()
+            if platform not in ('telegram', 'telegram_channel', 'telegram_group', 'whatsapp', 'whatsapp_group'):
+                continue
+
+            target_id = str(item.get('id') or f'target_{idx+1}').strip()
+            if not target_id:
+                target_id = f'target_{idx+1}'
+
+            target_obj = {
+                'id': target_id,
+                'name': str(item.get('name') or f'Target {idx+1}').strip(),
+                'platform': platform,
+                'enabled': bool(item.get('enabled', True))
+            }
+
+            if platform in ('telegram', 'telegram_channel', 'telegram_group'):
+                chat_id = str(item.get('chat_id') or item.get('telegram_chat_id') or '').strip()
+                if not chat_id:
+                    continue
+                target_obj['chat_id'] = chat_id
+                target_obj['bot_mode'] = str(item.get('bot_mode') or 'all_active').strip().lower()
+            else:
+                webhook_url = str(item.get('webhook_url') or item.get('url') or '').strip()
+                if not webhook_url:
+                    continue
+                target_obj['webhook_url'] = webhook_url
+                target_obj['group_id'] = str(item.get('group_id') or item.get('to') or '').strip()
+                target_obj['auth_token'] = str(item.get('auth_token') or '').strip()
+
+            normalized_targets.append(target_obj)
+
+        ok = telegram_sender.save_broadcast_targets({'targets': normalized_targets})
+        if not ok:
+            return jsonify({'success': False, 'error': 'Failed to save broadcast targets'}), 500
+
+        return jsonify({'success': True, 'targets': normalized_targets, 'count': len(normalized_targets)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/admin/send-report', methods=['POST'])
 @admin_required
 def api_admin_send_report():
@@ -1683,14 +4536,20 @@ def api_admin_broadcast_message():
         if not message_text:
             return jsonify({'success': False, 'error': 'Message is required'}), 400
         
-        # إرسال الرسالة لجميع المشتركين
+        # 1) إرسال للمشتركين (عبر البوتات النشطة)
         result = telegram_sender.send_report_to_subscribers(message_text)
+
+        # 2) إرسال إضافي إلى الأهداف الخارجية المفعلة (قناة/جروب تيليجرام + واتساب)
+        targets_result = telegram_sender.send_broadcast_to_configured_targets(message_text)
         
         return jsonify({
             'success': True,
             'sent_count': result.get('sent_count', 0),
             'failed_count': result.get('failed_count', 0),
-            'total_subscribers': result.get('total_subscribers', 0)
+            'total_subscribers': result.get('total_subscribers', 0),
+            'targets_sent_count': targets_result.get('sent_count', 0),
+            'targets_failed_count': targets_result.get('failed_count', 0),
+            'targets_total': targets_result.get('total_targets', 0)
         })
         
     except Exception as e:
@@ -1904,7 +4763,7 @@ def add_bot():
 @app.route('/api/admin/bots/<int:bot_id>/edit', methods=['POST'])
 @admin_required
 def edit_bot(bot_id):
-    """تعديل بوت"""
+    """ تعديل بوت"""
     try:
         data = request.json
         config = telegram_sender.load_bots_config()
@@ -1922,9 +4781,11 @@ def edit_bot(bot_id):
         if data.get('is_default', False):
             for b in config.get('bots', []):
                 b['is_default'] = False
-            bot['is_default'] = True
         
+        # تعيين هذا البوت كافتراضي
+        bot['is_default'] = True
         telegram_sender.save_bots_config(config)
+        
         return jsonify({'success': True, 'message': 'تم التعديل بنجاح'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -2088,12 +4949,103 @@ def test_send_bot(bot_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/export-trading-signal', methods=['POST'])
+@admin_required
+def export_trading_signal():
+    """تصدير إشارة التداول من المحلل المتقدم"""
+    try:
+        data = request.json or {}
+        symbol = (data.get('symbol') or '').strip()
+        interval = data.get('interval', '1h')
+
+        if not symbol:
+            return jsonify({'success': False, 'error': 'الزوج مطلوب'}), 400
+
+        export_payload = {
+            'symbol': symbol,
+            'interval': interval,
+            'trade_type': data.get('trade_type', 'NEUTRAL'),
+            'entry_price': data.get('entry_price'),
+            'take_profit': data.get('take_profit', []),
+            'stop_loss': data.get('stop_loss'),
+            'confidence': data.get('confidence', ''),
+            'recommendation': data.get('recommendation', ''),
+            'exported_at': datetime.now().isoformat(),
+            'source': 'advanced_analyzer'
+        }
+
+        ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
+        filename = f"analysis_signal_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        file_path = ANALYSIS_DIR / filename
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(export_payload, f, ensure_ascii=False, indent=2)
+
+        return jsonify({'success': True, 'filename': filename})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/publish-to-recommendations', methods=['POST'])
+@admin_required
+def publish_to_recommendations():
+    """نشر توصية من المحلل المتقدم إلى ملفات التوصيات"""
+    try:
+        data = request.json or {}
+        symbol = (data.get('symbol') or '').strip()
+
+        if not symbol:
+            return jsonify({'success': False, 'error': 'الزوج مطلوب'}), 400
+
+        recommendation_text = data.get('recommendation', 'NEUTRAL')
+        recommendation = {
+            'pair': symbol,
+            'symbol': symbol,
+            'signal': recommendation_text,
+            'rec': recommendation_text,
+            'entry': data.get('entry_point'),
+            'entry_price': data.get('entry_point'),
+            'tp1': data.get('tp1'),
+            'tp2': data.get('tp2'),
+            'tp3': data.get('tp3'),
+            'sl': data.get('stop_loss'),
+            'stop_loss': data.get('stop_loss'),
+            'timeframe': data.get('interval', '1h'),
+            'analysis_text': data.get('analysis_text', ''),
+            'confidence': data.get('confidence', ''),
+            'quality_score': 90,
+            'timestamp': datetime.now().isoformat(),
+            'source': 'advanced_analyzer'
+        }
+
+        RECOMMENDATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        rec_file = RECOMMENDATIONS_DIR / f"recommendations_{datetime.now().strftime('%Y%m%d')}.json"
+
+        recommendations = []
+        if rec_file.exists():
+            try:
+                with open(rec_file, 'r', encoding='utf-8') as f:
+                    recommendations = json.load(f) or []
+            except Exception:
+                recommendations = []
+
+        recommendations.insert(0, recommendation)
+        recommendations = recommendations[:200]
+
+        with open(rec_file, 'w', encoding='utf-8') as f:
+            json.dump(recommendations, f, ensure_ascii=False, indent=2)
+
+        return jsonify({'success': True, 'message': 'تم النشر على صفحة التوصيات بنجاح'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/send-to-telegram', methods=['POST'])
 @admin_required
 def send_analysis_to_telegram():
     """إرسال التحليل للبوت"""
     try:
-        data = request.json
+        data = request.json or {}
         symbol = data.get('symbol')
         recommendation = data.get('recommendation')
         entry = data.get('entry_point')
@@ -2103,6 +5055,12 @@ def send_analysis_to_telegram():
         sl = data.get('stop_loss')
         confidence = data.get('confidence', '')
         interval = data.get('interval', '1h')
+
+        def _fmt_price(value):
+            try:
+                return f"{float(value):.5f}"
+            except Exception:
+                return 'N/A'
         
         # تنسيق الرسالة
         message = f"""
@@ -2114,14 +5072,14 @@ def send_analysis_to_telegram():
 {confidence}
 ✅ <b>التوصية:</b> {recommendation}
 
-💰 <b>السعر الحالي:</b> {entry:.5f}
+💰 <b>السعر الحالي:</b> {_fmt_price(entry)}
 
 🎯 <b>أهداف الربح:</b>
-  • TP1: {tp1:.5f}
-  • TP2: {tp2:.5f}
-  • TP3: {tp3:.5f}
+    • TP1: {_fmt_price(tp1)}
+    • TP2: {_fmt_price(tp2)}
+    • TP3: {_fmt_price(tp3)}
 
-🛑 <b>وقف الخسارة:</b> {sl:.5f}
+🛑 <b>وقف الخسارة:</b> {_fmt_price(sl)}
 
 ⏰ <b>التاريخ:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}
 
@@ -2174,9 +5132,32 @@ def api_system_status():
                     'web_app': 'running',
                     'vip_bot': 'unknown',
                     'signal_broadcaster': 'unknown',
-                    'scheduler': 'unknown'
+                    'scheduler': 'unknown',
+                    'continuous_analyzer': 'unknown'
                 }
             }
+
+        system_data.setdefault('status', {})
+        # تحديث حالة التطبيق والخدمات ديناميكياً (بدلاً من الاعتماد على ملف قديم)
+        system_data['status']['web_app'] = 'running'
+        system_data['status']['continuous_analyzer'] = 'running' if CONTINUOUS_ANALYZER_STATE.get('running') else 'stopped'
+
+        # تحديد حالة vip_bot من إعدادات البوت الفعلية
+        try:
+            bots_config = telegram_sender.load_bots_config()
+            bots = bots_config.get('bots', []) if isinstance(bots_config, dict) else []
+            active_bots = [
+                bot for bot in bots
+                if isinstance(bot, dict) and bot.get('status') == 'active' and str(bot.get('token', '')).strip()
+            ]
+            if active_bots:
+                system_data['status']['vip_bot'] = 'running'
+            elif bots:
+                system_data['status']['vip_bot'] = 'stopped'
+            else:
+                system_data['status']['vip_bot'] = 'unknown'
+        except Exception:
+            system_data['status']['vip_bot'] = 'error'
         
         # حساب المقاييس
         # إجمالي المستخدمين
@@ -2217,13 +5198,15 @@ def api_system_status():
         
         # معدل النجاح من قاعدة البيانات
         try:
-            from trade_statistics import TradeStatistics
+            from trade_statistics import TradeStatistics  # type: ignore
             stats_engine = TradeStatistics()
             stats = stats_engine.get_statistics(days=30)
             win_rate = stats.get('win_rate', 0)
         except:
             win_rate = 0
         
+        adaptive_overview = _build_adaptive_thresholds_overview(limit_rows=20)
+
         return jsonify({
             'success': True,
             'status': system_data.get('status', {}),
@@ -2233,6 +5216,9 @@ def api_system_status():
                 'active_trades': active_trades_count,
                 'win_rate': win_rate
             },
+            'adaptive_overview': adaptive_overview.get('summary', {}),
+            'continuous_analyzer': CONTINUOUS_ANALYZER_STATE,
+            'cleanup_scheduler': CLEANUP_SCHEDULER_STATE,
             'active_trades': active_trades[:10],  # آخر 10 صفقات
             'timestamp': datetime.now().isoformat()
         })
@@ -2292,8 +5278,14 @@ def api_start_component():
         data = request.get_json()
         component = data.get('component')
         
-        # هنا يمكن إضافة منطق تشغيل المكونات
-        # مثلاً استخدام subprocess لتشغيل السكريبتات
+        if component in ('continuous_analyzer', 'continuous-analysis', 'analyzer'):
+            interval_seconds = int(data.get('interval_seconds', CONTINUOUS_ANALYZER_INTERVAL_DEFAULT))
+            success, message = start_continuous_analyzer(interval_seconds=interval_seconds)
+            return jsonify({
+                'success': success,
+                'message': message,
+                'state': CONTINUOUS_ANALYZER_STATE
+            })
         
         return jsonify({
             'success': True,
@@ -2314,7 +5306,13 @@ def api_stop_component():
         data = request.get_json()
         component = data.get('component')
         
-        # هنا يمكن إضافة منطق إيقاف المكونات
+        if component in ('continuous_analyzer', 'continuous-analysis', 'analyzer'):
+            success, message = stop_continuous_analyzer()
+            return jsonify({
+                'success': success,
+                'message': message,
+                'state': CONTINUOUS_ANALYZER_STATE
+            })
         
         return jsonify({
             'success': True,
@@ -2442,12 +5440,13 @@ def api_update_status():
                     if signal_type == 'buy':
                         # فحص SL
                         if current_price <= sl:
+                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
                             needs_refresh = True
                             c.execute('''
                                 UPDATE signals 
-                                SET status='closed', result='loss', close_price=? 
+                                SET status='closed', result=?, close_price=? 
                                 WHERE signal_id=?
-                            ''', (current_price, row['signal_id']))
+                            ''', (sl_outcome, current_price, row['signal_id']))
                         # فحص TP3
                         elif current_price >= tp3 and not tp3_locked:
                             needs_refresh = True
@@ -2460,28 +5459,37 @@ def api_update_status():
                         # فحص TP2
                         elif current_price >= tp2 and not tp2_locked:
                             needs_refresh = True
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = max(current_sl, float(tp1 or entry or 0))
                             c.execute('''
                                 UPDATE signals 
-                                SET result='win', tp1_locked=1, tp2_locked=1
+                                SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
                                 WHERE signal_id=?
-                            ''', (row['signal_id'],))
+                            ''', (new_sl, row['signal_id']))
                         # فحص TP1
                         elif current_price >= tp1 and not tp1_locked:
                             needs_refresh = True
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = max(current_sl, float(entry or 0))
                             c.execute('''
                                 UPDATE signals 
-                                SET result='win', tp1_locked=1
+                                SET result='win', tp1_locked=1, stop_loss=?
                                 WHERE signal_id=?
-                            ''', (row['signal_id'],))
+                            ''', (new_sl, row['signal_id']))
                     else:  # sell
                         # فحص SL
                         if current_price >= sl:
+                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
                             needs_refresh = True
                             c.execute('''
                                 UPDATE signals 
-                                SET status='closed', result='loss', close_price=? 
+                                SET status='closed', result=?, close_price=? 
                                 WHERE signal_id=?
-                            ''', (current_price, row['signal_id']))
+                            ''', (sl_outcome, current_price, row['signal_id']))
                         # فحص TP3
                         elif current_price <= tp3 and not tp3_locked:
                             needs_refresh = True
@@ -2494,29 +5502,40 @@ def api_update_status():
                         # فحص TP2
                         elif current_price <= tp2 and not tp2_locked:
                             needs_refresh = True
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = min(current_sl, float(tp1 or entry or 0))
                             c.execute('''
                                 UPDATE signals 
-                                SET result='win', tp1_locked=1, tp2_locked=1
+                                SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
                                 WHERE signal_id=?
-                            ''', (row['signal_id'],))
+                            ''', (new_sl, row['signal_id']))
                         # فحص TP1
                         elif current_price <= tp1 and not tp1_locked:
                             needs_refresh = True
+                            current_sl = float(sl or entry or 0)
+                            if current_sl <= 0:
+                                current_sl = float(entry or 0)
+                            new_sl = min(current_sl, float(entry or 0))
                             c.execute('''
                                 UPDATE signals 
-                                SET result='win', tp1_locked=1
+                                SET result='win', tp1_locked=1, stop_loss=?
                                 WHERE signal_id=?
-                            ''', (row['signal_id'],))
+                            ''', (new_sl, row['signal_id']))
             except Exception as e:
                 print(f"Error checking status for {symbol}: {e}")
                 continue
         
         conn.commit()
         conn.close()
+
+        cleaned_count = archive_and_cleanup_closed_signals()
         
         return jsonify({
             'success': True,
-            'needs_refresh': needs_refresh
+            'needs_refresh': needs_refresh,
+            'cleaned_closed_trades': cleaned_count
         })
         
     except Exception as e:
@@ -2528,6 +5547,7 @@ def api_update_status():
 # ============== نهاية API للتحديث التلقائي ==============
 
 if __name__ == '__main__':
+    debug_mode = os.environ.get('APP_DEBUG', '0').strip().lower() in ('1', 'true', 'yes', 'on')
     banner = "=" * 60
     print(banner)
     print("VIP Signals Web Server - Login System")
@@ -2538,4 +5558,11 @@ if __name__ == '__main__':
     print("  http://localhost:5000/register")
     print(banner)
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    should_start_background = (os.environ.get('WERKZEUG_RUN_MAIN') == 'true') or (not debug_mode)
+    if should_start_background:
+        started, msg = start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+        print(f"[CONTINUOUS_ANALYZER] {msg}")
+        cleanup_started, cleanup_msg = start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
+        print(f"[CLEANUP_SCHEDULER] {cleanup_msg}")
+
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=debug_mode)

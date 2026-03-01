@@ -20,7 +20,7 @@ if errorlevel 1 (
 )
 
 echo Probing endpoints...
-curl -I -s -o nul -w "plans:%%{http_code}^\n" http://127.0.0.1:5000/plans
+curl -I -s -o nul -w "home:%%{http_code}^\n" http://127.0.0.1:5000/home
 curl -I -s -o nul -w "api_user:%%{http_code}^\n" http://127.0.0.1:5000/api/user
 
 endlocal

@@ -4,6 +4,16 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
+    {% set plan_labels = {
+        'bronze': 'برونزي',
+        'silver': 'فضي',
+        'gold': 'ذهبي VIP',
+        'platinum': 'بلاتيني VIP'
+    } %}
+    {% set plan_label = plan_labels.get(plan, plan_data.name) %}
+    {% set months = (plan_data.duration_days / 30) if plan_data.duration_days else 1 %}
+    {% set monthly_usd = (plan_data.price / months) if months else plan_data.price %}
+    {% set monthly_jod = (plan_data.price_jod / months) if months else plan_data.price_jod %}
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <!-- ملخص الطلب -->
@@ -12,18 +22,14 @@
                     <h4 class="mb-0"><i class="fas fa-shopping-cart"></i> ملخص الطلب</h4>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h5>خطة {{ plan_data.name }}</h5>
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-clock"></i> المدة: {{ plan_data.duration_days }} يوم
-                                <span class="mx-2">|</span>
-                                <i class="fas fa-signal"></i> الإشارات: {{ plan_data.signals }} يومياً
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <h3 class="text-primary mb-0">{{ plan_data.price_jod }} JOD</h3>
-                            <small class="text-muted">(≈ ${{ plan_data.price }})</small>
+                    <div class="alert alert-info text-center mb-0 selected-plan-summary">
+                        <h5 class="mb-2"><i class="fas fa-crown"></i> الخطة المختارة: {{ plan_label }}</h5>
+                        <div class="summary-chips">
+                            <span class="summary-chip">{{ plan_data.price_jod }} دينار إجمالي</span>
+                            <span class="summary-chip">{{ "%.2f"|format(monthly_jod) }} دينار / شهر</span>
+                            <span class="summary-chip">${{ "%.2f"|format(monthly_usd) }} / شهر</span>
+                            <span class="summary-chip">{{ plan_data.duration_days }} يوم</span>
+                            <span class="summary-chip">{{ plan_data.signals }} إشارات يوميًا</span>
                         </div>
                     </div>
                 </div>
@@ -43,8 +49,8 @@
                             <div class="payment-details text-center mb-4">
                                 <div class="alert alert-light border">
                                     <p class="mb-2"><strong>رقم الهاتف / الاسم المستعار:</strong></p>
-                                    <h4 class="text-primary mb-0">0796223334</h4>
-                                    <small class="text-muted">أو ابحث عن: GoldAnalyzer</small>
+                                    <h4 class="text-primary mb-0">{{ site_settings.payment_cliq_number }}</h4>
+                                    <small class="text-muted">أو ابحث عن: {{ site_settings.payment_cliq_alias }}</small>
                                 </div>
                                 
                                 <div class="qr-code-placeholder my-4">
@@ -60,8 +66,8 @@
                                 <ol class="ps-3">
                                     <li>افتح تطبيق البنك الخاص بك</li>
                                     <li>اختر خدمة CliQ</li>
-                                    <li>أدخل الرقم: <strong>0796223334</strong></li>
-                                    <li>أدخل المبلغ: <strong>{{ plan_data.price_jod }} JOD</strong></li>
+                                    <li>أدخل الرقم: <strong>{{ site_settings.payment_cliq_number }}</strong></li>
+                                    <li>أدخل المبلغ: <strong>{{ plan_data.price_jod }} دينار أردني</strong></li>
                                     <li>أكمل العملية واحتفظ بإيصال التحويل</li>
                                     <li>أدخل رقم العملية أدناه</li>
                                 </ol>
@@ -86,12 +92,12 @@
                             <div class="payment-details mb-4">
                                 <div class="alert alert-light border mb-3">
                                     <p class="mb-1"><strong>اسم المستفيد:</strong></p>
-                                    <p class="mb-0">Gold Analyzer Services</p>
+                                    <p class="mb-0">{{ site_settings.payment_account_name }}</p>
                                 </div>
                                 
                                 <div class="alert alert-light border mb-3">
                                     <p class="mb-1"><strong>رقم الحساب (IBAN):</strong></p>
-                                    <h6 class="mb-0 font-monospace">JO94CBJO0010000000000131000302</h6>
+                                    <h6 class="mb-0 font-monospace">{{ site_settings.payment_iban }}</h6>
                                     <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyIBAN()">
                                         <i class="fas fa-copy"></i> نسخ
                                     </button>
@@ -99,7 +105,7 @@
 
                                 <div class="alert alert-light border">
                                     <p class="mb-1"><strong>اسم البنك:</strong></p>
-                                    <p class="mb-0">البنك التجاري الأردني</p>
+                                    <p class="mb-0">{{ site_settings.payment_bank_name }}</p>
                                 </div>
                             </div>
 
@@ -107,7 +113,7 @@
                                 <h6 class="text-muted mb-3">خطوات الدفع:</h6>
                                 <ol class="ps-3">
                                     <li>قم بزيارة فرع البنك أو استخدم الخدمات الإلكترونية</li>
-                                    <li>قم بتحويل <strong>{{ plan_data.price_jod }} JOD</strong></li>
+                                    <li>قم بتحويل <strong>{{ plan_data.price_jod }} دينار أردني</strong></li>
                                     <li>إلى الحساب المذكور أعلاه</li>
                                     <li>احتفظ بإيصال التحويل</li>
                                     <li>أدخل رقم العملية أدناه</li>
@@ -149,7 +155,7 @@
 
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i>
-                            <strong>مهم:</strong> سيتم مراجعة طلبك خلال 1-24 ساعة. 
+                            <strong>مهم:</strong> سيتم مراجعة طلبك خلال 24 ساعة كحد أقصى.
                             ستصلك رسالة تأكيد على البريد الإلكتروني بعد التفعيل.
                         </div>
 
@@ -193,7 +199,7 @@ function selectPaymentMethod(method) {
 }
 
 function copyIBAN() {
-    const iban = "JO94CBJO0010000000000131000302";
+    const iban = document.getElementById('iban-value').value;
     navigator.clipboard.writeText(iban).then(() => {
         alert('تم نسخ رقم IBAN بنجاح!');
     });
@@ -208,6 +214,7 @@ document.getElementById('paymentForm').addEventListener('submit', async function
     }
     
     const transactionId = document.getElementById('transaction_id').value.trim();
+    const notes = document.getElementById('notes').value.trim();
     if(!transactionId) {
         alert('الرجاء إدخال رقم العملية');
         return;
@@ -227,10 +234,15 @@ document.getElementById('paymentForm').addEventListener('submit', async function
                 plan: '{{ plan }}',
                 location: 'jordan',
                 payment_method: selectedMethod,
-                transaction_id: transactionId
+                transaction_id: transactionId,
+                notes: notes
             })
         });
-        
+
+        if (!response.ok) {
+            throw new Error('HTTP_ERROR');
+        }
+
         const data = await response.json();
         
         if(data.success) {
@@ -248,6 +260,7 @@ document.getElementById('paymentForm').addEventListener('submit', async function
     }
 });
 </script>
+<input type="hidden" id="iban-value" value="{{ site_settings.payment_iban }}">
 
 <style>
 .payment-option {
@@ -276,6 +289,27 @@ document.getElementById('paymentForm').addEventListener('submit', async function
 
 .steps li {
     margin-bottom: 8px;
+}
+
+.selected-plan-summary {
+    border: 1px solid rgba(13, 110, 253, 0.2);
+}
+
+.summary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.summary-chip {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 </style>
 {% endblock %}

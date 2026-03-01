@@ -3,7 +3,7 @@ services:
     name: goldprofx
     env: python
     plan: free
-    healthCheckPath: /api/system-status
+    healthCheckPath: /healthz
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT"
     disks:

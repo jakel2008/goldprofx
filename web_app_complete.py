@@ -128,6 +128,11 @@ ADMIN_USERNAME = 'jakel2008'
 ADMIN_PASSWORD = 'JAKEL2008'
 
 
+@app.route('/healthz')
+def healthz():
+    return jsonify({'ok': True}), 200
+
+
 def _is_local_admin_session():
     return session.get('local_admin_username') == ADMIN_USERNAME
 

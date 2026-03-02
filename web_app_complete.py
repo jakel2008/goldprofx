@@ -1139,6 +1139,61 @@ def _analyze_and_generate_signal(symbol, interval='1h'):
     return signal_row
 
 
+def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
+    """إنشاء إشارة Bootstrap واحدة إذا كانت القاعدة فارغة لتفادي صفحة إشارات خالية."""
+    if _count_current_active_signals() > 0:
+        return None
+
+    normalized_symbol = str(symbol or 'XAUUSD').upper().replace('/', '')
+    live_price = get_live_price(normalized_symbol)
+    if not live_price:
+        return None
+
+    entry = float(live_price)
+    stop_loss = round(entry * 0.995, 6)
+    tp1 = round(entry * 1.003, 6)
+    tp2 = round(entry * 1.006, 6)
+    tp3 = round(entry * 1.009, 6)
+
+    if _signal_exists_recently(normalized_symbol, 'buy', timeframe, entry):
+        return None
+
+    rr_tp1 = _compute_risk_reward(entry, stop_loss, tp1)
+    signal_row = {
+        'symbol': normalized_symbol,
+        'signal_type': 'buy',
+        'entry_price': entry,
+        'stop_loss': stop_loss,
+        'take_profit_1': tp1,
+        'take_profit_2': tp2,
+        'take_profit_3': tp3,
+        'quality_score': max(40, int(MIN_SIGNAL_QUALITY_WHEN_EMPTY)),
+        'timeframe': timeframe,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'risk_reward_tp1': rr_tp1,
+        'confidence': 'bootstrap',
+        'score_gap': 0.0,
+        'volatility': 0.0,
+        'adaptive_mode': 'bootstrap_empty',
+        'adaptive_min_quality_score': int(MIN_SIGNAL_QUALITY_WHEN_EMPTY),
+        'adaptive_min_rr': float(MIN_SIGNAL_RR_WHEN_EMPTY),
+        'adaptive_max_volatility': float(MAX_SIGNAL_VOLATILITY_WHEN_EMPTY),
+        'adaptive_sample_size': 0,
+        'adaptive_win_rate': 0
+    }
+
+    signal_id = _insert_generated_signal(signal_row)
+    signal_row['signal_id'] = signal_id
+    signal_row['signal'] = 'buy'
+    signal_row['rec'] = 'BUY'
+    signal_row['sl'] = signal_row['stop_loss']
+    signal_row['tp1'] = signal_row['take_profit_1']
+    signal_row['tp2'] = signal_row['take_profit_2']
+    signal_row['tp3'] = signal_row['take_profit_3']
+    signal_row['entry'] = signal_row['entry_price']
+    return signal_row
+
+
 def _continuous_analyzer_loop():
     """حلقة التحليل والبث المستمر لجميع الأزواج المتاحة."""
     while CONTINUOUS_ANALYZER_STATE.get('running'):
@@ -1164,6 +1219,17 @@ def _continuous_analyzer_loop():
                     broadcast_count += int(send_result.get('sent_count', 0) or 0)
 
                 time.sleep(1)
+
+            if generated_count == 0 and _count_current_active_signals() == 0:
+                bootstrap_signal = _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h')
+                if bootstrap_signal:
+                    generated_count += 1
+                    send_result = telegram_sender.send_signal_to_subscribers(
+                        bootstrap_signal,
+                        quality_score=bootstrap_signal.get('quality_score', 50)
+                    )
+                    if isinstance(send_result, dict):
+                        broadcast_count += int(send_result.get('sent_count', 0) or 0)
 
             deduplicated_count = _deduplicate_signals_continuously()
             deduplicated_count += archive_and_cleanup_closed_signals()

@@ -1028,6 +1028,88 @@ def _insert_generated_signal(signal_row):
     return signal_id
 
 
+def _ensure_signal_payload_persisted(signal_payload, default_timeframe='1h'):
+    """حفظ حمولة إشارة مرسلة يدوياً/من توصية داخل قاعدة الإشارات لضمان ظهورها في الواجهة."""
+    try:
+        payload = signal_payload or {}
+        symbol = str(payload.get('symbol') or payload.get('pair') or '').upper().replace('/', '').strip()
+        if not symbol:
+            return None
+
+        signal_type = str(payload.get('signal') or payload.get('signal_type') or payload.get('rec') or '').lower().strip()
+        if signal_type not in ('buy', 'sell'):
+            return None
+
+        timeframe = str(payload.get('timeframe') or payload.get('tf') or default_timeframe or '1h').strip() or '1h'
+
+        entry = payload.get('entry')
+        if entry in (None, '', 0):
+            entry = payload.get('entry_price')
+        entry = float(entry or 0)
+        if entry <= 0:
+            return None
+
+        stop_loss = payload.get('sl')
+        if stop_loss in (None, '', 0):
+            stop_loss = payload.get('stop_loss')
+        stop_loss = float(stop_loss or 0)
+
+        tp1 = payload.get('tp1')
+        if tp1 in (None, '', 0):
+            tp1 = payload.get('take_profit_1')
+        tp1 = float(tp1 or 0)
+
+        tp2 = payload.get('tp2')
+        if tp2 in (None, '', 0):
+            tp2 = payload.get('take_profit_2')
+        tp2 = float(tp2 or 0)
+
+        tp3 = payload.get('tp3')
+        if tp3 in (None, '', 0):
+            tp3 = payload.get('take_profit_3')
+        tp3 = float(tp3 or 0)
+
+        if signal_type == 'buy':
+            if stop_loss <= 0:
+                stop_loss = round(entry * 0.995, 6)
+            if tp1 <= 0:
+                tp1 = round(entry * 1.003, 6)
+            if tp2 <= 0:
+                tp2 = round(entry * 1.006, 6)
+            if tp3 <= 0:
+                tp3 = round(entry * 1.009, 6)
+        else:
+            if stop_loss <= 0:
+                stop_loss = round(entry * 1.005, 6)
+            if tp1 <= 0:
+                tp1 = round(entry * 0.997, 6)
+            if tp2 <= 0:
+                tp2 = round(entry * 0.994, 6)
+            if tp3 <= 0:
+                tp3 = round(entry * 0.991, 6)
+
+        quality_score = int(payload.get('quality_score') or 75)
+
+        if _signal_exists_recently(symbol, signal_type, timeframe, entry):
+            return None
+
+        signal_row = {
+            'symbol': symbol,
+            'signal_type': signal_type,
+            'entry_price': float(entry),
+            'stop_loss': float(stop_loss),
+            'take_profit_1': float(tp1),
+            'take_profit_2': float(tp2),
+            'take_profit_3': float(tp3),
+            'quality_score': quality_score,
+            'timeframe': timeframe,
+            'timestamp': payload.get('timestamp') or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        return _insert_generated_signal(signal_row)
+    except Exception:
+        return None
+
+
 def _analyze_and_generate_signal(symbol, interval='1h'):
     """تحليل رمز واحد وتوليد إشارة إذا كانت صالحة وغير مكررة."""
     try:
@@ -4821,6 +4903,10 @@ def api_admin_send_signal():
 
         if signal_data is None:
             return jsonify({'success': False, 'error': 'Signal not found'}), 404
+
+        persisted_signal_id = _ensure_signal_payload_persisted(signal_data)
+        if persisted_signal_id:
+            signal_data['signal_id'] = persisted_signal_id
         
         # إرسال الإشارة إلى المشتركين
         result = telegram_sender.send_signal_to_subscribers(signal_data, signal_data.get('quality_score', 100))
@@ -4859,6 +4945,8 @@ def api_admin_send_recommendation():
         
         if not recommendation:
             return jsonify({'success': False, 'error': 'Recommendation not found'}), 404
+
+        _ensure_signal_payload_persisted(recommendation)
         
         # إرسال التوصية إلى المشتركين
         result = telegram_sender.send_recommendation_to_subscribers(recommendation)

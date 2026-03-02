@@ -2306,6 +2306,15 @@ def load_signals(include_closed=False):
             ''', (today,))
         
         rows = c.fetchall()
+        if (not rows) and (not include_closed):
+            c.execute('''
+                SELECT * FROM signals
+                WHERE DATE(created_at) >= ?
+                ORDER BY created_at DESC
+                LIMIT 20
+            ''', (start_date,))
+            rows = c.fetchall()
+
         for row in rows:
             symbol = row['symbol']
             signal_type = row['signal_type']

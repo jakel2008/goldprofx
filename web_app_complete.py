@@ -107,6 +107,10 @@ except ImportError:
     user_manager = user_manager_module.user_manager
 from email_service import email_service  # type: ignore
 import telegram_sender  # type: ignore
+try:
+    from telegram_command_bot import TelegramCommandBot  # type: ignore
+except Exception:
+    TelegramCommandBot = None  # type: ignore
 
 # استيراد قائمة الروابط المركزية
 import sys
@@ -126,6 +130,21 @@ app.secret_key = 'your-secret-key-change-this-to-random-string'
 
 ADMIN_USERNAME = 'jakel2008'
 ADMIN_PASSWORD = 'JAKEL2008'
+
+TELEGRAM_COMMAND_BOT_ENABLED = os.environ.get('TELEGRAM_COMMAND_BOT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+TELEGRAM_COMMAND_BOT = TelegramCommandBot(Path(__file__).parent) if TelegramCommandBot else None
+
+
+def start_telegram_command_bot():
+    """تشغيل بوت الأوامر في Thread مستقل بدون التأثير على الويب."""
+    if not TELEGRAM_COMMAND_BOT_ENABLED:
+        return False, 'telegram command bot disabled'
+    if TELEGRAM_COMMAND_BOT is None:
+        return False, 'telegram command bot module unavailable'
+    try:
+        return TELEGRAM_COMMAND_BOT.start()
+    except Exception as e:
+        return False, str(e)
 
 
 @app.route('/healthz')
@@ -357,6 +376,9 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
 SIGNALS_DIR = Path(__file__).parent / "signals"
 SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
 AUTO_BROADCAST_REGISTRY_FILE = Path(__file__).parent / "auto_broadcast_registry.json"
+AUTO_BROADCAST_RECENT_WINDOW_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')))
+AUTO_BROADCAST_RESEND_INTERVAL_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')))
+SIGNALS_LOOKBACK_DAYS = max(1, int(os.environ.get('SIGNALS_LOOKBACK_DAYS', '7')))
 RECOMMENDATIONS_DIR = Path(__file__).parent / "recommendations"
 ANALYSIS_DIR = Path(__file__).parent / "analysis"
 USER_PREFERENCES_FILE = Path(__file__).parent / "user_pairs_preferences.json"
@@ -1532,6 +1554,18 @@ def add_no_cache_headers(response):
     response.headers['Expires'] = '0'
     return response
 
+
+@app.before_request
+def ensure_telegram_command_bot_running():
+    """ضمان تشغيل بوت الأوامر مرة واحدة عند أول طلب (غير حاجب)."""
+    if not TELEGRAM_COMMAND_BOT_ENABLED:
+        return
+    if TELEGRAM_COMMAND_BOT is None:
+        return
+    if TELEGRAM_COMMAND_BOT.get_status().get('running'):
+        return
+    start_telegram_command_bot()
+
 # Decorator لصلاحيات الأدمن
 def admin_required(f):
     @wraps(f)
@@ -1553,6 +1587,32 @@ def admin_required(f):
             return redirect(url_for('home'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+
+
+@app.route('/api/admin/telegram-command-bot/status', methods=['GET'])
+@admin_required
+def api_telegram_command_bot_status():
+    if TELEGRAM_COMMAND_BOT is None:
+        return jsonify({'success': False, 'enabled': TELEGRAM_COMMAND_BOT_ENABLED, 'error': 'telegram command bot module unavailable'}), 500
+    return jsonify({'success': True, 'enabled': TELEGRAM_COMMAND_BOT_ENABLED, 'status': TELEGRAM_COMMAND_BOT.get_status()})
+
+
+@app.route('/api/admin/telegram-command-bot/start', methods=['POST'])
+@admin_required
+def api_telegram_command_bot_start():
+    ok, msg = start_telegram_command_bot()
+    return jsonify({'success': ok, 'message': msg, 'enabled': TELEGRAM_COMMAND_BOT_ENABLED, 'status': TELEGRAM_COMMAND_BOT.get_status() if TELEGRAM_COMMAND_BOT else None})
+
+
+@app.route('/api/admin/telegram-command-bot/stop', methods=['POST'])
+@admin_required
+def api_telegram_command_bot_stop():
+    if TELEGRAM_COMMAND_BOT is None:
+        return jsonify({'success': False, 'error': 'telegram command bot module unavailable'}), 500
+    ok, msg = TELEGRAM_COMMAND_BOT.stop()
+    return jsonify({'success': ok, 'message': msg, 'enabled': TELEGRAM_COMMAND_BOT_ENABLED, 'status': TELEGRAM_COMMAND_BOT.get_status()})
 
 
 def archive_and_cleanup_closed_signals():
@@ -1943,6 +2003,36 @@ def _signal_broadcast_key(row_dict):
     return f"{row_dict.get('symbol','')}_{row_dict.get('signal_type','')}_{row_dict.get('timeframe','1h')}_{row_dict.get('created_at','')}"
 
 
+def _parse_datetime_flexible(value):
+    if value in (None, ''):
+        return None
+    if isinstance(value, datetime):
+        return value
+    text = str(value).strip()
+    if not text:
+        return None
+    for candidate in (text, text.replace('T', ' ').replace('Z', '')):
+        try:
+            return datetime.fromisoformat(candidate)
+        except Exception:
+            pass
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d'):
+        try:
+            return datetime.strptime(text, fmt)
+        except Exception:
+            pass
+    return None
+
+
+def _should_resend_signal(registry_entry, now_dt):
+    if not isinstance(registry_entry, dict):
+        return True
+    synced_at = _parse_datetime_flexible(registry_entry.get('synced_at'))
+    if not synced_at:
+        return True
+    return (now_dt - synced_at) >= timedelta(minutes=AUTO_BROADCAST_RESEND_INTERVAL_MINUTES)
+
+
 def _build_signal_payload_from_row(row_dict):
     """تحويل سجل DB إلى حمولة إشارة موحدة للبث."""
     signal_type = str(row_dict.get('signal_type') or '').lower()
@@ -1975,29 +2065,32 @@ def _build_signal_payload_from_row(row_dict):
 
 
 def _sync_site_signals_to_active_bots(limit=30):
-    """مزامنة الإشارات الظاهرة بالموقع إلى البوتات/الأهداف النشطة (مرة واحدة لكل إشارة)."""
+    """مزامنة الإشارات الحديثة إلى البوتات/الأهداف النشطة مع إعادة بث دورية."""
     synced_count = 0
+    now_dt = datetime.now()
     registry = _load_auto_broadcast_registry()
 
     try:
         conn = sqlite3.connect('vip_signals.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('''
-            SELECT *
-            FROM signals
-            WHERE status = 'active'
-            ORDER BY created_at DESC
-            LIMIT ?
-        ''', (max(1, int(limit or 30)),))
+        c.execute("SELECT * FROM signals WHERE status = 'active' ORDER BY created_at DESC LIMIT ?", (max(1, int(limit or 30)),))
         rows = [dict(item) for item in c.fetchall()]
         conn.close()
     except Exception:
         rows = []
 
+    recent_threshold = now_dt - timedelta(minutes=AUTO_BROADCAST_RECENT_WINDOW_MINUTES)
+
     for row_dict in rows:
+        created_at_dt = _parse_datetime_flexible(row_dict.get('created_at'))
+        if created_at_dt and created_at_dt < recent_threshold:
+            continue
+
         key = _signal_broadcast_key(row_dict)
-        if not key or key in registry:
+        if not key:
+            continue
+        if key in registry and not _should_resend_signal(registry.get(key), now_dt):
             continue
 
         signal_data = _build_signal_payload_from_row(row_dict)
@@ -2010,20 +2103,18 @@ def _sync_site_signals_to_active_bots(limit=30):
         sent_total = int(subscribers_result.get('sent_count', 0) or 0) + int(targets_result.get('sent_count', 0) or 0)
         failed_total = int(subscribers_result.get('failed_count', 0) or 0) + int(targets_result.get('failed_count', 0) or 0)
 
-        if sent_total > 0 or failed_total >= 0:
-            registry[key] = {
-                'synced_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'symbol': signal_data.get('symbol'),
-                'timeframe': signal_data.get('timeframe'),
-                'quality_score': quality_score,
-                'sent_count': sent_total,
-                'failed_count': failed_total
-            }
-            synced_count += 1
+        registry[key] = {
+            'synced_at': now_dt.strftime('%Y-%m-%d %H:%M:%S'),
+            'symbol': signal_data.get('symbol'),
+            'timeframe': signal_data.get('timeframe'),
+            'quality_score': quality_score,
+            'sent_count': sent_total,
+            'failed_count': failed_total
+        }
+        synced_count += 1
 
     _save_auto_broadcast_registry(registry)
     return synced_count
-
 
 def _cleanup_scheduler_loop():
     """جدولة بروتوكول التنظيف بشكل دوري."""
@@ -2092,23 +2183,23 @@ def load_signals(include_closed=False):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
 
-        # جلب الإشارات من اليوم
-        today = datetime.now().strftime('%Y-%m-%d')
+        # جلب الإشارات من نافذة زمنية حديثة بدلاً من يوم واحد فقط
+        start_date = (datetime.now() - timedelta(days=SIGNALS_LOOKBACK_DAYS)).strftime('%Y-%m-%d')
         if include_closed:
             c.execute('''
                 SELECT * FROM signals
-                WHERE DATE(created_at) = ?
+                WHERE DATE(created_at) >= ?
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (today,))
+            ''', (start_date,))
         else:
             c.execute('''
                 SELECT * FROM signals
-                WHERE DATE(created_at) = ?
+                WHERE DATE(created_at) >= ?
                   AND status = 'active'
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (today,))
+            ''', (start_date,))
         
         rows = c.fetchall()
         for row in rows:
@@ -2412,7 +2503,7 @@ def load_admin_recent_signals(limit=5):
             SELECT signal_id, symbol, signal_type, entry_price, stop_loss,
                    take_profit_1, quality_score, timeframe, created_at
             FROM signals
-            WHERE DATE(created_at) = ?
+            WHERE DATE(created_at) >= ?
               AND status = 'active'
             ORDER BY created_at DESC
             LIMIT ?
@@ -2458,9 +2549,9 @@ def count_active_signals_today():
         c.execute('''
             SELECT COUNT(*)
             FROM signals
-            WHERE DATE(created_at) = ?
+            WHERE DATE(created_at) >= ?
               AND status = 'active'
-        ''', (today,))
+        ''', (start_date,))
         count = int((c.fetchone() or [0])[0] or 0)
         conn.close()
         return count
@@ -3272,6 +3363,37 @@ def home():
                          user=user_info)
 
 
+def _filter_signals_for_user(signals, user_info):
+    """فلترة الإشارات حسب الخطة مع fallback لتجنب الصفحة الفارغة."""
+    if not isinstance(signals, list):
+        return []
+
+    quality_threshold = {
+        'free': 90,
+        'bronze': 80,
+        'silver': 70,
+        'gold': 60,
+        'platinum': 50
+    }
+
+    username = (user_info or {}).get('username', '') if isinstance(user_info, dict) else ''
+    if username == 'jakel2008':
+        return signals
+
+    if isinstance(user_info, dict) and user_info.get('success'):
+        plan = user_info.get('plan', 'free')
+        threshold = quality_threshold.get(plan, 90)
+        filtered = [s for s in signals if (s.get('quality_score') or 0) >= threshold]
+    else:
+        filtered = [s for s in signals if (s.get('quality_score') or 0) >= 90]
+
+    if filtered:
+        return filtered
+
+    ranked = sorted(signals, key=lambda s: (s.get('quality_score') or 0), reverse=True)
+    return ranked[:10]
+
+
 @app.route('/signals')
 def signals():
     """صفحة الإشارات - تتطلب تسجيل الدخول"""
@@ -3282,25 +3404,7 @@ def signals():
         return redirect(url_for('login'))
     
     signals = load_signals()
-    
-    # فلترة الإشارات حسب الخطة (إلا إذا كان الأدمن jakel2008)
-    username = user_info.get('username', '')
-    
-    # الأدمن jakel2008 يرى كل الإشارات
-    if username == 'jakel2008':
-        filtered_signals = signals
-    else:
-        # فلترة حسب خطة المستخدم
-        plan = user_info.get('plan', 'free')
-        quality_threshold = {
-            'free': 90,
-            'bronze': 80,
-            'silver': 70,
-            'gold': 60,
-            'platinum': 50
-        }
-        threshold = quality_threshold.get(plan, 90)
-        filtered_signals = [s for s in signals if s.get('quality_score', 0) >= threshold]
+    filtered_signals = _filter_signals_for_user(signals, user_info)
     
     return render_template('signals_gold_card.html', 
                          signals=filtered_signals,
@@ -3707,29 +3811,8 @@ def api_signals():
     """API لجلب الإشارات"""
     signals = load_signals()
     user_info = get_current_user()
-    
-    # فلترة الإشارات حسب الخطة (إلا إذا كان الأدمن jakel2008)
-    username = user_info.get('username', '') if user_info['success'] else ''
-    
-    # الأدمن jakel2008 يرى كل الإشارات
-    if username == 'jakel2008':
-        filtered_signals = signals
-    elif user_info['success']:
-        # فلترة حسب خطة المستخدم
-        plan = user_info.get('plan', 'free')
-        quality_threshold = {
-            'free': 90,
-            'bronze': 80,
-            'silver': 70,
-            'gold': 60,
-            'platinum': 50
-        }
-        threshold = quality_threshold.get(plan, 90)
-        filtered_signals = [s for s in signals if s.get('quality_score', 0) >= threshold]
-    else:
-        # المستخدمين غير المسجلين يرون فقط الإشارات عالية الجودة
-        filtered_signals = [s for s in signals if s.get('quality_score', 0) >= 90]
-    
+    filtered_signals = _filter_signals_for_user(signals, user_info)
+
     return jsonify(filtered_signals)
 
 
@@ -3900,11 +3983,90 @@ def admin():
     """توافق مع الروابط القديمة: تحويل إلى لوحة الإدارة الموحدة"""
     return redirect(url_for('admin_panel'))
 
+def _collect_admin_users_merged(limit=2000):
+    """دمج المستخدمين من users.db و vip_subscriptions.db لإظهار كامل المستخدمين."""
+    merged = {}
+    safe_limit = max(1, int(limit or 2000))
+
+    try:
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT id, username, email, full_name, plan, created_at, is_admin, is_active
+            FROM users
+            ORDER BY created_at DESC
+            LIMIT ?
+        ''', (safe_limit,))
+        for row in c.fetchall():
+            item = dict(row)
+            key = str(item.get('id') or '').strip() or str(item.get('username') or '').strip().lower()
+            if not key:
+                continue
+            merged[key] = {
+                'id': item.get('id'),
+                'user_id': item.get('id'),
+                'username': item.get('username'),
+                'email': item.get('email'),
+                'full_name': item.get('full_name'),
+                'plan': item.get('plan') or 'free',
+                'status': 'active' if int(item.get('is_active') or 0) == 1 else 'inactive',
+                'created_at': item.get('created_at'),
+                'is_admin': int(item.get('is_admin') or 0),
+                'is_active': int(item.get('is_active') or 0),
+                'source': 'users.db'
+            }
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = sqlite3.connect('vip_subscriptions.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('PRAGMA table_info(users)')
+        cols = {r[1] for r in c.fetchall()}
+        q_cols = [x for x in ['user_id', 'username', 'email', 'plan', 'status', 'subscription_end', 'chat_id', 'telegram_id', 'created_at'] if x in cols]
+        if q_cols and 'user_id' in cols:
+            c.execute(f"SELECT {', '.join(q_cols)} FROM users ORDER BY user_id DESC LIMIT ?", (safe_limit,))
+            for row in c.fetchall():
+                item = dict(row)
+                uid = item.get('user_id')
+                username = item.get('username')
+                key = str(uid or '').strip() or str(username or '').strip().lower()
+                if not key:
+                    continue
+                existing = merged.get(key, {})
+                merged[key] = {
+                    'id': existing.get('id') if existing else uid,
+                    'user_id': uid,
+                    'username': username or existing.get('username'),
+                    'email': item.get('email') or existing.get('email'),
+                    'full_name': existing.get('full_name'),
+                    'plan': item.get('plan') or existing.get('plan') or 'free',
+                    'status': item.get('status') or existing.get('status') or 'unknown',
+                    'created_at': item.get('created_at') or existing.get('created_at') or item.get('subscription_end'),
+                    'is_admin': int(existing.get('is_admin') or 0),
+                    'is_active': int(existing.get('is_active') or (1 if str(item.get('status') or '').lower() in ('active', 'trial') else 0)),
+                    'subscription_end': item.get('subscription_end'),
+                    'chat_id': item.get('chat_id'),
+                    'telegram_id': item.get('telegram_id'),
+                    'source': 'users.db+vip_subscriptions.db' if existing else 'vip_subscriptions.db'
+                }
+        conn.close()
+    except Exception:
+        pass
+
+    users = list(merged.values())
+    users.sort(key=lambda u: (_parse_datetime_flexible(u.get('created_at')) or datetime.min), reverse=True)
+    return users
+
+
 # ======= Admin APIs =======
 @app.route('/api/admin/users')
 @admin_required
 def api_admin_users():
-    users = user_manager.list_users()
+    users = _collect_admin_users_merged(limit=2000)
     return jsonify({'success': True, 'users': users})
 
 @app.route('/api/admin/set_admin', methods=['POST'])
@@ -4732,26 +4894,7 @@ def admin_management():
 def get_all_users():
     """الحصول على جميع المستخدمين"""
     try:
-        conn = sqlite3.connect('users.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, username, email, full_name, plan, created_at, is_admin, is_active
-            FROM users
-            ORDER BY created_at DESC
-        ''')
-        users = []
-        for row in cursor.fetchall():
-            users.append({
-                'id': row[0],
-                'username': row[1],
-                'email': row[2],
-                'full_name': row[3],
-                'plan': row[4],
-                'created_at': row[5],
-                'is_admin': row[6],
-                'is_active': row[7]
-            })
-        conn.close()
+        users = _collect_admin_users_merged(limit=5000)
         return jsonify({'success': True, 'users': users})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -5491,9 +5634,9 @@ def api_update_prices():
             SELECT signal_id, symbol, signal_type, entry_price, stop_loss, 
                    take_profit_1, take_profit_2, take_profit_3, status
             FROM signals 
-            WHERE DATE(created_at) = ? AND status = 'active'
+            WHERE DATE(created_at) >= ? AND status = 'active'
             ORDER BY created_at DESC
-        ''', (today,))
+        ''', (start_date,))
         
         rows = c.fetchall()
         signals_data = []
@@ -5560,8 +5703,8 @@ def api_update_status():
                    take_profit_1, take_profit_2, take_profit_3, status,
                    tp1_locked, tp2_locked, tp3_locked
             FROM signals 
-            WHERE DATE(created_at) = ? AND status = 'active'
-        ''', (today,))
+            WHERE DATE(created_at) >= ? AND status = 'active'
+        ''', (start_date,))
         
         rows = c.fetchall()
         needs_refresh = False
@@ -5711,6 +5854,8 @@ if __name__ == '__main__':
         print(f"[CONTINUOUS_ANALYZER] {msg}")
         cleanup_started, cleanup_msg = start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
         print(f"[CLEANUP_SCHEDULER] {cleanup_msg}")
+        cmd_started, cmd_msg = start_telegram_command_bot()
+        print(f"[TELEGRAM_COMMAND_BOT] {cmd_msg}")
 
     app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=debug_mode)
 

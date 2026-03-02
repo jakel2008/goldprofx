@@ -5,7 +5,7 @@
       "name": "TG Test",
       "platform": "telegram",
       "enabled": true,
-      "chat_id": "@test_channel",
+      "chat_id": "7657829546",
       "bot_mode": "all_active"
     },
     {

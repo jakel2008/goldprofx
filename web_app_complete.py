@@ -2295,7 +2295,7 @@ def load_signals(include_closed=False):
                 WHERE DATE(created_at) >= ?
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (today,))
+            ''', (start_date,))
         else:
             c.execute('''
                 SELECT * FROM signals
@@ -2303,7 +2303,7 @@ def load_signals(include_closed=False):
                   AND status = 'active'
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (today,))
+            ''', (start_date,))
         
         rows = c.fetchall()
         if (not rows) and (not include_closed):

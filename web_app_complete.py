@@ -133,6 +133,8 @@ ADMIN_PASSWORD = 'JAKEL2008'
 
 TELEGRAM_COMMAND_BOT_ENABLED = os.environ.get('TELEGRAM_COMMAND_BOT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 TELEGRAM_COMMAND_BOT = TelegramCommandBot(Path(__file__).parent) if TelegramCommandBot else None
+BACKGROUND_SERVICES_ENABLED = os.environ.get('BACKGROUND_SERVICES_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+BACKGROUND_SERVICES_BOOTSTRAPPED = False
 
 
 def start_telegram_command_bot():
@@ -1556,15 +1558,32 @@ def add_no_cache_headers(response):
 
 
 @app.before_request
-def ensure_telegram_command_bot_running():
-    """ضمان تشغيل بوت الأوامر مرة واحدة عند أول طلب (غير حاجب)."""
-    if not TELEGRAM_COMMAND_BOT_ENABLED:
+def ensure_background_services_running():
+    """ضمان تشغيل خدمات الخلفية عند العمل عبر WSGI (مثل Render/Gunicorn)."""
+    global BACKGROUND_SERVICES_BOOTSTRAPPED
+
+    if not BACKGROUND_SERVICES_ENABLED:
         return
-    if TELEGRAM_COMMAND_BOT is None:
+    if BACKGROUND_SERVICES_BOOTSTRAPPED:
         return
-    if TELEGRAM_COMMAND_BOT.get_status().get('running'):
-        return
-    start_telegram_command_bot()
+
+    try:
+        start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+    except Exception:
+        pass
+
+    try:
+        start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
+    except Exception:
+        pass
+
+    try:
+        if TELEGRAM_COMMAND_BOT_ENABLED and TELEGRAM_COMMAND_BOT is not None:
+            start_telegram_command_bot()
+    except Exception:
+        pass
+
+    BACKGROUND_SERVICES_BOOTSTRAPPED = True
 
 # Decorator لصلاحيات الأدمن
 def admin_required(f):

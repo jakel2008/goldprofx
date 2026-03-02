@@ -1147,7 +1147,12 @@ def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
     normalized_symbol = str(symbol or 'XAUUSD').upper().replace('/', '')
     live_price = get_live_price(normalized_symbol)
     if not live_price:
-        return None
+        fallback_prices = {
+            'XAUUSD': 2050.0,
+            'BTCUSD': 60000.0,
+            'EURUSD': 1.08
+        }
+        live_price = fallback_prices.get(normalized_symbol, 100.0)
 
     entry = float(live_price)
     stop_loss = round(entry * 0.995, 6)

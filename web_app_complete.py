@@ -505,6 +505,10 @@ CONTINUOUS_ANALYZER_INTERVAL_DEFAULT = int(os.environ.get('CONTINUOUS_ANALYZER_I
 MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '55'))
 MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.0'))
 MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '4.2'))
+RELAX_SIGNAL_FILTERS_WHEN_EMPTY = os.environ.get('RELAX_SIGNAL_FILTERS_WHEN_EMPTY', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+MIN_SIGNAL_QUALITY_WHEN_EMPTY = int(os.environ.get('MIN_SIGNAL_QUALITY_WHEN_EMPTY', '35'))
+MIN_SIGNAL_RR_WHEN_EMPTY = float(os.environ.get('MIN_SIGNAL_RR_WHEN_EMPTY', '0.5'))
+MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_WHEN_EMPTY', '8.0'))
 CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
 
 CONTINUOUS_ANALYZER_STATE = {
@@ -1073,19 +1077,29 @@ def _analyze_and_generate_signal(symbol, interval='1h'):
     min_rr = float(adaptive_thresholds.get('min_rr', MIN_SIGNAL_RR))
     max_volatility = float(adaptive_thresholds.get('max_volatility', MAX_SIGNAL_VOLATILITY))
 
+    active_signals_now = _count_current_active_signals()
+    relaxed_mode = bool(RELAX_SIGNAL_FILTERS_WHEN_EMPTY and active_signals_now <= 0)
+    effective_min_quality = min_quality_score
+    effective_min_rr = min_rr
+    effective_max_volatility = max_volatility
+    if relaxed_mode:
+        effective_min_quality = min(min_quality_score, int(MIN_SIGNAL_QUALITY_WHEN_EMPTY))
+        effective_min_rr = min(min_rr, float(MIN_SIGNAL_RR_WHEN_EMPTY))
+        effective_max_volatility = max(max_volatility, float(MAX_SIGNAL_VOLATILITY_WHEN_EMPTY))
+
     rr_tp1 = _compute_risk_reward(entry_price, stop_loss, take_profit_1)
-    if rr_tp1 < min_rr:
+    if rr_tp1 < effective_min_rr:
         return None
 
     quality_score = _calculate_quality_score(result)
-    if quality_score < min_quality_score:
+    if quality_score < effective_min_quality:
         return None
 
     try:
         volatility = float(result.get('volatility') or 0)
     except Exception:
         volatility = 0.0
-    if volatility > max_volatility and quality_score < 90:
+    if volatility > effective_max_volatility and quality_score < 90:
         return None
 
     if _signal_exists_recently(normalized_symbol, signal_type, interval, entry_price):
@@ -1106,10 +1120,10 @@ def _analyze_and_generate_signal(symbol, interval='1h'):
         'confidence': str(result.get('confidence') or ''),
         'score_gap': float(result.get('score_gap') or 0),
         'volatility': volatility,
-        'adaptive_mode': adaptive_thresholds.get('mode'),
-        'adaptive_min_quality_score': min_quality_score,
-        'adaptive_min_rr': min_rr,
-        'adaptive_max_volatility': max_volatility,
+        'adaptive_mode': ('relaxed_empty' if relaxed_mode else adaptive_thresholds.get('mode')),
+        'adaptive_min_quality_score': effective_min_quality,
+        'adaptive_min_rr': effective_min_rr,
+        'adaptive_max_volatility': effective_max_volatility,
         'adaptive_sample_size': adaptive_thresholds.get('sample_size', 0),
         'adaptive_win_rate': adaptive_thresholds.get('win_rate', 0)
     }
@@ -2210,7 +2224,7 @@ def load_signals(include_closed=False):
                 WHERE DATE(created_at) >= ?
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (start_date,))
+            ''', (today,))
         else:
             c.execute('''
                 SELECT * FROM signals
@@ -2218,7 +2232,7 @@ def load_signals(include_closed=False):
                   AND status = 'active'
                 ORDER BY created_at DESC
                 LIMIT 50
-            ''', (start_date,))
+            ''', (today,))
         
         rows = c.fetchall()
         for row in rows:
@@ -2559,6 +2573,19 @@ def load_admin_recent_signals(limit=5):
         return []
 
 
+def _count_current_active_signals():
+    """عدّ الإشارات النشطة حالياً بغض النظر عن التاريخ."""
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM signals WHERE status = 'active'")
+        count = int((c.fetchone() or [0])[0] or 0)
+        conn.close()
+        return count
+    except Exception:
+        return 0
+
+
 def count_active_signals_today():
     """عدّ الإشارات النشطة بسرعة من قاعدة البيانات بدون تتبع أسعار."""
     try:
@@ -2570,7 +2597,7 @@ def count_active_signals_today():
             FROM signals
             WHERE DATE(created_at) >= ?
               AND status = 'active'
-        ''', (start_date,))
+        ''', (today,))
         count = int((c.fetchone() or [0])[0] or 0)
         conn.close()
         return count
@@ -5655,7 +5682,7 @@ def api_update_prices():
             FROM signals 
             WHERE DATE(created_at) >= ? AND status = 'active'
             ORDER BY created_at DESC
-        ''', (start_date,))
+        ''', (today,))
         
         rows = c.fetchall()
         signals_data = []
@@ -5723,7 +5750,7 @@ def api_update_status():
                    tp1_locked, tp2_locked, tp3_locked
             FROM signals 
             WHERE DATE(created_at) >= ? AND status = 'active'
-        ''', (start_date,))
+        ''', (today,))
         
         rows = c.fetchall()
         needs_refresh = False

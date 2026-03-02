@@ -132,3 +132,8 @@ goldprofx/
 
 # Build artifacts
 *.spec
+
+# Runtime cache/state (auto-generated)
+auto_broadcast_registry.json
+telegram_command_bot_state.json
+cache/market_data/*.csv

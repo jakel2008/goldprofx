@@ -5855,6 +5855,30 @@ def api_update_status():
 
 # ============== نهاية API للتحديث التلقائي ==============
 
+
+def _auto_start_background_services_for_wsgi():
+    """تشغيل خدمات الخلفية تلقائياً عند الاستيراد عبر WSGI (مثل Render/Gunicorn)."""
+    if __name__ == '__main__':
+        return
+    if not BACKGROUND_SERVICES_ENABLED:
+        return
+    try:
+        start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+    except Exception:
+        pass
+    try:
+        start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
+    except Exception:
+        pass
+    try:
+        if TELEGRAM_COMMAND_BOT_ENABLED and TELEGRAM_COMMAND_BOT is not None:
+            start_telegram_command_bot()
+    except Exception:
+        pass
+
+
+_auto_start_background_services_for_wsgi()
+
 if __name__ == '__main__':
     debug_mode = os.environ.get('APP_DEBUG', '0').strip().lower() in ('1', 'true', 'yes', 'on')
     banner = "=" * 60

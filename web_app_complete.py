@@ -1141,7 +1141,7 @@ def _analyze_and_generate_signal(symbol, interval='1h'):
 
 def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
     """إنشاء إشارة Bootstrap واحدة إذا كانت القاعدة فارغة لتفادي صفحة إشارات خالية."""
-    if _count_current_active_signals() > 0:
+    if _count_recent_active_signals() > 0:
         return None
 
     normalized_symbol = str(symbol or 'XAUUSD').upper().replace('/', '')
@@ -1225,7 +1225,7 @@ def _continuous_analyzer_loop():
 
                 time.sleep(1)
 
-            if generated_count == 0 and _count_current_active_signals() == 0:
+            if generated_count == 0 and _count_recent_active_signals() == 0:
                 bootstrap_signal = _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h')
                 if bootstrap_signal:
                     generated_count += 1
@@ -2650,6 +2650,22 @@ def _count_current_active_signals():
         conn = sqlite3.connect('vip_signals.db')
         c = conn.cursor()
         c.execute("SELECT COUNT(*) FROM signals WHERE status = 'active'")
+        count = int((c.fetchone() or [0])[0] or 0)
+        conn.close()
+        return count
+    except Exception:
+        return 0
+
+
+def _count_recent_active_signals(days=None):
+    """عدّ الإشارات النشطة ضمن نافذة العرض الحالية."""
+    try:
+        lookback_days = int(days if days is not None else SIGNALS_LOOKBACK_DAYS)
+        lookback_days = max(1, lookback_days)
+        start_date = (datetime.now() - timedelta(days=lookback_days)).strftime('%Y-%m-%d')
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM signals WHERE DATE(created_at) >= ? AND status = 'active'", (start_date,))
         count = int((c.fetchone() or [0])[0] or 0)
         conn.close()
         return count

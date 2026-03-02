@@ -2306,6 +2306,7 @@ def load_signals(include_closed=False):
             ''', (start_date,))
         
         rows = c.fetchall()
+        allow_recent_any = False
         if (not rows) and (not include_closed):
             c.execute('''
                 SELECT * FROM signals
@@ -2314,6 +2315,7 @@ def load_signals(include_closed=False):
                 LIMIT 20
             ''', (start_date,))
             rows = c.fetchall()
+            allow_recent_any = bool(rows)
 
         for row in rows:
             symbol = row['symbol']
@@ -2594,7 +2596,7 @@ def load_signals(include_closed=False):
                 )
             }
 
-            if include_closed or signal_obj.get('status') == 'active':
+            if include_closed or signal_obj.get('status') == 'active' or allow_recent_any:
                 signals.append(signal_obj)
         
         conn.close()

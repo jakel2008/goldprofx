@@ -11,6 +11,7 @@ links = [
     {"name": "التعليم", "url": "/tutorials", "icon": "🎓", "auth": True},
     {"name": "اختيار الأزواج", "url": "/pairs-selection", "icon": "🎯"},
     {"name": "الملف الشخصي", "url": "/profile", "icon": "👤"},
+    {"name": "التحكم المركزي", "url": "/master-dashboard", "icon": "🛠️", "auth": True},
 
     # روابط الأدمن فقط
     {"name": "لوحة الأدمن", "url": "/admin-panel", "icon": "🔐", "admin": True},

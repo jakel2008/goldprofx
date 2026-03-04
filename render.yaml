@@ -21,6 +21,10 @@ services:
         value: "1"
       - key: APP_DEBUG
         value: "0"
+      - key: DELIVERY_REPORT_DAILY_TIME
+        value: "23:55"
+      - key: DELIVERY_REPORT_CHECK_INTERVAL_SECONDS
+        value: "30"
       - key: MM_TELEGRAM_BOT_TOKEN
         sync: false
       - key: MM_TELEGRAM_CHAT_ID

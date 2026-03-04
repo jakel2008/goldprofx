@@ -6,6 +6,7 @@ import os
 import importlib
 import requests
 import json
+import sqlite3
 from pathlib import Path
 from datetime import datetime
 try:
@@ -30,6 +31,58 @@ BROADCAST_TARGETS_FILE = Path(__file__).parent / "broadcast_targets.json"
 SITE_SETTINGS_FILE = Path(__file__).parent / "site_settings.json"
 
 subscription_manager = SubscriptionManager()
+
+
+def _ensure_delivery_audit_table():
+    try:
+        db_path = getattr(subscription_manager, 'db_path', 'vip_subscriptions.db')
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS delivery_audit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                plan TEXT,
+                content_type TEXT,
+                quality_score INTEGER,
+                quality_bucket TEXT,
+                status TEXT,
+                reason TEXT,
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def _log_delivery_audit(user_id, plan, content_type, quality_score, quality_bucket, status, reason=''):
+    try:
+        db_path = getattr(subscription_manager, 'db_path', 'vip_subscriptions.db')
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO delivery_audit
+            (user_id, plan, content_type, quality_score, quality_bucket, status, reason, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            int(user_id) if user_id is not None else None,
+            str(plan or ''),
+            str(content_type or ''),
+            int(quality_score) if quality_score is not None else None,
+            str(quality_bucket or ''),
+            str(status or ''),
+            str(reason or ''),
+            datetime.now().isoformat()
+        ))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+_ensure_delivery_audit_table()
 
 
 def load_bots_config():
@@ -200,6 +253,26 @@ def send_broadcast_to_configured_targets(text, parse_mode='HTML'):
         'details': []
     }
 
+    # Fallback مهم للإنتاج: إذا لا توجد أهداف بث مفعلة،
+    # نرسل إلى chat id الافتراضي من البيئة حتى لا يتوقف النشر بالكامل.
+    if not enabled_targets:
+        fallback_chat_id = str(os.environ.get('MM_TELEGRAM_CHAT_ID', '') or '').strip()
+        if fallback_chat_id:
+            fallback_result = send_telegram_message(fallback_chat_id, text, parse_mode=parse_mode)
+            sent = 1 if fallback_result.get('success') else 0
+            failed = 0 if fallback_result.get('success') else 1
+            results['sent_count'] += sent
+            results['failed_count'] += failed
+            results['details'].append({
+                'name': 'MM_TELEGRAM_CHAT_ID',
+                'platform': 'telegram_fallback',
+                'success': bool(fallback_result.get('success', False)),
+                'sent_count': sent,
+                'failed_count': failed,
+                'error': fallback_result.get('error')
+            })
+        return results
+
     for target in enabled_targets:
         platform = str(target.get('platform') or target.get('type') or 'telegram').strip().lower()
         name = str(target.get('name') or platform)
@@ -357,6 +430,7 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
                         'status': 'skipped_quality',
                         'reason': f'min_quality={min_quality}, signal_quality={quality_score}'
                     })
+                    _log_delivery_audit(user_id, plan, 'signal', quality_score, signal_quality_bucket, 'skipped_quality', f'min_quality={min_quality}, signal_quality={quality_score}')
                     continue
 
                 # احترام الحد اليومي من نظام الاشتراكات
@@ -368,6 +442,7 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
                         'status': 'skipped_plan_limit',
                         'reason': reason
                     })
+                    _log_delivery_audit(user_id, plan, 'signal', quality_score, signal_quality_bucket, 'skipped_plan_limit', reason)
                     continue
                 
                 # إرسال الرسالة عبر البوتات الفعالة (توزيع بالتناوب)
@@ -382,6 +457,7 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
                         'plan': plan,
                         'status': 'sent'
                     })
+                    _log_delivery_audit(user_id, plan, 'signal', quality_score, signal_quality_bucket, 'sent', '')
                 else:
                     results['failed_count'] += 1
                     results['details'].append({
@@ -390,6 +466,7 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
                         'status': 'failed',
                         'error': result.get('error', 'Unknown error')
                     })
+                    _log_delivery_audit(user_id, plan, 'signal', quality_score, signal_quality_bucket, 'failed', result.get('error', 'Unknown error'))
                     
             except Exception as e:
                 results['failed_count'] += 1
@@ -398,6 +475,7 @@ def send_signal_to_subscribers(signal_data, quality_score=100):
                     'status': 'error',
                     'error': str(e)
                 })
+                _log_delivery_audit(user_id if 'user_id' in locals() else None, plan if 'plan' in locals() else '', 'signal', quality_score, signal_quality_bucket, 'error', str(e))
         
         return results
         
@@ -427,28 +505,99 @@ def send_recommendation_to_subscribers(recommendation_data):
         bot_tokens = _get_active_bot_tokens()
 
         sent_counter = 0
+
+        plan_quality_threshold = {
+            'free': 90,
+            'bronze': 80,
+            'silver': 70,
+            'gold': 60,
+            'platinum': 50
+        }
+
+        quality_score = 85
+        try:
+            quality_score = int(
+                recommendation_data.get('quality_score')
+                or recommendation_data.get('quality')
+                or recommendation_data.get('confidence')
+                or 85
+            )
+        except Exception:
+            quality_score = 85
+
+        signal_quality_bucket = 'high'
+        if quality_score < 70:
+            signal_quality_bucket = 'low'
+        elif quality_score < 85:
+            signal_quality_bucket = 'medium'
         
         for user_data in subscribers:
             try:
                 if isinstance(user_data, dict):
                     user_id = user_data.get('user_id')
+                    plan = user_data.get('plan', 'free')
+                    chat_id = user_data.get('chat_id') or user_data.get('telegram_id') or user_id
                 else:
                     user_id = user_data[0]
+                    plan = user_data[1] if len(user_data) > 1 else 'free'
+                    chat_id = user_id
                 
                 if not user_id:
                     continue
+
+                min_quality = plan_quality_threshold.get(plan, 90)
+                if quality_score < min_quality:
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'skipped_quality',
+                        'reason': f'min_quality={min_quality}, rec_quality={quality_score}'
+                    })
+                    _log_delivery_audit(user_id, plan, 'recommendation', quality_score, signal_quality_bucket, 'skipped_quality', f'min_quality={min_quality}, rec_quality={quality_score}')
+                    continue
+
+                can_receive, reason = subscription_manager.can_receive_signal(user_id, signal_quality_bucket)
+                if not can_receive:
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'skipped_plan_limit',
+                        'reason': reason
+                    })
+                    _log_delivery_audit(user_id, plan, 'recommendation', quality_score, signal_quality_bucket, 'skipped_plan_limit', reason)
+                    continue
                 
                 selected_token = bot_tokens[sent_counter % len(bot_tokens)] if bot_tokens else None
-                result = send_telegram_message(user_id, message, bot_token=selected_token)
+                result = send_telegram_message(chat_id, message, bot_token=selected_token)
                 
                 if result['success']:
                     sent_counter += 1
                     results['sent_count'] += 1
+                    subscription_manager.log_signal_sent(user_id, recommendation_data, signal_quality_bucket)
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'sent'
+                    })
+                    _log_delivery_audit(user_id, plan, 'recommendation', quality_score, signal_quality_bucket, 'sent', '')
                 else:
                     results['failed_count'] += 1
+                    results['details'].append({
+                        'user_id': user_id,
+                        'plan': plan,
+                        'status': 'failed',
+                        'error': result.get('error', 'Unknown error')
+                    })
+                    _log_delivery_audit(user_id, plan, 'recommendation', quality_score, signal_quality_bucket, 'failed', result.get('error', 'Unknown error'))
                     
             except Exception as e:
                 results['failed_count'] += 1
+                results['details'].append({
+                    'user_id': user_id if 'user_id' in locals() else 'unknown',
+                    'status': 'error',
+                    'error': str(e)
+                })
+                _log_delivery_audit(user_id if 'user_id' in locals() else None, plan if 'plan' in locals() else '', 'recommendation', quality_score, signal_quality_bucket, 'error', str(e))
         
         return results
         

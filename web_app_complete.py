@@ -108,6 +108,11 @@ except ImportError:
 from email_service import email_service  # type: ignore
 import telegram_sender  # type: ignore
 try:
+    from generate_daily_delivery_csv import fetch_rows as fetch_delivery_rows, write_csv as write_delivery_csv  # type: ignore
+except Exception:
+    fetch_delivery_rows = None  # type: ignore
+    write_delivery_csv = None  # type: ignore
+try:
     from telegram_command_bot import TelegramCommandBot  # type: ignore
 except Exception:
     TelegramCommandBot = None  # type: ignore
@@ -375,8 +380,37 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
                 summary['errors'].append(f"user_id={row['id']}: {msg}")
     return summary
 
-SIGNALS_DIR = Path(__file__).parent / "signals"
-SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
+DATA_DIR = Path(
+    os.environ.get(
+        'GOLDPRO_DATA_DIR',
+        '/var/data' if Path('/var/data').exists() else str(Path(__file__).parent)
+    )
+)
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
+VIP_SIGNALS_DB_PATH = Path(os.environ.get('VIP_SIGNALS_DB_PATH', str(DATA_DIR / 'vip_signals.db')))
+SIGNALS_DIR = Path(os.environ.get('SIGNALS_DIR', str(DATA_DIR / 'signals')))
+SENT_SIGNALS_FILE = Path(os.environ.get('SENT_SIGNALS_FILE', str(DATA_DIR / 'sent_signals.json')))
+
+_ORIGINAL_SQLITE_CONNECT = sqlite3.connect
+
+
+def _patched_sqlite_connect(database, *args, **kwargs):
+    """توجيه كل الاتصالات القديمة vip_signals.db إلى المسار الموحّد."""
+    try:
+        if isinstance(database, str):
+            normalized = database.replace('\\', '/').strip().lower()
+            if normalized in ('vip_signals.db', './vip_signals.db'):
+                database = str(VIP_SIGNALS_DB_PATH)
+    except Exception:
+        pass
+    return _ORIGINAL_SQLITE_CONNECT(database, *args, **kwargs)
+
+
+sqlite3.connect = _patched_sqlite_connect
 AUTO_BROADCAST_REGISTRY_FILE = Path(__file__).parent / "auto_broadcast_registry.json"
 AUTO_BROADCAST_RECENT_WINDOW_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')))
 AUTO_BROADCAST_RESEND_INTERVAL_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')))
@@ -538,6 +572,22 @@ CLEANUP_SCHEDULER_STATE = {
 }
 CLEANUP_SCHEDULER_THREAD = None
 CLEANUP_SCHEDULER_LOCK = threading.Lock()
+
+DELIVERY_REPORT_DAILY_TIME = os.environ.get('DELIVERY_REPORT_DAILY_TIME', '23:55').strip() or '23:55'
+DELIVERY_REPORT_CHECK_INTERVAL_SECONDS = max(15, int(os.environ.get('DELIVERY_REPORT_CHECK_INTERVAL_SECONDS', '30')))
+DELIVERY_REPORT_SCHEDULER_STATE = {
+    'running': False,
+    'daily_time': DELIVERY_REPORT_DAILY_TIME,
+    'check_interval_seconds': DELIVERY_REPORT_CHECK_INTERVAL_SECONDS,
+    'last_run': None,
+    'last_generated_date': None,
+    'last_csv_path': None,
+    'last_rows': 0,
+    'last_error': None,
+    'total_runs': 0
+}
+DELIVERY_REPORT_SCHEDULER_THREAD = None
+DELIVERY_REPORT_SCHEDULER_LOCK = threading.Lock()
 
 
 def _normalize_symbol_for_engine(symbol):
@@ -1302,8 +1352,12 @@ def _continuous_analyzer_loop():
                     signal_data,
                     quality_score=signal_data.get('quality_score', 80)
                 )
+                formatted_message = telegram_sender.format_signal_message(signal_data)
+                targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
                 if isinstance(send_result, dict):
                     broadcast_count += int(send_result.get('sent_count', 0) or 0)
+                if isinstance(targets_result, dict):
+                    broadcast_count += int(targets_result.get('sent_count', 0) or 0)
 
                 time.sleep(1)
 
@@ -1315,8 +1369,12 @@ def _continuous_analyzer_loop():
                         bootstrap_signal,
                         quality_score=bootstrap_signal.get('quality_score', 50)
                     )
+                    formatted_message = telegram_sender.format_signal_message(bootstrap_signal)
+                    targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
                     if isinstance(send_result, dict):
                         broadcast_count += int(send_result.get('sent_count', 0) or 0)
+                    if isinstance(targets_result, dict):
+                        broadcast_count += int(targets_result.get('sent_count', 0) or 0)
 
             deduplicated_count = _deduplicate_signals_continuously()
             deduplicated_count += archive_and_cleanup_closed_signals()
@@ -1741,6 +1799,14 @@ def ensure_background_services_running():
 
     try:
         start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
+    except Exception:
+        pass
+
+    try:
+        start_delivery_report_scheduler(
+            daily_time=DELIVERY_REPORT_DAILY_TIME,
+            check_interval_seconds=DELIVERY_REPORT_CHECK_INTERVAL_SECONDS
+        )
     except Exception:
         pass
 
@@ -2354,6 +2420,63 @@ def stop_cleanup_scheduler():
     with CLEANUP_SCHEDULER_LOCK:
         CLEANUP_SCHEDULER_STATE['running'] = False
     return True, 'تم إيقاف مجدول التنظيف'
+
+
+def _generate_delivery_csv_now():
+    if fetch_delivery_rows is None or write_delivery_csv is None:
+        raise RuntimeError('delivery csv generator unavailable')
+
+    report_date = datetime.now().strftime('%Y-%m-%d')
+    rows = fetch_delivery_rows(report_date)
+    csv_path = write_delivery_csv(report_date, rows)
+
+    DELIVERY_REPORT_SCHEDULER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    DELIVERY_REPORT_SCHEDULER_STATE['last_generated_date'] = report_date
+    DELIVERY_REPORT_SCHEDULER_STATE['last_csv_path'] = str(csv_path)
+    DELIVERY_REPORT_SCHEDULER_STATE['last_rows'] = len(rows)
+    DELIVERY_REPORT_SCHEDULER_STATE['last_error'] = None
+    DELIVERY_REPORT_SCHEDULER_STATE['total_runs'] += 1
+
+
+def _delivery_report_scheduler_loop():
+    while DELIVERY_REPORT_SCHEDULER_STATE.get('running'):
+        try:
+            now = datetime.now()
+            hhmm = now.strftime('%H:%M')
+            target_hhmm = str(DELIVERY_REPORT_SCHEDULER_STATE.get('daily_time') or DELIVERY_REPORT_DAILY_TIME)
+            if hhmm == target_hhmm and DELIVERY_REPORT_SCHEDULER_STATE.get('last_generated_date') != now.strftime('%Y-%m-%d'):
+                _generate_delivery_csv_now()
+        except Exception as e:
+            DELIVERY_REPORT_SCHEDULER_STATE['last_error'] = str(e)
+
+        sleep_seconds = int(DELIVERY_REPORT_SCHEDULER_STATE.get('check_interval_seconds', DELIVERY_REPORT_CHECK_INTERVAL_SECONDS))
+        for _ in range(max(1, sleep_seconds)):
+            if not DELIVERY_REPORT_SCHEDULER_STATE.get('running'):
+                break
+            time.sleep(1)
+
+
+def start_delivery_report_scheduler(daily_time=None, check_interval_seconds=None):
+    global DELIVERY_REPORT_SCHEDULER_THREAD
+    with DELIVERY_REPORT_SCHEDULER_LOCK:
+        if DELIVERY_REPORT_SCHEDULER_STATE.get('running') and DELIVERY_REPORT_SCHEDULER_THREAD and DELIVERY_REPORT_SCHEDULER_THREAD.is_alive():
+            return False, 'مجدول تقرير التوزيع يعمل بالفعل'
+
+        if daily_time:
+            DELIVERY_REPORT_SCHEDULER_STATE['daily_time'] = str(daily_time)
+        if check_interval_seconds is not None:
+            DELIVERY_REPORT_SCHEDULER_STATE['check_interval_seconds'] = max(15, int(check_interval_seconds))
+
+        DELIVERY_REPORT_SCHEDULER_STATE['running'] = True
+        DELIVERY_REPORT_SCHEDULER_THREAD = threading.Thread(target=_delivery_report_scheduler_loop, daemon=True)
+        DELIVERY_REPORT_SCHEDULER_THREAD.start()
+        return True, 'تم تشغيل مجدول تقرير التوزيع اليومي'
+
+
+def stop_delivery_report_scheduler():
+    with DELIVERY_REPORT_SCHEDULER_LOCK:
+        DELIVERY_REPORT_SCHEDULER_STATE['running'] = False
+    return True, 'تم إيقاف مجدول تقرير التوزيع اليومي'
 
 
 def load_signals(include_closed=False):
@@ -5663,6 +5786,8 @@ def api_system_status():
         # تحديث حالة التطبيق والخدمات ديناميكياً (بدلاً من الاعتماد على ملف قديم)
         system_data['status']['web_app'] = 'running'
         system_data['status']['continuous_analyzer'] = 'running' if CONTINUOUS_ANALYZER_STATE.get('running') else 'stopped'
+        system_data['status']['delivery_report_scheduler'] = 'running' if DELIVERY_REPORT_SCHEDULER_STATE.get('running') else 'stopped'
+        system_data['status']['scheduler'] = system_data['status']['delivery_report_scheduler']
 
         # تحديد حالة vip_bot من إعدادات البوت الفعلية
         try:
@@ -5741,6 +5866,7 @@ def api_system_status():
             'adaptive_overview': adaptive_overview.get('summary', {}),
             'continuous_analyzer': CONTINUOUS_ANALYZER_STATE,
             'cleanup_scheduler': CLEANUP_SCHEDULER_STATE,
+            'delivery_report_scheduler': DELIVERY_REPORT_SCHEDULER_STATE,
             'active_trades': active_trades[:10],  # آخر 10 صفقات
             'timestamp': datetime.now().isoformat()
         })
@@ -5808,6 +5934,30 @@ def api_start_component():
                 'message': message,
                 'state': CONTINUOUS_ANALYZER_STATE
             })
+
+        if component in ('delivery_report_scheduler', 'delivery-reports', 'delivery_csv_scheduler'):
+            daily_time = data.get('daily_time', DELIVERY_REPORT_DAILY_TIME)
+            check_interval_seconds = int(data.get('check_interval_seconds', DELIVERY_REPORT_CHECK_INTERVAL_SECONDS))
+            success, message = start_delivery_report_scheduler(
+                daily_time=daily_time,
+                check_interval_seconds=check_interval_seconds
+            )
+            return jsonify({
+                'success': success,
+                'message': message,
+                'state': DELIVERY_REPORT_SCHEDULER_STATE
+            })
+
+        if component in ('generate_delivery_csv_now', 'delivery_csv_now'):
+            try:
+                _generate_delivery_csv_now()
+                return jsonify({
+                    'success': True,
+                    'message': 'تم توليد تقرير CSV اليومي الآن',
+                    'state': DELIVERY_REPORT_SCHEDULER_STATE
+                })
+            except Exception as e:
+                return jsonify({'success': False, 'error': str(e)})
         
         return jsonify({
             'success': True,
@@ -5834,6 +5984,14 @@ def api_stop_component():
                 'success': success,
                 'message': message,
                 'state': CONTINUOUS_ANALYZER_STATE
+            })
+
+        if component in ('delivery_report_scheduler', 'delivery-reports', 'delivery_csv_scheduler'):
+            success, message = stop_delivery_report_scheduler()
+            return jsonify({
+                'success': success,
+                'message': message,
+                'state': DELIVERY_REPORT_SCHEDULER_STATE
             })
         
         return jsonify({
@@ -5897,6 +6055,7 @@ def api_update_prices():
                     
                     signals_data.append({
                         'id': row['signal_id'],
+                        'signal_id': row['signal_id'],
                         'current_price': current_price,
                         'pips': round(pips, 2),
                         'progress': max(0, progress)

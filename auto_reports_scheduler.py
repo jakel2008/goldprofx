@@ -9,6 +9,7 @@ import time
 import schedule
 from datetime import datetime
 from periodic_reports import PeriodicReports
+from generate_daily_delivery_csv import fetch_rows, write_csv
 
 os.system('chcp 65001 > nul')
 
@@ -65,6 +66,12 @@ def send_daily_report():
     try:
         report = reports_gen.generate_daily_report()
         print(report)
+
+        report_date = datetime.now().strftime('%Y-%m-%d')
+        rows = fetch_rows(report_date)
+        csv_path = write_csv(report_date, rows)
+        print(f"📁 تم توليد CSV التوزيع اليومي: {csv_path} (rows={len(rows)})")
+
         print("\n✅ تم توليد التقرير اليومي بنجاح\n")
     except Exception as e:
         print(f"\n❌ خطأ في التقرير اليومي: {e}\n")

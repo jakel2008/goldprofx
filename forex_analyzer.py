@@ -18,8 +18,10 @@ import logging
 API_KEY = "079cdb64bbc8415abcf8f7be7e389349"
 BASE_URL = "https://api.twelvedata.com/time_series"
 BINANCE_KLINES_URL = "https://api.binance.com/api/v3/klines"
+YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
 CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
+TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "auto") or "auto").strip().lower()
 
 logger = logging.getLogger("forex_analyzer")
@@ -28,6 +30,9 @@ if not logger.handlers:
 
 _YF_COOLDOWN_UNTIL = {}
 _YF_COOLDOWN_LOCK = threading.Lock()
+_TD_COOLDOWN_UNTIL = 0.0
+_TD_COOLDOWN_REASON = ""
+_TD_COOLDOWN_LOCK = threading.Lock()
 
 LAST_FETCH_METADATA = {
     "symbol": None,
@@ -96,6 +101,17 @@ INTERVAL_MAP_YF = {
     "1D": "1d"
 }
 
+INTERVAL_MAP_YAHOO_CHART = {
+    "1MIN": "1m",
+    "5MIN": "5m",
+    "15MIN": "15m",
+    "30MIN": "30m",
+    "1H": "60m",
+    "4H": "1h",
+    "1DAY": "1d",
+    "1D": "1d"
+}
+
 INTERVAL_MAP_BINANCE = {
     "1MIN": "1m",
     "5MIN": "5m",
@@ -133,6 +149,52 @@ def _clear_yf_cooldown(symbol, interval):
     key = _yf_cooldown_key(symbol, interval)
     with _YF_COOLDOWN_LOCK:
         _YF_COOLDOWN_UNTIL.pop(key, None)
+
+
+def _is_twelvedata_in_cooldown():
+    with _TD_COOLDOWN_LOCK:
+        return float(_TD_COOLDOWN_UNTIL or 0) > time.time()
+
+
+def _set_twelvedata_cooldown(seconds=None, reason=""):
+    cooldown_seconds = max(1, int(seconds or TD_COOLDOWN_SECONDS))
+    with _TD_COOLDOWN_LOCK:
+        global _TD_COOLDOWN_UNTIL, _TD_COOLDOWN_REASON
+        _TD_COOLDOWN_UNTIL = time.time() + cooldown_seconds
+        _TD_COOLDOWN_REASON = str(reason or "")
+
+
+def _get_twelvedata_cooldown_reason():
+    with _TD_COOLDOWN_LOCK:
+        return str(_TD_COOLDOWN_REASON or "")
+
+
+def _set_twelvedata_daily_quota_cooldown(reason=""):
+    # TwelveData credits are daily, so hold until next UTC day plus a small buffer.
+    now_utc = datetime.utcnow()
+    next_day_utc = (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    seconds = max(300, int((next_day_utc - now_utc).total_seconds()) + 120)
+    _set_twelvedata_cooldown(seconds=seconds, reason=reason)
+
+
+def _is_twelvedata_quota_error(message):
+    msg = str(message or "").lower()
+    quota_tokens = [
+        "run out of api credits",
+        "api credits were used",
+        "current limit",
+        "daily limits",
+        "quota",
+        "code",
+    ]
+    # Keep check broad and safe without relying on exact provider wording.
+    return (
+        "api credit" in msg
+        or "daily limit" in msg
+        or "rate limit" in msg
+        or "too many requests" in msg
+        or any(token in msg for token in quota_tokens)
+    )
 
 
 def get_last_fetch_metadata():
@@ -386,6 +448,95 @@ def _fetch_from_yfinance(symbol, interval, outputsize):
 
     return _to_standard_ohlc(df)
 
+
+def _fetch_from_yahoo_chart(symbol, interval, outputsize):
+    normalized_symbol = _normalize_symbol(symbol)
+    interval_key = _normalize_interval(interval)
+
+    yf_symbol = YF_SYMBOLS.get(normalized_symbol)
+    if not yf_symbol:
+        raise DataFetchError("YahooChart: unsupported symbol")
+
+    chart_interval = INTERVAL_MAP_YAHOO_CHART.get(interval_key)
+    if not chart_interval:
+        raise DataFetchError("YahooChart: unsupported interval")
+
+    range_map = {
+        "1m": "7d",
+        "5m": "30d",
+        "15m": "60d",
+        "30m": "60d",
+        "60m": "730d",
+        "1h": "730d",
+        "1d": "5y"
+    }
+    chart_range = range_map.get(chart_interval, "60d")
+
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
+    }
+
+    response = requests.get(
+        f"{YAHOO_CHART_URL}/{yf_symbol}",
+        params={
+            "interval": chart_interval,
+            "range": chart_range,
+            "includePrePost": "false",
+            "events": "div,splits"
+        },
+        headers=headers,
+        timeout=15
+    )
+    response.raise_for_status()
+    data = response.json() or {}
+
+    chart = (data.get("chart") or {})
+    result_list = chart.get("result") or []
+    if not result_list:
+        error_obj = chart.get("error") or {}
+        raise DataFetchError(f"YahooChart: {error_obj.get('description') or 'empty result'}")
+
+    result = result_list[0] or {}
+    timestamps = result.get("timestamp") or []
+    indicators = (result.get("indicators") or {}).get("quote") or []
+    if not timestamps or not indicators:
+        raise DataFetchError("YahooChart: missing candles")
+
+    quote = indicators[0] or {}
+    opens = quote.get("open") or []
+    highs = quote.get("high") or []
+    lows = quote.get("low") or []
+    closes = quote.get("close") or []
+
+    rows = []
+    for idx, ts in enumerate(timestamps):
+        try:
+            o = opens[idx]
+            h = highs[idx]
+            l = lows[idx]
+            c = closes[idx]
+            if o is None or h is None or l is None or c is None:
+                continue
+            rows.append({
+                "Date": datetime.utcfromtimestamp(int(ts)),
+                "Open": o,
+                "High": h,
+                "Low": l,
+                "Close": c,
+            })
+        except Exception:
+            continue
+
+    if not rows:
+        raise DataFetchError("YahooChart: no valid OHLC rows")
+
+    df = pd.DataFrame(rows)
+    if len(df) > int(outputsize or 100):
+        df = df.tail(int(outputsize or 100)).reset_index(drop=True)
+
+    return _to_standard_ohlc(df)
+
 def fetch_data(symbol, interval, outputsize=100):
     """Fetch historical data from multiple trusted sources with automatic fallback."""
     normalized_symbol = _normalize_symbol(symbol)
@@ -413,15 +564,23 @@ def fetch_data(symbol, interval, outputsize=100):
     is_crypto = _is_crypto_symbol(normalized_symbol)
     if is_crypto:
         if CRYPTO_DATA_SOURCE_MODE == "binance_only":
-            sources = [("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance)]
+            sources = [("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
         elif CRYPTO_DATA_SOURCE_MODE == "binance_first":
-            sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance)]
+            sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
         else:
-            sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance)]
+            sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
     else:
-        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance)]
+        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
 
     for source_name, source_fn in sources:
+        if source_name == "TwelveData" and _is_twelvedata_in_cooldown():
+            td_reason = _get_twelvedata_cooldown_reason()
+            reason_text = f" ({td_reason})" if td_reason else ""
+            error_text = f"{source_name}: skipped (cooldown active{reason_text})"
+            errors.append(error_text)
+            logger.warning("[DATA_FETCH] skip symbol=%s interval=%s %s", normalized_symbol, normalized_interval, error_text)
+            continue
+
         if source_name == "YahooFinance" and _is_yf_in_cooldown(normalized_symbol, normalized_interval):
             error_text = f"{source_name}: skipped (cooldown active)"
             errors.append(error_text)
@@ -452,6 +611,13 @@ def fetch_data(symbol, interval, outputsize=100):
                 error_text = f"{source_name} (attempt {attempt}): {e}"
                 errors.append(error_text)
                 logger.warning("[DATA_FETCH] fail symbol=%s interval=%s %s", normalized_symbol, normalized_interval, error_text)
+                if source_name == "TwelveData":
+                    msg = str(e)
+                    if _is_twelvedata_quota_error(msg):
+                        _set_twelvedata_daily_quota_cooldown(reason="quota exceeded")
+                        break
+                    if "timeout" in msg.lower() or "ssl" in msg.lower() or "connection" in msg.lower():
+                        _set_twelvedata_cooldown(reason="temporary network issue")
                 if source_name == "YahooFinance":
                     msg = str(e).lower()
                     if "rate" in msg or "too many requests" in msg or "timeout" in msg or "ssl" in msg:

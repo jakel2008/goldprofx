@@ -1416,6 +1416,124 @@ def stop_continuous_analyzer():
     return True, 'تم إيقاف خدمة التحليل المستمر'
 
 
+def _is_continuous_analyzer_alive():
+    return bool(CONTINUOUS_ANALYZER_THREAD and CONTINUOUS_ANALYZER_THREAD.is_alive())
+
+
+def _run_continuous_analyzer_once(interval='1h', max_symbols=None):
+    """تشغيل دورة تحليل واحدة لجميع الأزواج (بدون حلقة لا نهائية)."""
+    symbols = list(CONTINUOUS_ANALYZER_SYMBOLS)
+    if isinstance(max_symbols, int) and max_symbols > 0:
+        symbols = symbols[:max_symbols]
+
+    generated_count = 0
+    broadcast_count = 0
+    analyzed_count = 0
+    failed_count = 0
+    details = []
+
+    try:
+        from forex_analyzer import get_last_fetch_metadata  # type: ignore
+    except Exception:
+        get_last_fetch_metadata = None  # type: ignore
+
+    for symbol in symbols:
+        analyzed_count += 1
+        item = {'symbol': symbol, 'generated': False, 'source': None, 'error': None}
+        try:
+            signal_data = _analyze_and_generate_signal(symbol, interval=interval)
+
+            if callable(get_last_fetch_metadata):
+                try:
+                    meta = get_last_fetch_metadata() or {}
+                    item['source'] = meta.get('source')
+                    item['cache_used'] = meta.get('cache_used')
+                    item['stale_cache_used'] = meta.get('stale_cache_used')
+                except Exception:
+                    pass
+
+            if not signal_data:
+                details.append(item)
+                continue
+
+            generated_count += 1
+            item['generated'] = True
+
+            send_result = telegram_sender.send_signal_to_subscribers(
+                signal_data,
+                quality_score=signal_data.get('quality_score', 80)
+            )
+            formatted_message = telegram_sender.format_signal_message(signal_data)
+            targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
+
+            if isinstance(send_result, dict):
+                broadcast_count += int(send_result.get('sent_count', 0) or 0)
+            if isinstance(targets_result, dict):
+                broadcast_count += int(targets_result.get('sent_count', 0) or 0)
+        except Exception as e:
+            failed_count += 1
+            item['error'] = str(e)
+
+        details.append(item)
+
+    CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
+    CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
+    CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
+    CONTINUOUS_ANALYZER_STATE['last_error'] = None if failed_count == 0 else f'failed_symbols={failed_count}'
+
+    return {
+        'success': True,
+        'analyzed_count': analyzed_count,
+        'generated_count': generated_count,
+        'broadcast_count': broadcast_count,
+        'failed_count': failed_count,
+        'details': details[:60],
+        'timestamp': datetime.now().isoformat()
+    }
+
+
+def _probe_data_sources(interval='1h', outputsize=120):
+    """فحص مصدر البيانات لكل الأزواج لمعرفة هل الجلب حي أم لا."""
+    try:
+        from forex_analyzer import fetch_data, get_last_fetch_metadata  # type: ignore
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'forex_analyzer import failed: {e}'
+        }
+
+    report = []
+    ok = 0
+    failed = 0
+
+    for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
+        item = {'symbol': symbol, 'ok': False, 'rows': 0, 'source': None, 'error': None}
+        try:
+            df = fetch_data(symbol, interval, outputsize=outputsize)
+            meta = get_last_fetch_metadata() or {}
+            item['ok'] = True
+            item['rows'] = int(len(df) if df is not None else 0)
+            item['source'] = meta.get('source')
+            item['cache_used'] = meta.get('cache_used')
+            item['stale_cache_used'] = meta.get('stale_cache_used')
+            ok += 1
+        except Exception as e:
+            item['error'] = str(e)
+            failed += 1
+        report.append(item)
+
+    return {
+        'success': True,
+        'interval': interval,
+        'symbols_total': len(CONTINUOUS_ANALYZER_SYMBOLS),
+        'ok': ok,
+        'failed': failed,
+        'report': report,
+        'timestamp': datetime.now().isoformat()
+    }
+
+
 def get_live_price(symbol):
     """
     الحصول على السعر الحالي للزوج بطرق متعددة
@@ -4853,6 +4971,43 @@ def api_update_site_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/admin/continuous-analyzer/run-once', methods=['POST'])
+@admin_required
+def api_continuous_analyzer_run_once():
+    """تشغيل دورة تحليل فورية لجميع الأزواج وإرسال الإشارات الناتجة."""
+    try:
+        data = request.get_json(silent=True) or {}
+        interval = str(data.get('interval', '1h')).strip() or '1h'
+        max_symbols = data.get('max_symbols')
+        try:
+            max_symbols = int(max_symbols) if max_symbols is not None else None
+        except Exception:
+            max_symbols = None
+
+        result = _run_continuous_analyzer_once(interval=interval, max_symbols=max_symbols)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/data-source-health', methods=['GET'])
+@admin_required
+def api_data_source_health():
+    """فحص حالة جلب البيانات لكل الأزواج مع مصدر الجلب الفعلي."""
+    try:
+        interval = request.args.get('interval', '1h')
+        outputsize = request.args.get('outputsize', '120')
+        try:
+            outputsize = int(outputsize)
+        except Exception:
+            outputsize = 120
+
+        result = _probe_data_sources(interval=interval, outputsize=outputsize)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/admin/adaptive-thresholds', methods=['GET'])
 @admin_required
 def api_admin_adaptive_thresholds():
@@ -5785,7 +5940,16 @@ def api_system_status():
         system_data.setdefault('status', {})
         # تحديث حالة التطبيق والخدمات ديناميكياً (بدلاً من الاعتماد على ملف قديم)
         system_data['status']['web_app'] = 'running'
-        system_data['status']['continuous_analyzer'] = 'running' if CONTINUOUS_ANALYZER_STATE.get('running') else 'stopped'
+        analyzer_running_flag = bool(CONTINUOUS_ANALYZER_STATE.get('running'))
+        analyzer_alive = _is_continuous_analyzer_alive()
+        if analyzer_running_flag and not analyzer_alive:
+            # self-heal إذا كان العلم running لكن الثريد مات
+            try:
+                start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_STATE.get('interval_seconds', CONTINUOUS_ANALYZER_INTERVAL_DEFAULT))
+                analyzer_alive = _is_continuous_analyzer_alive()
+            except Exception:
+                analyzer_alive = False
+        system_data['status']['continuous_analyzer'] = 'running' if analyzer_running_flag and analyzer_alive else 'stopped'
         system_data['status']['delivery_report_scheduler'] = 'running' if DELIVERY_REPORT_SCHEDULER_STATE.get('running') else 'stopped'
         system_data['status']['scheduler'] = system_data['status']['delivery_report_scheduler']
 
@@ -5925,6 +6089,7 @@ def api_system_status():
             },
             'adaptive_overview': adaptive_overview.get('summary', {}),
             'continuous_analyzer': CONTINUOUS_ANALYZER_STATE,
+            'continuous_analyzer_thread_alive': analyzer_alive,
             'cleanup_scheduler': CLEANUP_SCHEDULER_STATE,
             'delivery_report_scheduler': DELIVERY_REPORT_SCHEDULER_STATE,
             'active_trades': active_trades[:10],  # آخر 10 صفقات

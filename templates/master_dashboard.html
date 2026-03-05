@@ -289,6 +289,28 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="dashboard-card p-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-1"><i class="bi bi-lightning-charge-fill"></i> تحليل فوري (Force Live)</h5>
+                            <small class="text-muted">تشغيل دورة تحليل الآن مع خيار تجاوز الكاش للتأكد من المصدر الحي</small>
+                        </div>
+                    </div>
+                    <div class="mt-3 d-flex flex-wrap gap-3 align-items-center">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="forceLiveToggle" checked>
+                            <label class="form-check-label" for="forceLiveToggle">تجاوز الكاش (Force Live)</label>
+                        </div>
+                        <button class="btn btn-primary" onclick="runAnalyzerOnceNow()"><i class="bi bi-play-circle"></i> تشغيل التحليل الآن</button>
+                        <button class="btn btn-outline-primary" onclick="checkDataSourceHealthNow()"><i class="bi bi-heart-pulse"></i> فحص مصادر البيانات</button>
+                    </div>
+                    <div class="mt-2 small text-muted" id="forceLiveMeta">-</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -394,6 +416,70 @@
                 }
             })
             .catch(error => addLog('error', 'خطأ في التحكم بالمجدول: ' + error.message));
+        }
+
+        function runAnalyzerOnceNow() {
+            const forceLive = document.getElementById('forceLiveToggle')?.checked;
+            const payload = {
+                interval: '1h',
+                force_live: !!forceLive
+            };
+
+            addLog('info', 'بدء دورة التحليل الفوري...');
+            fetch('/api/admin/continuous-analyzer/run-once', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const metaEl = document.getElementById('forceLiveMeta');
+                if (data.success) {
+                    const text = `تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`;
+                    if (metaEl) metaEl.textContent = text;
+                    addLog('success', text);
+                    updateDashboard();
+                } else {
+                    const err = data.error || 'فشل تشغيل التحليل الفوري';
+                    if (metaEl) metaEl.textContent = err;
+                    addLog('error', err);
+                }
+            })
+            .catch(error => {
+                const msg = 'خطأ في تشغيل التحليل الفوري: ' + error.message;
+                const metaEl = document.getElementById('forceLiveMeta');
+                if (metaEl) metaEl.textContent = msg;
+                addLog('error', msg);
+            });
+        }
+
+        function checkDataSourceHealthNow() {
+            const forceLive = document.getElementById('forceLiveToggle')?.checked;
+            const query = `interval=1h&outputsize=120&force_live=${forceLive ? '1' : '0'}`;
+
+            addLog('info', 'بدء فحص مصادر البيانات...');
+            fetch(`/api/admin/data-source-health?${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    const metaEl = document.getElementById('forceLiveMeta');
+                    if (data.success) {
+                        const report = Array.isArray(data.report) ? data.report : [];
+                        const uniqueSources = [...new Set(report.map(x => x.source).filter(Boolean))];
+                        const text = `المصادر: ${uniqueSources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`;
+                        if (metaEl) metaEl.textContent = text;
+                        addLog('success', text);
+                    } else {
+                        const err = data.error || 'فشل فحص المصادر';
+                        if (metaEl) metaEl.textContent = err;
+                        addLog('error', err);
+                    }
+                })
+                .catch(error => {
+                    const msg = 'خطأ في فحص المصادر: ' + error.message;
+                    const metaEl = document.getElementById('forceLiveMeta');
+                    if (metaEl) metaEl.textContent = msg;
+                    addLog('error', msg);
+                });
         }
         
         function updateActiveTrades(trades) {

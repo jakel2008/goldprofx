@@ -23,6 +23,7 @@ CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
 TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "auto") or "auto").strip().lower()
+MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
 
 logger = logging.getLogger("forex_analyzer")
 if not logger.handlers:
@@ -541,7 +542,7 @@ def fetch_data(symbol, interval, outputsize=100):
     """Fetch historical data from multiple trusted sources with automatic fallback."""
     normalized_symbol = _normalize_symbol(symbol)
     normalized_interval = _normalize_interval(interval)
-    max_attempts_per_source = 2
+    max_attempts_per_source = MAX_ATTEMPTS_PER_SOURCE
     errors = []
 
     logger.info("[DATA_FETCH] start symbol=%s interval=%s outputsize=%s", normalized_symbol, normalized_interval, outputsize)
@@ -564,13 +565,13 @@ def fetch_data(symbol, interval, outputsize=100):
     is_crypto = _is_crypto_symbol(normalized_symbol)
     if is_crypto:
         if CRYPTO_DATA_SOURCE_MODE == "binance_only":
-            sources = [("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
+            sources = [("Binance", _fetch_from_binance), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
         elif CRYPTO_DATA_SOURCE_MODE == "binance_first":
-            sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
+            sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
         else:
-            sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
+            sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
     else:
-        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooFinance", _fetch_from_yfinance), ("YahooChart", _fetch_from_yahoo_chart)]
+        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
 
     for source_name, source_fn in sources:
         if source_name == "TwelveData" and _is_twelvedata_in_cooldown():

@@ -6408,17 +6408,12 @@ def api_update_prices():
         
     except Exception as e:
         error_text = str(e)
-        if 'database is locked' in error_text.lower():
-            return jsonify({
-                'success': True,
-                'signals': UPDATE_PRICES_LAST_PAYLOAD.get('signals', []),
-                'cached_fallback': True,
-                'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at'),
-                'warning': 'database is locked'
-            })
         return jsonify({
-            'success': False,
-            'error': error_text
+            'success': True,
+            'signals': UPDATE_PRICES_LAST_PAYLOAD.get('signals', []),
+            'cached_fallback': True,
+            'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at'),
+            'warning': error_text
         })
 
 

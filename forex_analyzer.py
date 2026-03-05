@@ -538,7 +538,7 @@ def _fetch_from_yahoo_chart(symbol, interval, outputsize):
 
     return _to_standard_ohlc(df)
 
-def fetch_data(symbol, interval, outputsize=100):
+def fetch_data(symbol, interval, outputsize=100, force_live=False):
     """Fetch historical data from multiple trusted sources with automatic fallback."""
     normalized_symbol = _normalize_symbol(symbol)
     normalized_interval = _normalize_interval(interval)
@@ -548,19 +548,21 @@ def fetch_data(symbol, interval, outputsize=100):
     logger.info("[DATA_FETCH] start symbol=%s interval=%s outputsize=%s", normalized_symbol, normalized_interval, outputsize)
 
     # محاولة قراءة كاش حديث أولاً لتقليل الضغط على الـ APIs وتسريع الاستجابة
-    fresh_cache = _load_from_cache(normalized_symbol, normalized_interval, allow_stale=False)
-    if fresh_cache is not None:
-        _update_fetch_metadata(
-            normalized_symbol,
-            normalized_interval,
-            source="CACHE_FRESH",
-            rows=len(fresh_cache),
-            cache_used=True,
-            stale_cache_used=False,
-            errors=errors
-        )
-        logger.info("[DATA_FETCH] success symbol=%s interval=%s source=%s rows=%s", normalized_symbol, normalized_interval, "CACHE_FRESH", len(fresh_cache))
-        return fresh_cache
+    # ويمكن تجاوزها عند طلب force_live للتحقق من المصدر الحي.
+    if not force_live:
+        fresh_cache = _load_from_cache(normalized_symbol, normalized_interval, allow_stale=False)
+        if fresh_cache is not None:
+            _update_fetch_metadata(
+                normalized_symbol,
+                normalized_interval,
+                source="CACHE_FRESH",
+                rows=len(fresh_cache),
+                cache_used=True,
+                stale_cache_used=False,
+                errors=errors
+            )
+            logger.info("[DATA_FETCH] success symbol=%s interval=%s source=%s rows=%s", normalized_symbol, normalized_interval, "CACHE_FRESH", len(fresh_cache))
+            return fresh_cache
 
     is_crypto = _is_crypto_symbol(normalized_symbol)
     if is_crypto:

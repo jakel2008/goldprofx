@@ -1160,7 +1160,7 @@ def _ensure_signal_payload_persisted(signal_payload, default_timeframe='1h'):
         return None
 
 
-def _analyze_and_generate_signal(symbol, interval='1h'):
+def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
     """تحليل رمز واحد وتوليد إشارة إذا كانت صالحة وغير مكررة."""
     try:
         from advanced_analyzer_engine import perform_full_analysis  # type: ignore
@@ -1173,7 +1173,7 @@ def _analyze_and_generate_signal(symbol, interval='1h'):
         perform_full_analysis = analyzer_module.perform_full_analysis
 
     engine_symbol = _normalize_symbol_for_engine(symbol)
-    result = perform_full_analysis(engine_symbol, interval)
+    result = perform_full_analysis(engine_symbol, interval, force_live=force_live)
 
     if not result or not result.get('success'):
         return None
@@ -1420,7 +1420,7 @@ def _is_continuous_analyzer_alive():
     return bool(CONTINUOUS_ANALYZER_THREAD and CONTINUOUS_ANALYZER_THREAD.is_alive())
 
 
-def _run_continuous_analyzer_once(interval='1h', max_symbols=None):
+def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=False):
     """تشغيل دورة تحليل واحدة لجميع الأزواج (بدون حلقة لا نهائية)."""
     symbols = list(CONTINUOUS_ANALYZER_SYMBOLS)
     if isinstance(max_symbols, int) and max_symbols > 0:
@@ -1441,7 +1441,7 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None):
         analyzed_count += 1
         item = {'symbol': symbol, 'generated': False, 'source': None, 'error': None}
         try:
-            signal_data = _analyze_and_generate_signal(symbol, interval=interval)
+            signal_data = _analyze_and_generate_signal(symbol, interval=interval, force_live=force_live)
 
             if callable(get_last_fetch_metadata):
                 try:
@@ -1493,7 +1493,7 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None):
     }
 
 
-def _probe_data_sources(interval='1h', outputsize=120):
+def _probe_data_sources(interval='1h', outputsize=120, force_live=False):
     """فحص مصدر البيانات لكل الأزواج لمعرفة هل الجلب حي أم لا."""
     try:
         from forex_analyzer import fetch_data, get_last_fetch_metadata  # type: ignore
@@ -1510,7 +1510,7 @@ def _probe_data_sources(interval='1h', outputsize=120):
     for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
         item = {'symbol': symbol, 'ok': False, 'rows': 0, 'source': None, 'error': None}
         try:
-            df = fetch_data(symbol, interval, outputsize=outputsize)
+            df = fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
             meta = get_last_fetch_metadata() or {}
             item['ok'] = True
             item['rows'] = int(len(df) if df is not None else 0)
@@ -4979,12 +4979,14 @@ def api_continuous_analyzer_run_once():
         data = request.get_json(silent=True) or {}
         interval = str(data.get('interval', '1h')).strip() or '1h'
         max_symbols = data.get('max_symbols')
+        force_live_raw = data.get('force_live', False)
+        force_live = str(force_live_raw).strip().lower() in ('1', 'true', 'yes', 'on')
         try:
             max_symbols = int(max_symbols) if max_symbols is not None else None
         except Exception:
             max_symbols = None
 
-        result = _run_continuous_analyzer_once(interval=interval, max_symbols=max_symbols)
+        result = _run_continuous_analyzer_once(interval=interval, max_symbols=max_symbols, force_live=force_live)
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -4997,12 +4999,14 @@ def api_data_source_health():
     try:
         interval = request.args.get('interval', '1h')
         outputsize = request.args.get('outputsize', '120')
+        force_live_raw = request.args.get('force_live', '0')
+        force_live = str(force_live_raw).strip().lower() in ('1', 'true', 'yes', 'on')
         try:
             outputsize = int(outputsize)
         except Exception:
             outputsize = 120
 
-        result = _probe_data_sources(interval=interval, outputsize=outputsize)
+        result = _probe_data_sources(interval=interval, outputsize=outputsize, force_live=force_live)
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

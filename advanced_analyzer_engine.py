@@ -642,13 +642,13 @@ def detect_comprehensive_signals(df, symbol, interval):
     
     return signals, final_recommendation, levels, fib_levels
 
-def perform_full_analysis(symbol, interval):
+def perform_full_analysis(symbol, interval, force_live=False):
     """التحليل الكامل المتكامل"""
     from forex_analyzer import fetch_data, DataFetchError
     
     try:
         # Fetch data
-        df = fetch_data(symbol, interval, outputsize=500)
+        df = fetch_data(symbol, interval, outputsize=500, force_live=force_live)
         
         if len(df) < 50:
             return {

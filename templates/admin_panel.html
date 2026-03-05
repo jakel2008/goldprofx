@@ -69,6 +69,28 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ اختصار Force Live</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">تشغيل تحليل فوري مع خيار تجاوز الكاش، أو فحص مصدر البيانات الحي مباشرة.</p>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="form-check form-switch me-2">
+                            <input class="form-check-input" type="checkbox" id="admin-force-live-toggle" checked>
+                            <label class="form-check-label" for="admin-force-live-toggle">تجاوز الكاش (Force Live)</label>
+                        </div>
+                        <button class="btn btn-primary" id="admin-run-once-btn">▶️ تشغيل التحليل الآن</button>
+                        <button class="btn btn-outline-primary" id="admin-health-check-btn">🩺 فحص المصادر</button>
+                    </div>
+                    <div class="small text-muted mt-2" id="admin-force-live-meta">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabs للتبديل بين الأقسام -->
     <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -1209,6 +1231,80 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('save-broadcast-targets-btn')?.addEventListener('click', function() {
         saveBroadcastTargets();
+    });
+
+    document.getElementById('admin-run-once-btn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.textContent;
+        const forceLive = Boolean(document.getElementById('admin-force-live-toggle')?.checked);
+        const metaEl = document.getElementById('admin-force-live-meta');
+
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري التحليل...';
+
+        fetch('/api/admin/continuous-analyzer/run-once', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ interval: '1h', force_live: forceLive })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const msg = `✅ تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`;
+                if (metaEl) metaEl.textContent = msg;
+                showResult('success', msg);
+            } else {
+                const err = '❌ فشل تشغيل التحليل: ' + (data.error || 'خطأ غير معروف');
+                if (metaEl) metaEl.textContent = err;
+                showResult('danger', err);
+            }
+        })
+        .catch(error => {
+            const err = '❌ خطأ أثناء التحليل: ' + error;
+            if (metaEl) metaEl.textContent = err;
+            showResult('danger', err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        });
+    });
+
+    document.getElementById('admin-health-check-btn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.textContent;
+        const forceLive = Boolean(document.getElementById('admin-force-live-toggle')?.checked);
+        const metaEl = document.getElementById('admin-force-live-meta');
+
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري الفحص...';
+
+        fetch(`/api/admin/data-source-health?interval=1h&outputsize=120&force_live=${forceLive ? '1' : '0'}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const report = Array.isArray(data.report) ? data.report : [];
+                const sources = [...new Set(report.map(item => item.source).filter(Boolean))];
+                const msg = `✅ المصادر: ${sources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`;
+                if (metaEl) metaEl.textContent = msg;
+                showResult('success', msg);
+            } else {
+                const err = '❌ فشل فحص المصادر: ' + (data.error || 'خطأ غير معروف');
+                if (metaEl) metaEl.textContent = err;
+                showResult('danger', err);
+            }
+        })
+        .catch(error => {
+            const err = '❌ خطأ أثناء فحص المصادر: ' + error;
+            if (metaEl) metaEl.textContent = err;
+            showResult('danger', err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        });
     });
 
     document.getElementById('save-settings-btn')?.addEventListener('click', function() {

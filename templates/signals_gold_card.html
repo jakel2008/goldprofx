@@ -28,12 +28,12 @@
                     data.signals.forEach(signal => {
                         // تحديث السعر الحالي
                         const priceElement = document.getElementById('current-price-' + signal.signal_id);
-                        if (priceElement && signal.current_price) {
+                        if (priceElement && signal.current_price !== undefined && signal.current_price !== null) {
                             priceElement.textContent = signal.current_price.toFixed(5);
                         }
                         const updateTimeElement = document.getElementById('current-price-updated-' + signal.signal_id);
-                        if (updateTimeElement && signal.current_price_updated_at) {
-                            updateTimeElement.textContent = signal.current_price_updated_at;
+                        if (updateTimeElement) {
+                            updateTimeElement.textContent = signal.current_price_updated_at || '-';
                         }
                         // تحديث النقاط
                         const pipsElement = document.getElementById('pips-' + signal.signal_id);

@@ -516,6 +516,10 @@ YF_RETRY_BACKOFF_SECONDS = float(os.environ.get('YF_RETRY_BACKOFF_SECONDS', '0.8
 LIVE_PRICE_CACHE = {}
 YF_FAILURE_UNTIL = {}
 LIVE_PRICE_CACHE_LOCK = threading.Lock()
+UPDATE_PRICES_LAST_PAYLOAD = {
+    'signals': [],
+    'updated_at': None
+}
 
 CONTINUOUS_ANALYZER_SYMBOLS = [
     # Forex
@@ -6337,9 +6341,10 @@ def api_update_prices():
     import sqlite3
     
     try:
-        conn = sqlite3.connect('vip_signals.db')
+        conn = sqlite3.connect('vip_signals.db', timeout=30)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
+        c.execute('PRAGMA busy_timeout = 30000')
         
         today = datetime.now().strftime('%Y-%m-%d')
         c.execute('''
@@ -6390,16 +6395,30 @@ def api_update_prices():
                     continue
         
         conn.close()
-        
+
+        UPDATE_PRICES_LAST_PAYLOAD['signals'] = signals_data
+        UPDATE_PRICES_LAST_PAYLOAD['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         return jsonify({
             'success': True,
-            'signals': signals_data
+            'signals': signals_data,
+            'cached_fallback': False,
+            'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at')
         })
         
     except Exception as e:
+        error_text = str(e)
+        if 'database is locked' in error_text.lower():
+            return jsonify({
+                'success': True,
+                'signals': UPDATE_PRICES_LAST_PAYLOAD.get('signals', []),
+                'cached_fallback': True,
+                'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at'),
+                'warning': 'database is locked'
+            })
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': error_text
         })
 
 

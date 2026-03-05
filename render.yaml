@@ -25,6 +25,10 @@ services:
         value: "23:55"
       - key: DELIVERY_REPORT_CHECK_INTERVAL_SECONDS
         value: "30"
+      - key: LIVE_PRICE_CACHE_TTL_SECONDS
+        value: "6"
+      - key: LIVE_PRICE_FAIL_CACHE_TTL_SECONDS
+        value: "4"
       - key: MM_TELEGRAM_BOT_TOKEN
         sync: false
       - key: MM_TELEGRAM_CHAT_ID

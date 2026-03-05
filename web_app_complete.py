@@ -1534,10 +1534,10 @@ def _probe_data_sources(interval='1h', outputsize=120, force_live=False):
     }
 
 
-def get_live_price(symbol):
+def get_live_price_detailed(symbol):
     """
-    الحصول على السعر الحالي للزوج بطرق متعددة
-    Get current price with multiple fallback methods
+    الحصول على السعر الحالي للزوج مع بيانات التحديث
+    Returns {price, updated_at, source, cache_used}
     """
     clean_symbol = (symbol or '').upper().replace('/', '').replace('-', '').replace('_', '').strip()
     now_ts = time.time()
@@ -1548,7 +1548,12 @@ def get_live_price(symbol):
     with LIVE_PRICE_CACHE_LOCK:
         cached_item = LIVE_PRICE_CACHE.get(clean_symbol)
         if cached_item and cached_item.get('expires_at', 0) > now_ts:
-            return cached_item.get('price')
+            return {
+                'price': cached_item.get('price'),
+                'updated_at': cached_item.get('updated_at') or datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'source': cached_item.get('source') or 'CACHE',
+                'cache_used': True
+            }
 
     def _is_valid_price(value):
         try:
@@ -1688,38 +1693,78 @@ def get_live_price(symbol):
 
     price = _price_from_twelvedata()
     if price:
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with LIVE_PRICE_CACHE_LOCK:
             LIVE_PRICE_CACHE[clean_symbol] = {
                 'price': price,
-                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS),
+                'updated_at': updated_at,
+                'source': 'TwelveData'
             }
-        return price
+        return {
+            'price': price,
+            'updated_at': updated_at,
+            'source': 'TwelveData',
+            'cache_used': False
+        }
 
     price = _price_from_binance()
     if price:
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with LIVE_PRICE_CACHE_LOCK:
             LIVE_PRICE_CACHE[clean_symbol] = {
                 'price': price,
-                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS),
+                'updated_at': updated_at,
+                'source': 'Binance'
             }
-        return price
+        return {
+            'price': price,
+            'updated_at': updated_at,
+            'source': 'Binance',
+            'cache_used': False
+        }
 
     price = _price_from_yahoo_chart()
     if price:
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with LIVE_PRICE_CACHE_LOCK:
             LIVE_PRICE_CACHE[clean_symbol] = {
                 'price': price,
-                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS),
+                'updated_at': updated_at,
+                'source': 'YahooChart'
             }
-        return price
+        return {
+            'price': price,
+            'updated_at': updated_at,
+            'source': 'YahooChart',
+            'cache_used': False
+        }
 
     price = _price_from_yfinance()
+    updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with LIVE_PRICE_CACHE_LOCK:
         LIVE_PRICE_CACHE[clean_symbol] = {
             'price': price,
-            'expires_at': time.time() + (max(1, LIVE_PRICE_CACHE_TTL_SECONDS) if price else max(1, LIVE_PRICE_FAIL_CACHE_TTL_SECONDS))
+            'expires_at': time.time() + (max(1, LIVE_PRICE_CACHE_TTL_SECONDS) if price else max(1, LIVE_PRICE_FAIL_CACHE_TTL_SECONDS)),
+            'updated_at': updated_at,
+            'source': 'YahooFinance' if price else 'UNAVAILABLE'
         }
-    return price
+    return {
+        'price': price,
+        'updated_at': updated_at,
+        'source': 'YahooFinance' if price else 'UNAVAILABLE',
+        'cache_used': False
+    }
+
+
+def get_live_price(symbol):
+    """توافق خلفي: إرجاع السعر فقط."""
+    details = get_live_price_detailed(symbol)
+    if isinstance(details, dict):
+        return details.get('price')
+    return None
 
 
 def login_required(f):
@@ -2707,7 +2752,9 @@ def load_signals(include_closed=False):
             total_range = 0
             
             # استخدام الدالة المحسنة لجلب السعر
-            current_price = get_live_price(symbol)
+            price_details = get_live_price_detailed(symbol)
+            current_price = price_details.get('price') if isinstance(price_details, dict) else None
+            current_price_updated_at = price_details.get('updated_at') if isinstance(price_details, dict) else None
             
             if current_price:
                 # معالجة الصفقات النشطة فقط (نوع الصفقة buy/sell يأتي من التحليل)
@@ -2942,6 +2989,7 @@ def load_signals(include_closed=False):
                 'status': status,
                 'result': result,
                 'current_price': current_price,
+                'current_price_updated_at': current_price_updated_at,
                 'close_price': close_price,
                 'pips': pips,
                 'progress': progress,
@@ -6311,8 +6359,10 @@ def api_update_prices():
             entry = row['entry_price']
             tp1 = row['take_profit_1']
             
-            # استخدام الدالة المحسنة
-            current_price = get_live_price(symbol)
+            # استخدام الدالة المحسنة مع وقت آخر تحديث
+            price_details = get_live_price_detailed(symbol)
+            current_price = price_details.get('price') if isinstance(price_details, dict) else None
+            current_price_updated_at = price_details.get('updated_at') if isinstance(price_details, dict) else None
             
             if current_price:
                 try:
@@ -6331,6 +6381,7 @@ def api_update_prices():
                         'id': row['signal_id'],
                         'signal_id': row['signal_id'],
                         'current_price': current_price,
+                        'current_price_updated_at': current_price_updated_at,
                         'pips': round(pips, 2),
                         'progress': max(0, progress)
                     })

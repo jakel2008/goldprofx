@@ -31,6 +31,10 @@
                         if (priceElement && signal.current_price) {
                             priceElement.textContent = signal.current_price.toFixed(5);
                         }
+                        const updateTimeElement = document.getElementById('current-price-updated-' + signal.signal_id);
+                        if (updateTimeElement && signal.current_price_updated_at) {
+                            updateTimeElement.textContent = signal.current_price_updated_at;
+                        }
                         // تحديث النقاط
                         const pipsElement = document.getElementById('pips-' + signal.signal_id);
                         if (pipsElement && signal.pips !== undefined) {
@@ -337,6 +341,7 @@
                     <div class="price-box">
                         <div class="title">السعر الحالي</div>
                         <div class="val" id="current-price-{{ signal.signal_id }}">{{ '%.5f'|format(signal.current_price or signal.entry_price) }}</div>
+                        <div class="title" style="margin-top:4px; font-size:11px;">آخر تحديث: <span id="current-price-updated-{{ signal.signal_id }}">{{ signal.current_price_updated_at or '-' }}</span></div>
                     </div>
                     <div class="price-box">
                         <div class="title">TP1</div>

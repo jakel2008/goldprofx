@@ -1607,7 +1607,7 @@ def get_live_price(symbol):
             try:
                 ticker = yf.Ticker(yf_symbol)
                 info = ticker.info
-                price_fields = ['regularMarketPrice', 'currentPrice', 'bid', 'ask', 'previousClose']
+                price_fields = ['regularMarketPrice', 'currentPrice', 'bid', 'ask']
                 for field in price_fields:
                     price = _is_valid_price(info.get(field)) if isinstance(info, dict) else None
                     if price:
@@ -1654,6 +1654,38 @@ def get_live_price(symbol):
 
         return None
 
+    def _price_from_yahoo_chart():
+        yf_symbol = YF_SYMBOLS.get(clean_symbol)
+        if not yf_symbol:
+            return None
+        try:
+            import requests
+            response = requests.get(
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{yf_symbol}',
+                params={'interval': '1m', 'range': '1d'},
+                timeout=10,
+                headers={'User-Agent': 'Mozilla/5.0'}
+            )
+            response.raise_for_status()
+            payload = response.json() or {}
+            result = (((payload.get('chart') or {}).get('result') or [None])[0])
+            if not isinstance(result, dict):
+                return None
+
+            meta = result.get('meta') or {}
+            meta_price = _is_valid_price(meta.get('regularMarketPrice'))
+            if meta_price:
+                return meta_price
+
+            closes = (((result.get('indicators') or {}).get('quote') or [{}])[0]).get('close') or []
+            for value in reversed(closes):
+                price = _is_valid_price(value)
+                if price:
+                    return price
+        except Exception:
+            return None
+        return None
+
     price = _price_from_twelvedata()
     if price:
         with LIVE_PRICE_CACHE_LOCK:
@@ -1664,6 +1696,15 @@ def get_live_price(symbol):
         return price
 
     price = _price_from_binance()
+    if price:
+        with LIVE_PRICE_CACHE_LOCK:
+            LIVE_PRICE_CACHE[clean_symbol] = {
+                'price': price,
+                'expires_at': time.time() + max(1, LIVE_PRICE_CACHE_TTL_SECONDS)
+            }
+        return price
+
+    price = _price_from_yahoo_chart()
     if price:
         with LIVE_PRICE_CACHE_LOCK:
             LIVE_PRICE_CACHE[clean_symbol] = {

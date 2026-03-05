@@ -5804,7 +5804,38 @@ def api_system_status():
             else:
                 system_data['status']['vip_bot'] = 'unknown'
         except Exception:
-            system_data['status']['vip_bot'] = 'error'
+            system_data['status']['vip_bot'] = 'stopped'
+
+        # تحديد حالة نظام البث بشكل ديناميكي (بدلاً من الاعتماد على system_status.json)
+        try:
+            targets_config = telegram_sender.load_broadcast_targets()
+            targets = targets_config.get('targets', []) if isinstance(targets_config, dict) else []
+
+            enabled_targets = [t for t in targets if isinstance(t, dict) and t.get('enabled', True)]
+            valid_telegram_targets = [
+                t for t in enabled_targets
+                if str(t.get('platform') or t.get('type') or '').strip().lower() in ('telegram', 'telegram_channel', 'telegram_group')
+                and str(t.get('chat_id') or t.get('telegram_chat_id') or '').strip()
+            ]
+            valid_whatsapp_targets = [
+                t for t in enabled_targets
+                if str(t.get('platform') or t.get('type') or '').strip().lower() in ('whatsapp', 'whatsapp_group')
+                and str(t.get('webhook_url') or t.get('url') or '').strip()
+            ]
+
+            env_fallback_ready = bool(
+                str(os.environ.get('MM_TELEGRAM_BOT_TOKEN', '') or '').strip()
+                and str(os.environ.get('MM_TELEGRAM_CHAT_ID', '') or '').strip()
+            )
+
+            if active_bots or valid_telegram_targets or valid_whatsapp_targets or env_fallback_ready:
+                system_data['status']['signal_broadcaster'] = 'running'
+            elif targets or bots:
+                system_data['status']['signal_broadcaster'] = 'stopped'
+            else:
+                system_data['status']['signal_broadcaster'] = 'stopped'
+        except Exception:
+            system_data['status']['signal_broadcaster'] = 'stopped'
         
         # حساب المقاييس
         # إجمالي المستخدمين

@@ -5789,6 +5789,9 @@ def api_system_status():
         system_data['status']['delivery_report_scheduler'] = 'running' if DELIVERY_REPORT_SCHEDULER_STATE.get('running') else 'stopped'
         system_data['status']['scheduler'] = system_data['status']['delivery_report_scheduler']
 
+        bots = []
+        active_bots = []
+
         # تحديد حالة vip_bot من إعدادات البوت الفعلية
         try:
             bots_config = telegram_sender.load_bots_config()
@@ -5823,12 +5826,38 @@ def api_system_status():
                 and str(t.get('webhook_url') or t.get('url') or '').strip()
             ]
 
-            env_fallback_ready = bool(
-                str(os.environ.get('MM_TELEGRAM_BOT_TOKEN', '') or '').strip()
-                and str(os.environ.get('MM_TELEGRAM_CHAT_ID', '') or '').strip()
+            # وجود قناة إرسال (توكنات متاحة)
+            available_tokens = []
+            try:
+                token_loader = getattr(telegram_sender, '_get_active_bot_tokens', None)
+                if callable(token_loader):
+                    available_tokens = token_loader() or []
+            except Exception:
+                available_tokens = []
+
+            # وجود مستقبلين فعليين من المشتركين (chat_id/telegram_id)
+            has_subscriber_receivers = False
+            try:
+                subscribers = subscription_manager.get_all_active_users() or []
+                has_subscriber_receivers = any(
+                    (str((u.get('chat_id') if isinstance(u, dict) else '') or '').strip())
+                    or (u.get('telegram_id') if isinstance(u, dict) else None)
+                    for u in subscribers
+                )
+            except Exception:
+                has_subscriber_receivers = False
+
+            # fallback عام للبث الخارجي
+            env_fallback_ready = bool(str(os.environ.get('MM_TELEGRAM_CHAT_ID', '') or '').strip())
+
+            broadcaster_ready = bool(available_tokens) and (
+                has_subscriber_receivers
+                or bool(valid_telegram_targets)
+                or bool(valid_whatsapp_targets)
+                or env_fallback_ready
             )
 
-            if active_bots or valid_telegram_targets or valid_whatsapp_targets or env_fallback_ready:
+            if broadcaster_ready:
                 system_data['status']['signal_broadcaster'] = 'running'
             elif targets or bots:
                 system_data['status']['signal_broadcaster'] = 'stopped'

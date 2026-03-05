@@ -6408,9 +6408,27 @@ def api_update_prices():
         
     except Exception as e:
         error_text = str(e)
+        fallback_signals = UPDATE_PRICES_LAST_PAYLOAD.get('signals', []) or []
+
+        if not fallback_signals:
+            try:
+                for signal in load_signals(include_closed=False):
+                    if str(signal.get('status', '')).lower() != 'active':
+                        continue
+                    fallback_signals.append({
+                        'id': signal.get('signal_id'),
+                        'signal_id': signal.get('signal_id'),
+                        'current_price': signal.get('current_price'),
+                        'current_price_updated_at': signal.get('current_price_updated_at'),
+                        'pips': signal.get('pips'),
+                        'progress': signal.get('progress')
+                    })
+            except Exception:
+                pass
+
         return jsonify({
             'success': True,
-            'signals': UPDATE_PRICES_LAST_PAYLOAD.get('signals', []),
+            'signals': fallback_signals,
             'cached_fallback': True,
             'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at'),
             'warning': error_text

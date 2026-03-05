@@ -4276,11 +4276,14 @@ def plans():
 @app.route('/api/signals')
 def api_signals():
     """API لجلب الإشارات"""
-    signals = load_signals()
-    user_info = get_current_user()
-    filtered_signals = _filter_signals_for_user(signals, user_info)
-
-    return jsonify(filtered_signals)
+    try:
+        signals = load_signals()
+        user_info = get_current_user()
+        filtered_signals = _filter_signals_for_user(signals, user_info)
+        return jsonify(filtered_signals)
+    except Exception as e:
+        print(f"❌ خطأ في api_signals: {e}")
+        return jsonify([])
 
 
 @app.route('/api/recommendations')

@@ -45,6 +45,21 @@
             <li style="padding: 0.5rem 0;">✓ قاعدة البيانات: متزامنة</li>
         </ul>
     </div>
+
+    {% if is_admin %}
+    <div style="margin-top: 1rem; padding: 1.25rem; background: #fff9eb; border-radius: 10px; border-right: 5px solid #0f1a2d;">
+        <h3 style="margin-bottom: 0.8rem; color: #1f2937;">⚡ اختصار Force Live (للمشرف)</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+            <label style="display:flex; align-items:center; gap:0.4rem; color:#444; font-weight:600;">
+                <input type="checkbox" id="dashboard-force-live-toggle" checked>
+                تجاوز الكاش (Force Live)
+            </label>
+            <button id="dashboard-run-once-btn" style="padding:0.45rem 0.8rem; background:#0f1a2d; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">▶️ تشغيل التحليل الآن</button>
+            <button id="dashboard-health-check-btn" style="padding:0.45rem 0.8rem; background:#fff; color:#0f1a2d; border:1px solid #0f1a2d; border-radius:8px; font-weight:700; cursor:pointer;">🩺 فحص المصادر</button>
+        </div>
+        <div id="dashboard-force-live-meta" style="margin-top:0.75rem; color:#666; font-size:0.92rem;">-</div>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -68,5 +83,67 @@
     
     updateDashboard();
     setInterval(updateDashboard, 5000);
+
+    {% if is_admin %}
+    const forceLiveToggle = document.getElementById('dashboard-force-live-toggle');
+    const runOnceBtn = document.getElementById('dashboard-run-once-btn');
+    const healthBtn = document.getElementById('dashboard-health-check-btn');
+    const forceMeta = document.getElementById('dashboard-force-live-meta');
+
+    function setForceMeta(text) {
+        if (forceMeta) forceMeta.textContent = text;
+    }
+
+    runOnceBtn?.addEventListener('click', async function() {
+        const originalText = this.textContent;
+        this.disabled = true;
+        this.textContent = '⏳ جاري التحليل...';
+        try {
+            const response = await fetch('/api/admin/continuous-analyzer/run-once', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    interval: '1h',
+                    force_live: Boolean(forceLiveToggle?.checked)
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setForceMeta(`✅ تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`);
+                updateDashboard();
+            } else {
+                setForceMeta(`❌ فشل التحليل: ${data.error || 'خطأ غير معروف'}`);
+            }
+        } catch (error) {
+            setForceMeta('❌ خطأ أثناء التحليل الفوري');
+        } finally {
+            this.disabled = false;
+            this.textContent = originalText;
+        }
+    });
+
+    healthBtn?.addEventListener('click', async function() {
+        const originalText = this.textContent;
+        this.disabled = true;
+        this.textContent = '⏳ جاري الفحص...';
+        try {
+            const forceLive = Boolean(forceLiveToggle?.checked) ? '1' : '0';
+            const response = await fetch(`/api/admin/data-source-health?interval=1h&outputsize=120&force_live=${forceLive}`);
+            const data = await response.json();
+            if (data.success) {
+                const report = Array.isArray(data.report) ? data.report : [];
+                const sources = [...new Set(report.map(item => item.source).filter(Boolean))];
+                setForceMeta(`✅ المصادر: ${sources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`);
+            } else {
+                setForceMeta(`❌ فشل فحص المصادر: ${data.error || 'خطأ غير معروف'}`);
+            }
+        } catch (error) {
+            setForceMeta('❌ خطأ أثناء فحص المصادر');
+        } finally {
+            this.disabled = false;
+            this.textContent = originalText;
+        }
+    });
+    {% endif %}
 </script>
 {% endblock %}

@@ -4249,6 +4249,7 @@ def dashboard():
     return render_template('dashboard.html',
                          user=user_info,
                          is_logged_in=True,
+                         is_admin=user_info.get('is_admin', False),
                          selected_pairs_count=len(user_pairs))
 
 # ======= صفحة اختيار الأزواج =======

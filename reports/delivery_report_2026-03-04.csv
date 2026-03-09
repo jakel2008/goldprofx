@@ -1,0 +1,80 @@
+﻿date,2026-03-04
+
+user_id,plan,content_type,quality_score,quality_bucket,status,reason,sent_at
+7657829548,platinum,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:20.695258
+7657829547,platinum,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:20.644281
+7657829546,gold,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:20.593486
+7638774547,platinum,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:20.522139
+123456789,gold,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:20.463804
+68409845,platinum,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:20.401115
+990005,platinum,signal,60,low,sent,,2026-03-04T21:58:20.335077
+990004,gold,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:20.225092
+990003,silver,signal,60,low,skipped_quality,"min_quality=70, signal_quality=60",2026-03-04T21:58:20.157793
+990002,bronze,signal,60,low,skipped_quality,"min_quality=80, signal_quality=60",2026-03-04T21:58:20.070001
+990001,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:20.021422
+10004,platinum,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:19.961099
+10002,silver,signal,60,low,skipped_quality,"min_quality=70, signal_quality=60",2026-03-04T21:58:19.906316
+10001,gold,signal,60,low,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:19.845522
+7,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.792519
+6,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.707795
+5,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.646006
+4,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.561148
+3,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.508343
+2,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.456425
+1,free,signal,60,low,skipped_quality,"min_quality=90, signal_quality=60",2026-03-04T21:58:19.391342
+7657829548,platinum,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:19.329274
+7657829547,platinum,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:19.265805
+7657829546,gold,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:19.193179
+7638774547,platinum,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:19.130359
+123456789,gold,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:18.005597
+68409845,platinum,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:17.942506
+990005,platinum,signal,75,medium,sent,,2026-03-04T21:58:17.884733
+990004,gold,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:17.767502
+990003,silver,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (5 توصيات),2026-03-04T21:58:17.705166
+990002,bronze,signal,75,medium,skipped_quality,"min_quality=80, signal_quality=75",2026-03-04T21:58:17.645554
+990001,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.594350
+10004,platinum,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:17.526315
+10002,silver,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (5 توصيات),2026-03-04T21:58:17.464198
+10001,gold,signal,75,medium,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:17.401915
+7,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.335418
+6,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.272857
+5,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.209245
+4,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.147010
+3,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.085899
+2,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:17.022509
+1,free,signal,75,medium,skipped_quality,"min_quality=90, signal_quality=75",2026-03-04T21:58:16.963011
+7657829548,platinum,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:16.899392
+7657829547,platinum,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:16.840732
+7657829546,gold,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:16.779424
+7638774547,platinum,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:16.711252
+123456789,gold,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:16.648462
+68409845,platinum,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:16.586406
+990005,platinum,signal,95,high,sent,,2026-03-04T21:58:16.530806
+990004,gold,signal,95,high,sent,,2026-03-04T21:58:16.428093
+990003,silver,signal,95,high,sent,,2026-03-04T21:58:16.325338
+990002,bronze,signal,95,high,sent,,2026-03-04T21:58:16.222398
+990001,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:16.107274
+10004,platinum,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (10 توصيات),2026-03-04T21:58:16.039623
+10002,silver,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (5 توصيات),2026-03-04T21:58:15.981171
+10001,gold,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (7 توصيات),2026-03-04T21:58:15.918659
+7,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.854531
+6,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.791453
+5,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.728214
+4,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.665674
+3,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.602673
+2,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.547969
+1,free,signal,95,high,skipped_plan_limit,وصلت للحد الأقصى اليومي (1 توصيات),2026-03-04T21:58:15.485879
+
+summary_by_plan
+plan,status,count
+bronze,sent,1
+bronze,skipped_quality,2
+free,skipped_plan_limit,8
+free,skipped_quality,16
+gold,sent,1
+gold,skipped_plan_limit,11
+platinum,sent,3
+platinum,skipped_plan_limit,15
+silver,sent,1
+silver,skipped_plan_limit,3
+silver,skipped_quality,2

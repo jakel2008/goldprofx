@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import shutil
 import threading
 import time
 from datetime import datetime
@@ -17,10 +18,21 @@ except Exception:
 class TelegramCommandBot:
     def __init__(self, base_dir=None):
         self.base_dir = Path(base_dir or Path(__file__).parent)
-        self.bots_config_file = self.base_dir / 'bots_config.json'
-        self.state_file = self.base_dir / 'telegram_command_bot_state.json'
-        self.users_db = self.base_dir / 'users.db'
-        self.subscriptions_db = self.base_dir / 'vip_subscriptions.db'
+
+        default_data_dir = Path('/var/data') if Path('/var/data').exists() else self.base_dir
+        self.data_dir = Path(os.environ.get('GOLDPRO_DATA_DIR', str(default_data_dir)))
+        try:
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
+        self.bots_config_file = Path(os.environ.get('BOTS_CONFIG_FILE', str(self.data_dir / 'bots_config.json')))
+        self.state_file = Path(os.environ.get('TELEGRAM_COMMAND_STATE_FILE', str(self.data_dir / 'telegram_command_bot_state.json')))
+        self.users_db = Path(os.environ.get('USERS_DB_PATH', str(self.data_dir / 'users.db')))
+        self.subscriptions_db = Path(os.environ.get('VIP_SUBSCRIPTIONS_DB_PATH', str(self.data_dir / 'vip_subscriptions.db')))
+
+        self._migrate_legacy_file(self.bots_config_file)
+        self._migrate_legacy_file(self.state_file)
         self.poll_interval = max(1, int(os.environ.get('TELEGRAM_COMMAND_POLL_INTERVAL', '2')))
         self.request_timeout = max(10, int(os.environ.get('TELEGRAM_COMMAND_TIMEOUT', '30')))
         self.admin_ids = {x.strip() for x in str(os.environ.get('TELEGRAM_ADMIN_IDS', '')).split(',') if x.strip()}
@@ -37,6 +49,17 @@ class TelegramCommandBot:
             'started_at': None
         }
         self.subscription_manager = SubscriptionManager() if SubscriptionManager else None
+
+    def _migrate_legacy_file(self, target_path):
+        try:
+            target = Path(str(target_path))
+            legacy = self.base_dir / target.name
+            if target.exists() or (not legacy.exists()):
+                return
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(str(legacy), str(target))
+        except Exception:
+            pass
 
     def _load_offset(self):
         try:

@@ -11,6 +11,7 @@ from pathlib import Path
 import os  # <-- Add this line
 import threading
 import time
+import shutil
 import xml.etree.ElementTree as ET
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
@@ -283,6 +284,21 @@ def _ensure_subscription_user_link(user_id, username, full_name='', email='', pr
     if not username:
         return False, 'missing_username'
 
+    try:
+        conn = sqlite3.connect('vip_subscriptions.db')
+        c = conn.cursor()
+        c.execute('PRAGMA table_info(users)')
+        cols = {row[1] for row in c.fetchall()}
+        if 'deleted_at' in cols:
+            c.execute('SELECT deleted_at FROM users WHERE user_id = ?', (user_id,))
+            row = c.fetchone()
+            if row and row[0]:
+                conn.close()
+                return False, 'user_deleted_by_admin'
+        conn.close()
+    except Exception:
+        pass
+
     existing = subscription_manager.get_user(user_id)
     if existing:
         try:
@@ -350,13 +366,19 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
         'total_users': 0,
         'linked': 0,
         'failed': 0,
+        'skipped_deleted': 0,
         'errors': []
     }
     try:
         conn = sqlite3.connect('users.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('SELECT id, username, full_name, email FROM users ORDER BY id ASC')
+        c.execute('PRAGMA table_info(users)')
+        users_cols = {row[1] for row in c.fetchall()}
+        where = '1=1'
+        if 'deleted_at' in users_cols:
+            where += " AND (deleted_at IS NULL OR deleted_at = '')"
+        c.execute(f'SELECT id, username, full_name, email FROM users WHERE {where} ORDER BY id ASC')
         rows = c.fetchall()
         conn.close()
     except Exception as e:
@@ -375,10 +397,18 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
         if ok:
             summary['linked'] += 1
         else:
+            if str(msg or '').strip().lower() in ('deleted_by_admin', 'user_deleted_by_admin'):
+                summary['skipped_deleted'] += 1
+                continue
             summary['failed'] += 1
             if len(summary['errors']) < 20:
                 summary['errors'].append(f"user_id={row['id']}: {msg}")
     return summary
+
+
+def _normalize_symbol_key(symbol):
+    """تطبيع رمز الأصل/الزوج لصيغة موحدة للمقارنة والتخزين."""
+    return str(symbol or '').upper().replace('/', '').replace('-', '').replace('_', '').replace(' ', '')
 
 DATA_DIR = Path(
     os.environ.get(
@@ -391,6 +421,8 @@ try:
 except Exception:
     pass
 
+USERS_DB_PATH = Path(os.environ.get('USERS_DB_PATH', str(DATA_DIR / 'users.db')))
+VIP_SUBSCRIPTIONS_DB_PATH = Path(os.environ.get('VIP_SUBSCRIPTIONS_DB_PATH', str(DATA_DIR / 'vip_subscriptions.db')))
 VIP_SIGNALS_DB_PATH = Path(os.environ.get('VIP_SIGNALS_DB_PATH', str(DATA_DIR / 'vip_signals.db')))
 SIGNALS_DIR = Path(os.environ.get('SIGNALS_DIR', str(DATA_DIR / 'signals')))
 SENT_SIGNALS_FILE = Path(os.environ.get('SENT_SIGNALS_FILE', str(DATA_DIR / 'sent_signals.json')))
@@ -405,19 +437,26 @@ def _patched_sqlite_connect(database, *args, **kwargs):
             normalized = database.replace('\\', '/').strip().lower()
             if normalized in ('vip_signals.db', './vip_signals.db'):
                 database = str(VIP_SIGNALS_DB_PATH)
+            elif normalized in ('users.db', './users.db'):
+                database = str(USERS_DB_PATH)
+            elif normalized in ('vip_subscriptions.db', './vip_subscriptions.db'):
+                database = str(VIP_SUBSCRIPTIONS_DB_PATH)
     except Exception:
         pass
     return _ORIGINAL_SQLITE_CONNECT(database, *args, **kwargs)
 
 
 sqlite3.connect = _patched_sqlite_connect
-AUTO_BROADCAST_REGISTRY_FILE = Path(__file__).parent / "auto_broadcast_registry.json"
+AUTO_BROADCAST_REGISTRY_FILE = Path(os.environ.get('AUTO_BROADCAST_REGISTRY_FILE', str(DATA_DIR / 'auto_broadcast_registry.json')))
 AUTO_BROADCAST_RECENT_WINDOW_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')))
 AUTO_BROADCAST_RESEND_INTERVAL_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')))
 SIGNALS_LOOKBACK_DAYS = max(1, int(os.environ.get('SIGNALS_LOOKBACK_DAYS', '7')))
-RECOMMENDATIONS_DIR = Path(__file__).parent / "recommendations"
-ANALYSIS_DIR = Path(__file__).parent / "analysis"
-USER_PREFERENCES_FILE = Path(__file__).parent / "user_pairs_preferences.json"
+RECOMMENDATIONS_DIR = Path(os.environ.get('RECOMMENDATIONS_DIR', str(DATA_DIR / 'recommendations')))
+ANALYSIS_DIR = Path(os.environ.get('ANALYSIS_DIR', str(DATA_DIR / 'analysis')))
+USER_PREFERENCES_FILE = Path(os.environ.get('USER_PREFERENCES_FILE', str(DATA_DIR / 'user_pairs_preferences.json')))
+BACKUPS_DIR = Path(os.environ.get('BACKUPS_DIR', str(DATA_DIR / 'backups')))
+BACKUPS_KEEP = max(3, int(os.environ.get('BACKUPS_KEEP', '21')))
+BACKUP_ON_ADMIN_WRITE = os.environ.get('BACKUP_ON_ADMIN_WRITE', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 CLOSED_TRADES_ARCHIVE_FILE = Path(__file__).parent / "closed_trades.json"
 PUBLIC_ADS_FILE = Path(__file__).parent / 'public_ads.json'
 ECONOMIC_NEWS_CACHE_FILE = Path(__file__).parent / 'economic_news_cache.json'
@@ -494,6 +533,9 @@ YF_SYMBOLS = {
     'USDJPY': 'USDJPY=X', 'AUDUSD': 'AUDUSD=X', 'USDCAD': 'USDCAD=X',
     'NZDUSD': 'NZDUSD=X', 'USDCHF': 'USDCHF=X', 'BTCUSD': 'BTC-USD',
     'ETHUSD': 'ETH-USD', 'XAGUSD': 'SI=F',
+    'USOIL': 'CL=F', 'WTI': 'CL=F',
+    'UKOIL': 'BZ=F', 'BRENT': 'BZ=F',
+    'NATGAS': 'NG=F', 'NGAS': 'NG=F',
     'EURJPY': 'EURJPY=X', 'GBPJPY': 'GBPJPY=X', 'EURGBP': 'EURGBP=X',
     'CADJPY': 'CADJPY=X', 'CHFJPY': 'CHFJPY=X',
     'US30': '^DJI', 'NAS100': '^IXIC', 'SPX500': '^GSPC'
@@ -526,7 +568,7 @@ CONTINUOUS_ANALYZER_SYMBOLS = [
     'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
     'EURJPY', 'GBPJPY', 'EURGBP', 'CADJPY', 'CHFJPY',
     # Commodities
-    'XAUUSD', 'XAGUSD',
+    'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS',
     # Indices
     'US30', 'NAS100', 'SPX500',
     # Crypto
@@ -577,6 +619,515 @@ CLEANUP_SCHEDULER_STATE = {
 CLEANUP_SCHEDULER_THREAD = None
 CLEANUP_SCHEDULER_LOCK = threading.Lock()
 
+APP_BASE_DIR = Path(__file__).parent.resolve()
+
+
+def _ensure_backup_dir():
+    try:
+        BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+        return True
+    except Exception:
+        return False
+
+
+def _prune_backups(prefix):
+    try:
+        _ensure_backup_dir()
+        files = sorted(BACKUPS_DIR.glob(f'{prefix}_*.db'), key=lambda p: p.stat().st_mtime, reverse=True)
+        for stale in files[BACKUPS_KEEP:]:
+            try:
+                stale.unlink()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _backup_database_file(db_path, prefix):
+    """نسخ احتياطي سريع لقاعدة البيانات مع حفظ عدد محدد من النسخ."""
+    try:
+        path = Path(str(db_path))
+        if not path.exists() or not path.is_file():
+            return None
+        if not _ensure_backup_dir():
+            return None
+        stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        target = BACKUPS_DIR / f'{prefix}_{stamp}.db'
+        shutil.copy2(str(path), str(target))
+        _prune_backups(prefix)
+        return str(target)
+    except Exception:
+        return None
+
+
+def _snapshot_core_databases(reason='manual', actor='system'):
+    """أخذ snapshot لقاعدتي المستخدمين/الاشتراكات قبل العمليات الحساسة."""
+    users_backup = _backup_database_file(USERS_DB_PATH, 'users')
+    vip_backup = _backup_database_file(VIP_SUBSCRIPTIONS_DB_PATH, 'vip_subscriptions')
+    return {
+        'reason': str(reason or 'manual'),
+        'actor': str(actor or 'system'),
+        'users_backup': users_backup,
+        'vip_backup': vip_backup,
+        'created_at': datetime.now().isoformat()
+    }
+
+
+def _ensure_admin_audit_table():
+    try:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS admin_audit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                admin_username TEXT,
+                action TEXT,
+                target_user_id INTEGER,
+                details TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            '''
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def _log_admin_audit(action, target_user_id=None, details=None):
+    try:
+        _ensure_admin_audit_table()
+        admin_username = session.get('local_admin_username') if isinstance(session, dict) else None
+        if not admin_username:
+            info = get_current_user()
+            if isinstance(info, dict) and info.get('success'):
+                admin_username = info.get('username')
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute(
+            '''
+            INSERT INTO admin_audit_log (admin_username, action, target_user_id, details)
+            VALUES (?, ?, ?, ?)
+            ''',
+            (str(admin_username or 'system'), str(action or ''), target_user_id, json.dumps(details or {}, ensure_ascii=False))
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def _table_row_count(db_path, table_name):
+    """إرجاع عدد الصفوف في جدول محدد أو 0 عند الفشل."""
+    try:
+        conn = _ORIGINAL_SQLITE_CONNECT(str(db_path))
+        c = conn.cursor()
+        c.execute(f"SELECT COUNT(*) FROM {table_name}")
+        count = int((c.fetchone() or [0])[0] or 0)
+        conn.close()
+        return count
+    except Exception:
+        return 0
+
+
+def _legacy_db_candidates(primary_filename, backup_glob_pattern):
+    """تجميع ملفات قواعد بيانات قديمة يمكن الاسترجاع منها."""
+    candidates = []
+
+    direct = [
+        APP_BASE_DIR / primary_filename,
+        APP_BASE_DIR / 'instance' / primary_filename,
+        APP_BASE_DIR / 'backups' / primary_filename,
+        DATA_DIR / primary_filename,
+        DATA_DIR / 'backups' / primary_filename,
+    ]
+    for path in direct:
+        if path.exists() and path.is_file():
+            candidates.append(path)
+
+    for root in [APP_BASE_DIR / 'backups', DATA_DIR / 'backups']:
+        if not root.exists() or not root.is_dir():
+            continue
+        for path in sorted(root.glob(backup_glob_pattern), key=lambda p: p.stat().st_mtime, reverse=True):
+            if path.exists() and path.is_file():
+                candidates.append(path)
+
+    unique = []
+    seen = set()
+    for item in candidates:
+        key = str(item.resolve()).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
+def _recover_users_db_if_empty():
+    """استرجاع users.db من ملفات قديمة/نسخ احتياطية عندما تكون القاعدة الحالية فارغة."""
+    target_db = USERS_DB_PATH
+    current_count = _table_row_count(target_db, 'users')
+    if current_count > 0:
+        return {'attempted': False, 'restored': 0, 'source': None, 'reason': 'target_not_empty'}
+
+    sources = _legacy_db_candidates('users.db', 'users_*.db')
+    target_key = str(target_db.resolve()).lower()
+
+    for source_db in sources:
+        source_key = str(source_db.resolve()).lower()
+        if source_key == target_key:
+            continue
+
+        source_count = _table_row_count(source_db, 'users')
+        if source_count <= 0:
+            continue
+
+        try:
+            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+            src_conn.row_factory = sqlite3.Row
+            src_cur = src_conn.cursor()
+            src_cur.execute('PRAGMA table_info(users)')
+            src_cols = {row[1] for row in src_cur.fetchall()}
+
+            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+            target_cur = target_conn.cursor()
+            target_cur.execute('PRAGMA table_info(users)')
+            target_cols = {row[1] for row in target_cur.fetchall()}
+
+            required = {'username', 'email', 'password_hash'}
+            if not required.issubset(src_cols) or not required.issubset(target_cols):
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            selected_cols = [
+                'username', 'email', 'password_hash', 'full_name', 'plan',
+                'created_at', 'last_login', 'is_active', 'is_admin',
+                'role', 'phone', 'country', 'nickname'
+            ]
+            selected_cols = [col for col in selected_cols if col in src_cols and col in target_cols]
+
+            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+            rows = src_cur.fetchall()
+
+            if not rows:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            placeholders = ', '.join(['?'] * len(selected_cols))
+            insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+            restored = 0
+            for row in rows:
+                values = [row[col] for col in selected_cols]
+                target_cur.execute(insert_sql, values)
+                if target_cur.rowcount:
+                    restored += 1
+
+            target_conn.commit()
+            src_conn.close()
+            target_conn.close()
+
+            if restored > 0:
+                return {
+                    'attempted': True,
+                    'restored': restored,
+                    'source': str(source_db),
+                    'reason': 'restored_from_legacy'
+                }
+        except Exception:
+            continue
+
+    return {'attempted': True, 'restored': 0, 'source': None, 'reason': 'no_valid_source'}
+
+
+def _recover_vip_subscriptions_if_empty():
+    """استرجاع vip_subscriptions.db من ملفات قديمة/نسخ احتياطية عندما تكون فارغة."""
+    target_db = VIP_SUBSCRIPTIONS_DB_PATH
+    current_count = _table_row_count(target_db, 'users')
+    if current_count > 0:
+        return {'attempted': False, 'restored': 0, 'source': None, 'reason': 'target_not_empty'}
+
+    sources = _legacy_db_candidates('vip_subscriptions.db', 'vip_subscriptions*.db')
+    target_key = str(target_db.resolve()).lower()
+
+    for source_db in sources:
+        source_key = str(source_db.resolve()).lower()
+        if source_key == target_key:
+            continue
+
+        source_count = _table_row_count(source_db, 'users')
+        if source_count <= 0:
+            continue
+
+        try:
+            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+            src_conn.row_factory = sqlite3.Row
+            src_cur = src_conn.cursor()
+            src_cur.execute('PRAGMA table_info(users)')
+            src_cols = {row[1] for row in src_cur.fetchall()}
+
+            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+            target_cur = target_conn.cursor()
+            target_cur.execute('PRAGMA table_info(users)')
+            target_cols = {row[1] for row in target_cur.fetchall()}
+
+            if 'user_id' not in src_cols or 'user_id' not in target_cols:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            selected_cols = [
+                'user_id', 'username', 'first_name', 'plan', 'subscription_start',
+                'subscription_end', 'status', 'referral_code', 'referred_by',
+                'total_paid', 'created_at', 'password_hash', 'email',
+                'activation_token', 'chat_id', 'telegram_id'
+            ]
+            selected_cols = [col for col in selected_cols if col in src_cols and col in target_cols]
+
+            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+            rows = src_cur.fetchall()
+
+            if not rows:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            placeholders = ', '.join(['?'] * len(selected_cols))
+            insert_sql = f"INSERT OR REPLACE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+            restored = 0
+            for row in rows:
+                values = [row[col] for col in selected_cols]
+                target_cur.execute(insert_sql, values)
+                if target_cur.rowcount:
+                    restored += 1
+
+            target_conn.commit()
+            src_conn.close()
+            target_conn.close()
+
+            if restored > 0:
+                return {
+                    'attempted': True,
+                    'restored': restored,
+                    'source': str(source_db),
+                    'reason': 'restored_from_legacy'
+                }
+        except Exception:
+            continue
+
+    return {'attempted': True, 'restored': 0, 'source': None, 'reason': 'no_valid_source'}
+
+
+def _bootstrap_persistent_databases():
+    """تهيئة مسارات قواعد البيانات الدائمة واسترجاع البيانات عند الحاجة."""
+    _ensure_backup_dir()
+    _ensure_admin_audit_table()
+
+    try:
+        if hasattr(subscription_manager, 'db_path'):
+            subscription_manager.db_path = str(VIP_SUBSCRIPTIONS_DB_PATH)
+            subscription_manager.init_database()
+    except Exception:
+        pass
+
+    users_result = _recover_users_db_if_empty()
+    vip_result = _recover_vip_subscriptions_if_empty()
+    sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
+    startup_backup = _snapshot_core_databases(reason='startup_bootstrap', actor='system') if BACKUP_ON_ADMIN_WRITE else None
+
+    _log_admin_audit(
+        action='startup_bootstrap',
+        target_user_id=None,
+        details={
+            'users_result': users_result,
+            'vip_result': vip_result,
+            'sync_result': sync_result,
+            'startup_backup': startup_backup
+        }
+    )
+
+    if users_result.get('restored', 0) > 0 or vip_result.get('restored', 0) > 0:
+        print(f"[RECOVERY] users={users_result} vip={vip_result} sync={sync_result}")
+    elif int(sync_result.get('linked', 0) or 0) > 0:
+        print(f"[RECOVERY-SYNC] sync={sync_result}")
+
+
+_bootstrap_persistent_databases()
+
+
+def _ensure_user_pairs_preferences_table():
+    """إنشاء جدول تفضيلات الأزواج لكل مستخدم داخل users.db."""
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS user_pairs_preferences (
+            user_id INTEGER NOT NULL,
+            pair_symbol TEXT NOT NULL,
+            updated_at TEXT,
+            PRIMARY KEY (user_id, pair_symbol)
+        )
+        '''
+    )
+    conn.commit()
+    conn.close()
+
+
+def _migrate_preferences_from_json_if_needed():
+    """ترحيل التفضيلات القديمة من JSON إلى users.db لمرة واحدة عند الحاجة."""
+    try:
+        _ensure_user_pairs_preferences_table()
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('SELECT COUNT(*) FROM user_pairs_preferences')
+        rows_count = int((c.fetchone() or [0])[0] or 0)
+        if rows_count > 0:
+            conn.close()
+            return
+
+        if not USER_PREFERENCES_FILE.exists():
+            conn.close()
+            return
+
+        with open(USER_PREFERENCES_FILE, 'r', encoding='utf-8') as f:
+            all_prefs = json.load(f)
+
+        now_iso = datetime.now().isoformat()
+        inserted = 0
+        for raw_user_id, prefs in (all_prefs or {}).items():
+            try:
+                user_id = int(raw_user_id)
+            except Exception:
+                continue
+
+            user_pairs = prefs.get('pairs', []) if isinstance(prefs, dict) else []
+            if not isinstance(user_pairs, list):
+                continue
+
+            for pair in user_pairs:
+                normalized = _normalize_symbol_key(pair)
+                if not normalized:
+                    continue
+                c.execute(
+                    '''
+                    INSERT OR REPLACE INTO user_pairs_preferences (user_id, pair_symbol, updated_at)
+                    VALUES (?, ?, ?)
+                    ''',
+                    (user_id, normalized, now_iso)
+                )
+                inserted += 1
+
+        conn.commit()
+        conn.close()
+
+        if inserted > 0:
+            backup_file = USER_PREFERENCES_FILE.with_suffix('.json.migrated')
+            try:
+                USER_PREFERENCES_FILE.replace(backup_file)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _load_user_selected_pairs(user_id):
+    """تحميل الأزواج المختارة لمستخدم واحد من قاعدة البيانات."""
+    try:
+        uid = int(user_id)
+    except Exception:
+        return []
+
+    _migrate_preferences_from_json_if_needed()
+    _ensure_user_pairs_preferences_table()
+
+    try:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('SELECT pair_symbol FROM user_pairs_preferences WHERE user_id = ? ORDER BY pair_symbol ASC', (uid,))
+        rows = c.fetchall()
+        conn.close()
+        return [str(row[0]) for row in rows if row and row[0]]
+    except Exception:
+        return []
+
+
+def _save_user_selected_pairs(user_id, pairs):
+    """حفظ الأزواج المختارة لمستخدم داخل قاعدة البيانات بشكل ذري."""
+    try:
+        uid = int(user_id)
+    except Exception:
+        return False
+
+    if not isinstance(pairs, list):
+        pairs = []
+
+    normalized_pairs = sorted({
+        _normalize_symbol_key(p) for p in pairs if _normalize_symbol_key(p)
+    })
+
+    _ensure_user_pairs_preferences_table()
+    now_iso = datetime.now().isoformat()
+    try:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM user_pairs_preferences WHERE user_id = ?', (uid,))
+        for symbol in normalized_pairs:
+            c.execute(
+                '''
+                INSERT OR REPLACE INTO user_pairs_preferences (user_id, pair_symbol, updated_at)
+                VALUES (?, ?, ?)
+                ''',
+                (uid, symbol, now_iso)
+            )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def _load_selected_pairs_distribution():
+    """إرجاع توزيع عدد المستخدمين لكل زوج مختار."""
+    _migrate_preferences_from_json_if_needed()
+    _ensure_user_pairs_preferences_table()
+    try:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute(
+            '''
+            SELECT pair_symbol, COUNT(*)
+            FROM user_pairs_preferences
+            GROUP BY pair_symbol
+            '''
+        )
+        rows = c.fetchall()
+        conn.close()
+        return {str(pair): int(count or 0) for pair, count in rows}
+    except Exception:
+        return {}
+
+
+def _selected_pairs_union_supported():
+    """تجميع كل الأزواج المختارة من المستخدمين والمسموح بتحليلها."""
+    selected = {k for k, v in _load_selected_pairs_distribution().items() if int(v or 0) > 0}
+    supported = {_normalize_symbol_key(s) for s in list(YF_SYMBOLS.keys()) + list(CONTINUOUS_ANALYZER_SYMBOLS)}
+    selected = {s for s in selected if s in supported}
+    return sorted(selected)
+
+
+def _resolve_symbols_for_continuous_analyzer(max_symbols=None):
+    """تحديد قائمة الرموز التي سيحللها النظام: المختارة من المستخدمين أولًا ثم الافتراضي."""
+    symbols = _selected_pairs_union_supported()
+    if not symbols:
+        symbols = list(CONTINUOUS_ANALYZER_SYMBOLS)
+    if isinstance(max_symbols, int) and max_symbols > 0:
+        symbols = symbols[:max_symbols]
+    return symbols
+
 DELIVERY_REPORT_DAILY_TIME = os.environ.get('DELIVERY_REPORT_DAILY_TIME', '23:55').strip() or '23:55'
 DELIVERY_REPORT_CHECK_INTERVAL_SECONDS = max(15, int(os.environ.get('DELIVERY_REPORT_CHECK_INTERVAL_SECONDS', '30')))
 DELIVERY_REPORT_SCHEDULER_STATE = {
@@ -597,11 +1148,26 @@ DELIVERY_REPORT_SCHEDULER_LOCK = threading.Lock()
 def _normalize_symbol_for_engine(symbol):
     """تحويل الرمز لصيغة محلل TwelveData (مثال EURUSD -> EUR/USD)."""
     clean_symbol = (symbol or '').upper().replace('-', '').replace('_', '').replace(' ', '')
+    aliases = {
+        'WTI': 'USOIL',
+        'BRENT': 'UKOIL',
+        'NGAS': 'NATGAS'
+    }
+    clean_symbol = aliases.get(clean_symbol, clean_symbol)
+
+    non_fx_symbols = {
+        'US30', 'NAS100', 'SPX500',
+        'XAUUSD', 'XAGUSD',
+        'USOIL', 'UKOIL', 'NATGAS',
+        'BTCUSD', 'ETHUSD'
+    }
+    if clean_symbol in non_fx_symbols:
+        return clean_symbol
+
+    fx_currencies = {'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'NZD', 'CAD'}
     if '/' in clean_symbol:
         return clean_symbol
-    if clean_symbol in ('US30', 'NAS100', 'SPX500'):
-        return clean_symbol
-    if len(clean_symbol) == 6:
+    if len(clean_symbol) == 6 and clean_symbol[:3] in fx_currencies and clean_symbol[3:] in fx_currencies:
         return f"{clean_symbol[:3]}/{clean_symbol[3:]}"
     return clean_symbol
 
@@ -1343,7 +1909,8 @@ def _continuous_analyzer_loop():
         deduplicated_count = 0
 
         try:
-            for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
+            symbols_to_analyze = _resolve_symbols_for_continuous_analyzer()
+            for symbol in symbols_to_analyze:
                 if not CONTINUOUS_ANALYZER_STATE.get('running'):
                     break
 
@@ -1426,9 +1993,7 @@ def _is_continuous_analyzer_alive():
 
 def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=False):
     """تشغيل دورة تحليل واحدة لجميع الأزواج (بدون حلقة لا نهائية)."""
-    symbols = list(CONTINUOUS_ANALYZER_SYMBOLS)
-    if isinstance(max_symbols, int) and max_symbols > 0:
-        symbols = symbols[:max_symbols]
+    symbols = _resolve_symbols_for_continuous_analyzer(max_symbols=max_symbols)
 
     generated_count = 0
     broadcast_count = 0
@@ -1511,7 +2076,7 @@ def _probe_data_sources(interval='1h', outputsize=120, force_live=False):
     ok = 0
     failed = 0
 
-    for symbol in CONTINUOUS_ANALYZER_SYMBOLS:
+    for symbol in _resolve_symbols_for_continuous_analyzer():
         item = {'symbol': symbol, 'ok': False, 'rows': 0, 'source': None, 'error': None}
         try:
             df = fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
@@ -2529,6 +3094,7 @@ def _sync_site_signals_to_active_bots(limit=30):
     synced_count = 0
     now_dt = datetime.now()
     registry = _load_auto_broadcast_registry()
+    selected_symbols = set(_selected_pairs_union_supported())
 
     try:
         conn = sqlite3.connect('vip_signals.db')
@@ -2543,6 +3109,10 @@ def _sync_site_signals_to_active_bots(limit=30):
     recent_threshold = now_dt - timedelta(minutes=AUTO_BROADCAST_RECENT_WINDOW_MINUTES)
 
     for row_dict in rows:
+        row_symbol = _normalize_symbol_key(row_dict.get('symbol'))
+        if selected_symbols and row_symbol not in selected_symbols:
+            continue
+
         created_at_dt = _parse_datetime_flexible(row_dict.get('created_at'))
         if created_at_dt and created_at_dt < recent_threshold:
             continue
@@ -2685,6 +3255,26 @@ def stop_delivery_report_scheduler():
     with DELIVERY_REPORT_SCHEDULER_LOCK:
         DELIVERY_REPORT_SCHEDULER_STATE['running'] = False
     return True, 'تم إيقاف مجدول تقرير التوزيع اليومي'
+
+
+def _safe_execute_vip_signals_write(sql, params=()):
+    """تنفيذ كتابة قصيرة وآمنة على vip_signals مع إغلاق الاتصال دائماً."""
+    import sqlite3
+    conn = None
+    try:
+        conn = sqlite3.connect('vip_signals.db', timeout=10)
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def load_signals(include_closed=False):
@@ -3192,16 +3782,7 @@ def get_statistics():
     avg_quality = total_quality / len(recommendations_data) if recommendations_data else 0
     
     # توزيع الأزواج المختارة
-    pairs_distribution = {}
-    if USER_PREFERENCES_FILE.exists():
-        try:
-            with open(USER_PREFERENCES_FILE, 'r', encoding='utf-8') as f:
-                all_prefs = json.load(f)
-                for user_id, prefs in all_prefs.items():
-                    for pair in prefs.get('pairs', []):
-                        pairs_distribution[pair] = pairs_distribution.get(pair, 0) + 1
-        except:
-            pass
+    pairs_distribution = _load_selected_pairs_distribution()
     
     # الأكثر الأزواج طلباً
     top_pairs = sorted(pairs_distribution.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -3947,6 +4528,14 @@ def _filter_signals_for_user(signals, user_info):
     else:
         filtered = [s for s in signals if (s.get('quality_score') or 0) >= 90]
 
+    selected_pairs = set()
+    if isinstance(user_info, dict) and user_info.get('success'):
+        selected_pairs = set(_load_user_selected_pairs(user_info.get('user_id')))
+
+    if selected_pairs:
+        selected_filtered = [s for s in filtered if _normalize_symbol_key(s.get('symbol')) in selected_pairs]
+        return selected_filtered
+
     if filtered:
         return filtered
 
@@ -4328,16 +4917,8 @@ def dashboard():
     """لوحة التحكم"""
     user_info = get_current_user()
     
-    # تحميل تفضيلات الأزواج
-    user_pairs = []
-    if USER_PREFERENCES_FILE.exists():
-        try:
-            with open(USER_PREFERENCES_FILE, 'r', encoding='utf-8') as f:
-                all_prefs = json.load(f)
-                user_prefs = all_prefs.get(str(user_info.get('user_id')), {})
-                user_pairs = user_prefs.get('pairs', [])
-        except:
-            pass
+    # تحميل تفضيلات الأزواج من قاعدة البيانات
+    user_pairs = _load_user_selected_pairs(user_info.get('user_id'))
     
     return render_template('dashboard.html',
                          user=user_info,
@@ -4391,6 +4972,16 @@ def api_recommendations():
 def api_analysis():
     """API لجلب التحليلات"""
     analyses = load_analysis()
+    user_info = get_current_user()
+    if user_info.get('success'):
+        selected_pairs = set(_load_user_selected_pairs(user_info.get('user_id')))
+        if selected_pairs:
+            analyses = [
+                a for a in analyses
+                if _normalize_symbol_key(
+                    a.get('symbol') or a.get('pair') or a.get('instrument') or a.get('ticker')
+                ) in selected_pairs
+            ]
     return jsonify(analyses)
 
 
@@ -4422,7 +5013,7 @@ def get_all_available_pairs():
     forex_major = {'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'}
     forex_minor = {'EURJPY', 'GBPJPY', 'EURGBP', 'CADJPY', 'CHFJPY'}
     metals = {'XAUUSD', 'XAGUSD'}
-    energy = {'WTI', 'BRENT', 'USOIL', 'UKOIL'}
+    energy = {'WTI', 'BRENT', 'USOIL', 'UKOIL', 'NATGAS', 'NGAS'}
     indices_us = {'US30', 'NAS100', 'SPX500'}
     indices_europe = {'GER40', 'UK100', 'FRA40', 'EU50'}
     indices_asia = {'JPN225', 'HK50', 'CHN50'}
@@ -4464,17 +5055,8 @@ def api_get_user_pairs_preferences():
     user_id = user_info['user_id']
     
     try:
-        # تحميل تفضيلات المستخدم من ملف JSON
-        if USER_PREFERENCES_FILE.exists():
-            with open(USER_PREFERENCES_FILE, 'r', encoding='utf-8') as f:
-                all_preferences = json.load(f)
-                user_prefs = all_preferences.get(str(user_id), {})
-                return jsonify({
-                    'success': True,
-                    'pairs': user_prefs.get('pairs', [])
-                })
-        else:
-            return jsonify({'success': True, 'pairs': []})
+        user_pairs = _load_user_selected_pairs(user_id)
+        return jsonify({'success': True, 'pairs': user_pairs})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -4492,26 +5074,16 @@ def api_save_pairs_preferences():
     pairs = data.get('pairs', [])
     
     try:
-        # تحميل التفضيلات الحالية
-        all_preferences = {}
-        if USER_PREFERENCES_FILE.exists():
-            with open(USER_PREFERENCES_FILE, 'r', encoding='utf-8') as f:
-                all_preferences = json.load(f)
-        
-        # تحديث تفضيلات المستخدم
-        all_preferences[str(user_id)] = {
-            'pairs': pairs,
-            'updated_at': datetime.now().isoformat()
-        }
-        
-        # حفظ التفضيلات
-        with open(USER_PREFERENCES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_preferences, f, indent=2, ensure_ascii=False)
-        
+        ok = _save_user_selected_pairs(user_id, pairs)
+        if not ok:
+            return jsonify({'success': False, 'message': 'تعذر حفظ التفضيلات'}), 500
+
+        saved_pairs = _load_user_selected_pairs(user_id)
         return jsonify({
             'success': True,
             'message': 'تم حفظ التفضيلات بنجاح',
-            'pairs_count': len(pairs)
+            'pairs_count': len(saved_pairs),
+            'pairs': saved_pairs
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -4669,6 +5241,80 @@ def api_admin_sync_users_to_subscriptions():
     summary = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=prefer_trial)
     return jsonify({'success': True, 'sync': summary})
 
+
+@app.route('/api/admin/recover-users', methods=['POST'])
+@admin_required
+def api_admin_recover_users():
+    """تشغيل الاسترجاع اليدوي لبيانات المستخدمين والاشتراكات."""
+    payload = request.get_json(silent=True) or {}
+    force_sync = bool(payload.get('force_sync', True))
+    prefer_trial = bool(payload.get('prefer_trial', False))
+
+    backup_info = _snapshot_core_databases(reason='admin_recover_users', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
+
+    users_result = _recover_users_db_if_empty()
+    vip_result = _recover_vip_subscriptions_if_empty()
+    sync_result = None
+    if force_sync:
+        sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=prefer_trial)
+
+    users_count = _table_row_count(USERS_DB_PATH, 'users')
+    vip_users_count = _table_row_count(VIP_SUBSCRIPTIONS_DB_PATH, 'users')
+
+    _log_admin_audit(
+        action='admin_recover_users',
+        target_user_id=None,
+        details={
+            'force_sync': force_sync,
+            'prefer_trial': prefer_trial,
+            'backup': backup_info,
+            'users_result': users_result,
+            'vip_result': vip_result,
+            'sync_result': sync_result,
+            'users_count': users_count,
+            'vip_users_count': vip_users_count
+        }
+    )
+
+    return jsonify({
+        'success': True,
+        'users_db': str(USERS_DB_PATH),
+        'vip_subscriptions_db': str(VIP_SUBSCRIPTIONS_DB_PATH),
+        'users_result': users_result,
+        'vip_result': vip_result,
+        'sync_result': sync_result,
+        'backup': backup_info,
+        'force_sync': force_sync,
+        'users_count': users_count,
+        'vip_users_count': vip_users_count
+    })
+
+
+@app.route('/admin/recover-users-now', methods=['GET'])
+@admin_required
+def admin_recover_users_now():
+    """تنفيذ استرجاع ومزامنة المشتركين من رابط مباشر للأدمن ثم العودة لإدارة الاشتراكات."""
+    users_result = _recover_users_db_if_empty()
+    vip_result = _recover_vip_subscriptions_if_empty()
+    sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
+
+    users_count = _table_row_count(USERS_DB_PATH, 'users')
+    vip_users_count = _table_row_count(VIP_SUBSCRIPTIONS_DB_PATH, 'users')
+
+    flash(
+        (
+            f"Recovery done: users={users_count}, vip={vip_users_count}, "
+            f"linked={int(sync_result.get('linked', 0) or 0)}, "
+            f"failed={int(sync_result.get('failed', 0) or 0)}"
+        ),
+        'success'
+    )
+
+    if int(users_result.get('restored', 0) or 0) > 0 or int(vip_result.get('restored', 0) or 0) > 0:
+        print(f"[MANUAL-RECOVERY] users={users_result} vip={vip_result} sync={sync_result}")
+
+    return redirect(url_for('subscriptions_management'))
+
 @app.route('/api/admin/update_plan', methods=['POST'])
 @admin_required
 def api_admin_update_plan():
@@ -4679,6 +5325,7 @@ def api_admin_update_plan():
     duration_days = data.get('duration_days')
     
     try:
+        backup_info = _snapshot_core_databases(reason='admin_update_plan', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
         # إلغاء جميع الاشتراكات النشطة السابقة
         try:
             import sqlite3
@@ -4704,6 +5351,18 @@ def api_admin_update_plan():
         # تحديث في جدول users أيضاً
         if success:
             user_manager.update_user_plan(user_id, plan)
+
+        _log_admin_audit(
+            action='admin_update_plan',
+            target_user_id=user_id,
+            details={
+                'plan': plan,
+                'duration_days': duration_days,
+                'success': bool(success),
+                'message': message,
+                'backup': backup_info
+            }
+        )
         
         return jsonify({
             'success': success, 
@@ -4730,7 +5389,9 @@ def api_admin_cancel_subscription():
     data = request.json or {}
     user_id = data.get('user_id')
     
+    backup_info = _snapshot_core_databases(reason='admin_cancel_subscription', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
     success, message = subscription_manager.cancel_subscription(user_id)
+    _log_admin_audit('admin_cancel_subscription', target_user_id=user_id, details={'success': bool(success), 'message': message, 'backup': backup_info})
     return jsonify({'success': success, 'message': message})
 
 @app.route('/api/admin/reactivate_subscription', methods=['POST'])
@@ -4740,7 +5401,9 @@ def api_admin_reactivate_subscription():
     data = request.json or {}
     user_id = data.get('user_id')
     
+    backup_info = _snapshot_core_databases(reason='admin_reactivate_subscription', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
     success, message = subscription_manager.reactivate_subscription(user_id)
+    _log_admin_audit('admin_reactivate_subscription', target_user_id=user_id, details={'success': bool(success), 'message': message, 'backup': backup_info})
     return jsonify({'success': success, 'message': message})
 
 @app.route('/api/admin/activate_subscription', methods=['POST'])
@@ -4751,6 +5414,7 @@ def api_admin_activate_subscription():
     user_id = data.get('user_id')
     
     try:
+        backup_info = _snapshot_core_databases(reason='admin_activate_subscription', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
         import sqlite3
         conn = sqlite3.connect('vip_subscriptions.db')
         cursor = conn.cursor()
@@ -4765,6 +5429,7 @@ def api_admin_activate_subscription():
         conn.commit()
         conn.close()
         
+        _log_admin_audit('admin_activate_subscription', target_user_id=user_id, details={'success': True, 'backup': backup_info})
         return jsonify({'success': True, 'message': 'تم تفعيل الاشتراك بنجاح'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'خطأ في تفعيل الاشتراك: {str(e)}'})
@@ -4777,6 +5442,7 @@ def api_admin_deactivate_subscription():
     user_id = data.get('user_id')
     
     try:
+        backup_info = _snapshot_core_databases(reason='admin_deactivate_subscription', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
         import sqlite3
         conn = sqlite3.connect('vip_subscriptions.db')
         cursor = conn.cursor()
@@ -4791,9 +5457,99 @@ def api_admin_deactivate_subscription():
         conn.commit()
         conn.close()
         
+        _log_admin_audit('admin_deactivate_subscription', target_user_id=user_id, details={'success': True, 'backup': backup_info})
         return jsonify({'success': True, 'message': 'تم إيقاف الاشتراك مؤقتاً'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'خطأ في إيقاف الاشتراك: {str(e)}'})
+
+
+@app.route('/api/admin/delete_user', methods=['POST'])
+@admin_required
+def api_admin_delete_user():
+    """حذف إداري منطقي للمستخدم/المشترك مع حفظ كامل البيانات وإمكانية الاستعادة."""
+    data = request.get_json(silent=True) or {}
+    user_id = data.get('user_id')
+    reason = str(data.get('reason') or 'admin_request').strip()
+    admin_name = session.get('local_admin_username') or (get_current_user() or {}).get('username') or 'admin'
+
+    if not user_id:
+        return jsonify({'success': False, 'error': 'missing_user_id'}), 400
+
+    backup_info = _snapshot_core_databases(reason='admin_soft_delete_user', actor=admin_name) if BACKUP_ON_ADMIN_WRITE else None
+    user_result = user_manager.soft_delete_user(user_id, admin_username=admin_name, reason=reason)
+
+    vip_result = False
+    try:
+        if hasattr(subscription_manager, 'soft_delete_user'):
+            vip_result = bool(subscription_manager.soft_delete_user(user_id, admin_username=admin_name, reason=reason))
+    except Exception:
+        vip_result = False
+
+    _log_admin_audit(
+        action='admin_soft_delete_user',
+        target_user_id=user_id,
+        details={'reason': reason, 'user_result': user_result, 'vip_result': vip_result, 'backup': backup_info}
+    )
+
+    ok = bool((user_result or {}).get('success')) or bool(vip_result)
+    return jsonify({'success': ok, 'user_result': user_result, 'vip_result': vip_result, 'backup': backup_info})
+
+
+@app.route('/api/admin/restore_user', methods=['POST'])
+@admin_required
+def api_admin_restore_user():
+    """استعادة مستخدم/مشترك محذوف إداريًا."""
+    data = request.get_json(silent=True) or {}
+    user_id = data.get('user_id')
+    admin_name = session.get('local_admin_username') or (get_current_user() or {}).get('username') or 'admin'
+
+    if not user_id:
+        return jsonify({'success': False, 'error': 'missing_user_id'}), 400
+
+    backup_info = _snapshot_core_databases(reason='admin_restore_user', actor=admin_name) if BACKUP_ON_ADMIN_WRITE else None
+    user_result = user_manager.restore_user(user_id, admin_username=admin_name)
+
+    vip_result = False
+    try:
+        if hasattr(subscription_manager, 'restore_user'):
+            vip_result = bool(subscription_manager.restore_user(user_id))
+    except Exception:
+        vip_result = False
+
+    _log_admin_audit(
+        action='admin_restore_user',
+        target_user_id=user_id,
+        details={'user_result': user_result, 'vip_result': vip_result, 'backup': backup_info}
+    )
+
+    ok = bool((user_result or {}).get('success')) or bool(vip_result)
+    return jsonify({'success': ok, 'user_result': user_result, 'vip_result': vip_result, 'backup': backup_info})
+
+
+@app.route('/api/admin/audit-log')
+@admin_required
+def api_admin_audit_log():
+    """آخر سجلات تدقيق إجراءات الأدمن المتعلقة بالمستخدمين والاشتراكات."""
+    limit = max(1, min(500, int(request.args.get('limit', 50) or 50)))
+    try:
+        _ensure_admin_audit_table()
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            '''
+            SELECT id, admin_username, action, target_user_id, details, created_at
+            FROM admin_audit_log
+            ORDER BY id DESC
+            LIMIT ?
+            ''',
+            (limit,)
+        )
+        rows = [dict(row) for row in c.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'rows': rows, 'count': len(rows)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/subscription_requests')
 @admin_required
@@ -6207,7 +6963,7 @@ def api_system_status():
 def api_recent_analysis():
     """الحصول على آخر التحليلات"""
     try:
-        signals_dir = Path(__file__).parent / 'signals'
+        signals_dir = SIGNALS_DIR
         
         if not signals_dir.exists():
             return jsonify({'success': True, 'analysis': []})
@@ -6230,6 +6986,17 @@ def api_recent_analysis():
         # ترتيب حسب الوقت (الأحدث أولاً)
         all_signals.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
         
+        user_info = get_current_user()
+        if user_info.get('success'):
+            selected_pairs = set(_load_user_selected_pairs(user_info.get('user_id')))
+            if selected_pairs:
+                all_signals = [
+                    s for s in all_signals
+                    if _normalize_symbol_key(
+                        s.get('symbol') or s.get('pair') or s.get('instrument') or s.get('ticker')
+                    ) in selected_pairs
+                ]
+
         # أخذ آخر 20 إشارة
         recent_signals = all_signals[:20]
         

@@ -6,10 +6,18 @@ User Management System for Web App
 import sqlite3
 import hashlib
 import secrets
+import os
 from datetime import datetime
 from pathlib import Path
 
-DATABASE_FILE = Path(__file__).parent / 'users.db'
+_default_data_dir = Path('/var/data') if Path('/var/data').exists() else Path(__file__).parent
+_data_dir = Path(os.environ.get('GOLDPRO_DATA_DIR', str(_default_data_dir)))
+try:
+    _data_dir.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
+DATABASE_FILE = Path(os.environ.get('USERS_DB_PATH', str(_data_dir / 'users.db')))
 
 class UserManager:
     def update_user_email(self, username, new_email):
@@ -61,6 +69,12 @@ class UserManager:
                 cursor.execute("ALTER TABLE users ADD COLUMN country TEXT")
             if 'nickname' not in columns:
                 cursor.execute("ALTER TABLE users ADD COLUMN nickname TEXT")
+            if 'deleted_at' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP")
+            if 'deleted_by' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN deleted_by TEXT")
+            if 'delete_reason' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN delete_reason TEXT")
             
             # جدول جلسات المستخدمين
             cursor.execute('''
@@ -114,7 +128,14 @@ class UserManager:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
             # التحقق من عدم وجود المستخدم
-            cursor.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email))
+                        cursor.execute(
+                                '''
+                                SELECT id FROM users
+                                WHERE (username = ? OR email = ?)
+                                    AND (deleted_at IS NULL OR deleted_at = '')
+                                ''',
+                                (username, email)
+                        )
             if cursor.fetchone():
                 return {'success': False, 'message': 'اسم المستخدم أو البريد موجود بالفعل'}
             # إضافة المستخدم الجديد
@@ -139,12 +160,16 @@ class UserManager:
             cursor = conn.cursor()
             # البحث عن المستخدم بالاسم أو البريد
             cursor.execute('''
-                SELECT id, password_hash, is_active FROM users WHERE username = ? OR email = ?
+                SELECT id, password_hash, is_active, deleted_at
+                FROM users
+                WHERE username = ? OR email = ?
             ''', (username_or_email, username_or_email))
             result = cursor.fetchone()
             if not result:
                 return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
-            user_id, password_hash, is_active = result
+            user_id, password_hash, is_active, deleted_at = result
+            if deleted_at:
+                return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة'}
             if not is_active:
                 return {'success': False, 'message': 'الحساب غير مفعل'}
             if not self.verify_password(password_hash, password):
@@ -182,7 +207,10 @@ class UserManager:
                 SELECT u.id, u.username, u.email, u.full_name, u.plan, u.is_admin, u.role
                 FROM user_sessions us
                 JOIN users u ON us.user_id = u.id
-                WHERE us.session_token = ? AND us.expires_at > CURRENT_TIMESTAMP
+                                WHERE us.session_token = ?
+                                    AND us.expires_at > CURRENT_TIMESTAMP
+                                    AND u.is_active = 1
+                                    AND (u.deleted_at IS NULL OR u.deleted_at = '')
             ''', (session_token,))
             
             result = cursor.fetchone()
@@ -230,7 +258,8 @@ class UserManager:
             
             cursor.execute('''
                 SELECT id, username, email, full_name, plan, created_at, last_login, is_active, is_admin
-                FROM users WHERE id = ?
+                FROM users
+                WHERE id = ? AND (deleted_at IS NULL OR deleted_at = '')
             ''', (user_id,))
             
             result = cursor.fetchone()
@@ -307,7 +336,14 @@ class UserManager:
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
-            cursor.execute('UPDATE users SET is_admin = ? WHERE id = ?', (1 if is_admin else 0, user_id))
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_admin = ?
+                WHERE id = ? AND (deleted_at IS NULL OR deleted_at = '')
+                ''',
+                (1 if is_admin else 0, user_id)
+            )
             conn.commit()
             conn.close()
             self.log_activity(user_id, 'admin_update', f'Admin set to {is_admin}')
@@ -319,7 +355,14 @@ class UserManager:
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
-            cursor.execute('UPDATE users SET is_active = ? WHERE id = ?', (1 if is_active else 0, user_id))
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_active = ?
+                WHERE id = ? AND (deleted_at IS NULL OR deleted_at = '')
+                ''',
+                (1 if is_active else 0, user_id)
+            )
             conn.commit()
             conn.close()
             self.log_activity(user_id, 'active_update', f'Active set to {is_active}')
@@ -333,7 +376,9 @@ class UserManager:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT id, username, email, full_name, plan, is_active, is_admin, role, created_at, last_login
-                FROM users ORDER BY id DESC
+                FROM users
+                WHERE (deleted_at IS NULL OR deleted_at = '')
+                ORDER BY id DESC
             ''')
             rows = cursor.fetchall()
             conn.close()
@@ -356,6 +401,57 @@ class UserManager:
             return users
         except Exception:
             return []
+
+    def soft_delete_user(self, user_id, admin_username='system', reason=''):
+        """حذف منطقي للمستخدم مع الاحتفاظ الكامل بالسجل لأغراض التدقيق والاستعادة."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_active = 0,
+                    deleted_at = CURRENT_TIMESTAMP,
+                    deleted_by = ?,
+                    delete_reason = ?
+                WHERE id = ? AND (deleted_at IS NULL OR deleted_at = '')
+                ''',
+                (str(admin_username or 'system'), str(reason or ''), user_id)
+            )
+            changed = int(cursor.rowcount or 0)
+            cursor.execute('DELETE FROM user_sessions WHERE user_id = ?', (user_id,))
+            conn.commit()
+            conn.close()
+            if changed > 0:
+                self.log_activity(user_id, 'soft_delete', f'by={admin_username}; reason={reason}')
+            return {'success': changed > 0, 'affected': changed}
+        except Exception as e:
+            return {'success': False, 'message': str(e)}
+
+    def restore_user(self, user_id, admin_username='system'):
+        """استعادة مستخدم محذوف من الإدارة."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_active = 1,
+                    deleted_at = NULL,
+                    deleted_by = NULL,
+                    delete_reason = NULL
+                WHERE id = ?
+                ''',
+                (user_id,)
+            )
+            changed = int(cursor.rowcount or 0)
+            conn.commit()
+            conn.close()
+            if changed > 0:
+                self.log_activity(user_id, 'restore_user', f'by={admin_username}')
+            return {'success': changed > 0, 'affected': changed}
+        except Exception as e:
+            return {'success': False, 'message': str(e)}
 
 # إنشاء مثيل عام
 user_manager = UserManager()

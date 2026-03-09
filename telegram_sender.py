@@ -7,6 +7,7 @@ import importlib
 import requests
 import json
 import sqlite3
+import shutil
 from pathlib import Path
 from datetime import datetime
 try:
@@ -26,11 +27,36 @@ except Exception:  # Fallback for missing dependency
 # Settings
 BOT_TOKEN = os.environ.get("MM_TELEGRAM_BOT_TOKEN", "8253445917:AAEajrjXavN5Ebz8pSKeU8frqIyI84zi26A")
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-BOTS_CONFIG_FILE = Path(__file__).parent / "bots_config.json"
-BROADCAST_TARGETS_FILE = Path(__file__).parent / "broadcast_targets.json"
-SITE_SETTINGS_FILE = Path(__file__).parent / "site_settings.json"
+
+_default_data_dir = Path('/var/data') if Path('/var/data').exists() else Path(__file__).parent
+DATA_DIR = Path(os.environ.get('GOLDPRO_DATA_DIR', str(_default_data_dir)))
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
+BOTS_CONFIG_FILE = Path(os.environ.get('BOTS_CONFIG_FILE', str(DATA_DIR / 'bots_config.json')))
+BROADCAST_TARGETS_FILE = Path(os.environ.get('BROADCAST_TARGETS_FILE', str(DATA_DIR / 'broadcast_targets.json')))
+SITE_SETTINGS_FILE = Path(os.environ.get('SITE_SETTINGS_FILE', str(DATA_DIR / 'site_settings.json')))
+
+
+def _migrate_legacy_json_file(target_path):
+    """One-time migration from repo-root json file to persistent data dir."""
+    try:
+        target = Path(str(target_path))
+        legacy = Path(__file__).parent / target.name
+        if target.exists() or (not legacy.exists()):
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(str(legacy), str(target))
+    except Exception:
+        pass
 
 subscription_manager = SubscriptionManager()
+
+_migrate_legacy_json_file(BOTS_CONFIG_FILE)
+_migrate_legacy_json_file(BROADCAST_TARGETS_FILE)
+_migrate_legacy_json_file(SITE_SETTINGS_FILE)
 
 
 def _ensure_delivery_audit_table():

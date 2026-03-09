@@ -84,6 +84,12 @@ YF_SYMBOLS = {
     "CHFJPY": "CHFJPY=X",
     "XAUUSD": "GC=F",
     "XAGUSD": "SI=F",
+    "USOIL": "CL=F",
+    "WTI": "CL=F",
+    "UKOIL": "BZ=F",
+    "BRENT": "BZ=F",
+    "NATGAS": "NG=F",
+    "NGAS": "NG=F",
     "US30": "^DJI",
     "NAS100": "^IXIC",
     "SPX500": "^GSPC",
@@ -126,6 +132,23 @@ INTERVAL_MAP_BINANCE = {
 
 class DataFetchError(Exception):
     pass
+
+
+KNOWN_FX_CURRENCIES = {
+    "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "NZD", "CAD"
+}
+
+MARKET_SYMBOL_ALIASES = {
+    "WTI": "USOIL",
+    "BRENT": "UKOIL",
+    "NGAS": "NATGAS"
+}
+
+NON_FX_MARKET_SYMBOLS = {
+    "XAUUSD", "XAGUSD",
+    "USOIL", "UKOIL", "NATGAS", "WTI", "BRENT", "NGAS",
+    "US30", "NAS100", "SPX500"
+}
 
 
 def _yf_cooldown_key(symbol, interval):
@@ -217,7 +240,21 @@ def _update_fetch_metadata(symbol, interval, source, rows, cache_used=False, sta
 
 
 def _normalize_symbol(symbol):
-    return str(symbol or "").strip().upper().replace("/", "").replace("-", "").replace("_", "").replace(" ", "")
+    normalized = str(symbol or "").strip().upper().replace("/", "").replace("-", "").replace("_", "").replace(" ", "")
+    return MARKET_SYMBOL_ALIASES.get(normalized, normalized)
+
+
+def _is_forex_pair_symbol(symbol):
+    normalized = _normalize_symbol(symbol)
+    if len(normalized) != 6 or not normalized.isalpha():
+        return False
+    base = normalized[:3]
+    quote = normalized[3:]
+    return base in KNOWN_FX_CURRENCIES and quote in KNOWN_FX_CURRENCIES
+
+
+def _is_non_fx_market_symbol(symbol):
+    return _normalize_symbol(symbol) in NON_FX_MARKET_SYMBOLS
 
 
 def _normalize_interval(interval):
@@ -316,7 +353,7 @@ def _load_from_cache(symbol, interval, allow_stale=False):
 
 def _fetch_from_twelve_data(symbol, interval, outputsize):
     td_symbol = symbol
-    if len(symbol) == 6 and symbol.isalpha():
+    if _is_forex_pair_symbol(symbol):
         td_symbol = f"{symbol[:3]}/{symbol[3:]}"
 
     params = {
@@ -573,7 +610,11 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
         else:
             sources = [("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
     else:
-        sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
+        if _is_non_fx_market_symbol(normalized_symbol):
+            # Metals/Energy/Indices are generally more reliable on Yahoo sources.
+            sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance), ("TwelveData", _fetch_from_twelve_data)]
+        else:
+            sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
 
     for source_name, source_fn in sources:
         if source_name == "TwelveData" and _is_twelvedata_in_cooldown():

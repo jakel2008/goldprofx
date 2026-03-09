@@ -25,7 +25,8 @@ class SubscriptionManager:
             SELECT user_id, username, plan, subscription_start, subscription_end, 
                    status, referral_code, total_paid, password_hash
             FROM users 
-            WHERE username = ?
+                        WHERE username = ?
+                            AND (deleted_at IS NULL OR deleted_at = '')
         ''', (username,))
         row = c.fetchone()
         conn.close()
@@ -88,7 +89,11 @@ class SubscriptionManager:
             ("email", "TEXT"),
             ("activation_token", "TEXT"),
             ("chat_id", "TEXT"),
-            ("telegram_id", "INTEGER")
+            ("telegram_id", "INTEGER"),
+            ("deleted_at", "TIMESTAMP"),
+            ("deleted_by", "TEXT"),
+            ("delete_reason", "TEXT"),
+            ("updated_at", "TIMESTAMP")
         ]
         for col, coltype in alter_columns:
             if col not in existing_columns:
@@ -155,10 +160,14 @@ class SubscriptionManager:
         c = conn.cursor()
         
         # التحقق من وجود المستخدم
-        c.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
-        if c.fetchone():
+        c.execute('SELECT user_id, deleted_at FROM users WHERE user_id = ?', (user_id,))
+        existing = c.fetchone()
+        if existing and not existing[1]:
             conn.close()
             return False, "المستخدم موجود مسبقاً"
+        if existing and existing[1]:
+            conn.close()
+            return False, "المستخدم محذوف إدارياً - يجب استعادته أولاً"
         
         # إنشاء كود إحالة
         referral_code = self.generate_referral_code(user_id)
@@ -204,8 +213,9 @@ class SubscriptionManager:
         c.execute('''
             SELECT user_id, username, first_name, plan, 
                    subscription_start, subscription_end, status, 
-                   total_paid, created_at, referral_code
+                   total_paid, created_at, referral_code, email, chat_id, telegram_id
             FROM users
+            WHERE (deleted_at IS NULL OR deleted_at = '')
             ORDER BY created_at DESC
         ''')
         
@@ -221,7 +231,10 @@ class SubscriptionManager:
                 'status': row[6],
                 'total_paid': row[7],
                 'created_at': row[8],
-                'referral_code': row[9]
+                'referral_code': row[9],
+                'email': row[10],
+                'chat_id': row[11],
+                'telegram_id': row[12]
             })
         
         conn.close()
@@ -236,7 +249,7 @@ class SubscriptionManager:
         c = conn.cursor()
         
         # التحقق من وجود المستخدم
-        c.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
+        c.execute('SELECT user_id FROM users WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = "")', (user_id,))
         if not c.fetchone():
             conn.close()
             return False, "المستخدم غير موجود"
@@ -250,8 +263,8 @@ class SubscriptionManager:
         
         c.execute('''
             UPDATE users 
-            SET plan = ?, subscription_start = ?, subscription_end = ?, status = 'active'
-            WHERE user_id = ?
+            SET plan = ?, subscription_start = ?, subscription_end = ?, status = 'active', updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
         ''', (plan, start_date, end_date, user_id))
         
         conn.commit()
@@ -263,7 +276,7 @@ class SubscriptionManager:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         
-        c.execute('SELECT subscription_end FROM users WHERE user_id = ?', (user_id,))
+        c.execute('SELECT subscription_end FROM users WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = "")', (user_id,))
         result = c.fetchone()
         
         if not result:
@@ -278,8 +291,8 @@ class SubscriptionManager:
         
         c.execute('''
             UPDATE users 
-            SET subscription_end = ?, status = 'active'
-            WHERE user_id = ?
+            SET subscription_end = ?, status = 'active', updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
         ''', (new_end.isoformat(), user_id))
         
         conn.commit()
@@ -293,8 +306,8 @@ class SubscriptionManager:
         
         c.execute('''
             UPDATE users 
-            SET status = 'cancelled', subscription_end = ?
-            WHERE user_id = ?
+            SET status = 'cancelled', subscription_end = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
         ''', (datetime.now().isoformat(), user_id))
         
         conn.commit()
@@ -306,7 +319,7 @@ class SubscriptionManager:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         
-        c.execute('SELECT plan FROM users WHERE user_id = ?', (user_id,))
+        c.execute('SELECT plan FROM users WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = "")', (user_id,))
         result = c.fetchone()
         
         if not result:
@@ -320,8 +333,8 @@ class SubscriptionManager:
         
         c.execute('''
             UPDATE users 
-            SET status = 'active', subscription_start = ?, subscription_end = ?
-            WHERE user_id = ?
+            SET status = 'active', subscription_start = ?, subscription_end = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
         ''', (datetime.now().isoformat(), new_end.isoformat(), user_id))
         
         conn.commit()
@@ -336,7 +349,8 @@ class SubscriptionManager:
         c.execute('''
             SELECT plan, subscription_start, subscription_end, status, referral_code
             FROM users 
-            WHERE user_id = ?
+                        WHERE user_id = ?
+                            AND (deleted_at IS NULL OR deleted_at = '')
         ''', (user_id,))
         
         result = c.fetchone()
@@ -382,7 +396,7 @@ class SubscriptionManager:
         c = conn.cursor()
         
         # الحصول على الاشتراك الحالي
-        c.execute('SELECT subscription_end, status FROM users WHERE user_id = ?', 
+        c.execute('SELECT subscription_end, status FROM users WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = "")', 
                  (user_id,))
         result = c.fetchone()
         
@@ -410,8 +424,9 @@ class SubscriptionManager:
                 subscription_start = ?,
                 subscription_end = ?,
                 status = 'active',
-                total_paid = total_paid + ?
-            WHERE user_id = ?
+                total_paid = total_paid + ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
         ''', (plan, start_date, end_date, plan_info['price'], user_id))
         
         # تسجيل الدفع
@@ -544,6 +559,7 @@ class SubscriptionManager:
             FROM users 
             WHERE status IN ('active', 'trial') 
             AND (subscription_end IS NULL OR subscription_end > ?)
+            AND (deleted_at IS NULL OR deleted_at = '')
         ''', (datetime.now(),))
         
         users = c.fetchall()
@@ -570,6 +586,7 @@ class SubscriptionManager:
                    status, referral_code, total_paid
             FROM users 
             WHERE user_id = ?
+              AND (deleted_at IS NULL OR deleted_at = '')
         ''', (user_id,))
         
         row = c.fetchone()
@@ -588,6 +605,48 @@ class SubscriptionManager:
             'referral_code': row[6],
             'total_paid': row[7]
         }
+
+    def soft_delete_user(self, user_id, admin_username='system', reason=''):
+        """حذف منطقي لمشترك VIP مع الاحتفاظ الكامل بالبيانات."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute(
+            '''
+            UPDATE users
+            SET status = 'inactive',
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = ?,
+                delete_reason = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
+            ''',
+            (str(admin_username or 'system'), str(reason or ''), user_id)
+        )
+        changed = int(c.rowcount or 0)
+        conn.commit()
+        conn.close()
+        return changed > 0
+
+    def restore_user(self, user_id):
+        """استعادة مشترك VIP محذوف إدارياً."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute(
+            '''
+            UPDATE users
+            SET deleted_at = NULL,
+                deleted_by = NULL,
+                delete_reason = NULL,
+                updated_at = CURRENT_TIMESTAMP,
+                status = CASE WHEN status = 'inactive' THEN 'active' ELSE status END
+            WHERE user_id = ?
+            ''',
+            (user_id,)
+        )
+        changed = int(c.rowcount or 0)
+        conn.commit()
+        conn.close()
+        return changed > 0
 
 
 # مثال على الاستخدام

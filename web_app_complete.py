@@ -457,6 +457,7 @@ USER_PREFERENCES_FILE = Path(os.environ.get('USER_PREFERENCES_FILE', str(DATA_DI
 BACKUPS_DIR = Path(os.environ.get('BACKUPS_DIR', str(DATA_DIR / 'backups')))
 BACKUPS_KEEP = max(3, int(os.environ.get('BACKUPS_KEEP', '21')))
 BACKUP_ON_ADMIN_WRITE = os.environ.get('BACKUP_ON_ADMIN_WRITE', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+AUTO_MERGE_LEGACY_ON_STARTUP = os.environ.get('AUTO_MERGE_LEGACY_ON_STARTUP', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 CLOSED_TRADES_ARCHIVE_FILE = Path(__file__).parent / "closed_trades.json"
 PUBLIC_ADS_FILE = Path(__file__).parent / 'public_ads.json'
 ECONOMIC_NEWS_CACHE_FILE = Path(__file__).parent / 'economic_news_cache.json'
@@ -764,6 +765,148 @@ def _legacy_db_candidates(primary_filename, backup_glob_pattern):
     return unique
 
 
+def _merge_users_from_legacy_sources(limit_sources=10):
+    """دمج مستخدمي users.db المفقودين من قواعد قديمة/نسخ احتياطية حتى لو القاعدة الحالية غير فارغة."""
+    target_db = USERS_DB_PATH
+    target_key = str(target_db.resolve()).lower()
+    merged_total = 0
+    used_sources = []
+
+    sources = _legacy_db_candidates('users.db', 'users_*.db')[:max(1, int(limit_sources or 10))]
+    for source_db in sources:
+        source_key = str(source_db.resolve()).lower()
+        if source_key == target_key:
+            continue
+        if _table_row_count(source_db, 'users') <= 0:
+            continue
+
+        try:
+            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+            src_conn.row_factory = sqlite3.Row
+            src_cur = src_conn.cursor()
+            src_cur.execute('PRAGMA table_info(users)')
+            src_cols = {row[1] for row in src_cur.fetchall()}
+
+            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+            target_cur = target_conn.cursor()
+            target_cur.execute('PRAGMA table_info(users)')
+            target_cols = {row[1] for row in target_cur.fetchall()}
+
+            required = {'username', 'email', 'password_hash'}
+            if not required.issubset(src_cols) or not required.issubset(target_cols):
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            preferred_cols = [
+                'id', 'username', 'email', 'password_hash', 'full_name', 'plan',
+                'created_at', 'last_login', 'is_active', 'is_admin',
+                'role', 'phone', 'country', 'nickname',
+                'deleted_at', 'deleted_by', 'delete_reason'
+            ]
+            selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
+
+            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+            rows = src_cur.fetchall()
+            if not rows:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            placeholders = ', '.join(['?'] * len(selected_cols))
+            insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+            merged_from_source = 0
+            for row in rows:
+                values = [row[col] for col in selected_cols]
+                target_cur.execute(insert_sql, values)
+                if target_cur.rowcount:
+                    merged_from_source += 1
+
+            target_conn.commit()
+            src_conn.close()
+            target_conn.close()
+
+            if merged_from_source > 0:
+                merged_total += merged_from_source
+                used_sources.append(str(source_db))
+        except Exception:
+            continue
+
+    return {'merged': merged_total, 'sources': used_sources}
+
+
+def _merge_vip_users_from_legacy_sources(limit_sources=10):
+    """دمج مشتركي vip_subscriptions.db المفقودين من قواعد قديمة/نسخ احتياطية."""
+    target_db = VIP_SUBSCRIPTIONS_DB_PATH
+    target_key = str(target_db.resolve()).lower()
+    merged_total = 0
+    used_sources = []
+
+    sources = _legacy_db_candidates('vip_subscriptions.db', 'vip_subscriptions*.db')[:max(1, int(limit_sources or 10))]
+    for source_db in sources:
+        source_key = str(source_db.resolve()).lower()
+        if source_key == target_key:
+            continue
+        if _table_row_count(source_db, 'users') <= 0:
+            continue
+
+        try:
+            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+            src_conn.row_factory = sqlite3.Row
+            src_cur = src_conn.cursor()
+            src_cur.execute('PRAGMA table_info(users)')
+            src_cols = {row[1] for row in src_cur.fetchall()}
+
+            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+            target_cur = target_conn.cursor()
+            target_cur.execute('PRAGMA table_info(users)')
+            target_cols = {row[1] for row in target_cur.fetchall()}
+
+            if 'user_id' not in src_cols or 'user_id' not in target_cols:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            preferred_cols = [
+                'user_id', 'username', 'first_name', 'plan', 'subscription_start',
+                'subscription_end', 'status', 'referral_code', 'referred_by',
+                'total_paid', 'created_at', 'password_hash', 'email',
+                'activation_token', 'chat_id', 'telegram_id',
+                'deleted_at', 'deleted_by', 'delete_reason', 'updated_at'
+            ]
+            selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
+
+            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+            rows = src_cur.fetchall()
+            if not rows:
+                src_conn.close()
+                target_conn.close()
+                continue
+
+            placeholders = ', '.join(['?'] * len(selected_cols))
+            insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+            merged_from_source = 0
+            for row in rows:
+                values = [row[col] for col in selected_cols]
+                target_cur.execute(insert_sql, values)
+                if target_cur.rowcount:
+                    merged_from_source += 1
+
+            target_conn.commit()
+            src_conn.close()
+            target_conn.close()
+
+            if merged_from_source > 0:
+                merged_total += merged_from_source
+                used_sources.append(str(source_db))
+        except Exception:
+            continue
+
+    return {'merged': merged_total, 'sources': used_sources}
+
+
 def _recover_users_db_if_empty():
     """استرجاع users.db من ملفات قديمة/نسخ احتياطية عندما تكون القاعدة الحالية فارغة."""
     target_db = USERS_DB_PATH
@@ -936,6 +1079,11 @@ def _bootstrap_persistent_databases():
 
     users_result = _recover_users_db_if_empty()
     vip_result = _recover_vip_subscriptions_if_empty()
+    users_merge_result = {'merged': 0, 'sources': []}
+    vip_merge_result = {'merged': 0, 'sources': []}
+    if AUTO_MERGE_LEGACY_ON_STARTUP:
+        users_merge_result = _merge_users_from_legacy_sources(limit_sources=8)
+        vip_merge_result = _merge_vip_users_from_legacy_sources(limit_sources=8)
     sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
     startup_backup = _snapshot_core_databases(reason='startup_bootstrap', actor='system') if BACKUP_ON_ADMIN_WRITE else None
 
@@ -945,13 +1093,15 @@ def _bootstrap_persistent_databases():
         details={
             'users_result': users_result,
             'vip_result': vip_result,
+            'users_merge_result': users_merge_result,
+            'vip_merge_result': vip_merge_result,
             'sync_result': sync_result,
             'startup_backup': startup_backup
         }
     )
 
-    if users_result.get('restored', 0) > 0 or vip_result.get('restored', 0) > 0:
-        print(f"[RECOVERY] users={users_result} vip={vip_result} sync={sync_result}")
+    if users_result.get('restored', 0) > 0 or vip_result.get('restored', 0) > 0 or users_merge_result.get('merged', 0) > 0 or vip_merge_result.get('merged', 0) > 0:
+        print(f"[RECOVERY] users={users_result} vip={vip_result} users_merge={users_merge_result} vip_merge={vip_merge_result} sync={sync_result}")
     elif int(sync_result.get('linked', 0) or 0) > 0:
         print(f"[RECOVERY-SYNC] sync={sync_result}")
 
@@ -5249,11 +5399,17 @@ def api_admin_recover_users():
     payload = request.get_json(silent=True) or {}
     force_sync = bool(payload.get('force_sync', True))
     prefer_trial = bool(payload.get('prefer_trial', False))
+    merge_missing = bool(payload.get('merge_missing', True))
 
     backup_info = _snapshot_core_databases(reason='admin_recover_users', actor='admin') if BACKUP_ON_ADMIN_WRITE else None
 
     users_result = _recover_users_db_if_empty()
     vip_result = _recover_vip_subscriptions_if_empty()
+    users_merge_result = {'merged': 0, 'sources': []}
+    vip_merge_result = {'merged': 0, 'sources': []}
+    if merge_missing:
+        users_merge_result = _merge_users_from_legacy_sources(limit_sources=15)
+        vip_merge_result = _merge_vip_users_from_legacy_sources(limit_sources=15)
     sync_result = None
     if force_sync:
         sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=prefer_trial)
@@ -5267,9 +5423,12 @@ def api_admin_recover_users():
         details={
             'force_sync': force_sync,
             'prefer_trial': prefer_trial,
+            'merge_missing': merge_missing,
             'backup': backup_info,
             'users_result': users_result,
             'vip_result': vip_result,
+            'users_merge_result': users_merge_result,
+            'vip_merge_result': vip_merge_result,
             'sync_result': sync_result,
             'users_count': users_count,
             'vip_users_count': vip_users_count
@@ -5282,9 +5441,12 @@ def api_admin_recover_users():
         'vip_subscriptions_db': str(VIP_SUBSCRIPTIONS_DB_PATH),
         'users_result': users_result,
         'vip_result': vip_result,
+        'users_merge_result': users_merge_result,
+        'vip_merge_result': vip_merge_result,
         'sync_result': sync_result,
         'backup': backup_info,
         'force_sync': force_sync,
+        'merge_missing': merge_missing,
         'users_count': users_count,
         'vip_users_count': vip_users_count
     })
@@ -5296,6 +5458,8 @@ def admin_recover_users_now():
     """تنفيذ استرجاع ومزامنة المشتركين من رابط مباشر للأدمن ثم العودة لإدارة الاشتراكات."""
     users_result = _recover_users_db_if_empty()
     vip_result = _recover_vip_subscriptions_if_empty()
+    users_merge_result = _merge_users_from_legacy_sources(limit_sources=15)
+    vip_merge_result = _merge_vip_users_from_legacy_sources(limit_sources=15)
     sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
 
     users_count = _table_row_count(USERS_DB_PATH, 'users')
@@ -5304,14 +5468,16 @@ def admin_recover_users_now():
     flash(
         (
             f"Recovery done: users={users_count}, vip={vip_users_count}, "
+            f"users_merged={int(users_merge_result.get('merged', 0) or 0)}, "
+            f"vip_merged={int(vip_merge_result.get('merged', 0) or 0)}, "
             f"linked={int(sync_result.get('linked', 0) or 0)}, "
             f"failed={int(sync_result.get('failed', 0) or 0)}"
         ),
         'success'
     )
 
-    if int(users_result.get('restored', 0) or 0) > 0 or int(vip_result.get('restored', 0) or 0) > 0:
-        print(f"[MANUAL-RECOVERY] users={users_result} vip={vip_result} sync={sync_result}")
+    if int(users_result.get('restored', 0) or 0) > 0 or int(vip_result.get('restored', 0) or 0) > 0 or int(users_merge_result.get('merged', 0) or 0) > 0 or int(vip_merge_result.get('merged', 0) or 0) > 0:
+        print(f"[MANUAL-RECOVERY] users={users_result} vip={vip_result} users_merge={users_merge_result} vip_merge={vip_merge_result} sync={sync_result}")
 
     return redirect(url_for('subscriptions_management'))
 
@@ -5863,6 +6029,52 @@ def api_data_source_health():
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/critical-symbols-health', methods=['GET'])
+@admin_required
+def api_admin_critical_symbols_health():
+    """فحص سريع للأزواج الحرجة: الذهب/الطاقة/العملات الرقمية."""
+    interval = request.args.get('interval', '1h')
+    outputsize = max(30, min(500, int(request.args.get('outputsize', 120) or 120)))
+    force_live = request.args.get('force_live', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+
+    critical_symbols = ['XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'BTCUSD', 'ETHUSD']
+    rows = []
+
+    try:
+        from forex_analyzer import fetch_data, get_last_fetch_metadata  # type: ignore
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'forex_analyzer import failed: {e}'}), 500
+
+    for symbol in critical_symbols:
+        item = {'symbol': symbol, 'ok': False, 'rows': 0, 'source': None, 'errors': []}
+        try:
+            df = fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
+            meta = get_last_fetch_metadata() or {}
+            item['ok'] = True
+            item['rows'] = int(len(df) if df is not None else 0)
+            item['source'] = meta.get('source')
+            item['errors'] = meta.get('errors') or []
+        except Exception as e:
+            try:
+                meta = get_last_fetch_metadata() or {}
+                item['source'] = meta.get('source')
+                item['errors'] = (meta.get('errors') or []) + [str(e)]
+            except Exception:
+                item['errors'] = [str(e)]
+        rows.append(item)
+
+    ok_count = sum(1 for item in rows if item.get('ok'))
+    return jsonify({
+        'success': True,
+        'interval': interval,
+        'force_live': force_live,
+        'ok': ok_count,
+        'failed': len(rows) - ok_count,
+        'rows': rows,
+        'timestamp': datetime.now().isoformat()
+    })
 
 
 @app.route('/api/admin/adaptive-thresholds', methods=['GET'])

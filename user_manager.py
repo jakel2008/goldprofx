@@ -128,14 +128,14 @@ class UserManager:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
             # التحقق من عدم وجود المستخدم
-                        cursor.execute(
-                                '''
-                                SELECT id FROM users
-                                WHERE (username = ? OR email = ?)
-                                    AND (deleted_at IS NULL OR deleted_at = '')
-                                ''',
-                                (username, email)
-                        )
+            cursor.execute(
+                '''
+                SELECT id FROM users
+                WHERE (username = ? OR email = ?)
+                  AND (deleted_at IS NULL OR deleted_at = '')
+                ''',
+                (username, email)
+            )
             if cursor.fetchone():
                 return {'success': False, 'message': 'اسم المستخدم أو البريد موجود بالفعل'}
             # إضافة المستخدم الجديد

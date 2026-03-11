@@ -90,6 +90,9 @@ class SubscriptionManager:
             ("activation_token", "TEXT"),
             ("chat_id", "TEXT"),
             ("telegram_id", "INTEGER"),
+            ("phone", "TEXT"),
+            ("country", "TEXT"),
+            ("nickname", "TEXT"),
             ("deleted_at", "TIMESTAMP"),
             ("deleted_by", "TEXT"),
             ("delete_reason", "TEXT"),
@@ -154,7 +157,7 @@ class SubscriptionManager:
         code = hashlib.md5(hash_input.encode()).hexdigest()[:8].upper()
         return f"REF{code}"
     
-    def add_user(self, user_id, username, first_name="", referred_by_code=None):
+    def add_user(self, user_id, username, first_name="", referred_by_code=None, email=None, phone=None, country=None, nickname=None):
         """إضافة مستخدم جديد مع Trial 3 أيام"""
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
@@ -185,13 +188,33 @@ class SubscriptionManager:
             if result:
                 referred_by_id = result[0]
         
-        c.execute('''
-            INSERT INTO users 
-            (user_id, username, first_name, plan, subscription_start, 
-             subscription_end, status, referral_code, referred_by)
-            VALUES (?, ?, ?, 'bronze', ?, ?, 'trial', ?, ?)
-        ''', (user_id, username, first_name, trial_start, trial_end, 
-              referral_code, referred_by_id))
+        c.execute("PRAGMA table_info(users)")
+        existing_columns = {row[1] for row in c.fetchall()}
+
+        insert_columns = [
+            'user_id', 'username', 'first_name', 'plan', 'subscription_start',
+            'subscription_end', 'status', 'referral_code', 'referred_by'
+        ]
+        insert_values = [
+            user_id, username, first_name, 'bronze', trial_start, trial_end,
+            'trial', referral_code, referred_by_id
+        ]
+        optional_values = {
+            'email': email,
+            'phone': phone,
+            'country': country,
+            'nickname': nickname,
+        }
+        for column, value in optional_values.items():
+            if column in existing_columns:
+                insert_columns.append(column)
+                insert_values.append(value)
+
+        placeholders = ', '.join('?' for _ in insert_columns)
+        c.execute(
+            f"INSERT INTO users ({', '.join(insert_columns)}) VALUES ({placeholders})",
+            tuple(insert_values)
+        )
         
         # تسجيل الإحالة
         if referred_by_id:
@@ -212,8 +235,9 @@ class SubscriptionManager:
         
         c.execute('''
             SELECT user_id, username, first_name, plan, 
-                   subscription_start, subscription_end, status, 
-                   total_paid, created_at, referral_code, email, chat_id, telegram_id
+                     subscription_start, subscription_end, status, 
+                     total_paid, created_at, referral_code, email, chat_id, telegram_id,
+                     phone, country, nickname
             FROM users
             WHERE (deleted_at IS NULL OR deleted_at = '')
             ORDER BY created_at DESC
@@ -234,7 +258,10 @@ class SubscriptionManager:
                 'referral_code': row[9],
                 'email': row[10],
                 'chat_id': row[11],
-                'telegram_id': row[12]
+                'telegram_id': row[12],
+                'phone': row[13],
+                'country': row[14],
+                'nickname': row[15]
             })
         
         conn.close()
@@ -583,7 +610,7 @@ class SubscriptionManager:
         
         c.execute('''
             SELECT user_id, username, plan, subscription_start, subscription_end, 
-                   status, referral_code, total_paid
+                     status, referral_code, total_paid, email, phone, country, nickname
             FROM users 
             WHERE user_id = ?
               AND (deleted_at IS NULL OR deleted_at = '')
@@ -603,7 +630,11 @@ class SubscriptionManager:
             'subscription_end': row[4],
             'status': row[5],
             'referral_code': row[6],
-            'total_paid': row[7]
+            'total_paid': row[7],
+            'email': row[8],
+            'phone': row[9],
+            'country': row[10],
+            'nickname': row[11]
         }
 
     def soft_delete_user(self, user_id, admin_username='system', reason=''):

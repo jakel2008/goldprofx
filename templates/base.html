@@ -140,7 +140,7 @@
 </head>
 <body>
     <!-- Navbar -->
-    {% if request.endpoint not in ['login', 'register', 'forgot_password', 'reset_password', 'index', 'activate'] %}
+    {% if request.endpoint not in ['login', 'register', 'forgot_password', 'reset_password', 'index', 'activate', 'activation_pending', 'resend_activation', 'activate_account'] %}
     <nav class="navbar navbar-expand-lg navbar-dark dark-navbar sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">⭐ GOLD PRO</a>

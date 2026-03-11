@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}حسابات غير مفعلة - GOLD PRO{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h1 class="mb-1">الحسابات غير المفعلة</h1>
+            <p class="text-muted mb-0">مراجعة العملاء الذين سجلوا ولم يفعّلوا بريدهم، مع إعادة إرسال رابط التفعيل من لوحة الأدمن.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <a href="/admin/customer-communications" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> العودة إلى مراسلات العملاء
+            </a>
+        </div>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label">بحث</label>
+                <input class="form-control" type="text" name="q" value="{{ (filter_state or {}).get('q', '') }}" placeholder="اسم، بريد، هاتف">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">أقدم من</label>
+                <select class="form-select" name="older_than">
+                    <option value="24" {% if (filter_state or {}).get('older_than', 24) == 24 %}selected{% endif %}>24 ساعة</option>
+                    <option value="48" {% if (filter_state or {}).get('older_than') == 48 %}selected{% endif %}>48 ساعة</option>
+                    <option value="72" {% if (filter_state or {}).get('older_than') == 72 %}selected{% endif %}>72 ساعة</option>
+                    <option value="168" {% if (filter_state or {}).get('older_than') == 168 %}selected{% endif %}>7 أيام</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">تطبيق</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>العميل</th>
+                        <th>البريد</th>
+                        <th>الهاتف</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>آخر إرسال تفعيل</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in pending_users %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.full_name or row.username }}</strong><br>
+                            <small class="text-muted">{{ row.username }}</small>
+                        </td>
+                        <td>{{ row.email or '-' }}</td>
+                        <td>{{ row.phone or '-' }}</td>
+                        <td><small>{{ row.created_at }}</small></td>
+                        <td><small>{{ row.activation_sent_at or '-' }}</small></td>
+                        <td>
+                            <form method="POST" action="/admin/pending-activations/{{ row.id }}/resend">
+                                <button type="submit" class="btn btn-sm btn-warning">إعادة إرسال التفعيل</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted">لا توجد حسابات غير مفعلة ضمن الفلتر الحالي.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

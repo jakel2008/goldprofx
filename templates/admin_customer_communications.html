@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}مراسلات العملاء - GOLD PRO{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h1 class="mb-1">مراسلات العملاء</h1>
+            <p class="text-muted mb-0">إدارة البريد الجماعي وتصدير جهات واتساب من بيانات العملاء المحفوظة.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <a href="/admin/pending-activations" class="btn btn-warning me-2">
+                <i class="fas fa-user-clock"></i> حسابات غير مفعلة
+            </a>
+            <a href="/admin/customer-communications/whatsapp-export.csv" class="btn btn-success me-2">
+                <i class="fas fa-file-csv"></i> تصدير جهات واتساب
+            </a>
+            <a href="/admin-panel" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> العودة للوحة الأدمن
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card p-3"><h3>{{ communication_stats.total_contacts }}</h3><div class="text-muted">إجمالي العملاء</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h3>{{ communication_stats.email_contacts }}</h3><div class="text-muted">لديهم بريد</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h3>{{ communication_stats.verified_email_contacts }}</h3><div class="text-muted">بريد مفعل</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><h3>{{ communication_stats.whatsapp_contacts }}</h3><div class="text-muted">موافقو واتساب</div></div></div>
+    </div>
+
+    {% if delayed_pending_users %}
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <div>يوجد {{ delayed_pending_users|length }} حساباً لم يُفعّل بعد مرور أكثر من 24 ساعة.</div>
+        <a href="/admin/pending-activations" class="btn btn-sm btn-outline-dark">مراجعة الحسابات</a>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card p-4">
+                <h4 class="mb-3">إرسال رسالة بريدية جماعية</h4>
+                <form method="POST" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label">تصنيف الحملة</label>
+                        <select class="form-select" name="campaign_type">
+                            <option value="update">تحديثات</option>
+                            <option value="promotion">عروض</option>
+                            <option value="important">تنبيهات مهمة</option>
+                            <option value="welcome">ترحيب</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">نوع الجمهور</label>
+                        <select class="form-select" name="audience">
+                            <option value="marketing">المفعلون والموافقون على رسائل البريد التسويقية</option>
+                            <option value="all_verified">كل العملاء ذوي البريد المفعل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">عنوان الرسالة</label>
+                        <input class="form-control" type="text" name="subject" required>
+                    </div>
+                    <div>
+                        <label class="form-label">نص الرسالة</label>
+                        <textarea class="form-control" rows="8" name="body" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">إرسال البريد الجماعي</button>
+                </form>
+            </div>
+
+            <div class="card p-4 mt-4">
+                <h4 class="mb-3">آخر الحملات البريدية</h4>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>العنوان</th>
+                                <th>الجمهور</th>
+                                <th>التصنيف</th>
+                                <th>النتيجة</th>
+                                <th>المنفذ</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in recent_campaigns %}
+                            <tr>
+                                <td>
+                                    <strong>{{ row.subject }}</strong><br>
+                                    <small class="text-muted">إجمالي المستلمين: {{ row.recipient_count }}</small>
+                                </td>
+                                <td>
+                                    {% if row.audience == 'all_verified' %}
+                                    كل العملاء ذوي البريد المفعل
+                                    {% else %}
+                                    الجمهور التسويقي المفعل
+                                    {% endif %}
+                                </td>
+                                <td>{{ row.campaign_type or 'update' }}</td>
+                                <td>
+                                    <span class="text-success">نجح: {{ row.sent_count }}</span><br>
+                                    <small class="text-danger">فشل: {{ row.failed_count }}</small>
+                                </td>
+                                <td>{{ row.actor_username or '-' }}</td>
+                                <td><small>{{ row.created_at }}</small></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted">لا توجد حملات مسجلة بعد.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-4 mb-4">
+                <h4 class="mb-3">بحث وتصفية</h4>
+                <form method="GET" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label">بحث في جهات الاتصال</label>
+                        <input class="form-control" type="text" name="contact_q" value="{{ (filter_state or {}).get('contact_q', '') }}" placeholder="اسم، بريد، هاتف">
+                    </div>
+                    <div>
+                        <label class="form-label">بحث في الحملات</label>
+                        <input class="form-control" type="text" name="campaign_q" value="{{ (filter_state or {}).get('campaign_q', '') }}" placeholder="عنوان الحملة أو اسم الأدمن">
+                    </div>
+                    <div>
+                        <label class="form-label">فلتر جمهور الحملات</label>
+                        <select class="form-select" name="audience_filter">
+                            <option value="all" {% if (filter_state or {}).get('audience_filter', 'all') == 'all' %}selected{% endif %}>الكل</option>
+                            <option value="marketing" {% if (filter_state or {}).get('audience_filter') == 'marketing' %}selected{% endif %}>الجمهور التسويقي</option>
+                            <option value="all_verified" {% if (filter_state or {}).get('audience_filter') == 'all_verified' %}selected{% endif %}>كل العملاء ذوي البريد المفعل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">فلتر تصنيف الحملات</label>
+                        <select class="form-select" name="campaign_type_filter">
+                            <option value="all" {% if (filter_state or {}).get('campaign_type_filter', 'all') == 'all' %}selected{% endif %}>الكل</option>
+                            <option value="update" {% if (filter_state or {}).get('campaign_type_filter') == 'update' %}selected{% endif %}>تحديثات</option>
+                            <option value="promotion" {% if (filter_state or {}).get('campaign_type_filter') == 'promotion' %}selected{% endif %}>عروض</option>
+                            <option value="important" {% if (filter_state or {}).get('campaign_type_filter') == 'important' %}selected{% endif %}>تنبيهات مهمة</option>
+                            <option value="welcome" {% if (filter_state or {}).get('campaign_type_filter') == 'welcome' %}selected{% endif %}>ترحيب</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary">تطبيق الفلاتر</button>
+                        <a href="/admin/customer-communications" class="btn btn-outline-secondary">مسح</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="mb-3">معاينة أحدث جهات الاتصال</h4>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>البريد</th>
+                                <th>الهاتف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in contacts_preview %}
+                            <tr>
+                                <td>
+                                    <strong>{{ row.full_name or row.username }}</strong><br>
+                                    <small class="text-muted">{{ row.username }}</small>
+                                </td>
+                                <td>
+                                    {{ row.email or '-' }}<br>
+                                    <small class="text-muted">{% if row.email_verified %}مفعل{% else %}غير مفعل{% endif %}</small>
+                                </td>
+                                <td>
+                                    {{ row.phone or '-' }}<br>
+                                    <small class="text-muted">{% if row.whatsapp_opt_in %}واتساب مفعل{% else %}بدون موافقة واتساب{% endif %}</small>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted">لا توجد بيانات حالياً.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

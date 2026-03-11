@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}إعادة إرسال التفعيل - GOLD PRO{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2>🔁 إعادة إرسال رابط التفعيل</h2>
+        <p class="auth-subtitle">أدخل البريد الإلكتروني أو اسم المستخدم وسنرسل رابط تفعيل جديد إذا كان الحساب غير مفعل.</p>
+
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="identifier">البريد الإلكتروني أو اسم المستخدم</label>
+                <input type="text" id="identifier" name="identifier" value="{{ email or '' }}" required>
+            </div>
+            <button type="submit" class="btn-submit">إرسال رابط جديد</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="/login?first=1">العودة إلى تسجيل الدخول</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-wrap {
+    min-height: calc(100vh - 210px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 520px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #f0e1b8;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 2rem;
+}
+
+.auth-card h2 {
+    color: #b68a13;
+    margin-bottom: 0.4rem;
+    font-weight: 800;
+}
+
+.auth-subtitle {
+    color: #6b7280;
+    margin-bottom: 1.2rem;
+}
+
+.auth-form { display: grid; gap: 0.9rem; }
+.form-group { display: grid; gap: 0.35rem; }
+.form-group input {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+}
+.btn-submit {
+    border: none;
+    border-radius: 10px;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
+    color: #1f2937;
+}
+.auth-links {
+    margin-top: 1rem;
+    text-align: center;
+}
+</style>
+{% endblock %}

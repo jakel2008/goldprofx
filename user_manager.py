@@ -75,6 +75,22 @@ class UserManager:
                 cursor.execute("ALTER TABLE users ADD COLUMN deleted_by TEXT")
             if 'delete_reason' not in columns:
                 cursor.execute("ALTER TABLE users ADD COLUMN delete_reason TEXT")
+            if 'email_verified' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT 1")
+            if 'activation_token' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN activation_token TEXT")
+            if 'activation_sent_at' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN activation_sent_at TIMESTAMP")
+            if 'activated_at' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN activated_at TIMESTAMP")
+            if 'marketing_email_opt_in' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN marketing_email_opt_in BOOLEAN DEFAULT 1")
+            if 'whatsapp_opt_in' not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN whatsapp_opt_in BOOLEAN DEFAULT 0")
+
+            cursor.execute("UPDATE users SET email_verified = 1 WHERE email_verified IS NULL")
+            cursor.execute("UPDATE users SET marketing_email_opt_in = 1 WHERE marketing_email_opt_in IS NULL")
+            cursor.execute("UPDATE users SET whatsapp_opt_in = 0 WHERE whatsapp_opt_in IS NULL")
             
             # جدول جلسات المستخدمين
             cursor.execute('''
@@ -106,6 +122,10 @@ class UserManager:
             print("Database initialized successfully")
         except Exception as e:
             print(f"Database initialization error: {e}")
+
+    def _generate_activation_token(self):
+        """توليد رمز تفعيل آمن وفريد."""
+        return secrets.token_urlsafe(48)
     
     def hash_password(self, password):
         """تشفير كلمة المرور"""
@@ -122,8 +142,9 @@ class UserManager:
         except:
             return False
     
-    def register_user(self, username, email, password, full_name, phone=None, country=None, nickname=None):
-        """تسجيل مستخدم جديد مع دعم الحقول الإضافية"""
+    def register_user(self, username, email, password, full_name, phone=None, country=None, nickname=None,
+                      marketing_email_opt_in=True, whatsapp_opt_in=False):
+        """تسجيل مستخدم جديد مع إنشاء رمز تفعيل وإبقاء بيانات التواصل محفوظة."""
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
@@ -137,19 +158,137 @@ class UserManager:
                 (username, email)
             )
             if cursor.fetchone():
+                conn.close()
                 return {'success': False, 'message': 'اسم المستخدم أو البريد موجود بالفعل'}
             # إضافة المستخدم الجديد
             password_hash = self.hash_password(password)
+            activation_token = self._generate_activation_token()
             cursor.execute('''
-                INSERT INTO users (username, email, password_hash, full_name, role, is_admin, phone, country, nickname)
-                VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?)
-            ''', (username, email, password_hash, full_name, phone, country, nickname))
+                INSERT INTO users (
+                    username, email, password_hash, full_name, role, is_admin,
+                    phone, country, nickname, is_active, email_verified,
+                    activation_token, activation_sent_at, marketing_email_opt_in, whatsapp_opt_in
+                )
+                VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, ?, ?)
+            ''', (
+                username,
+                email,
+                password_hash,
+                full_name,
+                phone,
+                country,
+                nickname,
+                activation_token,
+                1 if marketing_email_opt_in else 0,
+                1 if whatsapp_opt_in else 0,
+            ))
             user_id = cursor.lastrowid
             conn.commit()
             conn.close()
             # تسجيل النشاط
             self.log_activity(user_id, 'registration', 'New user registered')
-            return {'success': True, 'message': 'تم التسجيل بنجاح', 'user_id': user_id}
+            return {
+                'success': True,
+                'message': 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني لتفعيل الحساب.',
+                'user_id': user_id,
+                'activation_token': activation_token
+            }
+        except Exception as e:
+            return {'success': False, 'message': f'خطأ: {str(e)}'}
+
+    def activate_user(self, activation_token):
+        """تفعيل المستخدم بواسطة رمز التفعيل المرسل عبر البريد."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT id, email_verified, deleted_at
+                FROM users
+                WHERE activation_token = ?
+                ''',
+                (activation_token,)
+            )
+            result = cursor.fetchone()
+            if not result:
+                conn.close()
+                return {'success': False, 'message': 'رابط التفعيل غير صالح أو منتهي.'}
+
+            user_id, email_verified, deleted_at = result
+            if deleted_at:
+                conn.close()
+                return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة.'}
+
+            if email_verified:
+                conn.close()
+                return {'success': True, 'message': 'الحساب مفعل مسبقاً.', 'user_id': user_id, 'already_active': True}
+
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_active = 1,
+                    email_verified = 1,
+                    activated_at = CURRENT_TIMESTAMP,
+                    activation_token = NULL
+                WHERE id = ?
+                ''',
+                (user_id,)
+            )
+            conn.commit()
+            conn.close()
+            self.log_activity(user_id, 'email_activation', 'Account activated via email link')
+            return {'success': True, 'message': 'تم تفعيل الحساب بنجاح.', 'user_id': user_id, 'already_active': False}
+        except Exception as e:
+            return {'success': False, 'message': f'خطأ: {str(e)}'}
+
+    def regenerate_activation_token(self, username_or_email):
+        """إعادة إصدار رابط تفعيل جديد للحساب غير المفعل."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT id, username, email, full_name, email_verified, deleted_at
+                FROM users
+                WHERE lower(username) = lower(?) OR lower(email) = lower(?)
+                LIMIT 1
+                ''',
+                (username_or_email, username_or_email)
+            )
+            row = cursor.fetchone()
+            if not row:
+                conn.close()
+                return {'success': False, 'message': 'لا يوجد حساب مطابق لهذا البريد أو اسم المستخدم.'}
+
+            if row['deleted_at']:
+                conn.close()
+                return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة.'}
+
+            if row['email_verified']:
+                conn.close()
+                return {'success': False, 'message': 'الحساب مفعل بالفعل.'}
+
+            token = self._generate_activation_token()
+            cursor.execute(
+                '''
+                UPDATE users
+                SET activation_token = ?, activation_sent_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                ''',
+                (token, row['id'])
+            )
+            conn.commit()
+            conn.close()
+            return {
+                'success': True,
+                'message': 'تم إنشاء رابط تفعيل جديد.',
+                'user_id': row['id'],
+                'username': row['username'],
+                'email': row['email'],
+                'full_name': row['full_name'],
+                'activation_token': token
+            }
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}
     
@@ -160,19 +299,25 @@ class UserManager:
             cursor = conn.cursor()
             # البحث عن المستخدم بالاسم أو البريد
             cursor.execute('''
-                SELECT id, password_hash, is_active, deleted_at
+                SELECT id, password_hash, is_active, deleted_at, email_verified
                 FROM users
                 WHERE username = ? OR email = ?
             ''', (username_or_email, username_or_email))
             result = cursor.fetchone()
             if not result:
                 return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
-            user_id, password_hash, is_active, deleted_at = result
+            user_id, password_hash, is_active, deleted_at, email_verified = result
             if deleted_at:
+                conn.close()
                 return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة'}
+            if not email_verified:
+                conn.close()
+                return {'success': False, 'message': 'الحساب غير مفعل بعد. افتح رابط التفعيل المرسل إلى بريدك الإلكتروني.'}
             if not is_active:
+                conn.close()
                 return {'success': False, 'message': 'الحساب غير مفعل'}
             if not self.verify_password(password_hash, password):
+                conn.close()
                 return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
             # إنشاء جلسة جديدة
             session_token = secrets.token_urlsafe(32)
@@ -257,7 +402,9 @@ class UserManager:
             cursor = conn.cursor()
             
             cursor.execute('''
-                SELECT id, username, email, full_name, plan, created_at, last_login, is_active, is_admin
+                  SELECT id, username, email, full_name, plan, created_at, last_login, is_active, is_admin,
+                      phone, country, nickname, email_verified, marketing_email_opt_in, whatsapp_opt_in,
+                      activation_sent_at, activated_at
                 FROM users
                 WHERE id = ? AND (deleted_at IS NULL OR deleted_at = '')
             ''', (user_id,))
@@ -275,7 +422,15 @@ class UserManager:
                     'created_at': result[5],
                     'last_login': result[6],
                     'is_active': bool(result[7]),
-                    'is_admin': bool(result[8])
+                    'is_admin': bool(result[8]),
+                    'phone': result[9],
+                    'country': result[10],
+                    'nickname': result[11],
+                    'email_verified': bool(result[12]),
+                    'marketing_email_opt_in': bool(result[13]),
+                    'whatsapp_opt_in': bool(result[14]),
+                    'activation_sent_at': result[15],
+                    'activated_at': result[16]
                 }
             return None
         except:
@@ -399,6 +554,73 @@ class UserManager:
                     'last_login': r[9]
                 })
             return users
+        except Exception:
+            return []
+
+    def list_contactable_users(self, verified_only=True, marketing_only=True):
+        """إرجاع قائمة العملاء مع قنوات التواصل المتاحة للإدارة."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            where_parts = ["(deleted_at IS NULL OR deleted_at = '')"]
+            if verified_only:
+                where_parts.append('email_verified = 1')
+            query = f'''
+                SELECT id, username, email, full_name, phone, country, nickname,
+                       email_verified, marketing_email_opt_in, whatsapp_opt_in,
+                       created_at, activated_at, last_login, plan
+                FROM users
+                WHERE {' AND '.join(where_parts)}
+                ORDER BY created_at DESC
+            '''
+            cursor.execute(query)
+            rows = []
+            for row in cursor.fetchall():
+                row_dict = dict(row)
+                row_dict['email_verified'] = bool(row_dict.get('email_verified'))
+                row_dict['marketing_email_opt_in'] = bool(row_dict.get('marketing_email_opt_in'))
+                row_dict['whatsapp_opt_in'] = bool(row_dict.get('whatsapp_opt_in'))
+                if marketing_only and not row_dict['marketing_email_opt_in'] and not row_dict['whatsapp_opt_in']:
+                    continue
+                rows.append(row_dict)
+            conn.close()
+            return rows
+        except Exception:
+            return []
+
+    def list_pending_activation_users(self, older_than_hours=0):
+        """إرجاع الحسابات غير المفعلة مع دعم فلترة المتأخرين في التفعيل."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            where_parts = ["(deleted_at IS NULL OR deleted_at = '')", "COALESCE(email_verified, 0) = 0"]
+            params = []
+            if int(older_than_hours or 0) > 0:
+                where_parts.append("created_at <= datetime('now', ?)")
+                params.append(f"-{int(older_than_hours)} hours")
+
+            cursor.execute(
+                f'''
+                SELECT id, username, email, full_name, phone, created_at,
+                       activation_sent_at, marketing_email_opt_in, whatsapp_opt_in,
+                       is_active
+                FROM users
+                WHERE {' AND '.join(where_parts)}
+                ORDER BY created_at ASC
+                ''',
+                tuple(params)
+            )
+            rows = []
+            for row in cursor.fetchall():
+                row_dict = dict(row)
+                row_dict['marketing_email_opt_in'] = bool(row_dict.get('marketing_email_opt_in'))
+                row_dict['whatsapp_opt_in'] = bool(row_dict.get('whatsapp_opt_in'))
+                row_dict['is_active'] = bool(row_dict.get('is_active'))
+                rows.append(row_dict)
+            conn.close()
+            return rows
         except Exception:
             return []
 

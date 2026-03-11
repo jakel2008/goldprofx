@@ -8,17 +8,34 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import json
+import os
+from pathlib import Path
 
 SUPPORT_EMAIL = "mahmoodalqaise750@gmail.com"
 
 class EmailService:
     def __init__(self):
-        # يمكن تفعيل SMTP لاحقاً
-        self.smtp_enabled = False
-        self.smtp_server = "smtp.gmail.com"
-        self.smtp_port = 587
-        self.smtp_user = ""  # يمكن إضافة بريد إلكتروني للإرسال
-        self.smtp_password = ""  # كلمة مرور التطبيق
+        self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com').strip()
+        self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        self.smtp_user = os.environ.get('SMTP_USER', '').strip()
+        self.smtp_password = os.environ.get('SMTP_PASS', '').strip()
+        self.smtp_enabled = os.environ.get('SMTP_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+        self.default_sender = os.environ.get('SMTP_FROM_EMAIL', self.smtp_user or SUPPORT_EMAIL).strip()
+        self.public_base_url = (
+            os.environ.get('PUBLIC_BASE_URL')
+            or os.environ.get('SITE_BASE_URL')
+            or os.environ.get('RENDER_EXTERNAL_URL')
+            or 'http://localhost:5000'
+        ).rstrip('/')
+
+    def can_send_email(self):
+        """التحقق من جاهزية إعدادات SMTP."""
+        return bool(self.smtp_enabled and self.smtp_server and self.smtp_user and self.smtp_password)
+
+    def build_public_url(self, path):
+        """إنشاء رابط عام صالح للإرسال داخل البريد الإلكتروني."""
+        normalized = '/' + str(path or '').lstrip('/')
+        return f"{self.public_base_url}{normalized}"
     
     def send_subscription_request(self, user_data, plan_data, payment_info=None):
         """إرسال طلب اشتراك جديد مع معلومات الدفع"""
@@ -80,7 +97,7 @@ class EmailService:
         self.save_pending_request(user_data, plan_data, payment_info)
         
         # محاولة إرسال الإيميل إذا كان SMTP مفعل
-        if self.smtp_enabled:
+        if self.can_send_email():
             try:
                 self._send_email(SUPPORT_EMAIL, subject, body)
                 return True, "تم إرسال الطلب بنجاح"
@@ -99,7 +116,9 @@ class EmailService:
             import sqlite3
             from pathlib import Path
             
-            db_path = Path(__file__).parent / 'users.db'
+            default_data_dir = Path('/var/data') if Path('/var/data').exists() else Path(__file__).parent
+            data_dir = Path(os.environ.get('GOLDPRO_DATA_DIR', str(default_data_dir)))
+            db_path = Path(os.environ.get('USERS_DB_PATH', str(data_dir / 'users.db')))
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
@@ -153,11 +172,11 @@ class EmailService:
     
     def _send_email(self, to_email, subject, body):
         """إرسال الإيميل عبر SMTP"""
-        if not self.smtp_user or not self.smtp_password:
+        if not self.can_send_email():
             raise Exception("SMTP credentials not configured")
         
         msg = MIMEMultipart()
-        msg['From'] = self.smtp_user
+        msg['From'] = self.default_sender
         msg['To'] = to_email
         msg['Subject'] = subject
         
@@ -167,8 +186,61 @@ class EmailService:
         server.starttls()
         server.login(self.smtp_user, self.smtp_password)
         text = msg.as_string()
-        server.sendmail(self.smtp_user, to_email, text)
+        server.sendmail(self.default_sender, to_email, text)
         server.quit()
+
+    def send_account_activation(self, user_email, full_name, activation_link):
+        """إرسال رابط تفعيل الحساب بعد التسجيل."""
+        subject = 'تفعيل حسابك في GOLD PRO'
+        display_name = full_name or 'عميل GOLD PRO'
+        body = f"""
+مرحباً {display_name},
+
+شكراً لتسجيلك في GOLD PRO.
+
+لتفعيل حسابك والبدء باستخدام الموقع، افتح الرابط التالي:
+{activation_link}
+
+إذا لم تقم بإنشاء هذا الحساب، تجاهل هذه الرسالة.
+
+فريق GOLD PRO
+"""
+        if not self.can_send_email():
+            return False, 'SMTP غير مهيأ بعد. اضبط SMTP_SERVER وSMTP_PORT وSMTP_USER وSMTP_PASS.'
+        try:
+            self._send_email(user_email, subject, body)
+            return True, 'تم إرسال رابط التفعيل بنجاح.'
+        except Exception as e:
+            return False, str(e)
+
+    def send_welcome_email(self, user_email, full_name):
+        """إرسال رسالة ترحيب بعد تفعيل الحساب بنجاح."""
+        display_name = full_name or 'عميل GOLD PRO'
+        subject = 'مرحباً بك في GOLD PRO'
+        login_link = self.build_public_url('/login?first=1')
+        plans_link = self.build_public_url('/plans')
+        body = f"""
+مرحباً {display_name},
+
+تم تفعيل حسابك بنجاح وأصبح بإمكانك الآن تسجيل الدخول إلى GOLD PRO.
+
+رابط تسجيل الدخول:
+{login_link}
+
+يمكنك مراجعة الخطط والخدمات من هنا:
+{plans_link}
+
+نحتفظ ببريدك للتحديثات المهمة، وإذا أضفت رقم هاتفك ووافقت على التواصل فسيبقى متاحاً لفريق الدعم عند الحاجة.
+
+فريق GOLD PRO
+"""
+        if not self.can_send_email():
+            return False, 'SMTP غير مهيأ بعد.'
+        try:
+            self._send_email(user_email, subject, body)
+            return True, 'تم إرسال رسالة الترحيب.'
+        except Exception as e:
+            return False, str(e)
     
     def send_activation_confirmation(self, user_email, plan_name, end_date):
         """إرسال تأكيد تفعيل الاشتراك"""
@@ -190,11 +262,61 @@ class EmailService:
         شكراً لاختيارك Gold Analyzer!
         """
         
-        if self.smtp_enabled:
+        if self.can_send_email():
             try:
                 self._send_email(user_email, subject, body)
             except:
                 pass
+
+    def send_admin_broadcast(self, recipients, subject, body):
+        """إرسال رسالة جماعية من الإدارة إلى العملاء."""
+        if not self.can_send_email():
+            return {
+                'success': False,
+                'message': 'SMTP غير مهيأ للإرسال الجماعي.',
+                'sent': 0,
+                'failed': 0,
+                'errors': [],
+                'recipient_count': 0,
+                'sent_emails': [],
+                'failed_emails': []
+            }
+
+        sent = 0
+        failed = 0
+        errors = []
+        sent_emails = []
+        failed_emails = []
+        unique_emails = []
+        seen = set()
+        for recipient in recipients or []:
+            email = str((recipient or {}).get('email') or '').strip().lower()
+            if not email or email in seen:
+                continue
+            seen.add(email)
+            unique_emails.append(email)
+
+        for email in unique_emails:
+            try:
+                self._send_email(email, subject, body)
+                sent += 1
+                sent_emails.append(email)
+            except Exception as e:
+                failed += 1
+                failed_emails.append({'email': email, 'error': str(e)})
+                if len(errors) < 20:
+                    errors.append(f'{email}: {e}')
+
+        return {
+            'success': failed == 0,
+            'message': f'تم إرسال {sent} رسالة وفشل {failed}.' if unique_emails else 'لا يوجد مستلمون صالحون للإرسال.',
+            'sent': sent,
+            'failed': failed,
+            'errors': errors,
+            'recipient_count': len(unique_emails),
+            'sent_emails': sent_emails,
+            'failed_emails': failed_emails
+        }
 
 # إنشاء مثيل عام
 email_service = EmailService()

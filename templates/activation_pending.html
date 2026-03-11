@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}تفعيل الحساب - GOLD PRO{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2>📩 فعّل حسابك من البريد</h2>
+        <p class="auth-subtitle">تم إنشاء حسابك، والخطوة التالية هي فتح رابط التفعيل المرسل إلى بريدك الإلكتروني.</p>
+
+        {% if email %}
+        <div class="alert alert-info">تم إرسال رابط التفعيل إلى: <strong>{{ email }}</strong></div>
+        {% endif %}
+
+        <div class="alert alert-warning">لن تتمكن من تسجيل الدخول قبل الضغط على رابط التفعيل.</div>
+
+        <div class="d-grid gap-2">
+            <a href="/login?first=1" class="btn btn-primary">الانتقال إلى تسجيل الدخول</a>
+            <a href="/resend-activation{% if email %}?email={{ email|urlencode }}{% endif %}" class="btn btn-outline-secondary">إعادة إرسال رابط التفعيل</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-wrap {
+    min-height: calc(100vh - 210px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 620px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #f0e1b8;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 2rem;
+}
+
+.auth-card h2 {
+    color: #b68a13;
+    margin-bottom: 0.4rem;
+    font-weight: 800;
+}
+
+.auth-subtitle {
+    color: #6b7280;
+    margin-bottom: 1.2rem;
+}
+</style>
+{% endblock %}

@@ -14,6 +14,14 @@
                     <p class="text-muted mb-0">إدارة وتوزيع الإشارات والتقارير عبر التليجرام</p>
                 </div>
                 <div>
+                    {% if user_info and user_info.get('is_admin') %}
+                    <a href="/admin/import-backup" class="btn btn-secondary me-2" style="background:#fff3d8;border-color:#d4a72f;color:#8e6c0d;">
+                        <i class="fas fa-database"></i> استيراد نسخة احتياطية
+                    </a>
+                    <a href="/admin/customer-communications" class="btn btn-secondary me-2" style="background:#e8fff4;border-color:#2f855a;color:#1f5137;">
+                        <i class="fas fa-envelope-open-text"></i> مراسلات العملاء
+                    </a>
+                    {% endif %}
                     <a href="/advanced_analyzer" class="btn btn-gradient-purple me-2" style="background: linear-gradient(135deg, #d4a72f, #b68a13); border: none; color: #1f2937;">
                         <i class="fas fa-chart-area"></i> المحلل المتقدم
                     </a>

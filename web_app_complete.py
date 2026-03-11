@@ -13,8 +13,10 @@ import threading
 import time
 import shutil
 import xml.etree.ElementTree as ET
+import csv
+from io import StringIO
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, Response
 import sqlite3
 from werkzeug.utils import secure_filename
 import requests
@@ -270,7 +272,127 @@ def forgot_password():
 subscription_manager = vip_subscription_system.SubscriptionManager()
 
 
-def _ensure_subscription_user_link(user_id, username, full_name='', email='', prefer_trial=False):
+def _build_public_url(path):
+    """إنشاء رابط عام صالح للرسائل البريدية."""
+    try:
+        return email_service.build_public_url(path)
+    except Exception:
+        base = os.environ.get('PUBLIC_BASE_URL') or os.environ.get('SITE_BASE_URL') or os.environ.get('RENDER_EXTERNAL_URL') or request.host_url.rstrip('/')
+        return f"{str(base).rstrip('/')}/{str(path).lstrip('/')}"
+
+
+def _ensure_customer_communication_tables():
+    """إنشاء جداول تتبع الحملات البريدية وسجلات المستلمين."""
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_campaigns (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            campaign_type TEXT DEFAULT 'update',
+            audience TEXT NOT NULL,
+            actor_username TEXT,
+            recipient_count INTEGER DEFAULT 0,
+            sent_count INTEGER DEFAULT 0,
+            failed_count INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    cursor.execute("PRAGMA table_info(email_campaigns)")
+    columns = {row[1] for row in cursor.fetchall()}
+    if 'campaign_type' not in columns:
+        cursor.execute("ALTER TABLE email_campaigns ADD COLUMN campaign_type TEXT DEFAULT 'update'")
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_campaign_recipients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            campaign_id INTEGER NOT NULL,
+            email TEXT NOT NULL,
+            delivery_status TEXT NOT NULL,
+            error_message TEXT,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(campaign_id) REFERENCES email_campaigns(id)
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def _log_email_campaign(subject, body, campaign_type, audience, actor_username, result):
+    """حفظ حملة بريدية جماعية ونتيجة كل مستلم في users.db."""
+    _ensure_customer_communication_tables()
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        '''
+        INSERT INTO email_campaigns (
+            subject, body, campaign_type, audience, actor_username,
+            recipient_count, sent_count, failed_count
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+        (
+            subject,
+            body,
+            campaign_type,
+            audience,
+            actor_username,
+            int(result.get('recipient_count', 0) or 0),
+            int(result.get('sent', 0) or 0),
+            int(result.get('failed', 0) or 0),
+        )
+    )
+    campaign_id = cursor.lastrowid
+
+    for email in result.get('sent_emails', []) or []:
+        cursor.execute(
+            '''
+            INSERT INTO email_campaign_recipients (campaign_id, email, delivery_status)
+            VALUES (?, ?, 'sent')
+            ''',
+            (campaign_id, email)
+        )
+
+    for failed_row in result.get('failed_emails', []) or []:
+        cursor.execute(
+            '''
+            INSERT INTO email_campaign_recipients (campaign_id, email, delivery_status, error_message)
+            VALUES (?, ?, 'failed', ?)
+            ''',
+            (
+                campaign_id,
+                str((failed_row or {}).get('email') or '').strip(),
+                str((failed_row or {}).get('error') or '').strip() or None,
+            )
+        )
+
+    conn.commit()
+    conn.close()
+    return campaign_id
+
+
+def _get_recent_email_campaigns(limit=20):
+    """إرجاع آخر الحملات البريدية مع ملخص سريع."""
+    _ensure_customer_communication_tables()
+    conn = sqlite3.connect('users.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute(
+        '''
+        SELECT id, subject, audience, actor_username, recipient_count,
+             sent_count, failed_count, created_at, campaign_type
+        FROM email_campaigns
+        ORDER BY id DESC
+        LIMIT ?
+        ''',
+        (int(limit or 20),)
+    )
+    campaigns = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return campaigns
+
+
+def _ensure_subscription_user_link(user_id, username, full_name='', email='', phone='', country='', nickname='', prefer_trial=False):
     """ضمان وجود المستخدم في قاعدة vip_subscriptions وربطه بمعرّف users.db."""
     try:
         user_id = int(user_id)
@@ -280,6 +402,9 @@ def _ensure_subscription_user_link(user_id, username, full_name='', email='', pr
     username = str(username or '').strip()
     first_name = str(full_name or '').strip()
     email = str(email or '').strip()
+    phone = str(phone or '').strip()
+    country = str(country or '').strip()
+    nickname = str(nickname or '').strip()
 
     if not username:
         return False, 'missing_username'
@@ -318,6 +443,15 @@ def _ensure_subscription_user_link(user_id, username, full_name='', email='', pr
             if email and 'email' in cols:
                 updates.append('email = ?')
                 params.append(email)
+            if phone and 'phone' in cols:
+                updates.append('phone = ?')
+                params.append(phone)
+            if country and 'country' in cols:
+                updates.append('country = ?')
+                params.append(country)
+            if nickname and 'nickname' in cols:
+                updates.append('nickname = ?')
+                params.append(nickname)
 
             if updates:
                 params.append(user_id)
@@ -329,12 +463,23 @@ def _ensure_subscription_user_link(user_id, username, full_name='', email='', pr
         return True, 'already_linked'
 
     if prefer_trial:
-        ok, msg = subscription_manager.add_user(user_id, username, first_name)
+        ok, msg = subscription_manager.add_user(
+            user_id,
+            username,
+            first_name,
+            email=email or None,
+            phone=phone or None,
+            country=country or None,
+            nickname=nickname or None
+        )
         return bool(ok), msg
 
     try:
         conn = sqlite3.connect('vip_subscriptions.db')
         c = conn.cursor()
+
+        c.execute('PRAGMA table_info(users)')
+        cols = {row[1] for row in c.fetchall()}
 
         referral_code = None
         for _ in range(6):
@@ -346,12 +491,41 @@ def _ensure_subscription_user_link(user_id, username, full_name='', email='', pr
         if not referral_code:
             referral_code = f"REF{user_id}{int(time.time()) % 100000}"
 
-        c.execute('''
-            INSERT INTO users
-            (user_id, username, first_name, plan, subscription_start,
-             subscription_end, status, referral_code, total_paid, created_at, email)
-            VALUES (?, ?, ?, 'free', ?, NULL, 'active', ?, 0, CURRENT_TIMESTAMP, ?)
-        ''', (user_id, username, first_name, datetime.now().isoformat(), referral_code, email or None))
+        insert_columns = [
+            'user_id', 'username', 'first_name', 'plan', 'subscription_start',
+            'subscription_end', 'status', 'referral_code', 'total_paid', 'created_at'
+        ]
+        insert_values = [
+            user_id, username, first_name, 'free', datetime.now().isoformat(),
+            None, 'active', referral_code, 0, 'CURRENT_TIMESTAMP'
+        ]
+
+        if 'email' in cols:
+            insert_columns.append('email')
+            insert_values.append(email or None)
+        if 'phone' in cols:
+            insert_columns.append('phone')
+            insert_values.append(phone or None)
+        if 'country' in cols:
+            insert_columns.append('country')
+            insert_values.append(country or None)
+        if 'nickname' in cols:
+            insert_columns.append('nickname')
+            insert_values.append(nickname or None)
+
+        values_sql = []
+        params = []
+        for value in insert_values:
+            if value == 'CURRENT_TIMESTAMP':
+                values_sql.append('CURRENT_TIMESTAMP')
+            else:
+                values_sql.append('?')
+                params.append(value)
+
+        c.execute(
+            f"INSERT INTO users ({', '.join(insert_columns)}) VALUES ({', '.join(values_sql)})",
+            tuple(params)
+        )
 
         conn.commit()
         conn.close()
@@ -378,7 +552,13 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
         where = '1=1'
         if 'deleted_at' in users_cols:
             where += " AND (deleted_at IS NULL OR deleted_at = '')"
-        c.execute(f'SELECT id, username, full_name, email FROM users WHERE {where} ORDER BY id ASC')
+        select_parts = ['id', 'username', 'full_name', 'email']
+        for extra_col in ('phone', 'country', 'nickname'):
+            if extra_col in users_cols:
+                select_parts.append(extra_col)
+            else:
+                select_parts.append(f'NULL AS {extra_col}')
+        c.execute(f"SELECT {', '.join(select_parts)} FROM users WHERE {where} ORDER BY id ASC")
         rows = c.fetchall()
         conn.close()
     except Exception as e:
@@ -392,6 +572,9 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
             row['username'],
             row['full_name'],
             row['email'],
+            row['phone'],
+            row['country'],
+            row['nickname'],
             prefer_trial=prefer_trial_for_missing
         )
         if ok:
@@ -4090,6 +4273,9 @@ def login():
                         profile.get('username') or username,
                         profile.get('full_name') or '',
                         profile.get('email') or '',
+                        profile.get('phone') or '',
+                        profile.get('country') or '',
+                        profile.get('nickname') or '',
                         prefer_trial=False
                     )
                 except Exception:
@@ -4123,53 +4309,75 @@ def login():
 def register():
     """صفحة التسجيل"""
     force_first_register_page = request.args.get('first') == '1'
+    form_data = {
+        'full_name': '',
+        'username': '',
+        'email': '',
+        'phone': '',
+        'marketing_email_opt_in': True,
+        'whatsapp_opt_in': False,
+    }
 
     if request.method == 'GET' and force_first_register_page:
-        return render_template('register.html')
+        return render_template('register.html', form_data=form_data)
 
     if request.method == 'POST':
         full_name = request.form.get('full_name', '').strip()
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '').strip()
         confirm_password = request.form.get('confirm_password', '').strip()
         terms = request.form.get('terms')
+        marketing_email_opt_in = request.form.get('marketing_email_opt_in') == '1'
+        whatsapp_opt_in = request.form.get('whatsapp_opt_in') == '1'
+        form_data = {
+            'full_name': full_name,
+            'username': username,
+            'email': email,
+            'phone': phone,
+            'marketing_email_opt_in': marketing_email_opt_in,
+            'whatsapp_opt_in': whatsapp_opt_in,
+        }
         
         # التحقق من صحة البيانات
         if not all([full_name, username, email, password]):
-            return render_template('register.html', error='يرجى ملء جميع الحقول')
+            return render_template('register.html', error='يرجى ملء جميع الحقول', form_data=form_data)
         
         if len(username) < 3:
-            return render_template('register.html', error='اسم المستخدم يجب أن يكون 3 أحرف على الأقل')
+            return render_template('register.html', error='اسم المستخدم يجب أن يكون 3 أحرف على الأقل', form_data=form_data)
         
         if len(password) < 6:
-            return render_template('register.html', error='كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+            return render_template('register.html', error='كلمة المرور يجب أن تكون 6 أحرف على الأقل', form_data=form_data)
         
         if password != confirm_password:
-            return render_template('register.html', error='كلمات المرور غير متطابقة')
+            return render_template('register.html', error='كلمات المرور غير متطابقة', form_data=form_data)
         
         if not terms:
-            return render_template('register.html', error='يجب قبول الشروط والأحكام')
+            return render_template('register.html', error='يجب قبول الشروط والأحكام', form_data=form_data)
         
         # تسجيل المستخدم الجديد
-        result = user_manager.register_user(username, email, password, full_name)
+        result = user_manager.register_user(
+            username,
+            email,
+            password,
+            full_name,
+            phone=phone,
+            marketing_email_opt_in=marketing_email_opt_in,
+            whatsapp_opt_in=whatsapp_opt_in
+        )
         
         if result['success']:
-            _ensure_subscription_user_link(
-                result.get('user_id'),
-                username,
-                full_name,
-                email,
-                prefer_trial=True
-            )
-            # تسجيل الدخول التلقائي بعد التسجيل
-            login_result = user_manager.login_user(username, password, request.remote_addr)
-            if login_result['success']:
-                session['session_token'] = login_result['session_token']
-                session['user_id'] = login_result['user_id']
-                return redirect(url_for('home'))
+            activation_link = _build_public_url(url_for('activate_account', token=result.get('activation_token')))
+            email_sent, email_message = email_service.send_account_activation(email, full_name, activation_link)
+            flash('تم إنشاء الحساب. افتح رابط التفعيل المرسل إلى بريدك الإلكتروني قبل تسجيل الدخول.', 'success')
+            if email_sent:
+                flash('تم إرسال رابط التفعيل إلى بريدك الإلكتروني.', 'info')
+            else:
+                flash(f'تم حفظ الحساب لكن تعذر إرسال البريد الآن: {email_message}', 'warning')
+            return redirect(url_for('activation_pending', email=email))
         else:
-            return render_template('register.html', error=result['message'])
+            return render_template('register.html', error=result['message'], form_data=form_data)
     
     # التحقق من وجود جلسة نشطة
     if session.get('session_token'):
@@ -4177,7 +4385,79 @@ def register():
         if user_info['success']:
             return redirect(url_for('home'))
     
-    return render_template('register.html')
+    return render_template('register.html', form_data=form_data)
+
+
+@app.route('/activation-pending')
+def activation_pending():
+    """صفحة توضح أن الحساب ينتظر تفعيل البريد."""
+    return render_template('activation_pending.html', email=request.args.get('email', '').strip())
+
+
+@app.route('/activate-account/<token>')
+def activate_account(token):
+    """تفعيل حساب المستخدم من خلال الرابط المرسل إلى البريد."""
+    result = user_manager.activate_user(token)
+    if result.get('success'):
+        profile = user_manager.get_user_info(result.get('user_id')) or {}
+        try:
+            _ensure_subscription_user_link(
+                result.get('user_id'),
+                profile.get('username') or '',
+                profile.get('full_name') or '',
+                profile.get('email') or '',
+                profile.get('phone') or '',
+                profile.get('country') or '',
+                profile.get('nickname') or '',
+                prefer_trial=not result.get('already_active', False)
+            )
+        except Exception:
+            pass
+        if not result.get('already_active') and str(profile.get('email') or '').strip():
+            welcome_sent, welcome_message = email_service.send_welcome_email(
+                profile.get('email') or '',
+                profile.get('full_name') or profile.get('username') or ''
+            )
+            if not welcome_sent:
+                print(f"[WELCOME-EMAIL] send failed for user_id={result.get('user_id')}: {welcome_message}")
+        flash(result.get('message') or 'تم تفعيل الحساب.', 'success')
+        return redirect(url_for('login', first=1))
+
+    flash(result.get('message') or 'تعذر تفعيل الحساب.', 'danger')
+    return redirect(url_for('resend_activation'))
+
+
+@app.route('/resend-activation', methods=['GET', 'POST'])
+def resend_activation():
+    """إعادة إرسال رابط التفعيل للحساب غير المفعل."""
+    if request.method == 'POST':
+        identifier = request.form.get('identifier', '').strip()
+        if not identifier:
+            return render_template('resend_activation.html', error='أدخل البريد الإلكتروني أو اسم المستخدم.')
+
+        result = user_manager.regenerate_activation_token(identifier)
+        if not result.get('success'):
+            return render_template('resend_activation.html', error=result.get('message'))
+
+        activation_link = _build_public_url(url_for('activate_account', token=result.get('activation_token')))
+        email_sent, email_message = email_service.send_account_activation(
+            result.get('email') or '',
+            result.get('full_name') or result.get('username') or '',
+            activation_link
+        )
+        if email_sent:
+            return render_template(
+                'resend_activation.html',
+                success='تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.',
+                email=result.get('email') or ''
+            )
+        return render_template(
+            'resend_activation.html',
+            error=f'تم إنشاء رابط جديد لكن الإرسال فشل: {email_message}',
+            email=result.get('email') or ''
+        )
+
+    return render_template('resend_activation.html', email=request.args.get('email', '').strip())
 
 
 @app.route('/logout')
@@ -6100,6 +6380,195 @@ def admin_panel():
         stats=stats,
         recent_signals=recent_signals,
         recent_recommendations=recent_recommendations
+    )
+
+
+@app.route('/admin/customer-communications', methods=['GET', 'POST'])
+@admin_required
+def admin_customer_communications():
+    """إدارة تواصل الأدمن مع العملاء عبر البريد وتصدير جهات واتساب."""
+    user_info = get_current_user()
+    contacts = user_manager.list_contactable_users(verified_only=False, marketing_only=False)
+    recent_campaigns = _get_recent_email_campaigns(limit=100)
+    delayed_pending_users = user_manager.list_pending_activation_users(older_than_hours=24)
+    contact_query = str(request.args.get('contact_q', '') or '').strip().lower()
+    campaign_query = str(request.args.get('campaign_q', '') or '').strip().lower()
+    audience_filter = str(request.args.get('audience_filter', 'all') or 'all').strip().lower()
+    campaign_type_filter = str(request.args.get('campaign_type_filter', 'all') or 'all').strip().lower()
+
+    if contact_query:
+        contacts = [
+            row for row in contacts
+            if contact_query in str(row.get('username') or '').lower()
+            or contact_query in str(row.get('full_name') or '').lower()
+            or contact_query in str(row.get('email') or '').lower()
+            or contact_query in str(row.get('phone') or '').lower()
+        ]
+
+    if campaign_query:
+        recent_campaigns = [
+            row for row in recent_campaigns
+            if campaign_query in str(row.get('subject') or '').lower()
+            or campaign_query in str(row.get('actor_username') or '').lower()
+            or campaign_query in str(row.get('audience') or '').lower()
+            or campaign_query in str(row.get('campaign_type') or '').lower()
+        ]
+
+    if audience_filter in ('marketing', 'all_verified'):
+        recent_campaigns = [row for row in recent_campaigns if str(row.get('audience') or '').strip().lower() == audience_filter]
+    if campaign_type_filter in ('welcome', 'update', 'promotion', 'important'):
+        recent_campaigns = [row for row in recent_campaigns if str(row.get('campaign_type') or '').strip().lower() == campaign_type_filter]
+
+    email_contacts = [row for row in contacts if str(row.get('email') or '').strip()]
+    verified_email_contacts = [row for row in email_contacts if row.get('email_verified')]
+    marketing_email_contacts = [row for row in verified_email_contacts if row.get('marketing_email_opt_in')]
+    whatsapp_contacts = [row for row in contacts if str(row.get('phone') or '').strip() and row.get('whatsapp_opt_in')]
+
+    if request.method == 'POST':
+        subject = request.form.get('subject', '').strip()
+        body = request.form.get('body', '').strip()
+        audience = request.form.get('audience', 'marketing')
+        campaign_type = request.form.get('campaign_type', 'update').strip().lower() or 'update'
+
+        if not subject or not body:
+            flash('أدخل عنوان الرسالة ومحتواها قبل الإرسال.', 'danger')
+            return render_template(
+                'admin_customer_communications.html',
+                user_info=user_info,
+                contacts_preview=contacts[:100],
+                communication_stats={
+                    'total_contacts': len(contacts),
+                    'email_contacts': len(email_contacts),
+                    'verified_email_contacts': len(verified_email_contacts),
+                    'marketing_email_contacts': len(marketing_email_contacts),
+                    'whatsapp_contacts': len(whatsapp_contacts)
+                },
+                recent_campaigns=recent_campaigns,
+                delayed_pending_users=delayed_pending_users,
+                filter_state={
+                    'contact_q': contact_query,
+                    'campaign_q': campaign_query,
+                    'audience_filter': audience_filter,
+                    'campaign_type_filter': campaign_type_filter
+                }
+            )
+
+        if audience == 'all_verified':
+            recipients = verified_email_contacts
+        else:
+            recipients = marketing_email_contacts
+
+        result = email_service.send_admin_broadcast(recipients, subject, body)
+        _log_email_campaign(
+            subject,
+            body,
+            campaign_type,
+            audience,
+            (user_info or {}).get('username', 'admin'),
+            result
+        )
+        flash(result.get('message') or 'تمت معالجة الإرسال.', 'success' if result.get('sent', 0) > 0 else 'warning')
+        for error in result.get('errors', [])[:5]:
+            flash(error, 'warning')
+        return redirect(url_for('admin_customer_communications'))
+
+    return render_template(
+        'admin_customer_communications.html',
+        user_info=user_info,
+        contacts_preview=contacts[:100],
+        communication_stats={
+            'total_contacts': len(contacts),
+            'email_contacts': len(email_contacts),
+            'verified_email_contacts': len(verified_email_contacts),
+            'marketing_email_contacts': len(marketing_email_contacts),
+            'whatsapp_contacts': len(whatsapp_contacts)
+        },
+        recent_campaigns=recent_campaigns,
+        delayed_pending_users=delayed_pending_users,
+        filter_state={
+            'contact_q': contact_query,
+            'campaign_q': campaign_query,
+            'audience_filter': audience_filter,
+            'campaign_type_filter': campaign_type_filter
+        }
+    )
+
+
+@app.route('/admin/pending-activations')
+@admin_required
+def admin_pending_activations():
+    """عرض الحسابات غير المفعلة والمتأخرة في التفعيل."""
+    query = str(request.args.get('q', '') or '').strip().lower()
+    older_than = max(0, int(request.args.get('older_than', '24') or 24))
+    users = user_manager.list_pending_activation_users(older_than_hours=older_than)
+    if query:
+        users = [
+            row for row in users
+            if query in str(row.get('username') or '').lower()
+            or query in str(row.get('full_name') or '').lower()
+            or query in str(row.get('email') or '').lower()
+            or query in str(row.get('phone') or '').lower()
+        ]
+    return render_template('admin_pending_activations.html', pending_users=users, filter_state={'q': query, 'older_than': older_than})
+
+
+@app.route('/admin/pending-activations/<int:user_id>/resend', methods=['POST'])
+@admin_required
+def admin_resend_activation_for_user(user_id):
+    """إعادة إرسال رابط التفعيل من لوحة الأدمن لحساب محدد."""
+    profile = user_manager.get_user_info(user_id)
+    if not profile:
+        flash('المستخدم غير موجود.', 'danger')
+        return redirect(url_for('admin_pending_activations'))
+    if profile.get('email_verified'):
+        flash('الحساب مفعل بالفعل.', 'info')
+        return redirect(url_for('admin_pending_activations'))
+
+    identifier = profile.get('email') or profile.get('username') or ''
+    result = user_manager.regenerate_activation_token(identifier)
+    if not result.get('success'):
+        flash(result.get('message') or 'تعذر إنشاء رابط تفعيل جديد.', 'danger')
+        return redirect(url_for('admin_pending_activations'))
+
+    activation_link = _build_public_url(url_for('activate_account', token=result.get('activation_token')))
+    sent, message = email_service.send_account_activation(
+        result.get('email') or '',
+        result.get('full_name') or result.get('username') or '',
+        activation_link
+    )
+    flash('تم إرسال رابط التفعيل من لوحة الأدمن.' if sent else f'تعذر إرسال رابط التفعيل: {message}', 'success' if sent else 'warning')
+    return redirect(url_for('admin_pending_activations'))
+
+
+@app.route('/admin/customer-communications/whatsapp-export.csv')
+@admin_required
+def admin_customer_communications_whatsapp_export():
+    """تصدير جهات العملاء المصرح لهم عبر واتساب إلى ملف CSV."""
+    contacts = user_manager.list_contactable_users(verified_only=False, marketing_only=False)
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['id', 'username', 'full_name', 'email', 'phone', 'country', 'plan', 'created_at', 'last_login'])
+
+    for row in contacts:
+        phone = str(row.get('phone') or '').strip()
+        if not phone or not row.get('whatsapp_opt_in'):
+            continue
+        writer.writerow([
+            row.get('id'),
+            row.get('username'),
+            row.get('full_name'),
+            row.get('email'),
+            phone,
+            row.get('country'),
+            row.get('plan'),
+            row.get('created_at'),
+            row.get('last_login'),
+        ])
+
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv; charset=utf-8',
+        headers={'Content-Disposition': 'attachment; filename=goldpro_whatsapp_contacts.csv'}
     )
 
 @app.route('/subscription-management')

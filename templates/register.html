@@ -15,17 +15,22 @@
         <form method="POST" class="auth-form" autocomplete="off">
             <div class="form-group">
                 <label for="full_name">الاسم الكامل</label>
-                <input type="text" id="full_name" name="full_name" required>
+                <input type="text" id="full_name" name="full_name" value="{{ (form_data or {}).get('full_name', '') }}" required>
             </div>
 
             <div class="form-group">
                 <label for="username">اسم المستخدم</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" value="{{ (form_data or {}).get('username', '') }}" required>
             </div>
 
             <div class="form-group">
                 <label for="email">البريد الإلكتروني</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" value="{{ (form_data or {}).get('email', '') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">رقم الهاتف أو واتساب (اختياري)</label>
+                <input type="text" id="phone" name="phone" value="{{ (form_data or {}).get('phone', '') }}" placeholder="مثال: 009627XXXXXXXX">
             </div>
 
             <div class="form-group">
@@ -39,6 +44,16 @@
             </div>
 
             <label class="terms-row">
+                <input type="checkbox" name="marketing_email_opt_in" value="1" {% if (form_data or {}).get('marketing_email_opt_in', True) %}checked{% endif %}>
+                <span>أوافق على استقبال تحديثات الموقع والعروض عبر البريد الإلكتروني</span>
+            </label>
+
+            <label class="terms-row">
+                <input type="checkbox" name="whatsapp_opt_in" value="1" {% if (form_data or {}).get('whatsapp_opt_in', False) %}checked{% endif %}>
+                <span>أوافق على استخدام رقم الهاتف للتواصل عبر واتساب عند الحاجة</span>
+            </label>
+
+            <label class="terms-row">
                 <input type="checkbox" name="terms" value="1" required>
                 <span>أوافق على الشروط والأحكام</span>
             </label>
@@ -48,6 +63,9 @@
 
         <div class="auth-links">
             لديك حساب بالفعل؟ <a href="/login?first=1">تسجيل الدخول</a>
+        </div>
+        <div class="auth-links">
+            لم يصلك بريد التفعيل؟ <a href="/resend-activation">إعادة إرسال الرابط</a>
         </div>
     </div>
 </div>

@@ -22,7 +22,7 @@ YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
 CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
 TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
-CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "auto") or "auto").strip().lower()
+CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "yahoo_first") or "yahoo_first").strip().lower()
 MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
 
 logger = logging.getLogger("forex_analyzer")
@@ -603,7 +603,11 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
 
     is_crypto = _is_crypto_symbol(normalized_symbol)
     if is_crypto:
-        if CRYPTO_DATA_SOURCE_MODE == "binance_only":
+        if CRYPTO_DATA_SOURCE_MODE == "yahoo_only":
+            sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
+        elif CRYPTO_DATA_SOURCE_MODE == "yahoo_first":
+            sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance), ("TwelveData", _fetch_from_twelve_data), ("Binance", _fetch_from_binance)]
+        elif CRYPTO_DATA_SOURCE_MODE == "binance_only":
             sources = [("Binance", _fetch_from_binance), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
         elif CRYPTO_DATA_SOURCE_MODE == "binance_first":
             sources = [("Binance", _fetch_from_binance), ("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]

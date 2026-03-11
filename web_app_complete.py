@@ -591,6 +591,11 @@ MIN_SIGNAL_QUALITY_WHEN_EMPTY = int(os.environ.get('MIN_SIGNAL_QUALITY_WHEN_EMPT
 MIN_SIGNAL_RR_WHEN_EMPTY = float(os.environ.get('MIN_SIGNAL_RR_WHEN_EMPTY', '0.5'))
 MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_WHEN_EMPTY', '8.0'))
 CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
+CRITICAL_SIGNAL_SYMBOLS = {'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'BTCUSD', 'ETHUSD'}
+CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE', '3')))
+CRITICAL_SIGNAL_MIN_QUALITY = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY', '45'))
+CRITICAL_SIGNAL_MIN_RR = float(os.environ.get('CRITICAL_SIGNAL_MIN_RR', '0.75'))
+CRITICAL_SIGNAL_MAX_VOLATILITY = float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY', '9.5'))
 
 CONTINUOUS_ANALYZER_STATE = {
     'running': False,
@@ -1939,6 +1944,15 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
         effective_min_rr = min(min_rr, float(MIN_SIGNAL_RR_WHEN_EMPTY))
         effective_max_volatility = max(max_volatility, float(MAX_SIGNAL_VOLATILITY_WHEN_EMPTY))
 
+    critical_relaxed_mode = bool(
+        normalized_symbol in CRITICAL_SIGNAL_SYMBOLS
+        and active_signals_now <= CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE
+    )
+    if critical_relaxed_mode:
+        effective_min_quality = min(effective_min_quality, int(CRITICAL_SIGNAL_MIN_QUALITY))
+        effective_min_rr = min(effective_min_rr, float(CRITICAL_SIGNAL_MIN_RR))
+        effective_max_volatility = max(effective_max_volatility, float(CRITICAL_SIGNAL_MAX_VOLATILITY))
+
     rr_tp1 = _compute_risk_reward(entry_price, stop_loss, take_profit_1)
     if rr_tp1 < effective_min_rr:
         return None
@@ -1972,7 +1986,11 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
         'confidence': str(result.get('confidence') or ''),
         'score_gap': float(result.get('score_gap') or 0),
         'volatility': volatility,
-        'adaptive_mode': ('relaxed_empty' if relaxed_mode else adaptive_thresholds.get('mode')),
+        'adaptive_mode': (
+            'critical_relaxed' if critical_relaxed_mode else
+            'relaxed_empty' if relaxed_mode else
+            adaptive_thresholds.get('mode')
+        ),
         'adaptive_min_quality_score': effective_min_quality,
         'adaptive_min_rr': effective_min_rr,
         'adaptive_max_volatility': effective_max_volatility,

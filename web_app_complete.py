@@ -5497,7 +5497,7 @@ def admin_recover_users_now():
     if int(users_result.get('restored', 0) or 0) > 0 or int(vip_result.get('restored', 0) or 0) > 0 or int(users_merge_result.get('merged', 0) or 0) > 0 or int(vip_merge_result.get('merged', 0) or 0) > 0:
         print(f"[MANUAL-RECOVERY] users={users_result} vip={vip_result} users_merge={users_merge_result} vip_merge={vip_merge_result} sync={sync_result}")
 
-    return redirect(url_for('subscriptions_management'))
+    return redirect(url_for('subscription_management'))
 
 @app.route('/api/admin/update_plan', methods=['POST'])
 @admin_required

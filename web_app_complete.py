@@ -770,6 +770,72 @@ def _legacy_db_candidates(primary_filename, backup_glob_pattern):
     return unique
 
 
+def _merge_users_from_source_db(source_db):
+    """دمج مستخدمين من ملف users.db محدد إلى قاعدة المستخدمين الحالية."""
+    source_db = Path(str(source_db))
+    if not source_db.exists() or not source_db.is_file():
+        return {'merged': 0, 'source': str(source_db), 'reason': 'source_missing'}
+
+    target_db = USERS_DB_PATH
+    target_key = str(target_db.resolve()).lower()
+    source_key = str(source_db.resolve()).lower()
+    if source_key == target_key:
+        return {'merged': 0, 'source': str(source_db), 'reason': 'same_as_target'}
+
+    if _table_row_count(source_db, 'users') <= 0:
+        return {'merged': 0, 'source': str(source_db), 'reason': 'source_empty'}
+
+    try:
+        src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+        src_conn.row_factory = sqlite3.Row
+        src_cur = src_conn.cursor()
+        src_cur.execute('PRAGMA table_info(users)')
+        src_cols = {row[1] for row in src_cur.fetchall()}
+
+        target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+        target_cur = target_conn.cursor()
+        target_cur.execute('PRAGMA table_info(users)')
+        target_cols = {row[1] for row in target_cur.fetchall()}
+
+        required = {'username', 'email', 'password_hash'}
+        if not required.issubset(src_cols) or not required.issubset(target_cols):
+            src_conn.close()
+            target_conn.close()
+            return {'merged': 0, 'source': str(source_db), 'reason': 'missing_required_columns'}
+
+        preferred_cols = [
+            'id', 'username', 'email', 'password_hash', 'full_name', 'plan',
+            'created_at', 'last_login', 'is_active', 'is_admin',
+            'role', 'phone', 'country', 'nickname',
+            'deleted_at', 'deleted_by', 'delete_reason'
+        ]
+        selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
+
+        src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+        rows = src_cur.fetchall()
+        if not rows:
+            src_conn.close()
+            target_conn.close()
+            return {'merged': 0, 'source': str(source_db), 'reason': 'no_rows'}
+
+        placeholders = ', '.join(['?'] * len(selected_cols))
+        insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+        merged = 0
+        for row in rows:
+            values = [row[col] for col in selected_cols]
+            target_cur.execute(insert_sql, values)
+            if target_cur.rowcount:
+                merged += 1
+
+        target_conn.commit()
+        src_conn.close()
+        target_conn.close()
+        return {'merged': merged, 'source': str(source_db), 'reason': 'merged'}
+    except Exception as e:
+        return {'merged': 0, 'source': str(source_db), 'reason': str(e)}
+
+
 def _merge_users_from_legacy_sources(limit_sources=10):
     """دمج مستخدمي users.db المفقودين من قواعد قديمة/نسخ احتياطية حتى لو القاعدة الحالية غير فارغة."""
     target_db = USERS_DB_PATH
@@ -782,63 +848,79 @@ def _merge_users_from_legacy_sources(limit_sources=10):
         source_key = str(source_db.resolve()).lower()
         if source_key == target_key:
             continue
-        if _table_row_count(source_db, 'users') <= 0:
-            continue
-
-        try:
-            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
-            src_conn.row_factory = sqlite3.Row
-            src_cur = src_conn.cursor()
-            src_cur.execute('PRAGMA table_info(users)')
-            src_cols = {row[1] for row in src_cur.fetchall()}
-
-            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
-            target_cur = target_conn.cursor()
-            target_cur.execute('PRAGMA table_info(users)')
-            target_cols = {row[1] for row in target_cur.fetchall()}
-
-            required = {'username', 'email', 'password_hash'}
-            if not required.issubset(src_cols) or not required.issubset(target_cols):
-                src_conn.close()
-                target_conn.close()
-                continue
-
-            preferred_cols = [
-                'id', 'username', 'email', 'password_hash', 'full_name', 'plan',
-                'created_at', 'last_login', 'is_active', 'is_admin',
-                'role', 'phone', 'country', 'nickname',
-                'deleted_at', 'deleted_by', 'delete_reason'
-            ]
-            selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
-
-            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
-            rows = src_cur.fetchall()
-            if not rows:
-                src_conn.close()
-                target_conn.close()
-                continue
-
-            placeholders = ', '.join(['?'] * len(selected_cols))
-            insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
-
-            merged_from_source = 0
-            for row in rows:
-                values = [row[col] for col in selected_cols]
-                target_cur.execute(insert_sql, values)
-                if target_cur.rowcount:
-                    merged_from_source += 1
-
-            target_conn.commit()
-            src_conn.close()
-            target_conn.close()
-
-            if merged_from_source > 0:
-                merged_total += merged_from_source
-                used_sources.append(str(source_db))
-        except Exception:
-            continue
+        result = _merge_users_from_source_db(source_db)
+        merged_from_source = int(result.get('merged', 0) or 0)
+        if merged_from_source > 0:
+            merged_total += merged_from_source
+            used_sources.append(str(source_db))
 
     return {'merged': merged_total, 'sources': used_sources}
+
+
+def _merge_vip_users_from_source_db(source_db):
+    """دمج مشتركي VIP من ملف vip_subscriptions.db محدد إلى قاعدة الاشتراكات الحالية."""
+    source_db = Path(str(source_db))
+    if not source_db.exists() or not source_db.is_file():
+        return {'merged': 0, 'source': str(source_db), 'reason': 'source_missing'}
+
+    target_db = VIP_SUBSCRIPTIONS_DB_PATH
+    target_key = str(target_db.resolve()).lower()
+    source_key = str(source_db.resolve()).lower()
+    if source_key == target_key:
+        return {'merged': 0, 'source': str(source_db), 'reason': 'same_as_target'}
+
+    if _table_row_count(source_db, 'users') <= 0:
+        return {'merged': 0, 'source': str(source_db), 'reason': 'source_empty'}
+
+    try:
+        src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
+        src_conn.row_factory = sqlite3.Row
+        src_cur = src_conn.cursor()
+        src_cur.execute('PRAGMA table_info(users)')
+        src_cols = {row[1] for row in src_cur.fetchall()}
+
+        target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
+        target_cur = target_conn.cursor()
+        target_cur.execute('PRAGMA table_info(users)')
+        target_cols = {row[1] for row in target_cur.fetchall()}
+
+        if 'user_id' not in src_cols or 'user_id' not in target_cols:
+            src_conn.close()
+            target_conn.close()
+            return {'merged': 0, 'source': str(source_db), 'reason': 'missing_user_id'}
+
+        preferred_cols = [
+            'user_id', 'username', 'first_name', 'plan', 'subscription_start',
+            'subscription_end', 'status', 'referral_code', 'referred_by',
+            'total_paid', 'created_at', 'password_hash', 'email',
+            'activation_token', 'chat_id', 'telegram_id',
+            'deleted_at', 'deleted_by', 'delete_reason', 'updated_at'
+        ]
+        selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
+
+        src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
+        rows = src_cur.fetchall()
+        if not rows:
+            src_conn.close()
+            target_conn.close()
+            return {'merged': 0, 'source': str(source_db), 'reason': 'no_rows'}
+
+        placeholders = ', '.join(['?'] * len(selected_cols))
+        insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
+
+        merged = 0
+        for row in rows:
+            values = [row[col] for col in selected_cols]
+            target_cur.execute(insert_sql, values)
+            if target_cur.rowcount:
+                merged += 1
+
+        target_conn.commit()
+        src_conn.close()
+        target_conn.close()
+        return {'merged': merged, 'source': str(source_db), 'reason': 'merged'}
+    except Exception as e:
+        return {'merged': 0, 'source': str(source_db), 'reason': str(e)}
 
 
 def _merge_vip_users_from_legacy_sources(limit_sources=10):
@@ -853,61 +935,11 @@ def _merge_vip_users_from_legacy_sources(limit_sources=10):
         source_key = str(source_db.resolve()).lower()
         if source_key == target_key:
             continue
-        if _table_row_count(source_db, 'users') <= 0:
-            continue
-
-        try:
-            src_conn = _ORIGINAL_SQLITE_CONNECT(str(source_db))
-            src_conn.row_factory = sqlite3.Row
-            src_cur = src_conn.cursor()
-            src_cur.execute('PRAGMA table_info(users)')
-            src_cols = {row[1] for row in src_cur.fetchall()}
-
-            target_conn = _ORIGINAL_SQLITE_CONNECT(str(target_db))
-            target_cur = target_conn.cursor()
-            target_cur.execute('PRAGMA table_info(users)')
-            target_cols = {row[1] for row in target_cur.fetchall()}
-
-            if 'user_id' not in src_cols or 'user_id' not in target_cols:
-                src_conn.close()
-                target_conn.close()
-                continue
-
-            preferred_cols = [
-                'user_id', 'username', 'first_name', 'plan', 'subscription_start',
-                'subscription_end', 'status', 'referral_code', 'referred_by',
-                'total_paid', 'created_at', 'password_hash', 'email',
-                'activation_token', 'chat_id', 'telegram_id',
-                'deleted_at', 'deleted_by', 'delete_reason', 'updated_at'
-            ]
-            selected_cols = [col for col in preferred_cols if col in src_cols and col in target_cols]
-
-            src_cur.execute(f"SELECT {', '.join(selected_cols)} FROM users")
-            rows = src_cur.fetchall()
-            if not rows:
-                src_conn.close()
-                target_conn.close()
-                continue
-
-            placeholders = ', '.join(['?'] * len(selected_cols))
-            insert_sql = f"INSERT OR IGNORE INTO users ({', '.join(selected_cols)}) VALUES ({placeholders})"
-
-            merged_from_source = 0
-            for row in rows:
-                values = [row[col] for col in selected_cols]
-                target_cur.execute(insert_sql, values)
-                if target_cur.rowcount:
-                    merged_from_source += 1
-
-            target_conn.commit()
-            src_conn.close()
-            target_conn.close()
-
-            if merged_from_source > 0:
-                merged_total += merged_from_source
-                used_sources.append(str(source_db))
-        except Exception:
-            continue
+        result = _merge_vip_users_from_source_db(source_db)
+        merged_from_source = int(result.get('merged', 0) or 0)
+        if merged_from_source > 0:
+            merged_total += merged_from_source
+            used_sources.append(str(source_db))
 
     return {'merged': merged_total, 'sources': used_sources}
 
@@ -5497,6 +5529,104 @@ def admin_recover_users_now():
     if int(users_result.get('restored', 0) or 0) > 0 or int(vip_result.get('restored', 0) or 0) > 0 or int(users_merge_result.get('merged', 0) or 0) > 0 or int(vip_merge_result.get('merged', 0) or 0) > 0:
         print(f"[MANUAL-RECOVERY] users={users_result} vip={vip_result} users_merge={users_merge_result} vip_merge={vip_merge_result} sync={sync_result}")
 
+    return redirect(url_for('subscription_management'))
+
+
+@app.route('/admin/import-backup', methods=['GET', 'POST'])
+@admin_required
+def admin_import_backup():
+    """رفع ملفات قواعد بيانات محلية ودمجها في قواعد السيرفر الحالية."""
+    if request.method == 'GET':
+        return '''
+        <!doctype html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="utf-8">
+            <title>استيراد نسخة احتياطية</title>
+            <style>
+                body { font-family: Tahoma, Arial, sans-serif; background:#0f172a; color:#e5e7eb; margin:0; padding:32px; }
+                .box { max-width:760px; margin:0 auto; background:#111827; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+                h1 { margin-top:0; font-size:28px; }
+                p { line-height:1.7; color:#cbd5e1; }
+                label { display:block; margin:18px 0 8px; font-weight:bold; }
+                input[type=file] { display:block; width:100%; padding:12px; background:#1f2937; color:#e5e7eb; border:1px solid #374151; border-radius:10px; }
+                button, a.btn { display:inline-block; margin-top:20px; padding:12px 18px; border-radius:10px; border:none; text-decoration:none; cursor:pointer; }
+                button { background:#d4a017; color:#111827; font-weight:bold; }
+                a.btn { background:#374151; color:#f9fafb; margin-right:12px; }
+                .hint { font-size:14px; color:#93c5fd; }
+            </style>
+        </head>
+        <body>
+            <div class="box">
+                <h1>استيراد نسخة احتياطية للمستخدمين والاشتراكات</h1>
+                <p>إذا كانت قاعدة Render فارغة، ارفع هنا ملفاتك المحلية مثل <strong>users.db</strong> و <strong>vip_subscriptions.db</strong> وسيتم دمجها داخل قاعدة السيرفر الحالية بدون حذف البيانات الموجودة.</p>
+                <form method="post" enctype="multipart/form-data">
+                    <label for="users_db">ملف users.db</label>
+                    <input id="users_db" name="users_db" type="file" accept=".db,.sqlite,.sqlite3">
+
+                    <label for="vip_db">ملف vip_subscriptions.db</label>
+                    <input id="vip_db" name="vip_db" type="file" accept=".db,.sqlite,.sqlite3">
+
+                    <div class="hint">يمكنك رفع ملف واحد أو الملفين معًا. بعد الدمج سيتم تشغيل مزامنة المشتركين تلقائيًا.</div>
+                    <button type="submit">بدء الاستيراد والدمج</button>
+                    <a class="btn" href="/subscriptions_management">العودة لإدارة الاشتراكات</a>
+                </form>
+            </div>
+        </body>
+        </html>
+        '''
+
+    users_file = request.files.get('users_db')
+    vip_file = request.files.get('vip_db')
+    admin_name = session.get('local_admin_username') or (get_current_user() or {}).get('username') or 'admin'
+
+    if (not users_file or not users_file.filename) and (not vip_file or not vip_file.filename):
+        flash('لم يتم اختيار أي ملف للاستيراد.', 'error')
+        return redirect(url_for('admin_import_backup'))
+
+    import_dir = DATA_DIR / 'imports'
+    try:
+        import_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    backup_info = _snapshot_core_databases(reason='admin_import_backup', actor=admin_name) if BACKUP_ON_ADMIN_WRITE else None
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    users_result = {'merged': 0, 'source': None, 'reason': 'not_uploaded'}
+    vip_result = {'merged': 0, 'source': None, 'reason': 'not_uploaded'}
+
+    if users_file and users_file.filename:
+        users_path = import_dir / f'users_upload_{stamp}.db'
+        users_file.save(str(users_path))
+        users_result = _merge_users_from_source_db(users_path)
+
+    if vip_file and vip_file.filename:
+        vip_path = import_dir / f'vip_upload_{stamp}.db'
+        vip_file.save(str(vip_path))
+        vip_result = _merge_vip_users_from_source_db(vip_path)
+
+    sync_result = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
+
+    _log_admin_audit(
+        action='admin_import_backup',
+        target_user_id=None,
+        details={
+            'backup': backup_info,
+            'users_result': users_result,
+            'vip_result': vip_result,
+            'sync_result': sync_result
+        }
+    )
+
+    flash(
+        (
+            f"Import done: users_merged={int(users_result.get('merged', 0) or 0)}, "
+            f"vip_merged={int(vip_result.get('merged', 0) or 0)}, "
+            f"linked={int(sync_result.get('linked', 0) or 0)}, "
+            f"failed={int(sync_result.get('failed', 0) or 0)}"
+        ),
+        'success'
+    )
     return redirect(url_for('subscription_management'))
 
 @app.route('/api/admin/update_plan', methods=['POST'])

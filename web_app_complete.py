@@ -848,6 +848,18 @@ CRITICAL_SIGNAL_MIN_RR = float(os.environ.get('CRITICAL_SIGNAL_MIN_RR', '0.75'))
 CRITICAL_SIGNAL_MAX_VOLATILITY = float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY', '9.5'))
 CRITICAL_SIGNAL_STRONG_RR_TRIGGER = float(os.environ.get('CRITICAL_SIGNAL_STRONG_RR_TRIGGER', '1.35'))
 CRITICAL_SIGNAL_MIN_QUALITY_STRONG_RR = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY_STRONG_RR', '34'))
+CRITICAL_SIGNAL_MAX_VOLATILITY_BY_SYMBOL = {
+    'XAUUSD': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_XAUUSD', '18.0')),
+    'XAGUSD': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_XAGUSD', '20.0')),
+    'USOIL': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_USOIL', '28.0')),
+    'UKOIL': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_UKOIL', '28.0')),
+    'NATGAS': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_NATGAS', '20.0')),
+    'US30': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_US30', '18.0')),
+    'NAS100': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_NAS100', '20.0')),
+    'SPX500': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_SPX500', '18.0')),
+    'BTCUSD': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_BTCUSD', '45.0')),
+    'ETHUSD': float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY_ETHUSD', '50.0')),
+}
 
 CONTINUOUS_ANALYZER_STATE = {
     'running': False,
@@ -2327,9 +2339,10 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
 
     critical_relaxed_mode = bool(normalized_symbol in CRITICAL_SIGNAL_SYMBOLS)
     if critical_relaxed_mode:
+        critical_max_volatility = float(CRITICAL_SIGNAL_MAX_VOLATILITY_BY_SYMBOL.get(normalized_symbol, CRITICAL_SIGNAL_MAX_VOLATILITY))
         effective_min_quality = min(effective_min_quality, int(CRITICAL_SIGNAL_MIN_QUALITY))
         effective_min_rr = min(effective_min_rr, float(CRITICAL_SIGNAL_MIN_RR))
-        effective_max_volatility = max(effective_max_volatility, float(CRITICAL_SIGNAL_MAX_VOLATILITY))
+        effective_max_volatility = max(effective_max_volatility, critical_max_volatility)
 
     adaptive_mode = (
         'critical_relaxed' if critical_relaxed_mode else

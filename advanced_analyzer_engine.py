@@ -650,7 +650,9 @@ def perform_full_analysis(symbol, interval, force_live=False):
     
     try:
         # Fetch data
-        df = fetch_data(symbol, interval, outputsize=500, force_live=force_live)
+        normalized_interval = str(interval or '1h').strip().lower()
+        outputsize = 240 if normalized_interval in ('1min', '5min', '15min', '30min', '1h') else 320
+        df = fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
         
         if len(df) < 50:
             return {

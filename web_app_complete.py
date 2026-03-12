@@ -864,11 +864,16 @@ HIGH_FREQUENCY_ANALYZER_SYMBOLS = {
     if _normalize_symbol_key(symbol)
 }
 HIGH_FREQUENCY_ANALYZER_INTERVALS = _parse_analyzer_intervals(
-    os.environ.get('HIGH_FREQUENCY_ANALYZER_INTERVALS', '15min,30min,1h'),
-    ['15min', '30min', '1h']
+    os.environ.get('HIGH_FREQUENCY_ANALYZER_INTERVALS', '30min'),
+    ['30min']
 )
 DEFAULT_ANALYZER_INTERVALS = _parse_analyzer_intervals(
     os.environ.get('DEFAULT_ANALYZER_INTERVALS', '1h'),
+    ['1h']
+)
+ANALYZER_ENABLE_INTERVAL_FALLBACK = os.environ.get('ANALYZER_ENABLE_INTERVAL_FALLBACK', '0').strip().lower() in ('1', 'true', 'yes', 'on')
+ANALYZER_FALLBACK_INTERVALS = _parse_analyzer_intervals(
+    os.environ.get('ANALYZER_FALLBACK_INTERVALS', '1h'),
     ['1h']
 )
 
@@ -1660,8 +1665,18 @@ def _resolve_symbols_for_continuous_analyzer(max_symbols=None):
 def _resolve_intervals_for_symbol(symbol):
     normalized_symbol = _normalize_symbol_key(symbol)
     if normalized_symbol in HIGH_FREQUENCY_ANALYZER_SYMBOLS or normalized_symbol in CRITICAL_SIGNAL_SYMBOLS:
-        return list(HIGH_FREQUENCY_ANALYZER_INTERVALS)
-    return list(DEFAULT_ANALYZER_INTERVALS)
+        base_intervals = list(HIGH_FREQUENCY_ANALYZER_INTERVALS)
+    else:
+        base_intervals = list(DEFAULT_ANALYZER_INTERVALS)
+
+    if not ANALYZER_ENABLE_INTERVAL_FALLBACK:
+        return base_intervals[:1] if base_intervals else ['1h']
+
+    merged = []
+    for interval in list(base_intervals) + list(ANALYZER_FALLBACK_INTERVALS):
+        if interval not in merged:
+            merged.append(interval)
+    return merged[:3] if merged else ['1h']
 
 
 def _select_preferred_analysis_outcome(outcomes):

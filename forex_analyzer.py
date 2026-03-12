@@ -24,6 +24,7 @@ YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
 TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "yahoo_first") or "yahoo_first").strip().lower()
 MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
+ENABLE_YFINANCE_FALLBACK = str(os.environ.get("ENABLE_YFINANCE_FALLBACK", "0") or "0").strip().lower() in ("1", "true", "yes", "on")
 
 logger = logging.getLogger("forex_analyzer")
 if not logger.handlers:
@@ -502,10 +503,10 @@ def _fetch_from_yahoo_chart(symbol, interval, outputsize):
     range_map = {
         "1m": "7d",
         "5m": "30d",
-        "15m": "60d",
-        "30m": "60d",
-        "60m": "730d",
-        "1h": "730d",
+        "15m": "21d",
+        "30m": "14d",
+        "60m": "120d",
+        "1h": "120d",
         "1d": "5y"
     }
     chart_range = range_map.get(chart_interval, "60d")
@@ -616,9 +617,13 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
     else:
         if _is_non_fx_market_symbol(normalized_symbol):
             # Metals/Energy/Indices are generally more reliable on Yahoo sources.
-            sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance), ("TwelveData", _fetch_from_twelve_data)]
+            sources = [("YahooChart", _fetch_from_yahoo_chart), ("TwelveData", _fetch_from_twelve_data)]
+            if ENABLE_YFINANCE_FALLBACK:
+                sources.append(("YahooFinance", _fetch_from_yfinance))
         else:
-            sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
+            sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart)]
+            if ENABLE_YFINANCE_FALLBACK:
+                sources.append(("YahooFinance", _fetch_from_yfinance))
 
     for source_name, source_fn in sources:
         if source_name == "TwelveData" and _is_twelvedata_in_cooldown():

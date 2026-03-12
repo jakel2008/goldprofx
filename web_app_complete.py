@@ -627,7 +627,7 @@ os.environ.setdefault('SIGNALS_LOOKBACK_DAYS', '7')
 os.environ.setdefault('TELEGRAM_COMMAND_STATE_FILE', '/var/data/telegram_command_bot_state.json')
 os.environ.setdefault('TELEGRAM_COMMAND_POLL_INTERVAL', '2')
 os.environ.setdefault('TELEGRAM_COMMAND_TIMEOUT', '30')
-os.environ.setdefault('TELEGRAM_ADMIN_IDS', '123456789,987654321')
+os.environ.setdefault('TELEGRAM_ADMIN_IDS', '')
 os.environ.setdefault('TELEGRAM_ADMIN_USERNAMES', '')
 
 USERS_DB_PATH = Path(os.environ.get('USERS_DB_PATH', str(DATA_DIR / 'users.db')))

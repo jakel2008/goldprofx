@@ -1,4 +1,5 @@
 import json
+import importlib
 import os
 import sqlite3
 import shutil
@@ -46,11 +47,13 @@ class TelegramCommandBot:
             'last_poll_at': None,
             'last_update_id': None,
             'last_error': None,
+            'token_source': None,
             'updates_processed': 0,
             'commands_processed': 0,
             'started_at': None
         }
         self.subscription_manager = SubscriptionManager() if SubscriptionManager else None
+        self._prepared_token = None
 
     def _migrate_legacy_file(self, target_path):
         try:
@@ -91,15 +94,56 @@ class TelegramCommandBot:
     def _get_bot_token(self):
         env_token = str(os.environ.get('MM_TELEGRAM_BOT_TOKEN', '')).strip()
         if env_token:
+            self.state['token_source'] = 'env:MM_TELEGRAM_BOT_TOKEN'
             return env_token
         cfg = self._load_bots_config()
         bots = cfg.get('bots', []) if isinstance(cfg, dict) else []
         active = [b for b in bots if isinstance(b, dict) and str(b.get('status', '')).lower() == 'active']
-        if not active:
-            return ''
-        default_bot = next((b for b in active if b.get('is_default')), None)
-        selected = default_bot or active[0]
-        return str(selected.get('token') or '').strip()
+        if active:
+            default_bot = next((b for b in active if b.get('is_default')), None)
+            selected = default_bot or active[0]
+            token = str(selected.get('token') or '').strip()
+            if token:
+                self.state['token_source'] = 'bots_config'
+                return token
+        try:
+            sender_mod = importlib.import_module('telegram_sender')
+            token_loader = getattr(sender_mod, '_get_active_bot_tokens', None)
+            if callable(token_loader):
+                tokens = token_loader() or []
+                token = str(tokens[0] if tokens else '').strip()
+                if token:
+                    self.state['token_source'] = 'telegram_sender._get_active_bot_tokens'
+                    return token
+            sender_token = str(getattr(sender_mod, 'BOT_TOKEN', '') or '').strip()
+            if sender_token:
+                self.state['token_source'] = 'telegram_sender.BOT_TOKEN'
+                return sender_token
+        except Exception:
+            pass
+        self.state['token_source'] = None
+        return ''
+
+    def _ensure_polling_ready(self, token):
+        try:
+            if not token:
+                return False, 'missing_bot_token'
+            if self._prepared_token == token:
+                return True, 'already_prepared'
+            info_resp = self._api_get(token, 'getWebhookInfo')
+            info_data = info_resp.json() if info_resp.status_code == 200 else {}
+            if not info_data.get('ok'):
+                return False, str(info_data.get('description') or f'webhook_info_http_{info_resp.status_code}')
+            webhook_url = str((info_data.get('result') or {}).get('url') or '').strip()
+            if webhook_url:
+                delete_resp = self._api_post(token, 'deleteWebhook', {'drop_pending_updates': False})
+                delete_data = delete_resp.json() if delete_resp.status_code == 200 else {}
+                if not delete_data.get('ok'):
+                    return False, str(delete_data.get('description') or f'delete_webhook_http_{delete_resp.status_code}')
+            self._prepared_token = token
+            return True, 'polling_ready'
+        except Exception as e:
+            return False, str(e)
 
     def _api_get(self, token, method, params=None):
         url = f'https://api.telegram.org/bot{token}/{method}'
@@ -552,6 +596,11 @@ class TelegramCommandBot:
                     self.state['last_error'] = 'missing_bot_token'
                     time.sleep(self.poll_interval)
                     continue
+                ready, ready_msg = self._ensure_polling_ready(token)
+                if not ready:
+                    self.state['last_error'] = ready_msg
+                    time.sleep(self.poll_interval)
+                    continue
                 params = {'timeout': 20, 'allowed_updates': json.dumps(['message'])}
                 if isinstance(offset, int):
                     params['offset'] = offset
@@ -559,7 +608,10 @@ class TelegramCommandBot:
                 data = resp.json() if resp.status_code == 200 else {}
                 self.state['last_poll_at'] = datetime.now().isoformat()
                 if not data.get('ok'):
-                    self.state['last_error'] = str(data.get('description') or f'http_{resp.status_code}')
+                    description = str(data.get('description') or f'http_{resp.status_code}')
+                    self.state['last_error'] = description
+                    if 'webhook' in description.lower() or 'terminated by other getupdates' in description.lower():
+                        self._prepared_token = None
                     time.sleep(self.poll_interval)
                     continue
                 self.state['last_error'] = None
@@ -577,6 +629,7 @@ class TelegramCommandBot:
                 time.sleep(self.poll_interval)
             except Exception as e:
                 self.state['last_error'] = str(e)
+                self._prepared_token = None
                 time.sleep(self.poll_interval)
         self.state['running'] = False
 

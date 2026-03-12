@@ -5023,6 +5023,9 @@ def _filter_signals_for_user(signals, user_info):
     if not isinstance(signals, list):
         return []
 
+    if isinstance(user_info, dict) and user_info.get('success') and user_info.get('is_admin'):
+        return signals
+
     quality_threshold = {
         'free': 90,
         'bronze': 80,

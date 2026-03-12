@@ -3,6 +3,7 @@ import importlib
 import os
 import sqlite3
 import shutil
+import sys
 import threading
 import time
 from datetime import datetime
@@ -429,10 +430,99 @@ class TelegramCommandBot:
             '/help',
             '/plans',
             '/myplan',
+            '/upgrade',
+            '/referral',
+            '/analyze <symbol>',
+            '/analyze_eurusd',
+            '/analyze_gbpusd',
         ]
         if is_admin:
             lines.extend(['', self._admin_commands_text()])
         return '\n'.join(lines)
+
+    def _referral_text(self, telegram_user_id, username, chat_id):
+        try:
+            info = self._get_user_plan_info(telegram_user_id, username, chat_id)
+            target_user_id = None
+            if info and info.get('user_id'):
+                target_user_id = int(info.get('user_id'))
+            elif telegram_user_id:
+                target_user_id = int(telegram_user_id)
+            if not self.subscription_manager or not target_user_id:
+                return '⚠️ لا يمكن تحميل بيانات الإحالة حالياً.'
+            sub = self.subscription_manager.check_subscription(target_user_id)
+            if not sub.get('exists'):
+                return '⚠️ لا يوجد حساب اشتراك مرتبط بك بعد. استخدم /start أولاً.'
+            referral_code = sub.get('referral_code') or '-'
+            return (
+                '🎁 <b>كود الإحالة الخاص بك</b>\n'
+                f'Code: {escape(str(referral_code))}\n'
+                'أرسل هذا الكود لأي مشترك جديد عند التسجيل.'
+            )
+        except Exception as e:
+            return f'⚠️ تعذر تحميل كود الإحالة: {escape(str(e))}'
+
+    def _resolve_analysis_symbol(self, cmd, args):
+        if cmd.startswith('/analyze_'):
+            return cmd.split('/analyze_', 1)[1].strip().upper().replace('/', '')
+        if args:
+            return str(args[0]).strip().upper().replace('/', '')
+        return ''
+
+    def _format_analysis_text(self, symbol, result):
+        if not isinstance(result, dict) or not result.get('success'):
+            return f'⚠️ تعذر تحليل {escape(symbol)} حالياً.'
+        recommendation = str(result.get('recommendation') or result.get('signal') or 'N/A')
+        entry = result.get('entry_point')
+        stop_loss = result.get('stop_loss')
+        tp1 = result.get('take_profit1')
+        tp2 = result.get('take_profit2')
+        tp3 = result.get('take_profit3')
+        confidence = result.get('confidence') or result.get('confidence_score') or result.get('score')
+        lines = [
+            f'📈 <b>تحليل {escape(symbol)}</b>',
+            f'Recommendation: {escape(recommendation)}',
+        ]
+        if confidence not in (None, ''):
+            lines.append(f'Confidence: {escape(str(confidence))}')
+        if entry not in (None, ''):
+            lines.append(f'Entry: {escape(str(entry))}')
+        if stop_loss not in (None, ''):
+            lines.append(f'SL: {escape(str(stop_loss))}')
+        if tp1 not in (None, ''):
+            lines.append(f'TP1: {escape(str(tp1))}')
+        if tp2 not in (None, ''):
+            lines.append(f'TP2: {escape(str(tp2))}')
+        if tp3 not in (None, ''):
+            lines.append(f'TP3: {escape(str(tp3))}')
+        return '\n'.join(lines)
+
+    def _analyze_symbol_text(self, symbol):
+        normalized_symbol = str(symbol or '').strip().upper().replace('/', '')
+        if not normalized_symbol:
+            return 'الاستخدام: /analyze <symbol>\nمثال: /analyze EURUSD أو /analyze_xauusd'
+        try:
+            app_mod = sys.modules.get('web_app_complete')
+            if app_mod is None:
+                app_mod = importlib.import_module('web_app_complete')
+            normalizer = getattr(app_mod, '_normalize_symbol_for_engine', None)
+            if callable(normalizer):
+                engine_symbol = normalizer(normalized_symbol)
+            else:
+                engine_symbol = normalized_symbol
+            try:
+                from advanced_analyzer_engine import perform_full_analysis  # type: ignore
+            except ImportError:
+                analyzer_path = self.base_dir / 'advanced_analyzer_engine.py'
+                spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
+                analyzer_module = importlib.util.module_from_spec(spec)
+                sys.modules['advanced_analyzer_engine'] = analyzer_module
+                spec.loader.exec_module(analyzer_module)
+                perform_full_analysis = analyzer_module.perform_full_analysis
+            result = perform_full_analysis(engine_symbol, '1h', force_live=True)
+            return self._format_analysis_text(normalized_symbol, result)
+        except Exception as e:
+            return f'⚠️ تعذر تنفيذ التحليل لـ {escape(normalized_symbol)}: {escape(str(e))}'
 
     def _admin_stats_text(self):
         total_users = 0
@@ -522,6 +612,16 @@ class TelegramCommandBot:
             return
         if cmd == '/plans':
             self.send_message(token, chat_id, self._plans_text())
+            return
+        if cmd == '/upgrade':
+            self.send_message(token, chat_id, '⬆️ <b>خطط الترقية</b>\n' + self._plans_text())
+            return
+        if cmd == '/referral':
+            self.send_message(token, chat_id, self._referral_text(telegram_user_id, username, chat_id))
+            return
+        if cmd == '/analyze' or cmd.startswith('/analyze_'):
+            symbol = self._resolve_analysis_symbol(cmd, args)
+            self.send_message(token, chat_id, self._analyze_symbol_text(symbol))
             return
         if cmd == '/myplan':
             info = self._get_user_plan_info(telegram_user_id, username, chat_id)

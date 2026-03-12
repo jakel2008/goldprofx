@@ -843,7 +843,7 @@ MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_W
 CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
 CRITICAL_SIGNAL_SYMBOLS = {'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'BTCUSD', 'ETHUSD', 'US30', 'NAS100', 'SPX500'}
 CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE', '3')))
-CRITICAL_SIGNAL_MIN_QUALITY = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY', '45'))
+CRITICAL_SIGNAL_MIN_QUALITY = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY', '35'))
 CRITICAL_SIGNAL_MIN_RR = float(os.environ.get('CRITICAL_SIGNAL_MIN_RR', '0.75'))
 CRITICAL_SIGNAL_MAX_VOLATILITY = float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY', '9.5'))
 
@@ -2323,10 +2323,7 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
         effective_min_rr = min(min_rr, float(MIN_SIGNAL_RR_WHEN_EMPTY))
         effective_max_volatility = max(max_volatility, float(MAX_SIGNAL_VOLATILITY_WHEN_EMPTY))
 
-    critical_relaxed_mode = bool(
-        normalized_symbol in CRITICAL_SIGNAL_SYMBOLS
-        and active_signals_now <= CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE
-    )
+    critical_relaxed_mode = bool(normalized_symbol in CRITICAL_SIGNAL_SYMBOLS)
     if critical_relaxed_mode:
         effective_min_quality = min(effective_min_quality, int(CRITICAL_SIGNAL_MIN_QUALITY))
         effective_min_rr = min(effective_min_rr, float(CRITICAL_SIGNAL_MIN_RR))

@@ -139,8 +139,10 @@ def calculate_volatility(df):
 def calculate_tp_sl(recommendation, entry_price, atr_value, volatility):
     """حساب مستويات جني الربح ووقف الخسارة"""
     if volatility > 2.0:
-        tp_multipliers = [1.0, 1.8, 2.5]
-        sl_multiplier = 1.2
+        # الأصول عالية التقلب تحتاج هدفاً أول أكبر ووقفاً أقل اتساعاً
+        # حتى لا يصبح TP1 أضعف بنيوياً من المخاطرة.
+        tp_multipliers = [1.6, 2.4, 3.2]
+        sl_multiplier = 1.0
     elif volatility < 0.5:
         tp_multipliers = [0.8, 1.2, 1.8]
         sl_multiplier = 0.8
@@ -151,7 +153,7 @@ def calculate_tp_sl(recommendation, entry_price, atr_value, volatility):
     if "قوي" in recommendation:
         tp_multipliers = [x * 1.2 for x in tp_multipliers]
     elif "محتمل" in recommendation:
-        tp_multipliers = [x * 0.8 for x in tp_multipliers]
+        tp_multipliers = [x * 0.9 for x in tp_multipliers]
     
     if "شراء" in recommendation:
         tp1 = entry_price + tp_multipliers[0] * atr_value

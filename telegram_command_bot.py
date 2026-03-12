@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from html import escape
 
 import requests
 
@@ -36,6 +37,7 @@ class TelegramCommandBot:
         self.poll_interval = max(1, int(os.environ.get('TELEGRAM_COMMAND_POLL_INTERVAL', '2')))
         self.request_timeout = max(10, int(os.environ.get('TELEGRAM_COMMAND_TIMEOUT', '30')))
         self.admin_ids = {x.strip() for x in str(os.environ.get('TELEGRAM_ADMIN_IDS', '')).split(',') if x.strip()}
+        self.admin_usernames = {x.strip().lstrip('@').lower() for x in str(os.environ.get('TELEGRAM_ADMIN_USERNAMES', '')).split(',') if x.strip()}
         self._running = False
         self._thread = None
         self._lock = threading.Lock()
@@ -115,8 +117,10 @@ class TelegramCommandBot:
         except Exception:
             return False
 
-    def _is_admin_user(self, telegram_user_id):
+    def _is_admin_user(self, telegram_user_id, username=''):
         if str(telegram_user_id) in self.admin_ids:
+            return True
+        if str(username or '').strip().lstrip('@').lower() in self.admin_usernames:
             return True
         try:
             if not self.users_db.exists():
@@ -134,6 +138,108 @@ class TelegramCommandBot:
             return bool(row and int(row[0]) == 1)
         except Exception:
             return False
+
+    def _admin_commands_text(self):
+        return (
+            '🛠️ <b>أوامر الأدمن</b>\n'
+            '/admin_test\n'
+            '/admin_user &lt;user_id|username&gt;\n'
+            '/admin_upgrade &lt;user_id&gt; &lt;plan&gt; [days]\n'
+            '/admin_extend &lt;user_id&gt; &lt;days&gt;\n'
+            '/admin_cancel &lt;user_id&gt;\n'
+            '/admin_reactivate &lt;user_id&gt;\n'
+            '/admin_broadcast &lt;message&gt;'
+        )
+
+    def _normalize_lookup(self, value):
+        return str(value or '').strip()
+
+    def _lookup_subscription_user(self, value):
+        try:
+            if not self.subscriptions_db.exists():
+                return None
+            lookup = self._normalize_lookup(value)
+            if not lookup:
+                return None
+            conn = sqlite3.connect(self.subscriptions_db)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            if lookup.isdigit():
+                c.execute(
+                    '''
+                    SELECT user_id, username, first_name, plan, status, subscription_end, email, chat_id, telegram_id
+                    FROM users
+                    WHERE user_id = ? AND (deleted_at IS NULL OR deleted_at = '')
+                    LIMIT 1
+                    ''',
+                    (int(lookup),)
+                )
+            else:
+                c.execute(
+                    '''
+                    SELECT user_id, username, first_name, plan, status, subscription_end, email, chat_id, telegram_id
+                    FROM users
+                    WHERE lower(username) = lower(?) AND (deleted_at IS NULL OR deleted_at = '')
+                    LIMIT 1
+                    ''',
+                    (lookup,)
+                )
+            row = c.fetchone()
+            conn.close()
+            return dict(row) if row else None
+        except Exception:
+            return None
+
+    def _admin_user_text(self, value):
+        row = self._lookup_subscription_user(value)
+        if not row:
+            return '⚠️ المستخدم غير موجود في قاعدة الاشتراكات.'
+        return (
+            '👤 <b>تفاصيل المستخدم</b>\n'
+            f"ID: {row.get('user_id')}\n"
+            f"Username: {escape(str(row.get('username') or '-'))}\n"
+            f"Name: {escape(str(row.get('first_name') or '-'))}\n"
+            f"Plan: {escape(str(row.get('plan') or '-'))}\n"
+            f"Status: {escape(str(row.get('status') or '-'))}\n"
+            f"Ends: {escape(str(row.get('subscription_end') or 'غير محدد'))}\n"
+            f"Email: {escape(str(row.get('email') or '-'))}\n"
+            f"Chat ID: {escape(str(row.get('chat_id') or '-'))}\n"
+            f"Telegram ID: {escape(str(row.get('telegram_id') or '-'))}"
+        )
+
+    def _broadcast_to_active_users(self, token, message):
+        sent = 0
+        failed = 0
+        try:
+            if not self.subscriptions_db.exists():
+                return {'sent': 0, 'failed': 0, 'total': 0, 'error': 'subscriptions_db_missing'}
+            conn = sqlite3.connect(self.subscriptions_db)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute(
+                '''
+                SELECT user_id, username, chat_id, telegram_id
+                FROM users
+                WHERE status IN ('active', 'trial')
+                  AND (deleted_at IS NULL OR deleted_at = '')
+                ORDER BY user_id ASC
+                '''
+            )
+            rows = [dict(r) for r in c.fetchall()]
+            conn.close()
+            total = len(rows)
+            for row in rows:
+                target_chat_id = row.get('chat_id') or row.get('telegram_id') or row.get('user_id')
+                if not target_chat_id:
+                    failed += 1
+                    continue
+                if self.send_message(token, target_chat_id, message):
+                    sent += 1
+                else:
+                    failed += 1
+            return {'sent': sent, 'failed': failed, 'total': total}
+        except Exception as e:
+            return {'sent': sent, 'failed': failed, 'total': sent + failed, 'error': str(e)}
 
     def _link_user_chat(self, telegram_user_id, username, chat_id):
         try:
@@ -280,10 +386,12 @@ class TelegramCommandBot:
             linked = self._link_user_chat(telegram_user_id, username, chat_id)
             msg = (
                 '✅ أهلاً بك في بوت GOLD PRO\n'
-                'الأوامر: /plans /myplan /admin_test /admin_extend <user_id> <days>\n'
+                'الأوامر: /plans /myplan\n'
                 f"تم حفظ المستخدم: {'نعم' if saved_user else 'لا'}\\n"
                 f'تم ربط الحسابات: {linked}'
             )
+            if self._is_admin_user(telegram_user_id, username):
+                msg += '\n\n' + self._admin_commands_text()
             self.send_message(token, chat_id, msg)
             return
         if cmd == '/plans':
@@ -305,7 +413,7 @@ class TelegramCommandBot:
             self.send_message(token, chat_id, msg)
             return
         if cmd == '/admin_test':
-            if not self._is_admin_user(telegram_user_id):
+            if not self._is_admin_user(telegram_user_id, username):
                 self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
                 return
             total_users = 0
@@ -321,10 +429,38 @@ class TelegramCommandBot:
                     conn.close()
             except Exception:
                 pass
-            self.send_message(token, chat_id, f'✅ Admin OK\nTotal users: {total_users}\nActive users: {active_users}')
+            self.send_message(token, chat_id, f'✅ Admin OK\nTotal users: {total_users}\nActive users: {active_users}\nAdmins by ID: {", ".join(sorted(self.admin_ids)) or "-"}\nAdmins by username: {", ".join(sorted(self.admin_usernames)) or "-"}')
+            return
+        if cmd == '/admin_user':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            if len(args) < 1:
+                self.send_message(token, chat_id, 'الاستخدام: /admin_user <user_id|username>')
+                return
+            self.send_message(token, chat_id, self._admin_user_text(args[0]))
+            return
+        if cmd == '/admin_upgrade':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            if len(args) < 2:
+                self.send_message(token, chat_id, 'الاستخدام: /admin_upgrade <user_id> <plan> [days]')
+                return
+            if not self.subscription_manager:
+                self.send_message(token, chat_id, '⚠️ نظام الاشتراكات غير متاح.')
+                return
+            try:
+                target_user_id = int(args[0])
+                plan = str(args[1]).strip().lower()
+                duration_days = int(args[2]) if len(args) > 2 else None
+                ok, message = self.subscription_manager.update_subscription_plan(target_user_id, plan, duration_days)
+                self.send_message(token, chat_id, ('✅ ' if ok else '⚠️ ') + str(message))
+            except Exception as e:
+                self.send_message(token, chat_id, f'⚠️ خطأ: {e}')
             return
         if cmd == '/admin_extend':
-            if not self._is_admin_user(telegram_user_id):
+            if not self._is_admin_user(telegram_user_id, username):
                 self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
                 return
             if len(args) < 2:
@@ -341,8 +477,55 @@ class TelegramCommandBot:
             except Exception as e:
                 self.send_message(token, chat_id, f'⚠️ خطأ: {e}')
             return
+        if cmd == '/admin_cancel':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            if len(args) < 1:
+                self.send_message(token, chat_id, 'الاستخدام: /admin_cancel <user_id>')
+                return
+            if not self.subscription_manager:
+                self.send_message(token, chat_id, '⚠️ نظام الاشتراكات غير متاح.')
+                return
+            try:
+                ok, message = self.subscription_manager.cancel_subscription(int(args[0]))
+                self.send_message(token, chat_id, ('✅ ' if ok else '⚠️ ') + str(message))
+            except Exception as e:
+                self.send_message(token, chat_id, f'⚠️ خطأ: {e}')
+            return
+        if cmd == '/admin_reactivate':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            if len(args) < 1:
+                self.send_message(token, chat_id, 'الاستخدام: /admin_reactivate <user_id>')
+                return
+            if not self.subscription_manager:
+                self.send_message(token, chat_id, '⚠️ نظام الاشتراكات غير متاح.')
+                return
+            try:
+                ok, message = self.subscription_manager.reactivate_subscription(int(args[0]))
+                self.send_message(token, chat_id, ('✅ ' if ok else '⚠️ ') + str(message))
+            except Exception as e:
+                self.send_message(token, chat_id, f'⚠️ خطأ: {e}')
+            return
+        if cmd == '/admin_broadcast':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            message = text.partition(' ')[2].strip()
+            if not message:
+                self.send_message(token, chat_id, 'الاستخدام: /admin_broadcast <message>')
+                return
+            result = self._broadcast_to_active_users(token, message)
+            self.send_message(
+                token,
+                chat_id,
+                f"📣 تم تنفيذ البث\nSent: {result.get('sent', 0)}\nFailed: {result.get('failed', 0)}\nTotal: {result.get('total', 0)}" + (f"\nError: {result.get('error')}" if result.get('error') else '')
+            )
+            return
         if cmd.startswith('/admin_'):
-            self.send_message(token, chat_id, '⚠️ الأمر الإداري غير مدعوم حالياً في البوت.')
+            self.send_message(token, chat_id, '⚠️ الأمر الإداري غير معروف.\n\n' + self._admin_commands_text())
 
     def _process_update(self, token, update):
         msg = update.get('message') or {}

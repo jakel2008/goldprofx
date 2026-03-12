@@ -1711,7 +1711,11 @@ def _ensure_signals_archive_table():
 def _deduplicate_signals_continuously():
     """إزالة الإشارات المكررة بشكل دوري مع الاحتفاظ بأحدث سجل."""
     _ensure_signals_table()
-    with VIP_SIGNALS_DB_LOCK:
+    lock_acquired = VIP_SIGNALS_DB_LOCK.acquire(timeout=2)
+    if not lock_acquired:
+        return 0
+
+    try:
         conn = sqlite3.connect('vip_signals.db')
         c = conn.cursor()
 
@@ -1785,6 +1789,8 @@ def _deduplicate_signals_continuously():
         after_count = c.fetchone()[0] or 0
         conn.close()
         return max(0, before_count - after_count)
+    finally:
+        VIP_SIGNALS_DB_LOCK.release()
 
 
 def _compute_risk_reward(entry_price, stop_loss, take_profit_1):
@@ -3404,7 +3410,23 @@ def archive_and_cleanup_closed_signals():
     archived_count = 0
     try:
         _ensure_signals_archive_table()
-        with VIP_SIGNALS_DB_LOCK:
+        archived = []
+        if CLOSED_TRADES_ARCHIVE_FILE.exists():
+            try:
+                with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                    archived = json.load(f) or []
+            except Exception:
+                archived = []
+
+        archived_ids = {item.get('signal_id') for item in archived if isinstance(item, dict)}
+        archived_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        rows_to_append = []
+
+        lock_acquired = VIP_SIGNALS_DB_LOCK.acquire(timeout=2)
+        if not lock_acquired:
+            return 0
+
+        try:
             conn = sqlite3.connect('vip_signals.db')
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -3420,17 +3442,6 @@ def archive_and_cleanup_closed_signals():
             if not closed_rows:
                 conn.close()
                 return 0
-
-            archived = []
-            if CLOSED_TRADES_ARCHIVE_FILE.exists():
-                try:
-                    with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
-                        archived = json.load(f) or []
-                except Exception:
-                    archived = []
-
-            archived_ids = {item.get('signal_id') for item in archived if isinstance(item, dict)}
-            archived_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             for row in closed_rows:
                 row_dict = dict(row)
@@ -3476,17 +3487,20 @@ def archive_and_cleanup_closed_signals():
 
                 row_dict['archived_at'] = archived_at
                 row_dict['archive_reason'] = 'auto_cleanup_protocol'
-                archived.append(row_dict)
+                rows_to_append.append(row_dict)
                 archived_ids.add(signal_id)
                 archived_count += 1
-
-            if archived_count > 0:
-                with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
 
             c.execute("DELETE FROM signals WHERE status = 'closed' OR result IN ('win', 'loss')")
             conn.commit()
             conn.close()
+        finally:
+            VIP_SIGNALS_DB_LOCK.release()
+
+        if archived_count > 0:
+            archived.extend(rows_to_append)
+            with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"Error in archive_and_cleanup_closed_signals: {e}")
 

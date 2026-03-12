@@ -836,7 +836,7 @@ MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '55'))
 MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.0'))
 MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '4.2'))
 RELAX_SIGNAL_FILTERS_WHEN_EMPTY = os.environ.get('RELAX_SIGNAL_FILTERS_WHEN_EMPTY', '1').strip().lower() in ('1', 'true', 'yes', 'on')
-RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE', '2')))
+RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE', '3')))
 MIN_SIGNAL_QUALITY_WHEN_EMPTY = int(os.environ.get('MIN_SIGNAL_QUALITY_WHEN_EMPTY', '35'))
 MIN_SIGNAL_RR_WHEN_EMPTY = float(os.environ.get('MIN_SIGNAL_RR_WHEN_EMPTY', '0.5'))
 MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_WHEN_EMPTY', '8.0'))
@@ -1568,9 +1568,30 @@ def _selected_pairs_union_supported():
 
 def _resolve_symbols_for_continuous_analyzer(max_symbols=None):
     """تحديد قائمة الرموز التي سيحللها النظام: المختارة من المستخدمين أولًا ثم الافتراضي."""
-    symbols = _selected_pairs_union_supported()
+    default_symbols = [_normalize_symbol_key(symbol) for symbol in CONTINUOUS_ANALYZER_SYMBOLS if _normalize_symbol_key(symbol)]
+    selected_symbols = _selected_pairs_union_supported()
+
+    symbols = []
+    seen = set()
+
+    def _append_symbol_list(values):
+        for raw_symbol in values:
+            normalized_symbol = _normalize_symbol_key(raw_symbol)
+            if not normalized_symbol or normalized_symbol in seen:
+                continue
+            seen.add(normalized_symbol)
+            symbols.append(normalized_symbol)
+
+    critical_defaults = [symbol for symbol in default_symbols if symbol in CRITICAL_SIGNAL_SYMBOLS]
+    non_critical_defaults = [symbol for symbol in default_symbols if symbol not in CRITICAL_SIGNAL_SYMBOLS]
+
+    _append_symbol_list(critical_defaults)
+    _append_symbol_list(selected_symbols)
+    _append_symbol_list(non_critical_defaults)
+
     if not symbols:
-        symbols = list(CONTINUOUS_ANALYZER_SYMBOLS)
+        symbols = list(default_symbols)
+
     if isinstance(max_symbols, int) and max_symbols > 0:
         symbols = symbols[:max_symbols]
     return symbols

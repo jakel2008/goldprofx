@@ -836,6 +836,8 @@ CRITICAL_SIGNAL_MAX_VOLATILITY = float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLAT
 CONTINUOUS_ANALYZER_STATE = {
     'running': False,
     'interval_seconds': CONTINUOUS_ANALYZER_INTERVAL_DEFAULT,
+    'started_at': None,
+    'last_cycle_started_at': None,
     'last_run': None,
     'last_error': None,
     'last_analyzed_count': 0,
@@ -2355,6 +2357,7 @@ def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
 def _continuous_analyzer_loop():
     """حلقة التحليل والبث المستمر لجميع الأزواج المتاحة."""
     while CONTINUOUS_ANALYZER_STATE.get('running'):
+        CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         analyzed_count = 0
         generated_count = 0
         broadcast_count = 0
@@ -2443,6 +2446,8 @@ def start_continuous_analyzer(interval_seconds=300):
 
         CONTINUOUS_ANALYZER_STATE['interval_seconds'] = int(interval_seconds or CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
         CONTINUOUS_ANALYZER_STATE['running'] = True
+        CONTINUOUS_ANALYZER_STATE['started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = None
         CONTINUOUS_ANALYZER_THREAD = threading.Thread(target=_continuous_analyzer_loop, daemon=True)
         CONTINUOUS_ANALYZER_THREAD.start()
         return True, 'تم تشغيل خدمة التحليل المستمر'
@@ -5541,9 +5546,33 @@ def api_trades_report():
 @admin_required
 def api_continuous_analyzer_status():
     """حالة خدمة التحليل المستمر."""
+    auto_healed = False
+    analyzer_running_flag = bool(CONTINUOUS_ANALYZER_STATE.get('running'))
+    analyzer_alive = _is_continuous_analyzer_alive()
+
+    if analyzer_running_flag and not analyzer_alive:
+        try:
+            start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_STATE.get('interval_seconds', CONTINUOUS_ANALYZER_INTERVAL_DEFAULT))
+            analyzer_alive = _is_continuous_analyzer_alive()
+            auto_healed = analyzer_alive
+        except Exception:
+            analyzer_alive = False
+
+    state = dict(CONTINUOUS_ANALYZER_STATE)
+    state['thread_alive'] = analyzer_alive
+    state['auto_healed'] = auto_healed
+    if not analyzer_running_flag:
+        state['runtime_status'] = 'stopped'
+    elif analyzer_alive and not state.get('last_run'):
+        state['runtime_status'] = 'starting'
+    elif analyzer_alive:
+        state['runtime_status'] = 'running'
+    else:
+        state['runtime_status'] = 'thread_not_alive'
+
     return jsonify({
         'success': True,
-        'state': CONTINUOUS_ANALYZER_STATE
+        'state': state
     })
 
 

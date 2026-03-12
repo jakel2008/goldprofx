@@ -831,6 +831,47 @@ if _symbols_from_env:
     if parsed_symbols:
         CONTINUOUS_ANALYZER_SYMBOLS = parsed_symbols
 
+
+def _parse_analyzer_intervals(raw_value, fallback):
+    values = []
+    for item in str(raw_value or '').split(','):
+        normalized = str(item or '').strip().lower().replace(' ', '')
+        if normalized in ('15m', '15min'):
+            interval = '15min'
+        elif normalized in ('30m', '30min'):
+            interval = '30min'
+        elif normalized in ('1h', '60m', '60min'):
+            interval = '1h'
+        elif normalized in ('4h', '240m', '240min'):
+            interval = '4h'
+        elif normalized in ('1d', '1day', 'daily'):
+            interval = '1day'
+        else:
+            interval = None
+        if interval and interval not in values:
+            values.append(interval)
+    return values or list(fallback)
+
+
+HIGH_FREQUENCY_ANALYZER_SYMBOLS = {
+    _normalize_symbol_key(symbol)
+    for symbol in str(
+        os.environ.get(
+            'HIGH_FREQUENCY_ANALYZER_SYMBOLS',
+            'XAUUSD,XAGUSD,USOIL,UKOIL,NATGAS,US30,NAS100,SPX500,BTCUSD,ETHUSD,EURUSD,GBPUSD,USDJPY,GBPJPY,EURJPY'
+        )
+    ).split(',')
+    if _normalize_symbol_key(symbol)
+}
+HIGH_FREQUENCY_ANALYZER_INTERVALS = _parse_analyzer_intervals(
+    os.environ.get('HIGH_FREQUENCY_ANALYZER_INTERVALS', '15min,30min,1h'),
+    ['15min', '30min', '1h']
+)
+DEFAULT_ANALYZER_INTERVALS = _parse_analyzer_intervals(
+    os.environ.get('DEFAULT_ANALYZER_INTERVALS', '1h'),
+    ['1h']
+)
+
 CONTINUOUS_ANALYZER_INTERVAL_DEFAULT = int(os.environ.get('CONTINUOUS_ANALYZER_INTERVAL_SECONDS', '120'))
 MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '55'))
 MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.0'))
@@ -868,6 +909,7 @@ CONTINUOUS_ANALYZER_STATE = {
     'last_cycle_started_at': None,
     'cycle_stage': 'idle',
     'current_symbol': None,
+    'current_interval': None,
     'current_symbol_index': 0,
     'symbols_total': 0,
     'last_run': None,
@@ -1613,6 +1655,41 @@ def _resolve_symbols_for_continuous_analyzer(max_symbols=None):
     if isinstance(max_symbols, int) and max_symbols > 0:
         symbols = symbols[:max_symbols]
     return symbols
+
+
+def _resolve_intervals_for_symbol(symbol):
+    normalized_symbol = _normalize_symbol_key(symbol)
+    if normalized_symbol in HIGH_FREQUENCY_ANALYZER_SYMBOLS or normalized_symbol in CRITICAL_SIGNAL_SYMBOLS:
+        return list(HIGH_FREQUENCY_ANALYZER_INTERVALS)
+    return list(DEFAULT_ANALYZER_INTERVALS)
+
+
+def _select_preferred_analysis_outcome(outcomes):
+    valid_outcomes = [item for item in (outcomes or []) if isinstance(item, dict)]
+    if not valid_outcomes:
+        return None
+
+    generated = next((item for item in valid_outcomes if item.get('ok')), None)
+    if generated:
+        return generated
+
+    duplicate = next((item for item in valid_outcomes if item.get('reason') == 'duplicate_recent_signal'), None)
+    if duplicate:
+        return duplicate
+
+    def _sort_key(item):
+        reason_rank = {
+            'quality_below_threshold': 0,
+            'volatility_above_threshold': 1,
+            'rr_below_threshold': 2,
+            'neutral_recommendation': 3,
+            'analysis_failed': 4,
+        }.get(str(item.get('reason') or ''), 9)
+        quality_score = float(item.get('quality_score') or 0)
+        rr_tp1 = float(item.get('rr_tp1') or 0)
+        return (reason_rank, -quality_score, -rr_tp1)
+
+    return sorted(valid_outcomes, key=_sort_key)[0]
 
 DELIVERY_REPORT_DAILY_TIME = os.environ.get('DELIVERY_REPORT_DAILY_TIME', '23:55').strip() or '23:55'
 DELIVERY_REPORT_CHECK_INTERVAL_SECONDS = max(15, int(os.environ.get('DELIVERY_REPORT_CHECK_INTERVAL_SECONDS', '30')))
@@ -2527,6 +2604,7 @@ def _continuous_analyzer_loop():
         CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'refreshing_active_signals'
         CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_interval'] = None
         CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
         CONTINUOUS_ANALYZER_STATE['symbols_total'] = 0
         analyzed_count = 0
@@ -2552,7 +2630,22 @@ def _continuous_analyzer_loop():
 
                 try:
                     analyzed_count += 1
-                    analysis_outcome = _analyze_and_generate_signal(symbol, interval='1h', return_diagnostics=True)
+                    interval_outcomes = []
+                    analysis_outcome = None
+                    for interval in _resolve_intervals_for_symbol(symbol):
+                        CONTINUOUS_ANALYZER_STATE['current_interval'] = interval
+                        candidate_outcome = _analyze_and_generate_signal(symbol, interval=interval, return_diagnostics=True)
+                        if isinstance(candidate_outcome, dict):
+                            candidate_outcome['symbol'] = symbol
+                            candidate_outcome['interval'] = interval
+                        interval_outcomes.append(candidate_outcome)
+                        if candidate_outcome and candidate_outcome.get('ok'):
+                            analysis_outcome = candidate_outcome
+                            break
+
+                    if analysis_outcome is None:
+                        analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
+
                     if not analysis_outcome or not analysis_outcome.get('ok'):
                         no_signal_count += 1
                         reason = str((analysis_outcome or {}).get('reason') or 'no_signal')
@@ -2560,6 +2653,8 @@ def _continuous_analyzer_loop():
                         if len(rejection_samples) < 8:
                             rejection_samples.append({
                                 'symbol': symbol,
+                                'interval': (analysis_outcome or {}).get('interval'),
+                                'tried_intervals': [item.get('interval') for item in interval_outcomes if isinstance(item, dict) and item.get('interval')],
                                 'reason': reason,
                                 'recommendation': (analysis_outcome or {}).get('recommendation'),
                                 'quality_score': (analysis_outcome or {}).get('quality_score'),
@@ -2592,6 +2687,7 @@ def _continuous_analyzer_loop():
 
             CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'bootstrap_if_empty'
             CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+            CONTINUOUS_ANALYZER_STATE['current_interval'] = None
             if generated_count == 0 and _count_recent_active_signals() == 0:
                 bootstrap_signal = _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h')
                 if bootstrap_signal:
@@ -2614,6 +2710,7 @@ def _continuous_analyzer_loop():
             CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'sleeping'
             CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+            CONTINUOUS_ANALYZER_STATE['current_interval'] = None
             CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
             CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
             CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
@@ -2657,6 +2754,7 @@ def start_continuous_analyzer(interval_seconds=300):
         CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = None
         CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'starting'
         CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_interval'] = None
         CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
         CONTINUOUS_ANALYZER_STATE['symbols_total'] = 0
         CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = {}
@@ -2672,6 +2770,7 @@ def stop_continuous_analyzer():
         CONTINUOUS_ANALYZER_STATE['running'] = False
         CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'stopped'
         CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_interval'] = None
         CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
     return True, 'تم إيقاف خدمة التحليل المستمر'
 
@@ -2700,7 +2799,21 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
         analyzed_count += 1
         item = {'symbol': symbol, 'generated': False, 'source': None, 'error': None}
         try:
-            analysis_outcome = _analyze_and_generate_signal(symbol, interval=interval, force_live=force_live, return_diagnostics=True)
+            interval_candidates = _resolve_intervals_for_symbol(symbol) if interval == '1h' else [interval]
+            interval_outcomes = []
+            analysis_outcome = None
+            for candidate_interval in interval_candidates:
+                candidate_outcome = _analyze_and_generate_signal(symbol, interval=candidate_interval, force_live=force_live, return_diagnostics=True)
+                if isinstance(candidate_outcome, dict):
+                    candidate_outcome['symbol'] = symbol
+                    candidate_outcome['interval'] = candidate_interval
+                interval_outcomes.append(candidate_outcome)
+                if candidate_outcome and candidate_outcome.get('ok'):
+                    analysis_outcome = candidate_outcome
+                    break
+
+            if analysis_outcome is None:
+                analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
 
             if callable(get_last_fetch_metadata):
                 try:
@@ -2713,6 +2826,8 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
 
             if not analysis_outcome or not analysis_outcome.get('ok'):
                 item['reason'] = str((analysis_outcome or {}).get('reason') or 'no_signal')
+                item['interval'] = (analysis_outcome or {}).get('interval')
+                item['tried_intervals'] = [entry.get('interval') for entry in interval_outcomes if isinstance(entry, dict) and entry.get('interval')]
                 rejection_reasons[item['reason']] = int(rejection_reasons.get(item['reason'], 0) or 0) + 1
                 item['quality_score'] = (analysis_outcome or {}).get('quality_score')
                 item['effective_min_quality'] = (analysis_outcome or {}).get('effective_min_quality')
@@ -2728,6 +2843,7 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
             generated_count += 1
             item['generated'] = True
             item['reason'] = 'generated'
+            item['interval'] = (analysis_outcome or {}).get('interval')
 
             send_result = telegram_sender.send_signal_to_subscribers(
                 signal_data,
@@ -2758,6 +2874,8 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
     CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = [
         {
             'symbol': item.get('symbol'),
+            'interval': item.get('interval'),
+            'tried_intervals': item.get('tried_intervals'),
             'reason': item.get('reason'),
             'quality_score': item.get('quality_score'),
             'effective_min_quality': item.get('effective_min_quality'),

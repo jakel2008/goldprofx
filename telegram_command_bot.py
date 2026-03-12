@@ -186,7 +186,10 @@ class TelegramCommandBot:
     def _admin_commands_text(self):
         return (
             '🛠️ <b>أوامر الأدمن</b>\n'
+            '/admin\n'
             '/admin_test\n'
+            '/admin_stats\n'
+            '/admin_users\n'
             '/admin_user &lt;user_id|username&gt;\n'
             '/admin_upgrade &lt;user_id&gt; &lt;plan&gt; [days]\n'
             '/admin_extend &lt;user_id&gt; &lt;days&gt;\n'
@@ -419,6 +422,82 @@ class TelegramCommandBot:
             lines.append(f"- <b>{name}</b>: ${meta.get('price', 0)} | {meta.get('duration_days', 0)} يوم | {meta.get('signals_per_day', 0)} إشارة/يوم")
         return '\n'.join(lines)
 
+    def _general_help_text(self, is_admin=False):
+        lines = [
+            '📘 <b>أوامر البوت</b>',
+            '/start',
+            '/help',
+            '/plans',
+            '/myplan',
+        ]
+        if is_admin:
+            lines.extend(['', self._admin_commands_text()])
+        return '\n'.join(lines)
+
+    def _admin_stats_text(self):
+        total_users = 0
+        active_users = 0
+        trial_users = 0
+        inactive_users = 0
+        expired_users = 0
+        try:
+            if self.subscriptions_db.exists():
+                conn = sqlite3.connect(self.subscriptions_db)
+                c = conn.cursor()
+                c.execute("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL OR deleted_at = ''")
+                total_users = c.fetchone()[0] or 0
+                c.execute("SELECT COUNT(*) FROM users WHERE status = 'active' AND (deleted_at IS NULL OR deleted_at = '')")
+                active_users = c.fetchone()[0] or 0
+                c.execute("SELECT COUNT(*) FROM users WHERE status = 'trial' AND (deleted_at IS NULL OR deleted_at = '')")
+                trial_users = c.fetchone()[0] or 0
+                c.execute("SELECT COUNT(*) FROM users WHERE status = 'inactive' AND (deleted_at IS NULL OR deleted_at = '')")
+                inactive_users = c.fetchone()[0] or 0
+                c.execute("SELECT COUNT(*) FROM users WHERE status = 'expired' AND (deleted_at IS NULL OR deleted_at = '')")
+                expired_users = c.fetchone()[0] or 0
+                conn.close()
+        except Exception:
+            pass
+        return (
+            '📊 <b>إحصائيات المشتركين</b>\n'
+            f'Total users: {total_users}\n'
+            f'Active: {active_users}\n'
+            f'Trial: {trial_users}\n'
+            f'Inactive: {inactive_users}\n'
+            f'Expired: {expired_users}\n'
+            f'Admins by ID: {", ".join(sorted(self.admin_ids)) or "-"}\n'
+            f'Admins by username: {", ".join(sorted(self.admin_usernames)) or "-"}'
+        )
+
+    def _admin_users_text(self, limit=15):
+        try:
+            if not self.subscriptions_db.exists():
+                return '⚠️ قاعدة الاشتراكات غير متاحة.'
+            conn = sqlite3.connect(self.subscriptions_db)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute(
+                '''
+                SELECT user_id, username, plan, status
+                FROM users
+                WHERE (deleted_at IS NULL OR deleted_at = '')
+                ORDER BY user_id DESC
+                LIMIT ?
+                ''',
+                (int(limit),)
+            )
+            rows = [dict(r) for r in c.fetchall()]
+            conn.close()
+            if not rows:
+                return '⚠️ لا يوجد مستخدمون في قاعدة الاشتراكات.'
+            lines = ['👥 <b>آخر المستخدمين</b>']
+            for row in rows:
+                lines.append(
+                    f"{row.get('user_id')} | {escape(str(row.get('username') or '-'))} | {escape(str(row.get('plan') or '-'))} | {escape(str(row.get('status') or '-'))}"
+                )
+            return '\n'.join(lines)
+        except Exception as e:
+            return f'⚠️ تعذر تحميل المستخدمين: {escape(str(e))}'
+
     def _handle_command(self, token, chat_id, telegram_user_id, username, text):
         self.state['commands_processed'] += 1
         parts = text.strip().split()
@@ -438,6 +517,9 @@ class TelegramCommandBot:
                 msg += '\n\n' + self._admin_commands_text()
             self.send_message(token, chat_id, msg)
             return
+        if cmd == '/help':
+            self.send_message(token, chat_id, self._general_help_text(self._is_admin_user(telegram_user_id, username)))
+            return
         if cmd == '/plans':
             self.send_message(token, chat_id, self._plans_text())
             return
@@ -456,24 +538,17 @@ class TelegramCommandBot:
             )
             self.send_message(token, chat_id, msg)
             return
-        if cmd == '/admin_test':
+        if cmd == '/admin':
             if not self._is_admin_user(telegram_user_id, username):
                 self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
                 return
-            total_users = 0
-            active_users = 0
-            try:
-                if self.subscriptions_db.exists():
-                    conn = sqlite3.connect(self.subscriptions_db)
-                    c = conn.cursor()
-                    c.execute('SELECT COUNT(*) FROM users')
-                    total_users = c.fetchone()[0] or 0
-                    c.execute("SELECT COUNT(*) FROM users WHERE status = 'active'")
-                    active_users = c.fetchone()[0] or 0
-                    conn.close()
-            except Exception:
-                pass
-            self.send_message(token, chat_id, f'✅ Admin OK\nTotal users: {total_users}\nActive users: {active_users}\nAdmins by ID: {", ".join(sorted(self.admin_ids)) or "-"}\nAdmins by username: {", ".join(sorted(self.admin_usernames)) or "-"}')
+            self.send_message(token, chat_id, self._admin_commands_text())
+            return
+        if cmd in ('/admin_test', '/admin_stats'):
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            self.send_message(token, chat_id, self._admin_stats_text())
             return
         if cmd == '/admin_user':
             if not self._is_admin_user(telegram_user_id, username):
@@ -483,6 +558,12 @@ class TelegramCommandBot:
                 self.send_message(token, chat_id, 'الاستخدام: /admin_user <user_id|username>')
                 return
             self.send_message(token, chat_id, self._admin_user_text(args[0]))
+            return
+        if cmd == '/admin_users':
+            if not self._is_admin_user(telegram_user_id, username):
+                self.send_message(token, chat_id, '⛔ هذا الأمر للأدمن فقط.')
+                return
+            self.send_message(token, chat_id, self._admin_users_text())
             return
         if cmd == '/admin_upgrade':
             if not self._is_admin_user(telegram_user_id, username):

@@ -852,6 +852,10 @@ CONTINUOUS_ANALYZER_STATE = {
     'interval_seconds': CONTINUOUS_ANALYZER_INTERVAL_DEFAULT,
     'started_at': None,
     'last_cycle_started_at': None,
+    'cycle_stage': 'idle',
+    'current_symbol': None,
+    'current_symbol_index': 0,
+    'symbols_total': 0,
     'last_run': None,
     'last_error': None,
     'last_analyzed_count': 0,
@@ -2498,6 +2502,10 @@ def _continuous_analyzer_loop():
     """حلقة التحليل والبث المستمر لجميع الأزواج المتاحة."""
     while CONTINUOUS_ANALYZER_STATE.get('running'):
         CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'refreshing_active_signals'
+        CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
+        CONTINUOUS_ANALYZER_STATE['symbols_total'] = 0
         analyzed_count = 0
         generated_count = 0
         broadcast_count = 0
@@ -2510,9 +2518,14 @@ def _continuous_analyzer_loop():
         try:
             _refresh_active_signal_statuses()
             symbols_to_analyze = _resolve_symbols_for_continuous_analyzer()
-            for symbol in symbols_to_analyze:
+            CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'analyzing_symbols'
+            CONTINUOUS_ANALYZER_STATE['symbols_total'] = len(symbols_to_analyze)
+            for index, symbol in enumerate(symbols_to_analyze, start=1):
                 if not CONTINUOUS_ANALYZER_STATE.get('running'):
                     break
+
+                CONTINUOUS_ANALYZER_STATE['current_symbol'] = symbol
+                CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = index
 
                 try:
                     analyzed_count += 1
@@ -2554,6 +2567,8 @@ def _continuous_analyzer_loop():
 
                 time.sleep(1)
 
+            CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'bootstrap_if_empty'
+            CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
             if generated_count == 0 and _count_recent_active_signals() == 0:
                 bootstrap_signal = _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h')
                 if bootstrap_signal:
@@ -2569,10 +2584,14 @@ def _continuous_analyzer_loop():
                     if isinstance(targets_result, dict):
                         broadcast_count += int(targets_result.get('sent_count', 0) or 0)
 
+            CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'cleanup'
             deduplicated_count = _deduplicate_signals_continuously()
             deduplicated_count += archive_and_cleanup_closed_signals()
 
             CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'sleeping'
+            CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+            CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
             CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
             CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
             CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
@@ -2586,6 +2605,7 @@ def _continuous_analyzer_loop():
             CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
             CONTINUOUS_ANALYZER_STATE['last_error'] = None if not failed_symbols else '; '.join(failed_symbols[:8])
         except Exception as e:
+            CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'error'
             CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
             CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
             CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
@@ -2612,6 +2632,10 @@ def start_continuous_analyzer(interval_seconds=300):
         CONTINUOUS_ANALYZER_STATE['running'] = True
         CONTINUOUS_ANALYZER_STATE['started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = None
+        CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'starting'
+        CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
+        CONTINUOUS_ANALYZER_STATE['symbols_total'] = 0
         CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = {}
         CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = []
         CONTINUOUS_ANALYZER_THREAD = threading.Thread(target=_continuous_analyzer_loop, daemon=True)
@@ -2623,6 +2647,9 @@ def stop_continuous_analyzer():
     """إيقاف خدمة التحليل المستمر."""
     with CONTINUOUS_ANALYZER_LOCK:
         CONTINUOUS_ANALYZER_STATE['running'] = False
+        CONTINUOUS_ANALYZER_STATE['cycle_stage'] = 'stopped'
+        CONTINUOUS_ANALYZER_STATE['current_symbol'] = None
+        CONTINUOUS_ANALYZER_STATE['current_symbol_index'] = 0
     return True, 'تم إيقاف خدمة التحليل المستمر'
 
 

@@ -85,12 +85,11 @@
                         : `المعروض لك ${total} إشارة نشطة`;
                 }
 
-                const winSet = new Set((data.closed_trades?.winners || []).map(t => `${t.pair}|${t.signal}`));
-                const lossSet = new Set((data.closed_trades?.losers || []).map(t => `${t.pair}|${t.signal}`));
+                const activeIds = new Set((data.active_trades || []).map(t => String(t.signal_id || '')));
 
                 document.querySelectorAll('.signal-card').forEach(card => {
-                    const key = `${card.dataset.symbol}|${card.dataset.signal}`;
-                    if (winSet.has(key) || lossSet.has(key)) {
+                    const signalId = String(card.dataset.signalId || '');
+                    if (signalId && activeIds.size > 0 && !activeIds.has(signalId)) {
                         card.classList.add('signal-hidden');
                     } else {
                         card.classList.remove('signal-hidden');
@@ -337,7 +336,7 @@
     {% if signals %}
         {% for signal in signals %}
         <a href="/signal/{{ signal.signal_id }}" class="signal-link">
-            <div class="signal-card {% if signal.signal_type == 'sell' %}sell-card{% else %}buy-card{% endif %}" data-symbol="{{ signal.symbol }}" data-signal="{{ signal.signal_type }}">
+            <div class="signal-card {% if signal.signal_type == 'sell' %}sell-card{% else %}buy-card{% endif %}" data-symbol="{{ signal.symbol }}" data-signal="{{ signal.signal_type }}" data-signal-id="{{ signal.signal_id }}">
                 <div class="signal-title">{{ signal.symbol }} • إشارة {{ signal.signal_type|upper }}</div>
 
                 <div class="signal-meta">

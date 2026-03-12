@@ -5125,6 +5125,7 @@ def api_trades_status():
                 profit_percent = calc_profit_percent(trade)
 
             normalized.append({
+                'signal_id': trade.get('signal_id'),
                 'pair': trade.get('pair') or trade.get('symbol') or 'N/A',
                 'signal': signal_type,
                 'entry': trade.get('entry') or trade.get('entry_price') or 0,

@@ -621,6 +621,7 @@ os.environ.setdefault('AUTO_MERGE_LEGACY_ON_STARTUP', '1')
 os.environ.setdefault('AUTO_BROADCAST_REGISTRY_FILE', '/var/data/auto_broadcast_registry.json')
 os.environ.setdefault('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')
 os.environ.setdefault('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')
+os.environ.setdefault('AUTO_BROADCAST_ALLOW_RESEND', '0')
 os.environ.setdefault('SIGNALS_LOOKBACK_DAYS', '7')
 
 # Telegram Command Bot environment defaults
@@ -659,6 +660,7 @@ sqlite3.connect = _patched_sqlite_connect
 AUTO_BROADCAST_REGISTRY_FILE = Path(os.environ.get('AUTO_BROADCAST_REGISTRY_FILE', str(DATA_DIR / 'auto_broadcast_registry.json')))
 AUTO_BROADCAST_RECENT_WINDOW_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')))
 AUTO_BROADCAST_RESEND_INTERVAL_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')))
+AUTO_BROADCAST_ALLOW_RESEND = os.environ.get('AUTO_BROADCAST_ALLOW_RESEND', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 SIGNALS_LOOKBACK_DAYS = max(1, int(os.environ.get('SIGNALS_LOOKBACK_DAYS', '7')))
 RECOMMENDATIONS_DIR = Path(os.environ.get('RECOMMENDATIONS_DIR', str(DATA_DIR / 'recommendations')))
 ANALYSIS_DIR = Path(os.environ.get('ANALYSIS_DIR', str(DATA_DIR / 'analysis')))
@@ -800,7 +802,7 @@ MIN_SIGNAL_QUALITY_WHEN_EMPTY = int(os.environ.get('MIN_SIGNAL_QUALITY_WHEN_EMPT
 MIN_SIGNAL_RR_WHEN_EMPTY = float(os.environ.get('MIN_SIGNAL_RR_WHEN_EMPTY', '0.5'))
 MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_WHEN_EMPTY', '8.0'))
 CLEANUP_INTERVAL_DEFAULT = int(os.environ.get('SIGNALS_CLEANUP_INTERVAL_SECONDS', '180'))
-CRITICAL_SIGNAL_SYMBOLS = {'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'BTCUSD', 'ETHUSD'}
+CRITICAL_SIGNAL_SYMBOLS = {'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'BTCUSD', 'ETHUSD', 'US30', 'NAS100', 'SPX500'}
 CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE', '3')))
 CRITICAL_SIGNAL_MIN_QUALITY = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY', '45'))
 CRITICAL_SIGNAL_MIN_RR = float(os.environ.get('CRITICAL_SIGNAL_MIN_RR', '0.75'))
@@ -2316,6 +2318,7 @@ def _continuous_analyzer_loop():
         generated_count = 0
         broadcast_count = 0
         deduplicated_count = 0
+        failed_symbols = []
 
         try:
             symbols_to_analyze = _resolve_symbols_for_continuous_analyzer()
@@ -2323,21 +2326,24 @@ def _continuous_analyzer_loop():
                 if not CONTINUOUS_ANALYZER_STATE.get('running'):
                     break
 
-                signal_data = _analyze_and_generate_signal(symbol, interval='1h')
-                if not signal_data:
-                    continue
+                try:
+                    signal_data = _analyze_and_generate_signal(symbol, interval='1h')
+                    if not signal_data:
+                        continue
 
-                generated_count += 1
-                send_result = telegram_sender.send_signal_to_subscribers(
-                    signal_data,
-                    quality_score=signal_data.get('quality_score', 80)
-                )
-                formatted_message = telegram_sender.format_signal_message(signal_data)
-                targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
-                if isinstance(send_result, dict):
-                    broadcast_count += int(send_result.get('sent_count', 0) or 0)
-                if isinstance(targets_result, dict):
-                    broadcast_count += int(targets_result.get('sent_count', 0) or 0)
+                    generated_count += 1
+                    send_result = telegram_sender.send_signal_to_subscribers(
+                        signal_data,
+                        quality_score=signal_data.get('quality_score', 80)
+                    )
+                    formatted_message = telegram_sender.format_signal_message(signal_data)
+                    targets_result = telegram_sender.send_broadcast_to_configured_targets(formatted_message)
+                    if isinstance(send_result, dict):
+                        broadcast_count += int(send_result.get('sent_count', 0) or 0)
+                    if isinstance(targets_result, dict):
+                        broadcast_count += int(targets_result.get('sent_count', 0) or 0)
+                except Exception as symbol_error:
+                    failed_symbols.append(f"{symbol}:{symbol_error}")
 
                 time.sleep(1)
 
@@ -2364,7 +2370,7 @@ def _continuous_analyzer_loop():
             CONTINUOUS_ANALYZER_STATE['last_deduplicated'] = deduplicated_count
             CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
             CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
-            CONTINUOUS_ANALYZER_STATE['last_error'] = None
+            CONTINUOUS_ANALYZER_STATE['last_error'] = None if not failed_symbols else '; '.join(failed_symbols[:8])
         except Exception as e:
             CONTINUOUS_ANALYZER_STATE['last_error'] = str(e)
 
@@ -3459,6 +3465,8 @@ def _parse_datetime_flexible(value):
 
 
 def _should_resend_signal(registry_entry, now_dt):
+    if not AUTO_BROADCAST_ALLOW_RESEND:
+        return False
     if not isinstance(registry_entry, dict):
         return True
     synced_at = _parse_datetime_flexible(registry_entry.get('synced_at'))

@@ -666,6 +666,7 @@ _ORIGINAL_SQLITE_CONNECT = sqlite3.connect
 
 def _patched_sqlite_connect(database, *args, **kwargs):
     """توجيه كل الاتصالات القديمة vip_signals.db إلى المسار الموحّد."""
+    original_database = database
     try:
         if isinstance(database, str):
             normalized = database.replace('\\', '/').strip().lower()
@@ -677,7 +678,19 @@ def _patched_sqlite_connect(database, *args, **kwargs):
                 database = str(VIP_SUBSCRIPTIONS_DB_PATH)
     except Exception:
         pass
-    return _ORIGINAL_SQLITE_CONNECT(database, *args, **kwargs)
+    conn = _ORIGINAL_SQLITE_CONNECT(database, *args, **kwargs)
+    try:
+        db_path = str(database or '').replace('\\', '/').strip().lower()
+        vip_path = str(VIP_SIGNALS_DB_PATH).replace('\\', '/').strip().lower()
+        original_hint = str(original_database or '').replace('\\', '/').strip().lower()
+        if db_path == vip_path or original_hint in ('vip_signals.db', './vip_signals.db'):
+            cursor = conn.cursor()
+            cursor.execute('PRAGMA busy_timeout = 30000')
+            cursor.execute('PRAGMA journal_mode = WAL')
+            cursor.execute('PRAGMA synchronous = NORMAL')
+    except Exception:
+        pass
+    return conn
 
 
 sqlite3.connect = _patched_sqlite_connect
@@ -851,6 +864,7 @@ CONTINUOUS_ANALYZER_STATE = {
 }
 CONTINUOUS_ANALYZER_THREAD = None
 CONTINUOUS_ANALYZER_LOCK = threading.Lock()
+VIP_SIGNALS_DB_LOCK = threading.RLock()
 CLEANUP_AUDIT_FILE = Path(__file__).parent / 'cleanup_audit_log.json'
 CLEANUP_SCHEDULER_STATE = {
     'running': False,
@@ -1668,82 +1682,80 @@ def _ensure_signals_archive_table():
 def _deduplicate_signals_continuously():
     """إزالة الإشارات المكررة بشكل دوري مع الاحتفاظ بأحدث سجل."""
     _ensure_signals_table()
-    conn = sqlite3.connect('vip_signals.db')
-    c = conn.cursor()
+    with VIP_SIGNALS_DB_LOCK:
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
 
-    c.execute('SELECT COUNT(*) FROM signals')
-    before_count = c.fetchone()[0] or 0
+        c.execute('SELECT COUNT(*) FROM signals')
+        before_count = c.fetchone()[0] or 0
 
-    # 1) إبقاء أحدث صفقة فعالة فقط لكل زوج/فريم
-    c.execute('''
-        DELETE FROM signals
-        WHERE status = 'active'
-          AND signal_id NOT IN (
-              SELECT MAX(signal_id)
-              FROM signals
-              WHERE status = 'active'
-              GROUP BY symbol, COALESCE(timeframe, '1h')
-          )
-    ''')
+        c.execute('''
+            DELETE FROM signals
+            WHERE status = 'active'
+              AND signal_id NOT IN (
+                  SELECT MAX(signal_id)
+                  FROM signals
+                  WHERE status = 'active'
+                  GROUP BY symbol, COALESCE(timeframe, '1h')
+              )
+        ''')
 
-    # 2) إزالة التكرار التاريخي (نفس الزوج/الاتجاه/الفريم ضمن نفس الساعة)
-    c.execute('''
-        DELETE FROM signals
-        WHERE signal_id NOT IN (
-            SELECT MAX(signal_id)
+        c.execute('''
+            DELETE FROM signals
+            WHERE signal_id NOT IN (
+                SELECT MAX(signal_id)
+                FROM signals
+                GROUP BY symbol, signal_type, COALESCE(timeframe, '1h'), strftime('%Y-%m-%d %H', created_at)
+            )
+        ''')
+
+        c.execute('''
+            SELECT signal_id, symbol, signal_type, COALESCE(timeframe, '1h') AS timeframe, COALESCE(entry_price, 0) AS entry_price
             FROM signals
-            GROUP BY symbol, signal_type, COALESCE(timeframe, '1h'), strftime('%Y-%m-%d %H', created_at)
-        )
-    ''')
+            WHERE status = 'active'
+            ORDER BY signal_id DESC
+        ''')
+        active_rows = c.fetchall()
+        kept_rows = []
+        duplicate_ids = []
 
-    # 3) إزالة الإشارات المتشابهة جداً (نفس الزوج/الاتجاه/الفريم وسعر دخول قريب)
-    c.execute('''
-        SELECT signal_id, symbol, signal_type, COALESCE(timeframe, '1h') AS timeframe, COALESCE(entry_price, 0) AS entry_price
-        FROM signals
-        WHERE status = 'active'
-        ORDER BY signal_id DESC
-    ''')
-    active_rows = c.fetchall()
-    kept_rows = []
-    duplicate_ids = []
+        for row in active_rows:
+            signal_id, symbol, signal_type, timeframe, entry_price = row
+            entry_val = float(entry_price or 0)
+            tolerance = max(0.0005, abs(entry_val) * 0.0015)
 
-    for row in active_rows:
-        signal_id, symbol, signal_type, timeframe, entry_price = row
-        entry_val = float(entry_price or 0)
-        tolerance = max(0.0005, abs(entry_val) * 0.0015)
+            is_duplicate = False
+            for kept in kept_rows:
+                if kept['symbol'] != symbol:
+                    continue
+                if kept['signal_type'] != signal_type:
+                    continue
+                if kept['timeframe'] != timeframe:
+                    continue
+                if abs(float(kept['entry_price']) - entry_val) <= tolerance:
+                    is_duplicate = True
+                    break
 
-        is_duplicate = False
-        for kept in kept_rows:
-            if kept['symbol'] != symbol:
-                continue
-            if kept['signal_type'] != signal_type:
-                continue
-            if kept['timeframe'] != timeframe:
-                continue
-            if abs(float(kept['entry_price']) - entry_val) <= tolerance:
-                is_duplicate = True
-                break
+            if is_duplicate:
+                duplicate_ids.append(signal_id)
+            else:
+                kept_rows.append({
+                    'signal_id': signal_id,
+                    'symbol': symbol,
+                    'signal_type': signal_type,
+                    'timeframe': timeframe,
+                    'entry_price': entry_val
+                })
 
-        if is_duplicate:
-            duplicate_ids.append(signal_id)
-        else:
-            kept_rows.append({
-                'signal_id': signal_id,
-                'symbol': symbol,
-                'signal_type': signal_type,
-                'timeframe': timeframe,
-                'entry_price': entry_val
-            })
+        if duplicate_ids:
+            placeholders = ','.join(['?'] * len(duplicate_ids))
+            c.execute(f"DELETE FROM signals WHERE signal_id IN ({placeholders})", duplicate_ids)
 
-    if duplicate_ids:
-        placeholders = ','.join(['?'] * len(duplicate_ids))
-        c.execute(f"DELETE FROM signals WHERE signal_id IN ({placeholders})", duplicate_ids)
-
-    conn.commit()
-    c.execute('SELECT COUNT(*) FROM signals')
-    after_count = c.fetchone()[0] or 0
-    conn.close()
-    return max(0, before_count - after_count)
+        conn.commit()
+        c.execute('SELECT COUNT(*) FROM signals')
+        after_count = c.fetchone()[0] or 0
+        conn.close()
+        return max(0, before_count - after_count)
 
 
 def _compute_risk_reward(entry_price, stop_loss, take_profit_1):
@@ -2050,42 +2062,41 @@ def _insert_generated_signal(signal_row):
     _ensure_signals_table()
     signal_row['symbol'] = _normalize_symbol_key(signal_row.get('symbol'))
     signal_row['signal_type'] = _normalize_signal_type(signal_row.get('signal_type'))
-    conn = sqlite3.connect('vip_signals.db')
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO signals (
-            symbol, signal_type, entry_price, stop_loss,
-            take_profit_1, take_profit_2, take_profit_3,
-            quality_score, timeframe, status, result,
-            current_price, close_price, tp1_locked, tp2_locked, tp3_locked, activated
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NULL, ?, NULL, 0, 0, 0, 1)
-    ''', (
-        signal_row['symbol'],
-        signal_row['signal_type'],
-        signal_row['entry_price'],
-        signal_row['stop_loss'],
-        signal_row['take_profit_1'],
-        signal_row['take_profit_2'],
-        signal_row['take_profit_3'],
-        signal_row['quality_score'],
-        signal_row['timeframe'],
-        signal_row['entry_price']
-    ))
-    conn.commit()
-    signal_id = c.lastrowid
+    with VIP_SIGNALS_DB_LOCK:
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO signals (
+                symbol, signal_type, entry_price, stop_loss,
+                take_profit_1, take_profit_2, take_profit_3,
+                quality_score, timeframe, status, result,
+                current_price, close_price, tp1_locked, tp2_locked, tp3_locked, activated
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NULL, ?, NULL, 0, 0, 0, 1)
+        ''', (
+            signal_row['symbol'],
+            signal_row['signal_type'],
+            signal_row['entry_price'],
+            signal_row['stop_loss'],
+            signal_row['take_profit_1'],
+            signal_row['take_profit_2'],
+            signal_row['take_profit_3'],
+            signal_row['quality_score'],
+            signal_row['timeframe'],
+            signal_row['entry_price']
+        ))
+        conn.commit()
+        signal_id = c.lastrowid
 
-    # حذف أي صفقات فعّالة أقدم لنفس الزوج/الفريم والإبقاء على الأحدث
-    c.execute('''
-        DELETE FROM signals
-        WHERE symbol = ?
-          AND COALESCE(timeframe, '1h') = ?
-          AND status = 'active'
-          AND signal_id <> ?
-    ''', (signal_row['symbol'], signal_row['timeframe'], signal_id))
-    conn.commit()
-
-    conn.close()
-    return signal_id
+        c.execute('''
+            DELETE FROM signals
+            WHERE symbol = ?
+              AND COALESCE(timeframe, '1h') = ?
+              AND status = 'active'
+              AND signal_id <> ?
+        ''', (signal_row['symbol'], signal_row['timeframe'], signal_id))
+        conn.commit()
+        conn.close()
+        return signal_id
 
 
 def _ensure_signal_payload_persisted(signal_payload, default_timeframe='1h'):
@@ -3183,90 +3194,89 @@ def archive_and_cleanup_closed_signals():
     archived_count = 0
     try:
         _ensure_signals_archive_table()
+        with VIP_SIGNALS_DB_LOCK:
+            conn = sqlite3.connect('vip_signals.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
 
-        conn = sqlite3.connect('vip_signals.db')
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
+            c.execute('''
+                SELECT *
+                FROM signals
+                WHERE status = 'closed' OR result IN ('win', 'loss')
+                ORDER BY created_at ASC
+            ''')
+            closed_rows = c.fetchall()
 
-        c.execute('''
-            SELECT *
-            FROM signals
-            WHERE status = 'closed' OR result IN ('win', 'loss')
-            ORDER BY created_at ASC
-        ''')
-        closed_rows = c.fetchall()
+            if not closed_rows:
+                conn.close()
+                return 0
 
-        if not closed_rows:
+            archived = []
+            if CLOSED_TRADES_ARCHIVE_FILE.exists():
+                try:
+                    with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                        archived = json.load(f) or []
+                except Exception:
+                    archived = []
+
+            archived_ids = {item.get('signal_id') for item in archived if isinstance(item, dict)}
+            archived_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            for row in closed_rows:
+                row_dict = dict(row)
+                signal_id = row_dict.get('signal_id')
+                if signal_id in archived_ids:
+                    continue
+
+                try:
+                    c.execute('''
+                        INSERT OR REPLACE INTO signals_archive (
+                            signal_id, symbol, signal_type, entry_price, stop_loss,
+                            take_profit_1, take_profit_2, take_profit_3,
+                            quality_score, timeframe, status, result,
+                            current_price, close_price,
+                            tp1_locked, tp2_locked, tp3_locked, activated,
+                            created_at, archived_at, archive_reason
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('signal_id'),
+                        row_dict.get('symbol'),
+                        row_dict.get('signal_type'),
+                        row_dict.get('entry_price'),
+                        row_dict.get('stop_loss'),
+                        row_dict.get('take_profit_1'),
+                        row_dict.get('take_profit_2'),
+                        row_dict.get('take_profit_3'),
+                        row_dict.get('quality_score'),
+                        row_dict.get('timeframe'),
+                        row_dict.get('status'),
+                        row_dict.get('result'),
+                        row_dict.get('current_price'),
+                        row_dict.get('close_price'),
+                        row_dict.get('tp1_locked', 0),
+                        row_dict.get('tp2_locked', 0),
+                        row_dict.get('tp3_locked', 0),
+                        row_dict.get('activated', 1),
+                        row_dict.get('created_at'),
+                        archived_at,
+                        'auto_cleanup_protocol'
+                    ))
+                except Exception:
+                    pass
+
+                row_dict['archived_at'] = archived_at
+                row_dict['archive_reason'] = 'auto_cleanup_protocol'
+                archived.append(row_dict)
+                archived_ids.add(signal_id)
+                archived_count += 1
+
+            if archived_count > 0:
+                with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
+
+            c.execute("DELETE FROM signals WHERE status = 'closed' OR result IN ('win', 'loss')")
+            conn.commit()
             conn.close()
-            return 0
-
-        archived = []
-        if CLOSED_TRADES_ARCHIVE_FILE.exists():
-            try:
-                with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
-                    archived = json.load(f) or []
-            except Exception:
-                archived = []
-
-        archived_ids = {item.get('signal_id') for item in archived if isinstance(item, dict)}
-        archived_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        for row in closed_rows:
-            row_dict = dict(row)
-            signal_id = row_dict.get('signal_id')
-            if signal_id in archived_ids:
-                continue
-
-            # حفظ دائم في جدول الأرشيف داخل قاعدة البيانات للتقارير والمقارنات
-            try:
-                c.execute('''
-                    INSERT OR REPLACE INTO signals_archive (
-                        signal_id, symbol, signal_type, entry_price, stop_loss,
-                        take_profit_1, take_profit_2, take_profit_3,
-                        quality_score, timeframe, status, result,
-                        current_price, close_price,
-                        tp1_locked, tp2_locked, tp3_locked, activated,
-                        created_at, archived_at, archive_reason
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    row_dict.get('signal_id'),
-                    row_dict.get('symbol'),
-                    row_dict.get('signal_type'),
-                    row_dict.get('entry_price'),
-                    row_dict.get('stop_loss'),
-                    row_dict.get('take_profit_1'),
-                    row_dict.get('take_profit_2'),
-                    row_dict.get('take_profit_3'),
-                    row_dict.get('quality_score'),
-                    row_dict.get('timeframe'),
-                    row_dict.get('status'),
-                    row_dict.get('result'),
-                    row_dict.get('current_price'),
-                    row_dict.get('close_price'),
-                    row_dict.get('tp1_locked', 0),
-                    row_dict.get('tp2_locked', 0),
-                    row_dict.get('tp3_locked', 0),
-                    row_dict.get('activated', 1),
-                    row_dict.get('created_at'),
-                    archived_at,
-                    'auto_cleanup_protocol'
-                ))
-            except Exception:
-                pass
-
-            row_dict['archived_at'] = archived_at
-            row_dict['archive_reason'] = 'auto_cleanup_protocol'
-            archived.append(row_dict)
-            archived_ids.add(signal_id)
-            archived_count += 1
-
-        if archived_count > 0:
-            with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
-
-        c.execute("DELETE FROM signals WHERE status = 'closed' OR result IN ('win', 'loss')")
-        conn.commit()
-        conn.close()
     except Exception as e:
         print(f"Error in archive_and_cleanup_closed_signals: {e}")
 
@@ -3834,116 +3844,117 @@ def _refresh_active_signal_statuses(lookback_days=None):
 
     try:
         start_date = (datetime.now() - timedelta(days=stats['lookback_days'])).strftime('%Y-%m-%d')
-        conn = sqlite3.connect('vip_signals.db', timeout=30)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        c.execute('PRAGMA busy_timeout = 30000')
-        c.execute('''
-            SELECT signal_id, symbol, signal_type, entry_price, stop_loss,
-                   take_profit_1, take_profit_2, take_profit_3,
-                   tp1_locked, tp2_locked, tp3_locked
-            FROM signals
-            WHERE status = 'active'
-              AND DATE(created_at) >= ?
-            ORDER BY created_at DESC
-        ''', (start_date,))
-        rows = c.fetchall()
+        with VIP_SIGNALS_DB_LOCK:
+            conn = sqlite3.connect('vip_signals.db', timeout=30)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute('PRAGMA busy_timeout = 30000')
+            c.execute('''
+                SELECT signal_id, symbol, signal_type, entry_price, stop_loss,
+                       take_profit_1, take_profit_2, take_profit_3,
+                       tp1_locked, tp2_locked, tp3_locked
+                FROM signals
+                WHERE status = 'active'
+                  AND DATE(created_at) >= ?
+                ORDER BY created_at DESC
+            ''', (start_date,))
+            rows = c.fetchall()
 
-        for row in rows:
-            symbol = _normalize_symbol_key(row['symbol'])
-            if symbol not in price_cache:
-                price_cache[symbol] = get_live_price(symbol)
-            current_price = price_cache.get(symbol)
-            if not current_price:
-                continue
+            for row in rows:
+                symbol = _normalize_symbol_key(row['symbol'])
+                if symbol not in price_cache:
+                    price_cache[symbol] = get_live_price(symbol)
+                current_price = price_cache.get(symbol)
+                if not current_price:
+                    continue
 
-            stats['processed'] += 1
-            stats['prices_updated'] += 1
-            c.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
+                stats['processed'] += 1
+                stats['prices_updated'] += 1
+                c.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
 
-            signal_type = _normalize_signal_type(row['signal_type'])
-            entry = float(row['entry_price'] or 0)
-            sl = float(row['stop_loss'] or 0)
-            tp1 = float(row['take_profit_1'] or 0)
-            tp2 = float(row['take_profit_2'] or 0)
-            tp3 = float(row['take_profit_3'] or 0)
-            tp1_locked = int(row['tp1_locked'] or 0)
-            tp2_locked = int(row['tp2_locked'] or 0)
-            tp3_locked = int(row['tp3_locked'] or 0)
+                signal_type = _normalize_signal_type(row['signal_type'])
+                entry = float(row['entry_price'] or 0)
+                sl = float(row['stop_loss'] or 0)
+                tp1 = float(row['take_profit_1'] or 0)
+                tp2 = float(row['take_profit_2'] or 0)
+                tp3 = float(row['take_profit_3'] or 0)
+                tp1_locked = int(row['tp1_locked'] or 0)
+                tp2_locked = int(row['tp2_locked'] or 0)
+                tp3_locked = int(row['tp3_locked'] or 0)
 
-            if signal_type == 'buy':
-                if current_price <= sl:
-                    sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                    c.execute('''
-                        UPDATE signals
-                        SET status='closed', result=?, close_price=?
-                        WHERE signal_id=?
-                    ''', (sl_outcome, current_price, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price >= tp3 and not tp3_locked:
-                    c.execute('''
-                        UPDATE signals
-                        SET status='closed', result='win', close_price=?,
-                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                        WHERE signal_id=?
-                    ''', (current_price, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price >= tp2 and not tp2_locked:
-                    current_sl = sl if sl > 0 else entry
-                    new_sl = max(current_sl, tp1 or entry)
-                    c.execute('''
-                        UPDATE signals
-                        SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                        WHERE signal_id=?
-                    ''', (new_sl, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price >= tp1 and not tp1_locked:
-                    current_sl = sl if sl > 0 else entry
-                    new_sl = max(current_sl, entry)
-                    c.execute('''
-                        UPDATE signals
-                        SET result='win', tp1_locked=1, stop_loss=?
-                        WHERE signal_id=?
-                    ''', (new_sl, row['signal_id']))
-                    stats['changed'] += 1
-            else:
-                if current_price >= sl:
-                    sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                    c.execute('''
-                        UPDATE signals
-                        SET status='closed', result=?, close_price=?
-                        WHERE signal_id=?
-                    ''', (sl_outcome, current_price, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price <= tp3 and not tp3_locked:
-                    c.execute('''
-                        UPDATE signals
-                        SET status='closed', result='win', close_price=?,
-                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                        WHERE signal_id=?
-                    ''', (current_price, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price <= tp2 and not tp2_locked:
-                    current_sl = sl if sl > 0 else entry
-                    new_sl = min(current_sl, tp1 or entry)
-                    c.execute('''
-                        UPDATE signals
-                        SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                        WHERE signal_id=?
-                    ''', (new_sl, row['signal_id']))
-                    stats['changed'] += 1
-                elif current_price <= tp1 and not tp1_locked:
-                    current_sl = sl if sl > 0 else entry
-                    new_sl = min(current_sl, entry)
-                    c.execute('''
-                        UPDATE signals
-                        SET result='win', tp1_locked=1, stop_loss=?
-                        WHERE signal_id=?
-                    ''', (new_sl, row['signal_id']))
-                    stats['changed'] += 1
+                if signal_type == 'buy':
+                    if current_price <= sl:
+                        sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                        c.execute('''
+                            UPDATE signals
+                            SET status='closed', result=?, close_price=?
+                            WHERE signal_id=?
+                        ''', (sl_outcome, current_price, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price >= tp3 and not tp3_locked:
+                        c.execute('''
+                            UPDATE signals
+                            SET status='closed', result='win', close_price=?,
+                                tp1_locked=1, tp2_locked=1, tp3_locked=1
+                            WHERE signal_id=?
+                        ''', (current_price, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price >= tp2 and not tp2_locked:
+                        current_sl = sl if sl > 0 else entry
+                        new_sl = max(current_sl, tp1 or entry)
+                        c.execute('''
+                            UPDATE signals
+                            SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
+                            WHERE signal_id=?
+                        ''', (new_sl, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price >= tp1 and not tp1_locked:
+                        current_sl = sl if sl > 0 else entry
+                        new_sl = max(current_sl, entry)
+                        c.execute('''
+                            UPDATE signals
+                            SET result='win', tp1_locked=1, stop_loss=?
+                            WHERE signal_id=?
+                        ''', (new_sl, row['signal_id']))
+                        stats['changed'] += 1
+                else:
+                    if current_price >= sl:
+                        sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                        c.execute('''
+                            UPDATE signals
+                            SET status='closed', result=?, close_price=?
+                            WHERE signal_id=?
+                        ''', (sl_outcome, current_price, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price <= tp3 and not tp3_locked:
+                        c.execute('''
+                            UPDATE signals
+                            SET status='closed', result='win', close_price=?,
+                                tp1_locked=1, tp2_locked=1, tp3_locked=1
+                            WHERE signal_id=?
+                        ''', (current_price, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price <= tp2 and not tp2_locked:
+                        current_sl = sl if sl > 0 else entry
+                        new_sl = min(current_sl, tp1 or entry)
+                        c.execute('''
+                            UPDATE signals
+                            SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
+                            WHERE signal_id=?
+                        ''', (new_sl, row['signal_id']))
+                        stats['changed'] += 1
+                    elif current_price <= tp1 and not tp1_locked:
+                        current_sl = sl if sl > 0 else entry
+                        new_sl = min(current_sl, entry)
+                        c.execute('''
+                            UPDATE signals
+                            SET result='win', tp1_locked=1, stop_loss=?
+                            WHERE signal_id=?
+                        ''', (new_sl, row['signal_id']))
+                        stats['changed'] += 1
 
-        conn.commit()
-        return stats
+            conn.commit()
+            return stats
     except Exception:
         return stats
     finally:

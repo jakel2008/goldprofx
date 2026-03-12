@@ -836,6 +836,7 @@ MIN_SIGNAL_QUALITY_SCORE = int(os.environ.get('MIN_SIGNAL_QUALITY_SCORE', '55'))
 MIN_SIGNAL_RR = float(os.environ.get('MIN_SIGNAL_RR', '1.0'))
 MAX_SIGNAL_VOLATILITY = float(os.environ.get('MAX_SIGNAL_VOLATILITY', '4.2'))
 RELAX_SIGNAL_FILTERS_WHEN_EMPTY = os.environ.get('RELAX_SIGNAL_FILTERS_WHEN_EMPTY', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE', '2')))
 MIN_SIGNAL_QUALITY_WHEN_EMPTY = int(os.environ.get('MIN_SIGNAL_QUALITY_WHEN_EMPTY', '35'))
 MIN_SIGNAL_RR_WHEN_EMPTY = float(os.environ.get('MIN_SIGNAL_RR_WHEN_EMPTY', '0.5'))
 MAX_SIGNAL_VOLATILITY_WHEN_EMPTY = float(os.environ.get('MAX_SIGNAL_VOLATILITY_WHEN_EMPTY', '8.0'))
@@ -2279,7 +2280,10 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
     max_volatility = float(adaptive_thresholds.get('max_volatility', MAX_SIGNAL_VOLATILITY))
 
     active_signals_now = _count_current_active_signals()
-    relaxed_mode = bool(RELAX_SIGNAL_FILTERS_WHEN_EMPTY and active_signals_now <= 0)
+    relaxed_mode = bool(
+        RELAX_SIGNAL_FILTERS_WHEN_EMPTY
+        and active_signals_now <= RELAX_SIGNAL_FILTERS_IF_ACTIVE_COUNT_LE
+    )
     effective_min_quality = min_quality_score
     effective_min_rr = min_rr
     effective_max_volatility = max_volatility
@@ -2311,7 +2315,9 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             signal_type=signal_type,
             quality_score=_calculate_quality_score(result),
             rr_tp1=rr_tp1,
+            effective_min_quality=effective_min_quality,
             effective_min_rr=effective_min_rr,
+            effective_max_volatility=effective_max_volatility,
             adaptive_mode=adaptive_mode,
             active_signals_now=active_signals_now
         )

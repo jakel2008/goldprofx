@@ -4047,14 +4047,22 @@ def _refresh_active_signal_statuses(lookback_days=None):
         'processed': 0,
         'changed': 0,
         'prices_updated': 0,
-        'lookback_days': max(1, int(lookback_days or ACTIVE_SIGNAL_STATUS_LOOKBACK_DAYS))
+        'lookback_days': max(1, int(lookback_days or ACTIVE_SIGNAL_STATUS_LOOKBACK_DAYS)),
+        'active_rows': 0,
+        'lock_skipped': False
     }
     price_cache = {}
-    conn = None
+    rows = []
 
     try:
         start_date = (datetime.now() - timedelta(days=stats['lookback_days'])).strftime('%Y-%m-%d')
-        with VIP_SIGNALS_DB_LOCK:
+        lock_acquired = VIP_SIGNALS_DB_LOCK.acquire(timeout=2)
+        if not lock_acquired:
+            stats['lock_skipped'] = True
+            return stats
+
+        conn = None
+        try:
             conn = sqlite3.connect('vip_signals.db', timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -4069,110 +4077,171 @@ def _refresh_active_signal_statuses(lookback_days=None):
                 ORDER BY created_at DESC
             ''', (start_date,))
             rows = c.fetchall()
+            stats['active_rows'] = len(rows)
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            VIP_SIGNALS_DB_LOCK.release()
 
-            for row in rows:
-                symbol = _normalize_symbol_key(row['symbol'])
-                if symbol not in price_cache:
-                    price_cache[symbol] = get_live_price(symbol)
-                current_price = price_cache.get(symbol)
-                if not current_price:
+        if not rows:
+            return stats
+
+        row_updates = []
+        for row in rows:
+            symbol = _normalize_symbol_key(row['symbol'])
+            if symbol not in price_cache:
+                price_cache[symbol] = get_live_price(symbol)
+            current_price = price_cache.get(symbol)
+            if not current_price:
+                continue
+
+            stats['processed'] += 1
+            stats['prices_updated'] += 1
+
+            update_item = {
+                'signal_id': row['signal_id'],
+                'current_price': current_price,
+                'close_status': None,
+                'close_result': None,
+                'close_price': None,
+                'set_tp1_locked': None,
+                'set_tp2_locked': None,
+                'set_tp3_locked': None,
+                'set_stop_loss': None,
+                'set_result': None
+            }
+
+            signal_type = _normalize_signal_type(row['signal_type'])
+            entry = float(row['entry_price'] or 0)
+            sl = float(row['stop_loss'] or 0)
+            tp1 = float(row['take_profit_1'] or 0)
+            tp2 = float(row['take_profit_2'] or 0)
+            tp3 = float(row['take_profit_3'] or 0)
+            tp1_locked = int(row['tp1_locked'] or 0)
+            tp2_locked = int(row['tp2_locked'] or 0)
+            tp3_locked = int(row['tp3_locked'] or 0)
+
+            if signal_type == 'buy':
+                if current_price <= sl:
+                    update_item['close_status'] = 'closed'
+                    update_item['close_result'] = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                    update_item['close_price'] = current_price
+                    stats['changed'] += 1
+                elif current_price >= tp3 and not tp3_locked:
+                    update_item['close_status'] = 'closed'
+                    update_item['close_result'] = 'win'
+                    update_item['close_price'] = current_price
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_tp2_locked'] = 1
+                    update_item['set_tp3_locked'] = 1
+                    stats['changed'] += 1
+                elif current_price >= tp2 and not tp2_locked:
+                    current_sl = sl if sl > 0 else entry
+                    update_item['set_result'] = 'win'
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_tp2_locked'] = 1
+                    update_item['set_stop_loss'] = max(current_sl, tp1 or entry)
+                    stats['changed'] += 1
+                elif current_price >= tp1 and not tp1_locked:
+                    current_sl = sl if sl > 0 else entry
+                    update_item['set_result'] = 'win'
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_stop_loss'] = max(current_sl, entry)
+                    stats['changed'] += 1
+            else:
+                if current_price >= sl:
+                    update_item['close_status'] = 'closed'
+                    update_item['close_result'] = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                    update_item['close_price'] = current_price
+                    stats['changed'] += 1
+                elif current_price <= tp3 and not tp3_locked:
+                    update_item['close_status'] = 'closed'
+                    update_item['close_result'] = 'win'
+                    update_item['close_price'] = current_price
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_tp2_locked'] = 1
+                    update_item['set_tp3_locked'] = 1
+                    stats['changed'] += 1
+                elif current_price <= tp2 and not tp2_locked:
+                    current_sl = sl if sl > 0 else entry
+                    update_item['set_result'] = 'win'
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_tp2_locked'] = 1
+                    update_item['set_stop_loss'] = min(current_sl, tp1 or entry)
+                    stats['changed'] += 1
+                elif current_price <= tp1 and not tp1_locked:
+                    current_sl = sl if sl > 0 else entry
+                    update_item['set_result'] = 'win'
+                    update_item['set_tp1_locked'] = 1
+                    update_item['set_stop_loss'] = min(current_sl, entry)
+                    stats['changed'] += 1
+
+            row_updates.append(update_item)
+
+        lock_acquired = VIP_SIGNALS_DB_LOCK.acquire(timeout=2)
+        if not lock_acquired:
+            stats['lock_skipped'] = True
+            return stats
+
+        conn = None
+        try:
+            conn = sqlite3.connect('vip_signals.db', timeout=30)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute('PRAGMA busy_timeout = 30000')
+
+            for item in row_updates:
+                c.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (item['current_price'], item['signal_id']))
+
+                if item['close_status']:
+                    c.execute('''
+                        UPDATE signals
+                        SET status=?, result=?, close_price=?,
+                            tp1_locked=COALESCE(?, tp1_locked),
+                            tp2_locked=COALESCE(?, tp2_locked),
+                            tp3_locked=COALESCE(?, tp3_locked)
+                        WHERE signal_id=?
+                    ''', (
+                        item['close_status'],
+                        item['close_result'],
+                        item['close_price'],
+                        item['set_tp1_locked'],
+                        item['set_tp2_locked'],
+                        item['set_tp3_locked'],
+                        item['signal_id']
+                    ))
                     continue
 
-                stats['processed'] += 1
-                stats['prices_updated'] += 1
-                c.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
-
-                signal_type = _normalize_signal_type(row['signal_type'])
-                entry = float(row['entry_price'] or 0)
-                sl = float(row['stop_loss'] or 0)
-                tp1 = float(row['take_profit_1'] or 0)
-                tp2 = float(row['take_profit_2'] or 0)
-                tp3 = float(row['take_profit_3'] or 0)
-                tp1_locked = int(row['tp1_locked'] or 0)
-                tp2_locked = int(row['tp2_locked'] or 0)
-                tp3_locked = int(row['tp3_locked'] or 0)
-
-                if signal_type == 'buy':
-                    if current_price <= sl:
-                        sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                        c.execute('''
-                            UPDATE signals
-                            SET status='closed', result=?, close_price=?
-                            WHERE signal_id=?
-                        ''', (sl_outcome, current_price, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price >= tp3 and not tp3_locked:
-                        c.execute('''
-                            UPDATE signals
-                            SET status='closed', result='win', close_price=?,
-                                tp1_locked=1, tp2_locked=1, tp3_locked=1
-                            WHERE signal_id=?
-                        ''', (current_price, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price >= tp2 and not tp2_locked:
-                        current_sl = sl if sl > 0 else entry
-                        new_sl = max(current_sl, tp1 or entry)
-                        c.execute('''
-                            UPDATE signals
-                            SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                            WHERE signal_id=?
-                        ''', (new_sl, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price >= tp1 and not tp1_locked:
-                        current_sl = sl if sl > 0 else entry
-                        new_sl = max(current_sl, entry)
-                        c.execute('''
-                            UPDATE signals
-                            SET result='win', tp1_locked=1, stop_loss=?
-                            WHERE signal_id=?
-                        ''', (new_sl, row['signal_id']))
-                        stats['changed'] += 1
-                else:
-                    if current_price >= sl:
-                        sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                        c.execute('''
-                            UPDATE signals
-                            SET status='closed', result=?, close_price=?
-                            WHERE signal_id=?
-                        ''', (sl_outcome, current_price, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price <= tp3 and not tp3_locked:
-                        c.execute('''
-                            UPDATE signals
-                            SET status='closed', result='win', close_price=?,
-                                tp1_locked=1, tp2_locked=1, tp3_locked=1
-                            WHERE signal_id=?
-                        ''', (current_price, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price <= tp2 and not tp2_locked:
-                        current_sl = sl if sl > 0 else entry
-                        new_sl = min(current_sl, tp1 or entry)
-                        c.execute('''
-                            UPDATE signals
-                            SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                            WHERE signal_id=?
-                        ''', (new_sl, row['signal_id']))
-                        stats['changed'] += 1
-                    elif current_price <= tp1 and not tp1_locked:
-                        current_sl = sl if sl > 0 else entry
-                        new_sl = min(current_sl, entry)
-                        c.execute('''
-                            UPDATE signals
-                            SET result='win', tp1_locked=1, stop_loss=?
-                            WHERE signal_id=?
-                        ''', (new_sl, row['signal_id']))
-                        stats['changed'] += 1
+                if any(value is not None for value in (item['set_result'], item['set_tp1_locked'], item['set_tp2_locked'], item['set_stop_loss'])):
+                    c.execute('''
+                        UPDATE signals
+                        SET result=COALESCE(?, result),
+                            tp1_locked=COALESCE(?, tp1_locked),
+                            tp2_locked=COALESCE(?, tp2_locked),
+                            stop_loss=COALESCE(?, stop_loss)
+                        WHERE signal_id=?
+                    ''', (
+                        item['set_result'],
+                        item['set_tp1_locked'],
+                        item['set_tp2_locked'],
+                        item['set_stop_loss'],
+                        item['signal_id']
+                    ))
 
             conn.commit()
             return stats
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            VIP_SIGNALS_DB_LOCK.release()
     except Exception:
         return stats
-    finally:
-        if conn is not None:
-            try:
-                conn.close()
-            except Exception:
-                pass
 
 
 def load_signals(include_closed=False):

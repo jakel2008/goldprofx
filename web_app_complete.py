@@ -249,7 +249,11 @@ def forgot_password():
 الرابط صالح لمدة 30 دقيقة فقط.
 """
         smtp_server = os.environ.get('SMTP_SERVER')
-        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        try:
+            smtp_port = int(str(os.environ.get('SMTP_PORT', 587)).strip())
+        except Exception:
+            smtp_port = 587
+            print(f"[WARN] Invalid SMTP_PORT value: {os.environ.get('SMTP_PORT')!r}. Falling back to 587.")
         smtp_user = os.environ.get('SMTP_USER')
         smtp_pass = os.environ.get('SMTP_PASS')
         smtp_ready = all([smtp_server, smtp_user, smtp_pass]) and smtp_server != 'smtp.example.com'
@@ -603,6 +607,27 @@ try:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 except Exception:
     pass
+
+# ====== Environment variable defaults for persistent data paths and settings ======
+os.environ.setdefault('SIGNALS_DIR', '/var/data/signals')
+os.environ.setdefault('SENT_SIGNALS_FILE', '/var/data/sent_signals.json')
+os.environ.setdefault('RECOMMENDATIONS_DIR', '/var/data/recommendations')
+os.environ.setdefault('ANALYSIS_DIR', '/var/data/analysis')
+os.environ.setdefault('USER_PREFERENCES_FILE', '/var/data/user_pairs_preferences.json')
+os.environ.setdefault('BACKUPS_DIR', '/var/data/backups')
+os.environ.setdefault('BACKUPS_KEEP', '21')
+os.environ.setdefault('BACKUP_ON_ADMIN_WRITE', '1')
+os.environ.setdefault('AUTO_MERGE_LEGACY_ON_STARTUP', '1')
+os.environ.setdefault('AUTO_BROADCAST_REGISTRY_FILE', '/var/data/auto_broadcast_registry.json')
+os.environ.setdefault('AUTO_BROADCAST_RECENT_WINDOW_MINUTES', '2880')
+os.environ.setdefault('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')
+os.environ.setdefault('SIGNALS_LOOKBACK_DAYS', '7')
+
+# Telegram Command Bot environment defaults
+os.environ.setdefault('TELEGRAM_COMMAND_STATE_FILE', '/var/data/telegram_command_bot_state.json')
+os.environ.setdefault('TELEGRAM_COMMAND_POLL_INTERVAL', '2')
+os.environ.setdefault('TELEGRAM_COMMAND_TIMEOUT', '30')
+os.environ.setdefault('TELEGRAM_ADMIN_IDS', '123456789,987654321')
 
 USERS_DB_PATH = Path(os.environ.get('USERS_DB_PATH', str(DATA_DIR / 'users.db')))
 VIP_SUBSCRIPTIONS_DB_PATH = Path(os.environ.get('VIP_SUBSCRIPTIONS_DB_PATH', str(DATA_DIR / 'vip_subscriptions.db')))

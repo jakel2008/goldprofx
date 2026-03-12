@@ -13,10 +13,20 @@ from pathlib import Path
 
 SUPPORT_EMAIL = "mahmoodalqaise750@gmail.com"
 
+
+def _read_int_env(name, default):
+    """قراءة متغير بيئة عددي مع fallback آمن عند وجود قيمة غير صالحة."""
+    raw_value = os.environ.get(name, str(default))
+    try:
+        return int(str(raw_value).strip())
+    except Exception:
+        print(f"[WARN] Invalid integer for {name}: {raw_value!r}. Falling back to {default}.")
+        return int(default)
+
 class EmailService:
     def __init__(self):
         self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com').strip()
-        self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        self.smtp_port = _read_int_env('SMTP_PORT', 587)
         self.smtp_user = os.environ.get('SMTP_USER', '').strip()
         self.smtp_password = os.environ.get('SMTP_PASS', '').strip()
         self.smtp_enabled = os.environ.get('SMTP_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')

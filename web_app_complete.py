@@ -595,7 +595,31 @@ def _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False):
 
 def _normalize_symbol_key(symbol):
     """تطبيع رمز الأصل/الزوج لصيغة موحدة للمقارنة والتخزين."""
-    return str(symbol or '').upper().replace('/', '').replace('-', '').replace('_', '').replace(' ', '')
+    normalized = str(symbol or '').upper().replace('/', '').replace('-', '').replace('_', '').replace(' ', '')
+    aliases = {
+        'WTI': 'USOIL',
+        'CRUDE': 'USOIL',
+        'BRENT': 'UKOIL',
+        'NGAS': 'NATGAS',
+        'DJI': 'US30',
+        'IXIC': 'NAS100',
+        'NASDAQ100': 'NAS100',
+        'NAS': 'NAS100',
+        'SPX': 'SPX500',
+        'SP500': 'SPX500',
+        'GSPC': 'SPX500',
+        'GOLD': 'XAUUSD',
+        'SILVER': 'XAGUSD',
+        'BTCUSDT': 'BTCUSD',
+        'ETHUSDT': 'ETHUSD',
+        'BNBUSDT': 'BNBUSD',
+        'SOLUSDT': 'SOLUSD',
+        'XRPUSDT': 'XRPUSD',
+        'ADAUSDT': 'ADAUSD',
+        'DOGEUSDT': 'DOGEUSD',
+        'LTCUSDT': 'LTCUSD'
+    }
+    return aliases.get(normalized, normalized)
 
 DATA_DIR = Path(
     os.environ.get(
@@ -2008,6 +2032,7 @@ def _build_adaptive_thresholds_overview(limit_rows=30):
 
 def _insert_generated_signal(signal_row):
     _ensure_signals_table()
+    signal_row['symbol'] = _normalize_symbol_key(signal_row.get('symbol'))
     conn = sqlite3.connect('vip_signals.db')
     c = conn.cursor()
     c.execute('''
@@ -3478,9 +3503,10 @@ def _should_resend_signal(registry_entry, now_dt):
 def _build_signal_payload_from_row(row_dict):
     """تحويل سجل DB إلى حمولة إشارة موحدة للبث."""
     signal_type = str(row_dict.get('signal_type') or '').lower()
+    normalized_symbol = _normalize_symbol_key(row_dict.get('symbol'))
     return {
         'signal_id': row_dict.get('signal_id'),
-        'symbol': row_dict.get('symbol'),
+        'symbol': normalized_symbol,
         'signal': signal_type,
         'rec': signal_type.upper() if signal_type else 'N/A',
         'timeframe': row_dict.get('timeframe') or '1h',
@@ -3738,7 +3764,7 @@ def load_signals(include_closed=False):
             allow_recent_any = bool(rows)
 
         for row in rows:
-            symbol = row['symbol']
+            symbol = _normalize_symbol_key(row['symbol'])
             signal_type = row['signal_type']
             entry = row['entry_price']
             sl = row['stop_loss']

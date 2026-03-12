@@ -52,7 +52,7 @@
 
                     <div class="video-frame mb-3" data-protected-video>
                         <video class="w-100 rounded border" controls preload="metadata" disablePictureInPicture oncontextmenu="return false;" style="max-height: 320px; background: #000;">
-                            <source src="{{ url_for('static', filename='uploads/tutorials/' + video.filename) }}">
+                            <source src="{{ url_for('tutorial_video_file', filename=video.filename) }}">
                             متصفحك لا يدعم تشغيل الفيديو.
                         </video>
                         <div class="video-watermark">GOLD PRO • {{ user.username if user and user.username else 'User' }}</div>

@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 import csv
 from io import StringIO
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, Response
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, Response, abort, send_from_directory
 import sqlite3
 from werkzeug.utils import secure_filename
 import requests
@@ -686,6 +686,7 @@ AUTO_BROADCAST_RECENT_WINDOW_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST
 AUTO_BROADCAST_RESEND_INTERVAL_MINUTES = max(1, int(os.environ.get('AUTO_BROADCAST_RESEND_INTERVAL_MINUTES', '30')))
 AUTO_BROADCAST_ALLOW_RESEND = os.environ.get('AUTO_BROADCAST_ALLOW_RESEND', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 SIGNALS_LOOKBACK_DAYS = max(1, int(os.environ.get('SIGNALS_LOOKBACK_DAYS', '7')))
+ACTIVE_SIGNAL_STATUS_LOOKBACK_DAYS = max(SIGNALS_LOOKBACK_DAYS, int(os.environ.get('ACTIVE_SIGNAL_STATUS_LOOKBACK_DAYS', '45')))
 RECOMMENDATIONS_DIR = Path(os.environ.get('RECOMMENDATIONS_DIR', str(DATA_DIR / 'recommendations')))
 ANALYSIS_DIR = Path(os.environ.get('ANALYSIS_DIR', str(DATA_DIR / 'analysis')))
 USER_PREFERENCES_FILE = Path(os.environ.get('USER_PREFERENCES_FILE', str(DATA_DIR / 'user_pairs_preferences.json')))
@@ -837,6 +838,10 @@ CONTINUOUS_ANALYZER_STATE = {
     'interval_seconds': CONTINUOUS_ANALYZER_INTERVAL_DEFAULT,
     'last_run': None,
     'last_error': None,
+    'last_analyzed_count': 0,
+    'last_failed_count': 0,
+    'last_no_signal_count': 0,
+    'last_failed_symbols': [],
     'last_new_signals': 0,
     'last_deduplicated': 0,
     'total_generated': 0,
@@ -1842,6 +1847,15 @@ def _extract_signal_type(recommendation_text):
     return None
 
 
+def _normalize_signal_type(signal_type, default='buy'):
+    value = str(signal_type or '').strip().lower()
+    if value == 'sell':
+        return 'sell'
+    if value == 'buy':
+        return 'buy'
+    return default
+
+
 def _signal_exists_recently(symbol, signal_type, timeframe, entry_price):
     try:
         entry_val = float(entry_price or 0)
@@ -2033,6 +2047,7 @@ def _build_adaptive_thresholds_overview(limit_rows=30):
 def _insert_generated_signal(signal_row):
     _ensure_signals_table()
     signal_row['symbol'] = _normalize_symbol_key(signal_row.get('symbol'))
+    signal_row['signal_type'] = _normalize_signal_type(signal_row.get('signal_type'))
     conn = sqlite3.connect('vip_signals.db')
     c = conn.cursor()
     c.execute('''
@@ -2340,20 +2355,25 @@ def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
 def _continuous_analyzer_loop():
     """حلقة التحليل والبث المستمر لجميع الأزواج المتاحة."""
     while CONTINUOUS_ANALYZER_STATE.get('running'):
+        analyzed_count = 0
         generated_count = 0
         broadcast_count = 0
         deduplicated_count = 0
         failed_symbols = []
+        no_signal_count = 0
 
         try:
+            _refresh_active_signal_statuses()
             symbols_to_analyze = _resolve_symbols_for_continuous_analyzer()
             for symbol in symbols_to_analyze:
                 if not CONTINUOUS_ANALYZER_STATE.get('running'):
                     break
 
                 try:
+                    analyzed_count += 1
                     signal_data = _analyze_and_generate_signal(symbol, interval='1h')
                     if not signal_data:
+                        no_signal_count += 1
                         continue
 
                     generated_count += 1
@@ -2391,12 +2411,20 @@ def _continuous_analyzer_loop():
             deduplicated_count += archive_and_cleanup_closed_signals()
 
             CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
+            CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
+            CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
+            CONTINUOUS_ANALYZER_STATE['last_failed_symbols'] = failed_symbols[:8]
             CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
             CONTINUOUS_ANALYZER_STATE['last_deduplicated'] = deduplicated_count
             CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
             CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
             CONTINUOUS_ANALYZER_STATE['last_error'] = None if not failed_symbols else '; '.join(failed_symbols[:8])
         except Exception as e:
+            CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
+            CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
+            CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
+            CONTINUOUS_ANALYZER_STATE['last_failed_symbols'] = failed_symbols[:8]
             CONTINUOUS_ANALYZER_STATE['last_error'] = str(e)
 
         sleep_seconds = int(CONTINUOUS_ANALYZER_STATE.get('interval_seconds', 300))
@@ -2486,6 +2514,13 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
         details.append(item)
 
     CONTINUOUS_ANALYZER_STATE['last_run'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    CONTINUOUS_ANALYZER_STATE['last_analyzed_count'] = analyzed_count
+    CONTINUOUS_ANALYZER_STATE['last_failed_count'] = failed_count
+    CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = max(0, analyzed_count - generated_count - failed_count)
+    CONTINUOUS_ANALYZER_STATE['last_failed_symbols'] = [
+        f"{item.get('symbol')}:{item.get('error')}"
+        for item in details if item.get('error')
+    ][:8]
     CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
     CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
     CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count
@@ -2815,9 +2850,12 @@ def get_current_user():
     return {'success': False}
 
 
-SITE_SETTINGS_FILE = Path(__file__).parent / 'site_settings.json'
-TUTORIAL_UPLOAD_DIR = Path(__file__).parent / 'static' / 'uploads' / 'tutorials'
-TUTORIAL_VIDEOS_FILE = Path(__file__).parent / 'tutorial_videos.json'
+LEGACY_SITE_SETTINGS_FILE = Path(__file__).parent / 'site_settings.json'
+LEGACY_TUTORIAL_UPLOAD_DIR = Path(__file__).parent / 'static' / 'uploads' / 'tutorials'
+LEGACY_TUTORIAL_VIDEOS_FILE = Path(__file__).parent / 'tutorial_videos.json'
+SITE_SETTINGS_FILE = Path(os.environ.get('SITE_SETTINGS_FILE', str(DATA_DIR / 'site_settings.json')))
+TUTORIAL_UPLOAD_DIR = Path(os.environ.get('TUTORIAL_UPLOAD_DIR', str(DATA_DIR / 'tutorial_uploads' / 'tutorials')))
+TUTORIAL_VIDEOS_FILE = Path(os.environ.get('TUTORIAL_VIDEOS_FILE', str(DATA_DIR / 'tutorial_videos.json')))
 ALLOWED_TUTORIAL_VIDEO_EXTENSIONS = {'mp4', 'webm', 'ogg', 'mov', 'm4v'}
 
 DEFAULT_SITE_SETTINGS = {
@@ -2841,9 +2879,61 @@ DEFAULT_SITE_SETTINGS = {
     'news_ticker_mode': 'both'
 }
 
+SITE_CONTENT_STORAGE_READY = False
+SITE_CONTENT_STORAGE_LOCK = threading.Lock()
+
+
+def ensure_site_content_storage():
+    """ضمان بقاء إعدادات الموقع وفيديوهات الشروحات داخل التخزين الدائم مع ترحيل القديم مرة واحدة."""
+    global SITE_CONTENT_STORAGE_READY
+
+    if SITE_CONTENT_STORAGE_READY:
+        return
+
+    with SITE_CONTENT_STORAGE_LOCK:
+        if SITE_CONTENT_STORAGE_READY:
+            return
+
+        try:
+            SITE_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
+        try:
+            TUTORIAL_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
+        try:
+            if (not SITE_SETTINGS_FILE.exists()) and LEGACY_SITE_SETTINGS_FILE.exists() and LEGACY_SITE_SETTINGS_FILE != SITE_SETTINGS_FILE:
+                shutil.copy2(str(LEGACY_SITE_SETTINGS_FILE), str(SITE_SETTINGS_FILE))
+        except Exception as e:
+            print(f"[WARN] Could not migrate site settings: {e}")
+
+        try:
+            if (not TUTORIAL_VIDEOS_FILE.exists()) and LEGACY_TUTORIAL_VIDEOS_FILE.exists() and LEGACY_TUTORIAL_VIDEOS_FILE != TUTORIAL_VIDEOS_FILE:
+                shutil.copy2(str(LEGACY_TUTORIAL_VIDEOS_FILE), str(TUTORIAL_VIDEOS_FILE))
+        except Exception as e:
+            print(f"[WARN] Could not migrate tutorial metadata: {e}")
+
+        try:
+            if LEGACY_TUTORIAL_UPLOAD_DIR.exists() and LEGACY_TUTORIAL_UPLOAD_DIR != TUTORIAL_UPLOAD_DIR:
+                for legacy_file in LEGACY_TUTORIAL_UPLOAD_DIR.iterdir():
+                    if not legacy_file.is_file():
+                        continue
+                    target_file = TUTORIAL_UPLOAD_DIR / legacy_file.name
+                    if target_file.exists():
+                        continue
+                    shutil.copy2(str(legacy_file), str(target_file))
+        except Exception as e:
+            print(f"[WARN] Could not migrate tutorial videos: {e}")
+
+        SITE_CONTENT_STORAGE_READY = True
+
 
 def get_site_settings():
     """قراءة إعدادات الدفع والدعم مع قيم افتراضية آمنة."""
+    ensure_site_content_storage()
     settings = DEFAULT_SITE_SETTINGS.copy()
     try:
         if SITE_SETTINGS_FILE.exists():
@@ -2871,6 +2961,7 @@ def get_site_settings():
 
 def save_site_settings(new_values):
     """حفظ إعدادات الدفع والدعم بعد التحقق من المفاتيح المسموح بها."""
+    ensure_site_content_storage()
     settings = get_site_settings()
     for key in DEFAULT_SITE_SETTINGS:
         if key in new_values:
@@ -2894,6 +2985,7 @@ def save_site_settings(new_values):
 
 def ensure_tutorial_storage():
     """التأكد من وجود مجلد حفظ فيديوهات الشروحات."""
+    ensure_site_content_storage()
     TUTORIAL_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -2940,6 +3032,7 @@ def load_tutorial_videos():
 
 def save_tutorial_videos(videos):
     """حفظ قائمة الفيديوهات التعليمية."""
+    ensure_site_content_storage()
     with open(TUTORIAL_VIDEOS_FILE, 'w', encoding='utf-8') as f:
         json.dump(videos, f, ensure_ascii=False, indent=2)
 
@@ -3598,6 +3691,7 @@ def _cleanup_scheduler_loop():
         error_text = None
 
         try:
+            _refresh_active_signal_statuses()
             deduplicated_count, cleaned_closed_count, error_text = _run_cleanup_protocol_once()
             synced_site_count = _sync_site_signals_to_active_bots(limit=40)
         except Exception as e:
@@ -3720,6 +3814,141 @@ def _safe_execute_vip_signals_write(sql, params=()):
                 pass
 
 
+def _refresh_active_signal_statuses(lookback_days=None):
+    """تحديث أسعار وحالات الإشارات النشطة ضمن نافذة أوسع لتفادي تراكم الصفقات القديمة."""
+    import sqlite3
+
+    stats = {
+        'processed': 0,
+        'changed': 0,
+        'prices_updated': 0,
+        'lookback_days': max(1, int(lookback_days or ACTIVE_SIGNAL_STATUS_LOOKBACK_DAYS))
+    }
+    price_cache = {}
+    conn = None
+
+    try:
+        start_date = (datetime.now() - timedelta(days=stats['lookback_days'])).strftime('%Y-%m-%d')
+        conn = sqlite3.connect('vip_signals.db', timeout=30)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('PRAGMA busy_timeout = 30000')
+        c.execute('''
+            SELECT signal_id, symbol, signal_type, entry_price, stop_loss,
+                   take_profit_1, take_profit_2, take_profit_3,
+                   tp1_locked, tp2_locked, tp3_locked
+            FROM signals
+            WHERE status = 'active'
+              AND DATE(created_at) >= ?
+            ORDER BY created_at DESC
+        ''', (start_date,))
+        rows = c.fetchall()
+
+        for row in rows:
+            symbol = _normalize_symbol_key(row['symbol'])
+            if symbol not in price_cache:
+                price_cache[symbol] = get_live_price(symbol)
+            current_price = price_cache.get(symbol)
+            if not current_price:
+                continue
+
+            stats['processed'] += 1
+            stats['prices_updated'] += 1
+            c.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
+
+            signal_type = _normalize_signal_type(row['signal_type'])
+            entry = float(row['entry_price'] or 0)
+            sl = float(row['stop_loss'] or 0)
+            tp1 = float(row['take_profit_1'] or 0)
+            tp2 = float(row['take_profit_2'] or 0)
+            tp3 = float(row['take_profit_3'] or 0)
+            tp1_locked = int(row['tp1_locked'] or 0)
+            tp2_locked = int(row['tp2_locked'] or 0)
+            tp3_locked = int(row['tp3_locked'] or 0)
+
+            if signal_type == 'buy':
+                if current_price <= sl:
+                    sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                    c.execute('''
+                        UPDATE signals
+                        SET status='closed', result=?, close_price=?
+                        WHERE signal_id=?
+                    ''', (sl_outcome, current_price, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price >= tp3 and not tp3_locked:
+                    c.execute('''
+                        UPDATE signals
+                        SET status='closed', result='win', close_price=?,
+                            tp1_locked=1, tp2_locked=1, tp3_locked=1
+                        WHERE signal_id=?
+                    ''', (current_price, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price >= tp2 and not tp2_locked:
+                    current_sl = sl if sl > 0 else entry
+                    new_sl = max(current_sl, tp1 or entry)
+                    c.execute('''
+                        UPDATE signals
+                        SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
+                        WHERE signal_id=?
+                    ''', (new_sl, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price >= tp1 and not tp1_locked:
+                    current_sl = sl if sl > 0 else entry
+                    new_sl = max(current_sl, entry)
+                    c.execute('''
+                        UPDATE signals
+                        SET result='win', tp1_locked=1, stop_loss=?
+                        WHERE signal_id=?
+                    ''', (new_sl, row['signal_id']))
+                    stats['changed'] += 1
+            else:
+                if current_price >= sl:
+                    sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
+                    c.execute('''
+                        UPDATE signals
+                        SET status='closed', result=?, close_price=?
+                        WHERE signal_id=?
+                    ''', (sl_outcome, current_price, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price <= tp3 and not tp3_locked:
+                    c.execute('''
+                        UPDATE signals
+                        SET status='closed', result='win', close_price=?,
+                            tp1_locked=1, tp2_locked=1, tp3_locked=1
+                        WHERE signal_id=?
+                    ''', (current_price, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price <= tp2 and not tp2_locked:
+                    current_sl = sl if sl > 0 else entry
+                    new_sl = min(current_sl, tp1 or entry)
+                    c.execute('''
+                        UPDATE signals
+                        SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
+                        WHERE signal_id=?
+                    ''', (new_sl, row['signal_id']))
+                    stats['changed'] += 1
+                elif current_price <= tp1 and not tp1_locked:
+                    current_sl = sl if sl > 0 else entry
+                    new_sl = min(current_sl, entry)
+                    c.execute('''
+                        UPDATE signals
+                        SET result='win', tp1_locked=1, stop_loss=?
+                        WHERE signal_id=?
+                    ''', (new_sl, row['signal_id']))
+                    stats['changed'] += 1
+
+        conn.commit()
+        return stats
+    except Exception:
+        return stats
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
 def load_signals(include_closed=False):
     """تحميل الإشارات من قاعدة البيانات مع الأسعار الحالية والنتائج"""
     import sqlite3
@@ -3727,6 +3956,7 @@ def load_signals(include_closed=False):
 
     # بروتوكول التنظيف قبل فتح اتصال القراءة لتجنب تعارض قفل قاعدة البيانات
     _run_cleanup_protocol_once()
+    _refresh_active_signal_statuses()
     
     try:
         conn = sqlite3.connect('vip_signals.db')
@@ -3765,7 +3995,7 @@ def load_signals(include_closed=False):
 
         for row in rows:
             symbol = _normalize_symbol_key(row['symbol'])
-            signal_type = row['signal_type']
+            signal_type = _normalize_signal_type(row['signal_type'])
             entry = row['entry_price']
             sl = row['stop_loss']
             tp1 = row['take_profit_1']
@@ -4553,6 +4783,20 @@ def tutorials():
         user=user_info,
         is_admin=user_info.get('is_admin', False)
     )
+
+
+@app.route('/tutorials/video/<path:filename>')
+@login_required
+def tutorial_video_file(filename):
+    """تقديم فيديوهات الشروحات من التخزين الدائم للمستخدمين المسجلين فقط."""
+    safe_name = secure_filename(filename or '')
+    if not safe_name or safe_name != (filename or ''):
+        abort(404)
+    ensure_tutorial_storage()
+    file_path = TUTORIAL_UPLOAD_DIR / safe_name
+    if not file_path.exists() or not file_path.is_file():
+        abort(404)
+    return send_from_directory(TUTORIAL_UPLOAD_DIR, safe_name, conditional=True)
 
 
 @app.route('/admin/tutorials/upload', methods=['POST'])
@@ -8011,21 +8255,22 @@ def api_update_prices():
         c = conn.cursor()
         c.execute('PRAGMA busy_timeout = 30000')
         
-        today = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=SIGNALS_LOOKBACK_DAYS)).strftime('%Y-%m-%d')
         c.execute('''
             SELECT signal_id, symbol, signal_type, entry_price, stop_loss, 
                    take_profit_1, take_profit_2, take_profit_3, status
             FROM signals 
             WHERE DATE(created_at) >= ? AND status = 'active'
             ORDER BY created_at DESC
-        ''', (today,))
+            LIMIT 200
+        ''', (start_date,))
         
         rows = c.fetchall()
         signals_data = []
         
         for row in rows:
             symbol = row['symbol']
-            signal_type = row['signal_type']
+            signal_type = _normalize_signal_type(row['signal_type'])
             entry = row['entry_price']
             tp1 = row['take_profit_1']
             
@@ -8103,142 +8348,17 @@ def api_update_prices():
 @app.route('/api/update_status')
 def api_update_status():
     """API للتحقق من تغيير الحالات"""
-    import sqlite3
-    
     try:
-        conn = sqlite3.connect('vip_signals.db')
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        
-        today = datetime.now().strftime('%Y-%m-%d')
-        c.execute('''
-            SELECT signal_id, symbol, signal_type, entry_price, stop_loss, 
-                   take_profit_1, take_profit_2, take_profit_3, status,
-                   tp1_locked, tp2_locked, tp3_locked
-            FROM signals 
-            WHERE DATE(created_at) >= ? AND status = 'active'
-        ''', (today,))
-        
-        rows = c.fetchall()
-        needs_refresh = False
-        
-        for row in rows:
-            try:
-                symbol = row['symbol']
-                signal_type = row['signal_type']
-                entry = row['entry_price']
-                sl = row['stop_loss']
-                tp1 = row['take_profit_1']
-                tp2 = row['take_profit_2']
-                tp3 = row['take_profit_3']
-                tp1_locked = row['tp1_locked'] if 'tp1_locked' in row.keys() else 0
-                tp2_locked = row['tp2_locked'] if 'tp2_locked' in row.keys() else 0
-                tp3_locked = row['tp3_locked'] if 'tp3_locked' in row.keys() else 0
-                
-                # استخدام الدالة المحسنة
-                current_price = get_live_price(symbol)
-                
-                if current_price:
-                    # فحص التغييرات في الحالة
-                    if signal_type == 'buy':
-                        # فحص SL
-                        if current_price <= sl:
-                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                            needs_refresh = True
-                            c.execute('''
-                                UPDATE signals 
-                                SET status='closed', result=?, close_price=? 
-                                WHERE signal_id=?
-                            ''', (sl_outcome, current_price, row['signal_id']))
-                        # فحص TP3
-                        elif current_price >= tp3 and not tp3_locked:
-                            needs_refresh = True
-                            c.execute('''
-                                UPDATE signals 
-                                SET status='closed', result='win', close_price=?,
-                                    tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                WHERE signal_id=?
-                            ''', (current_price, row['signal_id']))
-                        # فحص TP2
-                        elif current_price >= tp2 and not tp2_locked:
-                            needs_refresh = True
-                            current_sl = float(sl or entry or 0)
-                            if current_sl <= 0:
-                                current_sl = float(entry or 0)
-                            new_sl = max(current_sl, float(tp1 or entry or 0))
-                            c.execute('''
-                                UPDATE signals 
-                                SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                                WHERE signal_id=?
-                            ''', (new_sl, row['signal_id']))
-                        # فحص TP1
-                        elif current_price >= tp1 and not tp1_locked:
-                            needs_refresh = True
-                            current_sl = float(sl or entry or 0)
-                            if current_sl <= 0:
-                                current_sl = float(entry or 0)
-                            new_sl = max(current_sl, float(entry or 0))
-                            c.execute('''
-                                UPDATE signals 
-                                SET result='win', tp1_locked=1, stop_loss=?
-                                WHERE signal_id=?
-                            ''', (new_sl, row['signal_id']))
-                    else:  # sell
-                        # فحص SL
-                        if current_price >= sl:
-                            sl_outcome = 'win' if (tp1_locked or tp2_locked or tp3_locked) else 'loss'
-                            needs_refresh = True
-                            c.execute('''
-                                UPDATE signals 
-                                SET status='closed', result=?, close_price=? 
-                                WHERE signal_id=?
-                            ''', (sl_outcome, current_price, row['signal_id']))
-                        # فحص TP3
-                        elif current_price <= tp3 and not tp3_locked:
-                            needs_refresh = True
-                            c.execute('''
-                                UPDATE signals 
-                                SET status='closed', result='win', close_price=?,
-                                    tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                WHERE signal_id=?
-                            ''', (current_price, row['signal_id']))
-                        # فحص TP2
-                        elif current_price <= tp2 and not tp2_locked:
-                            needs_refresh = True
-                            current_sl = float(sl or entry or 0)
-                            if current_sl <= 0:
-                                current_sl = float(entry or 0)
-                            new_sl = min(current_sl, float(tp1 or entry or 0))
-                            c.execute('''
-                                UPDATE signals 
-                                SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                                WHERE signal_id=?
-                            ''', (new_sl, row['signal_id']))
-                        # فحص TP1
-                        elif current_price <= tp1 and not tp1_locked:
-                            needs_refresh = True
-                            current_sl = float(sl or entry or 0)
-                            if current_sl <= 0:
-                                current_sl = float(entry or 0)
-                            new_sl = min(current_sl, float(entry or 0))
-                            c.execute('''
-                                UPDATE signals 
-                                SET result='win', tp1_locked=1, stop_loss=?
-                                WHERE signal_id=?
-                            ''', (new_sl, row['signal_id']))
-            except Exception as e:
-                print(f"Error checking status for {symbol}: {e}")
-                continue
-        
-        conn.commit()
-        conn.close()
+        refresh_stats = _refresh_active_signal_statuses()
 
         cleaned_count = archive_and_cleanup_closed_signals()
         
         return jsonify({
             'success': True,
-            'needs_refresh': needs_refresh,
-            'cleaned_closed_trades': cleaned_count
+            'needs_refresh': bool(refresh_stats.get('changed')),
+            'cleaned_closed_trades': cleaned_count,
+            'refreshed_active_signals': refresh_stats.get('processed', 0),
+            'updated_active_signals': refresh_stats.get('changed', 0)
         })
         
     except Exception as e:

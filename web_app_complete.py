@@ -857,6 +857,9 @@ CONTINUOUS_ANALYZER_STATE = {
     'last_failed_count': 0,
     'last_no_signal_count': 0,
     'last_failed_symbols': [],
+    'last_rejection_reasons': {},
+    'last_rejection_samples': [],
+    'last_active_signals_count': 0,
     'last_new_signals': 0,
     'last_deduplicated': 0,
     'total_generated': 0,
@@ -2181,8 +2184,20 @@ def _ensure_signal_payload_persisted(signal_payload, default_timeframe='1h'):
         return None
 
 
-def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
+def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return_diagnostics=False):
     """تحليل رمز واحد وتوليد إشارة إذا كانت صالحة وغير مكررة."""
+    def _reject(reason, **extra):
+        if not return_diagnostics:
+            return None
+        payload = {
+            'ok': False,
+            'symbol': str(symbol or '').upper().replace('/', ''),
+            'interval': interval,
+            'reason': reason
+        }
+        payload.update(extra)
+        return payload
+
     try:
         from advanced_analyzer_engine import perform_full_analysis  # type: ignore
     except ImportError:
@@ -2197,16 +2212,24 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
     result = perform_full_analysis(engine_symbol, interval, force_live=force_live)
 
     if not result or not result.get('success'):
-        return None
+        return _reject('analysis_failed', error=None if not result else result.get('error'))
 
     recommendation = result.get('recommendation', result.get('signal', ''))
     signal_type = _extract_signal_type(recommendation)
     if not signal_type:
-        return None
+        return _reject(
+            'neutral_recommendation',
+            recommendation=recommendation,
+            confidence=result.get('confidence'),
+            buy_score=result.get('buy_score'),
+            sell_score=result.get('sell_score'),
+            score_gap=result.get('score_gap'),
+            volatility=result.get('volatility')
+        )
 
     entry_price = result.get('entry_point')
     if entry_price in (None, 0):
-        return None
+        return _reject('missing_entry_price', recommendation=recommendation, signal_type=signal_type)
 
     stop_loss = float(result.get('stop_loss') or 0)
     take_profit_1 = float(result.get('take_profit1') or 0)
@@ -2215,14 +2238,39 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
     entry_price = float(entry_price)
 
     if stop_loss <= 0 or take_profit_1 <= 0 or take_profit_2 <= 0 or take_profit_3 <= 0:
-        return None
+        return _reject(
+            'invalid_levels',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            take_profit_1=take_profit_1,
+            take_profit_2=take_profit_2,
+            take_profit_3=take_profit_3
+        )
 
     if signal_type == 'buy':
         if not (stop_loss < entry_price < take_profit_1 <= take_profit_2 <= take_profit_3):
-            return None
+            return _reject(
+                'buy_structure_invalid',
+                recommendation=recommendation,
+                entry_price=entry_price,
+                stop_loss=stop_loss,
+                take_profit_1=take_profit_1,
+                take_profit_2=take_profit_2,
+                take_profit_3=take_profit_3
+            )
     elif signal_type == 'sell':
         if not (stop_loss > entry_price > take_profit_1 >= take_profit_2 >= take_profit_3):
-            return None
+            return _reject(
+                'sell_structure_invalid',
+                recommendation=recommendation,
+                entry_price=entry_price,
+                stop_loss=stop_loss,
+                take_profit_1=take_profit_1,
+                take_profit_2=take_profit_2,
+                take_profit_3=take_profit_3
+            )
 
     normalized_symbol = symbol.upper().replace('/', '')
     adaptive_thresholds = _get_adaptive_thresholds(normalized_symbol, interval)
@@ -2249,23 +2297,68 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
         effective_min_rr = min(effective_min_rr, float(CRITICAL_SIGNAL_MIN_RR))
         effective_max_volatility = max(effective_max_volatility, float(CRITICAL_SIGNAL_MAX_VOLATILITY))
 
+    adaptive_mode = (
+        'critical_relaxed' if critical_relaxed_mode else
+        'relaxed_empty' if relaxed_mode else
+        adaptive_thresholds.get('mode')
+    )
+
     rr_tp1 = _compute_risk_reward(entry_price, stop_loss, take_profit_1)
     if rr_tp1 < effective_min_rr:
-        return None
+        return _reject(
+            'rr_below_threshold',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            quality_score=_calculate_quality_score(result),
+            rr_tp1=rr_tp1,
+            effective_min_rr=effective_min_rr,
+            adaptive_mode=adaptive_mode,
+            active_signals_now=active_signals_now
+        )
 
     quality_score = _calculate_quality_score(result)
     if quality_score < effective_min_quality:
-        return None
+        return _reject(
+            'quality_below_threshold',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            quality_score=quality_score,
+            effective_min_quality=effective_min_quality,
+            rr_tp1=rr_tp1,
+            adaptive_mode=adaptive_mode,
+            active_signals_now=active_signals_now,
+            confidence=result.get('confidence'),
+            buy_score=result.get('buy_score'),
+            sell_score=result.get('sell_score'),
+            score_gap=result.get('score_gap')
+        )
 
     try:
         volatility = float(result.get('volatility') or 0)
     except Exception:
         volatility = 0.0
     if volatility > effective_max_volatility and quality_score < 90:
-        return None
+        return _reject(
+            'volatility_above_threshold',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            quality_score=quality_score,
+            volatility=volatility,
+            effective_max_volatility=effective_max_volatility,
+            adaptive_mode=adaptive_mode,
+            active_signals_now=active_signals_now
+        )
 
     if _signal_exists_recently(normalized_symbol, signal_type, interval, entry_price):
-        return None
+        return _reject(
+            'duplicate_recent_signal',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            quality_score=quality_score,
+            rr_tp1=rr_tp1,
+            adaptive_mode=adaptive_mode,
+            active_signals_now=active_signals_now
+        )
 
     signal_row = {
         'symbol': normalized_symbol,
@@ -2282,11 +2375,7 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
         'confidence': str(result.get('confidence') or ''),
         'score_gap': float(result.get('score_gap') or 0),
         'volatility': volatility,
-        'adaptive_mode': (
-            'critical_relaxed' if critical_relaxed_mode else
-            'relaxed_empty' if relaxed_mode else
-            adaptive_thresholds.get('mode')
-        ),
+        'adaptive_mode': adaptive_mode,
         'adaptive_min_quality_score': effective_min_quality,
         'adaptive_min_rr': effective_min_rr,
         'adaptive_max_volatility': effective_max_volatility,
@@ -2302,6 +2391,19 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False):
     signal_row['tp2'] = signal_row['take_profit_2']
     signal_row['tp3'] = signal_row['take_profit_3']
     signal_row['entry'] = signal_row['entry_price']
+    if return_diagnostics:
+        return {
+            'ok': True,
+            'reason': 'generated',
+            'symbol': normalized_symbol,
+            'interval': interval,
+            'signal': signal_row,
+            'quality_score': quality_score,
+            'rr_tp1': rr_tp1,
+            'volatility': volatility,
+            'active_signals_now': active_signals_now,
+            'adaptive_mode': adaptive_mode
+        }
     return signal_row
 
 
@@ -2375,6 +2477,8 @@ def _continuous_analyzer_loop():
         deduplicated_count = 0
         failed_symbols = []
         no_signal_count = 0
+        rejection_reasons = {}
+        rejection_samples = []
 
         try:
             _refresh_active_signal_statuses()
@@ -2385,10 +2489,27 @@ def _continuous_analyzer_loop():
 
                 try:
                     analyzed_count += 1
-                    signal_data = _analyze_and_generate_signal(symbol, interval='1h')
-                    if not signal_data:
+                    analysis_outcome = _analyze_and_generate_signal(symbol, interval='1h', return_diagnostics=True)
+                    if not analysis_outcome or not analysis_outcome.get('ok'):
                         no_signal_count += 1
+                        reason = str((analysis_outcome or {}).get('reason') or 'no_signal')
+                        rejection_reasons[reason] = int(rejection_reasons.get(reason, 0) or 0) + 1
+                        if len(rejection_samples) < 8:
+                            rejection_samples.append({
+                                'symbol': symbol,
+                                'reason': reason,
+                                'recommendation': (analysis_outcome or {}).get('recommendation'),
+                                'quality_score': (analysis_outcome or {}).get('quality_score'),
+                                'effective_min_quality': (analysis_outcome or {}).get('effective_min_quality'),
+                                'rr_tp1': (analysis_outcome or {}).get('rr_tp1'),
+                                'effective_min_rr': (analysis_outcome or {}).get('effective_min_rr'),
+                                'volatility': (analysis_outcome or {}).get('volatility'),
+                                'effective_max_volatility': (analysis_outcome or {}).get('effective_max_volatility'),
+                                'adaptive_mode': (analysis_outcome or {}).get('adaptive_mode'),
+                                'active_signals_now': (analysis_outcome or {}).get('active_signals_now')
+                            })
                         continue
+                    signal_data = analysis_outcome.get('signal') or {}
 
                     generated_count += 1
                     send_result = telegram_sender.send_signal_to_subscribers(
@@ -2429,6 +2550,9 @@ def _continuous_analyzer_loop():
             CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
             CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
             CONTINUOUS_ANALYZER_STATE['last_failed_symbols'] = failed_symbols[:8]
+            CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = rejection_reasons
+            CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = rejection_samples
+            CONTINUOUS_ANALYZER_STATE['last_active_signals_count'] = _count_current_active_signals()
             CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
             CONTINUOUS_ANALYZER_STATE['last_deduplicated'] = deduplicated_count
             CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
@@ -2439,6 +2563,8 @@ def _continuous_analyzer_loop():
             CONTINUOUS_ANALYZER_STATE['last_failed_count'] = len(failed_symbols)
             CONTINUOUS_ANALYZER_STATE['last_no_signal_count'] = no_signal_count
             CONTINUOUS_ANALYZER_STATE['last_failed_symbols'] = failed_symbols[:8]
+            CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = rejection_reasons
+            CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = rejection_samples
             CONTINUOUS_ANALYZER_STATE['last_error'] = str(e)
 
         sleep_seconds = int(CONTINUOUS_ANALYZER_STATE.get('interval_seconds', 300))
@@ -2459,6 +2585,8 @@ def start_continuous_analyzer(interval_seconds=300):
         CONTINUOUS_ANALYZER_STATE['running'] = True
         CONTINUOUS_ANALYZER_STATE['started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         CONTINUOUS_ANALYZER_STATE['last_cycle_started_at'] = None
+        CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = {}
+        CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = []
         CONTINUOUS_ANALYZER_THREAD = threading.Thread(target=_continuous_analyzer_loop, daemon=True)
         CONTINUOUS_ANALYZER_THREAD.start()
         return True, 'تم تشغيل خدمة التحليل المستمر'
@@ -2483,6 +2611,7 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
     broadcast_count = 0
     analyzed_count = 0
     failed_count = 0
+    rejection_reasons = {}
     details = []
 
     try:
@@ -2494,7 +2623,7 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
         analyzed_count += 1
         item = {'symbol': symbol, 'generated': False, 'source': None, 'error': None}
         try:
-            signal_data = _analyze_and_generate_signal(symbol, interval=interval, force_live=force_live)
+            analysis_outcome = _analyze_and_generate_signal(symbol, interval=interval, force_live=force_live, return_diagnostics=True)
 
             if callable(get_last_fetch_metadata):
                 try:
@@ -2505,12 +2634,23 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
                 except Exception:
                     pass
 
-            if not signal_data:
+            if not analysis_outcome or not analysis_outcome.get('ok'):
+                item['reason'] = str((analysis_outcome or {}).get('reason') or 'no_signal')
+                rejection_reasons[item['reason']] = int(rejection_reasons.get(item['reason'], 0) or 0) + 1
+                item['quality_score'] = (analysis_outcome or {}).get('quality_score')
+                item['effective_min_quality'] = (analysis_outcome or {}).get('effective_min_quality')
+                item['rr_tp1'] = (analysis_outcome or {}).get('rr_tp1')
+                item['effective_min_rr'] = (analysis_outcome or {}).get('effective_min_rr')
+                item['volatility'] = (analysis_outcome or {}).get('volatility')
+                item['effective_max_volatility'] = (analysis_outcome or {}).get('effective_max_volatility')
+                item['adaptive_mode'] = (analysis_outcome or {}).get('adaptive_mode')
                 details.append(item)
                 continue
+            signal_data = analysis_outcome.get('signal') or {}
 
             generated_count += 1
             item['generated'] = True
+            item['reason'] = 'generated'
 
             send_result = telegram_sender.send_signal_to_subscribers(
                 signal_data,
@@ -2537,6 +2677,22 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
         f"{item.get('symbol')}:{item.get('error')}"
         for item in details if item.get('error')
     ][:8]
+    CONTINUOUS_ANALYZER_STATE['last_rejection_reasons'] = rejection_reasons
+    CONTINUOUS_ANALYZER_STATE['last_rejection_samples'] = [
+        {
+            'symbol': item.get('symbol'),
+            'reason': item.get('reason'),
+            'quality_score': item.get('quality_score'),
+            'effective_min_quality': item.get('effective_min_quality'),
+            'rr_tp1': item.get('rr_tp1'),
+            'effective_min_rr': item.get('effective_min_rr'),
+            'volatility': item.get('volatility'),
+            'effective_max_volatility': item.get('effective_max_volatility'),
+            'adaptive_mode': item.get('adaptive_mode')
+        }
+        for item in details if not item.get('generated')
+    ][:8]
+    CONTINUOUS_ANALYZER_STATE['last_active_signals_count'] = _count_current_active_signals()
     CONTINUOUS_ANALYZER_STATE['last_new_signals'] = generated_count
     CONTINUOUS_ANALYZER_STATE['total_generated'] += generated_count
     CONTINUOUS_ANALYZER_STATE['total_broadcasted'] += broadcast_count

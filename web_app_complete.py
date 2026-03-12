@@ -846,6 +846,8 @@ CRITICAL_SIGNAL_RELAX_IF_ACTIVE_COUNT_LE = max(0, int(os.environ.get('CRITICAL_S
 CRITICAL_SIGNAL_MIN_QUALITY = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY', '35'))
 CRITICAL_SIGNAL_MIN_RR = float(os.environ.get('CRITICAL_SIGNAL_MIN_RR', '0.75'))
 CRITICAL_SIGNAL_MAX_VOLATILITY = float(os.environ.get('CRITICAL_SIGNAL_MAX_VOLATILITY', '9.5'))
+CRITICAL_SIGNAL_STRONG_RR_TRIGGER = float(os.environ.get('CRITICAL_SIGNAL_STRONG_RR_TRIGGER', '1.35'))
+CRITICAL_SIGNAL_MIN_QUALITY_STRONG_RR = int(os.environ.get('CRITICAL_SIGNAL_MIN_QUALITY_STRONG_RR', '34'))
 
 CONTINUOUS_ANALYZER_STATE = {
     'running': False,
@@ -2350,6 +2352,9 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             active_signals_now=active_signals_now
         )
 
+    if critical_relaxed_mode and rr_tp1 >= float(CRITICAL_SIGNAL_STRONG_RR_TRIGGER):
+        effective_min_quality = min(effective_min_quality, int(CRITICAL_SIGNAL_MIN_QUALITY_STRONG_RR))
+
     quality_score = _calculate_quality_score(result)
     if quality_score < effective_min_quality:
         return _reject(
@@ -2359,6 +2364,8 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             quality_score=quality_score,
             effective_min_quality=effective_min_quality,
             rr_tp1=rr_tp1,
+            effective_min_rr=effective_min_rr,
+            effective_max_volatility=effective_max_volatility,
             adaptive_mode=adaptive_mode,
             active_signals_now=active_signals_now,
             confidence=result.get('confidence'),

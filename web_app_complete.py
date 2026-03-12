@@ -864,13 +864,14 @@ HIGH_FREQUENCY_ANALYZER_SYMBOLS = {
     if _normalize_symbol_key(symbol)
 }
 HIGH_FREQUENCY_ANALYZER_INTERVALS = _parse_analyzer_intervals(
-    os.environ.get('HIGH_FREQUENCY_ANALYZER_INTERVALS', '30min'),
-    ['30min']
+    os.environ.get('HIGH_FREQUENCY_ANALYZER_INTERVALS', '30min,1h'),
+    ['30min', '1h']
 )
 DEFAULT_ANALYZER_INTERVALS = _parse_analyzer_intervals(
     os.environ.get('DEFAULT_ANALYZER_INTERVALS', '1h'),
     ['1h']
 )
+ANALYZER_MAX_INTERVALS_PER_SYMBOL = max(1, min(3, int(os.environ.get('ANALYZER_MAX_INTERVALS_PER_SYMBOL', '2'))))
 ANALYZER_ENABLE_INTERVAL_FALLBACK = os.environ.get('ANALYZER_ENABLE_INTERVAL_FALLBACK', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 ANALYZER_FALLBACK_INTERVALS = _parse_analyzer_intervals(
     os.environ.get('ANALYZER_FALLBACK_INTERVALS', '1h'),
@@ -1670,13 +1671,30 @@ def _resolve_intervals_for_symbol(symbol):
         base_intervals = list(DEFAULT_ANALYZER_INTERVALS)
 
     if not ANALYZER_ENABLE_INTERVAL_FALLBACK:
-        return base_intervals[:1] if base_intervals else ['1h']
+        return base_intervals[:ANALYZER_MAX_INTERVALS_PER_SYMBOL] if base_intervals else ['1h']
 
     merged = []
     for interval in list(base_intervals) + list(ANALYZER_FALLBACK_INTERVALS):
         if interval not in merged:
             merged.append(interval)
-    return merged[:3] if merged else ['1h']
+    return merged[:ANALYZER_MAX_INTERVALS_PER_SYMBOL] if merged else ['1h']
+
+
+def _analysis_outcome_score(item):
+    if not isinstance(item, dict):
+        return (-9999.0, -9999.0, -9999.0, -9999.0)
+
+    quality_score = float(item.get('quality_score') or 0)
+    rr_tp1 = float(item.get('rr_tp1') or 0)
+    volatility = float(item.get('volatility') or 0)
+    effective_min_quality = float(item.get('effective_min_quality') or MIN_SIGNAL_QUALITY_SCORE)
+    effective_min_rr = float(item.get('effective_min_rr') or MIN_SIGNAL_RR)
+    effective_max_volatility = float(item.get('effective_max_volatility') or MAX_SIGNAL_VOLATILITY)
+    quality_margin = quality_score - effective_min_quality
+    rr_margin = rr_tp1 - effective_min_rr
+    volatility_headroom = effective_max_volatility - volatility
+    score_gap = float(item.get('score_gap') or 0)
+    return (quality_margin, rr_margin, volatility_headroom, score_gap)
 
 
 def _select_preferred_analysis_outcome(outcomes):
@@ -1684,25 +1702,29 @@ def _select_preferred_analysis_outcome(outcomes):
     if not valid_outcomes:
         return None
 
-    generated = next((item for item in valid_outcomes if item.get('ok')), None)
+    generated = [item for item in valid_outcomes if item.get('ok')]
     if generated:
-        return generated
+        return max(generated, key=_analysis_outcome_score)
 
-    duplicate = next((item for item in valid_outcomes if item.get('reason') == 'duplicate_recent_signal'), None)
-    if duplicate:
-        return duplicate
+    duplicates = [item for item in valid_outcomes if item.get('reason') == 'duplicate_recent_signal']
+    if duplicates:
+        return max(duplicates, key=_analysis_outcome_score)
+
+    active_existing = [item for item in valid_outcomes if item.get('reason') == 'active_signal_exists']
+    if active_existing:
+        return max(active_existing, key=_analysis_outcome_score)
 
     def _sort_key(item):
         reason_rank = {
+            'active_signal_exists': 0,
             'quality_below_threshold': 0,
             'volatility_above_threshold': 1,
             'rr_below_threshold': 2,
             'neutral_recommendation': 3,
             'analysis_failed': 4,
         }.get(str(item.get('reason') or ''), 9)
-        quality_score = float(item.get('quality_score') or 0)
-        rr_tp1 = float(item.get('rr_tp1') or 0)
-        return (reason_rank, -quality_score, -rr_tp1)
+        quality_margin, rr_margin, volatility_headroom, score_gap = _analysis_outcome_score(item)
+        return (reason_rank, -quality_margin, -rr_margin, -volatility_headroom, -score_gap)
 
     return sorted(valid_outcomes, key=_sort_key)[0]
 
@@ -1835,7 +1857,7 @@ def _deduplicate_signals_continuously():
                   SELECT MAX(signal_id)
                   FROM signals
                   WHERE status = 'active'
-                  GROUP BY symbol, COALESCE(timeframe, '1h')
+                  GROUP BY symbol
               )
         ''')
 
@@ -2037,6 +2059,28 @@ def _signal_exists_recently(symbol, signal_type, timeframe, entry_price):
     return exists
 
 
+def _has_active_signal_for_symbol(symbol):
+    normalized_symbol = _normalize_symbol_key(symbol)
+    if not normalized_symbol:
+        return False
+
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        c.execute('''
+            SELECT 1
+            FROM signals
+            WHERE symbol = ?
+              AND status = 'active'
+            LIMIT 1
+        ''', (normalized_symbol,))
+        exists = c.fetchone() is not None
+        conn.close()
+        return exists
+    except Exception:
+        return False
+
+
 def _get_adaptive_thresholds(symbol, timeframe='1h'):
     """ضبط حدود الاختيار تلقائياً حسب أداء الزوج/الفريم في الصفقات المغلقة."""
     adaptive = {
@@ -2231,10 +2275,9 @@ def _insert_generated_signal(signal_row):
         c.execute('''
             DELETE FROM signals
             WHERE symbol = ?
-              AND COALESCE(timeframe, '1h') = ?
               AND status = 'active'
               AND signal_id <> ?
-        ''', (signal_row['symbol'], signal_row['timeframe'], signal_id))
+                ''', (signal_row['symbol'], signal_id))
         conn.commit()
         conn.close()
         return signal_id
@@ -2301,6 +2344,9 @@ def _ensure_signal_payload_persisted(signal_payload, default_timeframe='1h'):
                 tp3 = round(entry * 0.991, 6)
 
         quality_score = int(payload.get('quality_score') or 75)
+
+        if _has_active_signal_for_symbol(symbol):
+            return None
 
         if _signal_exists_recently(symbol, signal_type, timeframe, entry):
             return None
@@ -2453,6 +2499,7 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             effective_min_quality=effective_min_quality,
             effective_min_rr=effective_min_rr,
             effective_max_volatility=effective_max_volatility,
+            score_gap=result.get('score_gap'),
             adaptive_mode=adaptive_mode,
             active_signals_now=active_signals_now
         )
@@ -2489,8 +2536,28 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             recommendation=recommendation,
             signal_type=signal_type,
             quality_score=quality_score,
+            rr_tp1=rr_tp1,
             volatility=volatility,
             effective_max_volatility=effective_max_volatility,
+            effective_min_quality=effective_min_quality,
+            effective_min_rr=effective_min_rr,
+            score_gap=result.get('score_gap'),
+            adaptive_mode=adaptive_mode,
+            active_signals_now=active_signals_now
+        )
+
+    if _has_active_signal_for_symbol(normalized_symbol):
+        return _reject(
+            'active_signal_exists',
+            recommendation=recommendation,
+            signal_type=signal_type,
+            quality_score=quality_score,
+            rr_tp1=rr_tp1,
+            volatility=volatility,
+            effective_min_quality=effective_min_quality,
+            effective_min_rr=effective_min_rr,
+            effective_max_volatility=effective_max_volatility,
+            score_gap=result.get('score_gap'),
             adaptive_mode=adaptive_mode,
             active_signals_now=active_signals_now
         )
@@ -2502,6 +2569,11 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             signal_type=signal_type,
             quality_score=quality_score,
             rr_tp1=rr_tp1,
+            volatility=volatility,
+            effective_min_quality=effective_min_quality,
+            effective_min_rr=effective_min_rr,
+            effective_max_volatility=effective_max_volatility,
+            score_gap=result.get('score_gap'),
             adaptive_mode=adaptive_mode,
             active_signals_now=active_signals_now
         )
@@ -2547,6 +2619,10 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
             'quality_score': quality_score,
             'rr_tp1': rr_tp1,
             'volatility': volatility,
+            'effective_min_quality': effective_min_quality,
+            'effective_min_rr': effective_min_rr,
+            'effective_max_volatility': effective_max_volatility,
+            'score_gap': result.get('score_gap'),
             'active_signals_now': active_signals_now,
             'adaptive_mode': adaptive_mode
         }
@@ -2646,7 +2722,6 @@ def _continuous_analyzer_loop():
                 try:
                     analyzed_count += 1
                     interval_outcomes = []
-                    analysis_outcome = None
                     for interval in _resolve_intervals_for_symbol(symbol):
                         CONTINUOUS_ANALYZER_STATE['current_interval'] = interval
                         candidate_outcome = _analyze_and_generate_signal(symbol, interval=interval, return_diagnostics=True)
@@ -2654,12 +2729,8 @@ def _continuous_analyzer_loop():
                             candidate_outcome['symbol'] = symbol
                             candidate_outcome['interval'] = interval
                         interval_outcomes.append(candidate_outcome)
-                        if candidate_outcome and candidate_outcome.get('ok'):
-                            analysis_outcome = candidate_outcome
-                            break
 
-                    if analysis_outcome is None:
-                        analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
+                    analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
 
                     if not analysis_outcome or not analysis_outcome.get('ok'):
                         no_signal_count += 1
@@ -2816,19 +2887,14 @@ def _run_continuous_analyzer_once(interval='1h', max_symbols=None, force_live=Fa
         try:
             interval_candidates = _resolve_intervals_for_symbol(symbol) if interval == '1h' else [interval]
             interval_outcomes = []
-            analysis_outcome = None
             for candidate_interval in interval_candidates:
                 candidate_outcome = _analyze_and_generate_signal(symbol, interval=candidate_interval, force_live=force_live, return_diagnostics=True)
                 if isinstance(candidate_outcome, dict):
                     candidate_outcome['symbol'] = symbol
                     candidate_outcome['interval'] = candidate_interval
                 interval_outcomes.append(candidate_outcome)
-                if candidate_outcome and candidate_outcome.get('ok'):
-                    analysis_outcome = candidate_outcome
-                    break
 
-            if analysis_outcome is None:
-                analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
+            analysis_outcome = _select_preferred_analysis_outcome(interval_outcomes)
 
             if callable(get_last_fetch_metadata):
                 try:
@@ -4794,11 +4860,11 @@ def load_admin_recent_signals(limit=5):
 
 
 def _count_current_active_signals():
-    """عدّ الإشارات النشطة حالياً بغض النظر عن التاريخ."""
+    """عدّ الأزواج التي لديها إشارة نشطة حالياً بغض النظر عن التاريخ."""
     try:
         conn = sqlite3.connect('vip_signals.db')
         c = conn.cursor()
-        c.execute("SELECT COUNT(*) FROM signals WHERE status = 'active'")
+        c.execute("SELECT COUNT(DISTINCT symbol) FROM signals WHERE status = 'active'")
         count = int((c.fetchone() or [0])[0] or 0)
         conn.close()
         return count
@@ -4807,14 +4873,14 @@ def _count_current_active_signals():
 
 
 def _count_recent_active_signals(days=None):
-    """عدّ الإشارات النشطة ضمن نافذة العرض الحالية."""
+    """عدّ الأزواج ذات الإشارات النشطة ضمن نافذة العرض الحالية."""
     try:
         lookback_days = int(days if days is not None else SIGNALS_LOOKBACK_DAYS)
         lookback_days = max(1, lookback_days)
         start_date = (datetime.now() - timedelta(days=lookback_days)).strftime('%Y-%m-%d')
         conn = sqlite3.connect('vip_signals.db')
         c = conn.cursor()
-        c.execute("SELECT COUNT(*) FROM signals WHERE DATE(created_at) >= ? AND status = 'active'", (start_date,))
+        c.execute("SELECT COUNT(DISTINCT symbol) FROM signals WHERE DATE(created_at) >= ? AND status = 'active'", (start_date,))
         count = int((c.fetchone() or [0])[0] or 0)
         conn.close()
         return count
@@ -4823,13 +4889,13 @@ def _count_recent_active_signals(days=None):
 
 
 def count_active_signals_today():
-    """عدّ الإشارات النشطة بسرعة من قاعدة البيانات بدون تتبع أسعار."""
+    """عدّ الأزواج ذات الإشارات النشطة اليوم بسرعة من قاعدة البيانات بدون تتبع أسعار."""
     try:
         conn = sqlite3.connect('vip_signals.db')
         c = conn.cursor()
         today = datetime.now().strftime('%Y-%m-%d')
         c.execute('''
-            SELECT COUNT(*)
+            SELECT COUNT(DISTINCT symbol)
             FROM signals
             WHERE DATE(created_at) >= ?
               AND status = 'active'

@@ -65,18 +65,25 @@
                 const winners = summary.winners ?? 0;
                 const losers = summary.losers ?? 0;
                 const archived = summary.archived_closed_trades ?? 0;
+                const serverTotal = summary.server_total_trades ?? total;
 
                 const totalEl = document.getElementById('stat-total');
                 const activeEl = document.getElementById('stat-active');
                 const winnersEl = document.getElementById('stat-winners');
                 const losersEl = document.getElementById('stat-losers');
                 const archivedEl = document.getElementById('stat-archived');
+                const visibleNoteEl = document.getElementById('visible-signals-note');
 
                 if (totalEl) totalEl.textContent = total;
                 if (activeEl) activeEl.textContent = active;
                 if (winnersEl) winnersEl.textContent = winners;
                 if (losersEl) losersEl.textContent = losers;
                 if (archivedEl) archivedEl.textContent = archived;
+                if (visibleNoteEl) {
+                    visibleNoteEl.textContent = serverTotal > total
+                        ? `المعروض لك ${total} من أصل ${serverTotal} إشارة نشطة حسب خطتك أو الأزواج المختارة`
+                        : `المعروض لك ${total} إشارة نشطة`;
+                }
 
                 const winSet = new Set((data.closed_trades?.winners || []).map(t => `${t.pair}|${t.signal}`));
                 const lossSet = new Set((data.closed_trades?.losers || []).map(t => `${t.pair}|${t.signal}`));
@@ -306,16 +313,24 @@
     </h1>
 
     <div class="status-summary" id="status-summary">
-        <div class="stat"><div class="label">إجمالي الإشارات</div><div class="value" id="stat-total">0</div></div>
-        <div class="stat"><div class="label">نشطة</div><div class="value" id="stat-active">0</div></div>
+        <div class="stat"><div class="label">المعروض لك</div><div class="value" id="stat-total">{{ visible_signals_count or 0 }}</div></div>
+        <div class="stat"><div class="label">نشطة معروضة</div><div class="value" id="stat-active">{{ visible_signals_count or 0 }}</div></div>
         <div class="stat"><div class="label">رابحة</div><div class="value" id="stat-winners">0</div></div>
         <div class="stat"><div class="label">خاسرة</div><div class="value" id="stat-losers">0</div></div>
         <div class="stat"><div class="label">مؤرشفة</div><div class="value" id="stat-archived">0</div></div>
     </div>
+
+    <div id="visible-signals-note" style="margin: 0 0 14px; font-weight: 800; color: #6f5f35; text-align: center;">
+        {% if all_signals_count > visible_signals_count %}
+        المعروض لك {{ visible_signals_count }} من أصل {{ all_signals_count }} إشارة نشطة حسب خطتك أو الأزواج المختارة
+        {% else %}
+        المعروض لك {{ visible_signals_count }} إشارة نشطة
+        {% endif %}
+    </div>
     
     {% if is_admin %}
     <div class="admin-badge">
-        👑 أنت الأدمن - يمكنك رؤية جميع الإشارات ({{ signals|length }})
+        👑 أنت الأدمن - يمكنك رؤية جميع الإشارات ({{ visible_signals_count }})
     </div>
     {% endif %}
     

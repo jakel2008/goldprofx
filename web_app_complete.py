@@ -5072,6 +5072,7 @@ def signals():
     return render_template('signals_gold_card.html', 
                          signals=filtered_signals,
                          all_signals_count=len(signals),
+                         visible_signals_count=len(filtered_signals),
                          is_logged_in=True,
                          is_admin=user_info.get('is_admin', False),
                          user=user_info)
@@ -5096,7 +5097,9 @@ def trades():
 def api_trades_status():
     """API لمتابعة حالة الصفقات (نشطة/رابحة/خاسرة)"""
     try:
-        signals = load_signals(include_closed=False)
+        user_info = get_current_user()
+        all_signals = load_signals(include_closed=False)
+        signals = _filter_signals_for_user(all_signals, user_info)
 
         def calc_profit_percent(trade):
             try:
@@ -5174,7 +5177,9 @@ def api_trades_status():
                 'winners': len(winners),
                 'losers': len(losers),
                 'net_profit_percent': round(total_closed_profit, 2),
-                'archived_closed_trades': archived_count
+                'archived_closed_trades': archived_count,
+                'server_total_trades': len(all_signals),
+                'visible_trades': len(normalized)
             },
             'active_trades': active_trades[:100],
             'closed_trades': {

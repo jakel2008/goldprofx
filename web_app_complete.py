@@ -810,8 +810,10 @@ YF_FAILURE_UNTIL = {}
 LIVE_PRICE_CACHE_LOCK = threading.Lock()
 UPDATE_PRICES_LAST_PAYLOAD = {
     'signals': [],
-    'updated_at': None
+    'updated_at': None,
+    'updated_at_ts': 0.0
 }
+UPDATE_PRICES_CACHE_TTL_SECONDS = max(1, int(os.environ.get('UPDATE_PRICES_CACHE_TTL_SECONDS', '5')))
 
 CONTINUOUS_ANALYZER_SYMBOLS = [
     # Forex
@@ -4472,6 +4474,122 @@ def _refresh_active_signal_statuses(lookback_days=None):
             VIP_SIGNALS_DB_LOCK.release()
     except Exception:
         return stats
+
+
+def _build_signal_object_from_row(row):
+    symbol = _normalize_symbol_key(row['symbol'])
+    signal_type = _normalize_signal_type(row['signal_type'])
+    entry = float(row['entry_price'] or 0)
+    sl = float(row['stop_loss'] or 0)
+    tp1 = float(row['take_profit_1'] or 0)
+    tp2 = float(row['take_profit_2'] or 0)
+    tp3 = float(row['take_profit_3'] or 0)
+    status = row['status'] or 'pending'
+    result = row['result'] if 'result' in row.keys() else None
+    close_price = row['close_price'] if 'close_price' in row.keys() else None
+    current_price = row['current_price'] if 'current_price' in row.keys() else None
+    activated = row['activated'] if 'activated' in row.keys() else 0
+    tp1_locked = row['tp1_locked'] if 'tp1_locked' in row.keys() else 0
+    tp2_locked = row['tp2_locked'] if 'tp2_locked' in row.keys() else 0
+    tp3_locked = row['tp3_locked'] if 'tp3_locked' in row.keys() else 0
+
+    pips = 0
+    progress = 0
+    tp_levels_hit = int(tp1_locked or 0) + int(tp2_locked or 0) + int(tp3_locked or 0)
+    total_range = 0
+
+    try:
+        current_price_val = float(current_price) if current_price is not None else None
+    except Exception:
+        current_price_val = None
+
+    if current_price_val is not None:
+        if signal_type == 'buy':
+            pips = current_price_val - entry
+            total_range = tp1 - entry
+        else:
+            pips = entry - current_price_val
+            total_range = entry - tp1
+        if total_range != 0:
+            progress = int((pips / total_range) * 100)
+
+    return {
+        'signal_id': row['signal_id'],
+        'file': str(row['signal_id']),
+        'pair': symbol,
+        'symbol': symbol,
+        'signal': signal_type,
+        'signal_type': signal_type,
+        'rec': signal_type.upper(),
+        'entry': entry,
+        'entry_price': entry,
+        'sl': sl,
+        'stop_loss': sl,
+        'tp1': tp1,
+        'tp2': tp2,
+        'tp3': tp3,
+        'take_profit_1': tp1,
+        'take_profit_2': tp2,
+        'take_profit_3': tp3,
+        'quality_score': row['quality_score'],
+        'timeframe': row['timeframe'] or '5m',
+        'timestamp': row['created_at'],
+        'created_at': row['created_at'],
+        'status': status,
+        'result': result,
+        'current_price': current_price,
+        'current_price_updated_at': None,
+        'close_price': close_price,
+        'pips': pips,
+        'progress': progress,
+        'tp_levels_hit': tp_levels_hit,
+        'tp1_locked': tp1_locked,
+        'tp2_locked': tp2_locked,
+        'tp3_locked': tp3_locked,
+        'activated': activated,
+        'follow_up_status': (
+            'closed' if status == 'closed' else
+            'tp3_locked' if tp3_locked else
+            'tp2_locked' if tp2_locked else
+            'tp1_locked' if tp1_locked else
+            'active' if activated else
+            'pending'
+        )
+    }
+
+
+def load_signals_snapshot(include_closed=False, limit=50):
+    """تحميل خفيف للإشارات من قاعدة البيانات بدون تحديث أسعار حي أو تنظيف ثقيل."""
+    signals = []
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        start_date = (datetime.now() - timedelta(days=SIGNALS_LOOKBACK_DAYS)).strftime('%Y-%m-%d')
+        if include_closed:
+            c.execute('''
+                SELECT * FROM signals
+                WHERE DATE(created_at) >= ?
+                ORDER BY created_at DESC
+                LIMIT ?
+            ''', (start_date, int(limit or 50)))
+        else:
+            c.execute('''
+                SELECT * FROM signals
+                WHERE DATE(created_at) >= ?
+                  AND status = 'active'
+                ORDER BY created_at DESC
+                LIMIT ?
+            ''', (start_date, int(limit or 50)))
+        rows = c.fetchall()
+        conn.close()
+
+        for row in rows:
+            signals.append(_build_signal_object_from_row(row))
+    except Exception as e:
+        print(f"❌ خطأ في تحميل snapshot الإشارات: {e}")
+
+    return _deduplicate_signal_objects(signals)
 
 
 def load_signals(include_closed=False):

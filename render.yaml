@@ -29,6 +29,22 @@ services:
         value: "6"
       - key: LIVE_PRICE_FAIL_CACHE_TTL_SECONDS
         value: "4"
+      - key: PUBLIC_BASE_URL
+        value: "https://goldprofx.onrender.com"
+      - key: SMTP_ENABLED
+        value: "1"
+      - key: SMTP_SERVER
+        value: "smtp.gmail.com"
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_TIMEOUT_SECONDS
+        value: "20"
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
       - key: MM_TELEGRAM_BOT_TOKEN
         sync: false
       - key: MM_TELEGRAM_CHAT_ID

@@ -31,6 +31,13 @@ class EmailService:
         self.smtp_password = os.environ.get('SMTP_PASS', '').strip()
         self.smtp_enabled = os.environ.get('SMTP_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
         self.default_sender = os.environ.get('SMTP_FROM_EMAIL', self.smtp_user or SUPPORT_EMAIL).strip()
+        self.smtp_timeout_seconds = _read_int_env('SMTP_TIMEOUT_SECONDS', 20)
+        self.last_delivery_status = {
+            'ok': False,
+            'category': 'not_attempted',
+            'message': 'لم تتم أي محاولة إرسال بعد.',
+            'updated_at': None
+        }
         self.public_base_url = (
             os.environ.get('PUBLIC_BASE_URL')
             or os.environ.get('SITE_BASE_URL')
@@ -41,6 +48,57 @@ class EmailService:
     def can_send_email(self):
         """التحقق من جاهزية إعدادات SMTP."""
         return bool(self.smtp_enabled and self.smtp_server and self.smtp_user and self.smtp_password)
+
+    def _update_last_delivery_status(self, ok, category, message):
+        self.last_delivery_status = {
+            'ok': bool(ok),
+            'category': str(category or 'unknown'),
+            'message': str(message or ''),
+            'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+    def _classify_email_error(self, error_text):
+        text = str(error_text or '').strip()
+        lower = text.lower()
+        if not self.smtp_enabled:
+            return 'smtp_disabled'
+        if not self.smtp_user or not self.smtp_password:
+            return 'missing_credentials'
+        if 'authentication' in lower or 'username and password not accepted' in lower or '535' in lower:
+            return 'auth_failed'
+        if 'timed out' in lower or 'timeout' in lower:
+            return 'smtp_timeout'
+        if 'name or service not known' in lower or 'nodename nor servname provided' in lower or 'getaddrinfo failed' in lower:
+            return 'smtp_host_unreachable'
+        if 'connection unexpectedly closed' in lower or 'connection reset' in lower or 'server disconnected' in lower:
+            return 'smtp_connection_failed'
+        if '5.7.1' in lower or 'sender address rejected' in lower or 'not allowed' in lower:
+            return 'sender_rejected'
+        if 'recipient address rejected' in lower or 'user unknown' in lower or 'mailbox unavailable' in lower:
+            return 'recipient_rejected'
+        return 'send_failed'
+
+    def get_smtp_status(self):
+        missing = []
+        if not self.smtp_enabled:
+            missing.append('SMTP_ENABLED=0')
+        if not self.smtp_server:
+            missing.append('SMTP_SERVER')
+        if not self.smtp_user:
+            missing.append('SMTP_USER')
+        if not self.smtp_password:
+            missing.append('SMTP_PASS')
+
+        return {
+            'enabled': bool(self.smtp_enabled),
+            'ready': self.can_send_email(),
+            'smtp_server': self.smtp_server,
+            'smtp_port': self.smtp_port,
+            'default_sender': self.default_sender,
+            'public_base_url': self.public_base_url,
+            'missing': missing,
+            'last_delivery_status': dict(self.last_delivery_status),
+        }
 
     def build_public_url(self, path):
         """إنشاء رابط عام صالح للإرسال داخل البريد الإلكتروني."""
@@ -192,8 +250,10 @@ class EmailService:
         
         msg.attach(MIMEText(body, 'plain', 'utf-8'))
         
-        server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+        server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=self.smtp_timeout_seconds)
+        server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(self.smtp_user, self.smtp_password)
         text = msg.as_string()
         server.sendmail(self.default_sender, to_email, text)
@@ -216,12 +276,17 @@ class EmailService:
 فريق GOLD PRO
 """
         if not self.can_send_email():
-            return False, 'SMTP غير مهيأ بعد. اضبط SMTP_SERVER وSMTP_PORT وSMTP_USER وSMTP_PASS.'
+            message = 'SMTP غير مهيأ بعد. اضبط SMTP_SERVER وSMTP_PORT وSMTP_USER وSMTP_PASS.'
+            self._update_last_delivery_status(False, 'missing_credentials', message)
+            return False, message
         try:
             self._send_email(user_email, subject, body)
+            self._update_last_delivery_status(True, 'sent', f'تم إرسال بريد التفعيل إلى {user_email}')
             return True, 'تم إرسال رابط التفعيل بنجاح.'
         except Exception as e:
-            return False, str(e)
+            error_text = str(e)
+            self._update_last_delivery_status(False, self._classify_email_error(error_text), error_text)
+            return False, error_text
 
     def send_welcome_email(self, user_email, full_name):
         """إرسال رسالة ترحيب بعد تفعيل الحساب بنجاح."""
@@ -245,12 +310,17 @@ class EmailService:
 فريق GOLD PRO
 """
         if not self.can_send_email():
-            return False, 'SMTP غير مهيأ بعد.'
+            message = 'SMTP غير مهيأ بعد.'
+            self._update_last_delivery_status(False, 'missing_credentials', message)
+            return False, message
         try:
             self._send_email(user_email, subject, body)
+            self._update_last_delivery_status(True, 'sent', f'تم إرسال رسالة الترحيب إلى {user_email}')
             return True, 'تم إرسال رسالة الترحيب.'
         except Exception as e:
-            return False, str(e)
+            error_text = str(e)
+            self._update_last_delivery_status(False, self._classify_email_error(error_text), error_text)
+            return False, error_text
     
     def send_activation_confirmation(self, user_email, plan_name, end_date):
         """إرسال تأكيد تفعيل الاشتراك"""

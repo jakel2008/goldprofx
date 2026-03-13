@@ -36,6 +36,19 @@
     </div>
     {% endif %}
 
+    <div class="alert {% if email_delivery_status.ready %}alert-success{% else %}alert-danger{% endif %}">
+        <div class="fw-bold mb-1">حالة بريد التفعيل</div>
+        <div>جاهزية SMTP: {{ 'جاهز' if email_delivery_status.ready else 'غير جاهز' }}</div>
+        <div>الخادم: {{ email_delivery_status.smtp_server or '-' }}:{{ email_delivery_status.smtp_port or '-' }}</div>
+        <div>المرسل: {{ email_delivery_status.default_sender or '-' }}</div>
+        <div>الرابط العام: {{ email_delivery_status.public_base_url or '-' }}</div>
+        <div>آخر حالة: {{ (email_delivery_status.last_delivery_status or {}).get('category', '-') }} - {{ (email_delivery_status.last_delivery_status or {}).get('message', '-') }}</div>
+        <div>آخر تحديث: {{ (email_delivery_status.last_delivery_status or {}).get('updated_at', '-') }}</div>
+        {% if email_delivery_status.missing %}
+        <div>المتغيرات الناقصة: {{ email_delivery_status.missing|join(', ') }}</div>
+        {% endif %}
+    </div>
+
     <div class="row g-4">
         <div class="col-lg-7">
             <div class="card p-4">

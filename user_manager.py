@@ -203,8 +203,8 @@ class UserManager:
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}
 
-    def activate_user_by_id(self, user_id):
-        """تفعيل حساب المستخدم مباشرة من لوحة الإدارة بدون الحاجة للبريد."""
+    def activate_user_by_id(self, user_id, actor='admin', reason='manual_activation'):
+        """تفعيل حساب المستخدم مباشرة بدون الحاجة للبريد."""
         try:
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
@@ -243,7 +243,9 @@ class UserManager:
             )
             conn.commit()
             conn.close()
-            self.log_activity(found_user_id, 'admin_email_activation', 'Account activated manually by admin')
+            actor_label = str(actor or 'system')
+            reason_label = str(reason or 'manual_activation')
+            self.log_activity(found_user_id, 'email_activation_fallback', f'actor={actor_label}; reason={reason_label}')
             return {'success': True, 'message': 'تم تفعيل الحساب من لوحة الإدارة.', 'user_id': found_user_id, 'already_active': False}
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}

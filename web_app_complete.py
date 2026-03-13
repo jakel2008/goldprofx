@@ -7402,6 +7402,15 @@ def admin_resend_activation_for_user(user_id):
     return redirect(url_for('admin_pending_activations'))
 
 
+@app.route('/admin/pending-activations/<int:user_id>/activate', methods=['POST'])
+@admin_required
+def admin_activate_pending_user(user_id):
+    """تفعيل حساب غير مفعل مباشرة من لوحة الأدمن عند تعذر وصول البريد."""
+    result = user_manager.activate_user_by_id(user_id)
+    flash(result.get('message') or 'تمت معالجة الطلب.', 'success' if result.get('success') else 'danger')
+    return redirect(url_for('admin_pending_activations'))
+
+
 @app.route('/admin/customer-communications/whatsapp-export.csv')
 @admin_required
 def admin_customer_communications_whatsapp_export():

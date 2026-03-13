@@ -62,9 +62,14 @@
                         <td><small>{{ row.created_at }}</small></td>
                         <td><small>{{ row.activation_sent_at or '-' }}</small></td>
                         <td>
-                            <form method="POST" action="/admin/pending-activations/{{ row.id }}/resend">
-                                <button type="submit" class="btn btn-sm btn-warning">إعادة إرسال التفعيل</button>
-                            </form>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form method="POST" action="/admin/pending-activations/{{ row.id }}/resend">
+                                    <button type="submit" class="btn btn-sm btn-warning">إعادة إرسال التفعيل</button>
+                                </form>
+                                <form method="POST" action="/admin/pending-activations/{{ row.id }}/activate">
+                                    <button type="submit" class="btn btn-sm btn-success">تفعيل يدوي</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% else %}

@@ -20,12 +20,17 @@ except Exception:
 DATABASE_FILE = Path(os.environ.get('USERS_DB_PATH', str(_data_dir / 'users.db')))
 
 class UserManager:
+    def _normalize_email(self, email):
+        """تطبيع البريد الإلكتروني لتفادي مشاكل المقارنة والتكرار."""
+        return str(email or '').strip().lower()
+
     def update_user_email(self, username, new_email):
         """تحديث البريد الإلكتروني للمستخدم حسب الاسم"""
         try:
+            normalized_email = self._normalize_email(new_email)
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
-            cursor.execute("UPDATE users SET email = ? WHERE username = ?", (new_email, username))
+            cursor.execute("UPDATE users SET email = ? WHERE username = ?", (normalized_email, username))
             conn.commit()
             conn.close()
             return {'success': True, 'message': 'تم تحديث البريد بنجاح'}
@@ -146,6 +151,7 @@ class UserManager:
                       marketing_email_opt_in=True, whatsapp_opt_in=False):
         """تسجيل مستخدم جديد مع إنشاء رمز تفعيل وإبقاء بيانات التواصل محفوظة."""
         try:
+            normalized_email = self._normalize_email(email)
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
             # التحقق من عدم وجود المستخدم
@@ -155,7 +161,7 @@ class UserManager:
                 WHERE (username = ? OR email = ?)
                   AND (deleted_at IS NULL OR deleted_at = '')
                 ''',
-                (username, email)
+                (username, normalized_email)
             )
             if cursor.fetchone():
                 conn.close()
@@ -172,7 +178,7 @@ class UserManager:
                 VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, ?, ?)
             ''', (
                 username,
-                email,
+                normalized_email,
                 password_hash,
                 full_name,
                 phone,
@@ -191,8 +197,54 @@ class UserManager:
                 'success': True,
                 'message': 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني لتفعيل الحساب.',
                 'user_id': user_id,
-                'activation_token': activation_token
+                'activation_token': activation_token,
+                'email': normalized_email
             }
+        except Exception as e:
+            return {'success': False, 'message': f'خطأ: {str(e)}'}
+
+    def activate_user_by_id(self, user_id):
+        """تفعيل حساب المستخدم مباشرة من لوحة الإدارة بدون الحاجة للبريد."""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT id, email_verified, deleted_at
+                FROM users
+                WHERE id = ?
+                ''',
+                (user_id,)
+            )
+            result = cursor.fetchone()
+            if not result:
+                conn.close()
+                return {'success': False, 'message': 'المستخدم غير موجود.'}
+
+            found_user_id, email_verified, deleted_at = result
+            if deleted_at:
+                conn.close()
+                return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة.'}
+
+            if email_verified:
+                conn.close()
+                return {'success': True, 'message': 'الحساب مفعل مسبقاً.', 'user_id': found_user_id, 'already_active': True}
+
+            cursor.execute(
+                '''
+                UPDATE users
+                SET is_active = 1,
+                    email_verified = 1,
+                    activated_at = CURRENT_TIMESTAMP,
+                    activation_token = NULL
+                WHERE id = ?
+                ''',
+                (found_user_id,)
+            )
+            conn.commit()
+            conn.close()
+            self.log_activity(found_user_id, 'admin_email_activation', 'Account activated manually by admin')
+            return {'success': True, 'message': 'تم تفعيل الحساب من لوحة الإدارة.', 'user_id': found_user_id, 'already_active': False}
         except Exception as e:
             return {'success': False, 'message': f'خطأ: {str(e)}'}
 
@@ -295,14 +347,16 @@ class UserManager:
     def login_user(self, username_or_email, password, ip_address=''):
         """تسجيل دخول المستخدم باسم المستخدم أو البريد الإلكتروني"""
         try:
+            identifier = str(username_or_email or '').strip()
+            normalized_email = self._normalize_email(identifier)
             conn = sqlite3.connect(self.db_file)
             cursor = conn.cursor()
             # البحث عن المستخدم بالاسم أو البريد
             cursor.execute('''
                 SELECT id, password_hash, is_active, deleted_at, email_verified
                 FROM users
-                WHERE username = ? OR email = ?
-            ''', (username_or_email, username_or_email))
+                WHERE lower(username) = lower(?) OR lower(email) = lower(?)
+            ''', (identifier, normalized_email))
             result = cursor.fetchone()
             if not result:
                 return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}

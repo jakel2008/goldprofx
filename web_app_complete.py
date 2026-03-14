@@ -3759,6 +3759,87 @@ def archive_and_cleanup_closed_signals():
     return archived_count
 
 
+def _deduplicate_archived_trade_rows(trade_rows):
+    """إزالة التكرار المنطقي من الصفقات المغلقة قبل احتساب الإحصائيات أو عرضها."""
+    if not isinstance(trade_rows, list) or not trade_rows:
+        return []
+
+    normalized_rows = [row for row in trade_rows if isinstance(row, dict)]
+    if not normalized_rows:
+        return []
+
+    def _sort_key(row):
+        return (
+            str(row.get('archived_at') or row.get('closed_at') or row.get('created_at') or ''),
+            str(row.get('signal_id') or ''),
+        )
+
+    normalized_rows.sort(key=_sort_key, reverse=True)
+
+    seen_signal_ids = set()
+    seen_structural_keys = set()
+    deduplicated = []
+
+    for row in normalized_rows:
+        signal_id = row.get('signal_id')
+        if signal_id not in (None, ''):
+            signal_id_key = str(signal_id).strip()
+            if signal_id_key in seen_signal_ids:
+                continue
+        else:
+            signal_id_key = None
+
+        symbol = str(row.get('symbol') or row.get('pair') or '').upper().replace('/', '').strip()
+        signal_type = _normalize_signal_type(row.get('signal_type') or row.get('signal') or '', default='buy')
+        timeframe = str(row.get('timeframe') or row.get('tf') or '1h').strip().lower()
+        result = str(row.get('result') or '').strip().lower()
+
+        try:
+            entry_price = round(float(row.get('entry_price') or row.get('entry') or 0), 5)
+        except Exception:
+            entry_price = 0.0
+
+        try:
+            close_price = round(float(row.get('close_price') or row.get('current_price') or 0), 5)
+        except Exception:
+            close_price = 0.0
+
+        try:
+            stop_loss = round(float(row.get('stop_loss') or 0), 5)
+        except Exception:
+            stop_loss = 0.0
+
+        try:
+            take_profit_1 = round(float(row.get('take_profit_1') or row.get('take_profit1') or 0), 5)
+        except Exception:
+            take_profit_1 = 0.0
+
+        timestamp = str(row.get('archived_at') or row.get('closed_at') or row.get('created_at') or '').strip()
+        timestamp_bucket = timestamp[:16] if len(timestamp) >= 16 else timestamp
+
+        structural_key = (
+            symbol,
+            signal_type,
+            timeframe,
+            result,
+            entry_price,
+            close_price,
+            stop_loss,
+            take_profit_1,
+            timestamp_bucket,
+        )
+
+        if structural_key in seen_structural_keys:
+            continue
+
+        if signal_id_key is not None:
+            seen_signal_ids.add(signal_id_key)
+        seen_structural_keys.add(structural_key)
+        deduplicated.append(row)
+
+    return deduplicated
+
+
 def _load_archived_trades(limit=2000):
     """تحميل الصفقات المنتهية من أرشيف قاعدة البيانات مع رجوع احتياطي لملف JSON."""
     _ensure_signals_archive_table()
@@ -3774,20 +3855,21 @@ def _load_archived_trades(limit=2000):
             ORDER BY COALESCE(archived_at, created_at) DESC
             LIMIT ?
         ''', (max(1, int(limit or 2000)),))
-        rows = [dict(item) for item in c.fetchall()]
+        rows = _deduplicate_archived_trade_rows([dict(item) for item in c.fetchall()])
         conn.close()
     except Exception:
         rows = []
 
     if rows:
-        return rows
+        return rows[:max(1, int(limit or 2000))]
 
     if CLOSED_TRADES_ARCHIVE_FILE.exists():
         try:
             with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f) or []
             if isinstance(data, list):
-                return list(reversed(data[-max(1, int(limit or 2000)):]))
+                deduplicated_rows = _deduplicate_archived_trade_rows(list(reversed(data)))
+                return deduplicated_rows[:max(1, int(limit or 2000))]
         except Exception:
             return []
 
@@ -3900,6 +3982,316 @@ def _build_closed_trades_comparison_report(days=7):
             'total_trades': current_stats['total'] - previous_stats['total']
         }
     }
+
+
+def _parse_report_datetime(value):
+    """تحويل طوابع الوقت المتعددة الصيغ إلى datetime موحد بدون منطقة زمنية."""
+    if not value:
+        return None
+
+    raw_text = str(value).strip()
+    if not raw_text:
+        return None
+
+    candidates = [raw_text]
+    if 'Z' in raw_text:
+        candidates.append(raw_text.replace('Z', '+00:00'))
+
+    for candidate in candidates:
+        try:
+            parsed = datetime.fromisoformat(candidate)
+            if parsed.tzinfo is not None:
+                parsed = parsed.replace(tzinfo=None)
+            return parsed
+        except Exception:
+            continue
+
+    sanitized = raw_text.split('.')[0].strip()
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d'):
+        try:
+            return datetime.strptime(sanitized, fmt)
+        except Exception:
+            continue
+
+    return None
+
+
+def _resolve_periodic_report_window(period, now=None):
+    """تحديد نافذة التقرير الحالية والسابقة حسب الفترة المطلوبة."""
+    now = now or datetime.now()
+    normalized = str(period or 'daily').strip().lower()
+
+    if normalized not in ('daily', 'weekly', 'monthly'):
+        normalized = 'daily'
+
+    if normalized == 'daily':
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        previous_start = start - timedelta(days=1)
+        label = 'يومي'
+        icon = '📊'
+    elif normalized == 'weekly':
+        start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        previous_start = start - timedelta(days=7)
+        label = 'أسبوعي'
+        icon = '📈'
+    else:
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        previous_end_anchor = start - timedelta(days=1)
+        previous_start = previous_end_anchor.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        label = 'شهري'
+        icon = '🗓️'
+
+    return {
+        'period': normalized,
+        'label': label,
+        'icon': icon,
+        'start': start,
+        'end': now,
+        'previous_start': previous_start,
+        'previous_end': start,
+    }
+
+
+def _summarize_periodic_archived_trades(rows, active_count=0):
+    """تلخيص الصفقات المؤرشفة لإنتاج بطاقات ومقارنات وتقارير جاهزة للعرض."""
+    normalized_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        closed_at = _parse_report_datetime(row.get('archived_at') or row.get('closed_at') or row.get('created_at'))
+        if closed_at is None:
+            continue
+
+        result = str(row.get('result') or '').strip().lower()
+        if result not in ('win', 'loss'):
+            continue
+
+        symbol = str(row.get('symbol') or row.get('pair') or 'N/A').strip().upper()
+        timeframe = str(row.get('timeframe') or row.get('tf') or '1h').strip().lower() or '1h'
+        signal_type = _normalize_signal_type(row.get('signal_type') or row.get('signal') or '', default='buy')
+        profit_percent = _calc_archived_profit_percent(row)
+
+        try:
+            quality_score = float(row.get('quality_score') or 0)
+        except Exception:
+            quality_score = 0.0
+
+        try:
+            risk_reward = float(_compute_risk_reward(
+                row.get('entry_price') or row.get('entry'),
+                row.get('stop_loss'),
+                row.get('take_profit_1') or row.get('take_profit1')
+            ) or 0)
+        except Exception:
+            risk_reward = 0.0
+
+        normalized_rows.append({
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'signal_type': signal_type,
+            'result': result,
+            'profit_percent': profit_percent,
+            'quality_score': quality_score,
+            'risk_reward': round(risk_reward, 2),
+            'closed_at': closed_at,
+            'closed_at_text': closed_at.strftime('%Y-%m-%d %H:%M'),
+            'entry_price': row.get('entry_price') or row.get('entry') or 0,
+            'close_price': row.get('close_price') or row.get('current_price') or 0,
+            'signal_id': row.get('signal_id'),
+        })
+
+    normalized_rows.sort(key=lambda item: item.get('closed_at') or datetime.min, reverse=True)
+
+    wins = sum(1 for item in normalized_rows if item['result'] == 'win')
+    losses = sum(1 for item in normalized_rows if item['result'] == 'loss')
+    total = wins + losses
+    win_rate = round((wins / total) * 100, 2) if total > 0 else 0.0
+    net_profit_percent = round(sum(float(item.get('profit_percent') or 0) for item in normalized_rows), 2)
+    avg_quality = round(
+        sum(float(item.get('quality_score') or 0) for item in normalized_rows) / total,
+        2
+    ) if total > 0 else 0.0
+    avg_rr = round(
+        sum(float(item.get('risk_reward') or 0) for item in normalized_rows) / total,
+        2
+    ) if total > 0 else 0.0
+
+    symbol_map = {}
+    timeframe_map = {}
+    for item in normalized_rows:
+        symbol_key = item['symbol']
+        timeframe_key = item['timeframe']
+
+        if symbol_key not in symbol_map:
+            symbol_map[symbol_key] = {
+                'symbol': symbol_key,
+                'total': 0,
+                'wins': 0,
+                'losses': 0,
+                'net_profit_percent': 0.0,
+            }
+        if timeframe_key not in timeframe_map:
+            timeframe_map[timeframe_key] = {
+                'timeframe': timeframe_key,
+                'total': 0,
+                'wins': 0,
+                'losses': 0,
+            }
+
+        symbol_map[symbol_key]['total'] += 1
+        symbol_map[symbol_key]['net_profit_percent'] += float(item.get('profit_percent') or 0)
+        timeframe_map[timeframe_key]['total'] += 1
+
+        if item['result'] == 'win':
+            symbol_map[symbol_key]['wins'] += 1
+            timeframe_map[timeframe_key]['wins'] += 1
+        else:
+            symbol_map[symbol_key]['losses'] += 1
+            timeframe_map[timeframe_key]['losses'] += 1
+
+    top_symbols = []
+    for symbol_data in symbol_map.values():
+        symbol_total = int(symbol_data['total'] or 0)
+        symbol_data['win_rate'] = round((symbol_data['wins'] / symbol_total) * 100, 2) if symbol_total > 0 else 0.0
+        symbol_data['net_profit_percent'] = round(float(symbol_data['net_profit_percent'] or 0), 2)
+        top_symbols.append(symbol_data)
+
+    top_symbols.sort(
+        key=lambda item: (item.get('wins', 0), item.get('win_rate', 0), item.get('total', 0), item.get('net_profit_percent', 0)),
+        reverse=True
+    )
+
+    timeframe_breakdown = []
+    for timeframe_data in timeframe_map.values():
+        timeframe_total = int(timeframe_data['total'] or 0)
+        timeframe_data['win_rate'] = round((timeframe_data['wins'] / timeframe_total) * 100, 2) if timeframe_total > 0 else 0.0
+        timeframe_breakdown.append(timeframe_data)
+
+    timeframe_breakdown.sort(key=lambda item: (item.get('total', 0), item.get('win_rate', 0)), reverse=True)
+
+    return {
+        'total_closed_trades': total,
+        'wins': wins,
+        'losses': losses,
+        'win_rate': win_rate,
+        'net_profit_percent': net_profit_percent,
+        'avg_quality': avg_quality,
+        'avg_rr': avg_rr,
+        'active_trades': int(active_count or 0),
+        'top_symbols': top_symbols[:5],
+        'timeframe_breakdown': timeframe_breakdown[:5],
+        'recent_closed': normalized_rows[:10],
+    }
+
+
+def _build_periodic_report_message(report_payload):
+    """صياغة نص احترافي جاهز للإرسال عبر تيليجرام أو المعاينة داخل الواجهة."""
+    summary = report_payload.get('summary') or {}
+    top_symbols = report_payload.get('top_symbols') or []
+    timeframe_breakdown = report_payload.get('timeframes') or []
+    comparison = report_payload.get('comparison') or {}
+
+    delta_trades = comparison.get('trades_delta', 0)
+    delta_win_rate = comparison.get('win_rate_delta', 0)
+    delta_profit = comparison.get('profit_delta', 0)
+
+    lines = [
+        f"{report_payload.get('icon', '📋')} <b>التقرير {report_payload.get('period_label', '')} - GOLD PRO</b>",
+        '',
+        f"📅 <b>الفترة:</b> {report_payload.get('date_range_text', '-')}",
+        f"🕒 <b>وقت الإنشاء:</b> {report_payload.get('generated_at', '-')}",
+        '',
+        '📌 <b>الملخص التنفيذي</b>',
+        f"• الصفقات المغلقة: <b>{summary.get('total_closed_trades', 0)}</b>",
+        f"• الرابحة / الخاسرة: <b>{summary.get('wins', 0)}</b> / <b>{summary.get('losses', 0)}</b>",
+        f"• معدل النجاح: <b>{summary.get('win_rate', 0)}%</b>",
+        f"• صافي الأداء: <b>{summary.get('net_profit_percent', 0)}%</b>",
+        f"• متوسط الجودة: <b>{summary.get('avg_quality', 0)}</b>",
+        f"• متوسط RR: <b>{summary.get('avg_rr', 0)}</b>",
+        f"• الصفقات النشطة الآن: <b>{summary.get('active_trades', 0)}</b>",
+        '',
+        '📉 <b>مقارنة بالفترة السابقة</b>',
+        f"• فرق عدد الصفقات: <b>{delta_trades:+}</b>",
+        f"• فرق معدل النجاح: <b>{delta_win_rate:+.2f}%</b>",
+        f"• فرق صافي الأداء: <b>{delta_profit:+.2f}%</b>",
+    ]
+
+    if top_symbols:
+        lines.extend(['', '🏆 <b>أفضل الأزواج</b>'])
+        for index, item in enumerate(top_symbols[:3], start=1):
+            lines.append(
+                f"{index}. <b>{item.get('symbol')}</b> | {item.get('wins', 0)}/{item.get('total', 0)} نجاح | {item.get('win_rate', 0)}% | {item.get('net_profit_percent', 0)}%"
+            )
+
+    if timeframe_breakdown:
+        lines.extend(['', '⏱ <b>الأطر الزمنية الأفضل</b>'])
+        for item in timeframe_breakdown[:3]:
+            lines.append(
+                f"• <b>{item.get('timeframe')}</b> | {item.get('total', 0)} صفقة | {item.get('win_rate', 0)}% نجاح"
+            )
+
+    recent_closed = summary.get('recent_closed') or []
+    if recent_closed:
+        lines.extend(['', '🧾 <b>آخر الإغلاقات</b>'])
+        for item in recent_closed[:3]:
+            result_label = 'رابحة' if item.get('result') == 'win' else 'خاسرة'
+            lines.append(
+                f"• {item.get('symbol')} | {result_label} | {item.get('profit_percent', 0)}% | {item.get('closed_at_text', '-') }"
+            )
+
+    lines.extend(['', 'GOLD PRO | Professional Trading Intelligence'])
+    return '\n'.join(lines)
+
+
+def _build_periodic_report(period='daily'):
+    """إنشاء تقرير زمني موحد للعرض والإرسال اليومي أو الأسبوعي أو الشهري."""
+    window = _resolve_periodic_report_window(period)
+    active_rows = load_signals(include_closed=False)
+    active_count = len([
+        row for row in active_rows
+        if isinstance(row, dict) and (row.get('status') or 'active').lower() == 'active'
+    ]) if isinstance(active_rows, list) else 0
+
+    archived_rows = _load_archived_trades(limit=6000)
+    current_rows = []
+    previous_rows = []
+
+    for row in archived_rows:
+        if not isinstance(row, dict):
+            continue
+        closed_at = _parse_report_datetime(row.get('archived_at') or row.get('closed_at') or row.get('created_at'))
+        if closed_at is None:
+            continue
+
+        if window['start'] <= closed_at <= window['end']:
+            current_rows.append(row)
+        elif window['previous_start'] <= closed_at < window['previous_end']:
+            previous_rows.append(row)
+
+    current_summary = _summarize_periodic_archived_trades(current_rows, active_count=active_count)
+    previous_summary = _summarize_periodic_archived_trades(previous_rows, active_count=active_count)
+
+    report = {
+        'period': window['period'],
+        'period_label': window['label'],
+        'icon': window['icon'],
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'date_range_text': f"{window['start'].strftime('%Y-%m-%d %H:%M')} → {window['end'].strftime('%Y-%m-%d %H:%M')}",
+        'summary': current_summary,
+        'comparison': {
+            'previous_total_closed_trades': previous_summary.get('total_closed_trades', 0),
+            'previous_win_rate': previous_summary.get('win_rate', 0),
+            'previous_net_profit_percent': previous_summary.get('net_profit_percent', 0),
+            'trades_delta': int(current_summary.get('total_closed_trades', 0) - previous_summary.get('total_closed_trades', 0)),
+            'win_rate_delta': round(float(current_summary.get('win_rate', 0) - previous_summary.get('win_rate', 0)), 2),
+            'profit_delta': round(float(current_summary.get('net_profit_percent', 0) - previous_summary.get('net_profit_percent', 0)), 2),
+        },
+        'top_symbols': current_summary.get('top_symbols', []),
+        'timeframes': current_summary.get('timeframe_breakdown', []),
+    }
+    report['message_html'] = _build_periodic_report_message(report)
+    return report
 
 
 def _deduplicate_signal_objects(signal_rows):
@@ -6218,6 +6610,18 @@ def api_trades_report():
         }), 500
 
 
+@app.route('/api/periodic-report')
+@login_required
+def api_periodic_report():
+    """معاينة تقرير يومي/أسبوعي/شهري موحد لصفحة التقارير."""
+    try:
+        period = request.args.get('period', 'daily', type=str)
+        report = _build_periodic_report(period=period)
+        return jsonify({'success': True, 'report': report})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/admin/continuous-analyzer/status')
 @admin_required
 def api_continuous_analyzer_status():
@@ -8036,6 +8440,8 @@ def api_admin_send_report():
             header = "📊 <b>التقرير اليومي - Daily Report</b>\n\n"
         elif report_type == 'weekly':
             header = "📈 <b>التقرير الأسبوعي - Weekly Report</b>\n\n"
+        elif report_type == 'monthly':
+            header = "🗓️ <b>التقرير الشهري - Monthly Report</b>\n\n"
         elif report_type == 'performance':
             header = "⭐ <b>تقرير الأداء - Performance Report</b>\n\n"
         else:
@@ -8053,6 +8459,36 @@ def api_admin_send_report():
             'total_subscribers': result.get('total_subscribers', 0)
         })
         
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/send-periodic-report', methods=['POST'])
+@admin_required
+def api_admin_send_periodic_report():
+    """إرسال التقرير الزمني الجاهز مباشرة للمشتركين والأهداف المخصصة."""
+    try:
+        data = request.json or {}
+        period = data.get('period', 'daily')
+        report = _build_periodic_report(period=period)
+        message_html = str(report.get('message_html') or '').strip()
+        if not message_html:
+            return jsonify({'success': False, 'error': 'تعذر إنشاء محتوى التقرير'}), 500
+
+        subscribers_result = telegram_sender.send_report_to_subscribers(message_html)
+        targets_result = telegram_sender.send_broadcast_to_configured_targets(message_html)
+
+        return jsonify({
+            'success': True,
+            'period': report.get('period'),
+            'period_label': report.get('period_label'),
+            'subscribers_sent_count': subscribers_result.get('sent_count', 0),
+            'subscribers_failed_count': subscribers_result.get('failed_count', 0),
+            'subscribers_total': subscribers_result.get('total_subscribers', 0),
+            'targets_sent_count': targets_result.get('sent_count', 0),
+            'targets_failed_count': targets_result.get('failed_count', 0),
+            'targets_total': targets_result.get('total_targets', 0),
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

@@ -12,6 +12,137 @@
         </div>
     </div>
 
+    <div class="detailed-report-section premium-report-section">
+        <div class="period-toolbar">
+            <div class="period-tabs">
+                <button class="period-tab active" data-period="daily" onclick="selectReportPeriod('daily')">يومي</button>
+                <button class="period-tab" data-period="weekly" onclick="selectReportPeriod('weekly')">أسبوعي</button>
+                <button class="period-tab" data-period="monthly" onclick="selectReportPeriod('monthly')">شهري</button>
+            </div>
+            <div class="period-meta">
+                <div class="meta-chip">الفترة: <strong id="period-range-text">-</strong></div>
+                <div class="meta-chip">آخر تحديث: <strong id="period-generated-at">-</strong></div>
+            </div>
+        </div>
+
+        <div class="stats-grid-advanced period-summary-grid">
+            <div class="stat-card-advanced blue">
+                <div class="stat-icon">🧾</div>
+                <div class="stat-content">
+                    <div class="stat-label">الصفقات المغلقة في الفترة</div>
+                    <div class="stat-value" id="period-total-closed">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">الصفقات الرابحة</div>
+                    <div class="stat-value" id="period-wins">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced orange">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <div class="stat-label">الصفقات الخاسرة</div>
+                    <div class="stat-value" id="period-losses">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced purple">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-label">معدل النجاح</div>
+                    <div class="stat-value" id="period-win-rate">0%</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced blue">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">صافي الأداء</div>
+                    <div class="stat-value" id="period-net-profit">0%</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced green">
+                <div class="stat-icon">📌</div>
+                <div class="stat-content">
+                    <div class="stat-label">الصفقات النشطة الآن</div>
+                    <div class="stat-value" id="period-active-trades">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-strip">
+            <div class="comparison-card">
+                <span class="comparison-label">فرق عدد الصفقات</span>
+                <strong class="comparison-value" id="period-delta-trades">0</strong>
+            </div>
+            <div class="comparison-card">
+                <span class="comparison-label">فرق معدل النجاح</span>
+                <strong class="comparison-value" id="period-delta-win-rate">0%</strong>
+            </div>
+            <div class="comparison-card">
+                <span class="comparison-label">فرق صافي الأداء</span>
+                <strong class="comparison-value" id="period-delta-profit">0%</strong>
+            </div>
+            <div class="comparison-card">
+                <span class="comparison-label">متوسط الجودة / RR</span>
+                <strong class="comparison-value" id="period-quality-rr">0 / 0</strong>
+            </div>
+        </div>
+
+        <div class="tables-section period-breakdown-section">
+            <div class="table-card">
+                <h3>🏆 أفضل الأزواج في الفترة</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الزوج</th>
+                                <th>الصفقات</th>
+                                <th>الرابحة</th>
+                                <th>معدل النجاح</th>
+                                <th>صافي الأداء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="period-top-symbols-body">
+                            <tr><td colspan="5">جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3>⏱ أداء الأطر الزمنية</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الفريم</th>
+                                <th>الصفقات</th>
+                                <th>الرابحة</th>
+                                <th>الخاسرة</th>
+                                <th>معدل النجاح</th>
+                            </tr>
+                        </thead>
+                        <tbody id="period-timeframes-body">
+                            <tr><td colspan="5">جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="period-preview-header">
+            <div>
+                <h3 id="period-report-title">📊 التقرير اليومي الاحترافي</h3>
+                <p class="preview-subtitle">معاينة النص الجاهز للعرض والطباعة والإرسال للمشتركين.</p>
+            </div>
+            {% if user and user.is_admin %}
+            <button onclick="sendPeriodicReport()" class="btn btn-primary" id="send-periodic-report-btn">📨 إرسال التقرير الحالي</button>
+            {% endif %}
+        </div>
+        <div class="report-preview-card" id="periodic-report-preview">جاري إعداد المعاينة...</div>
+    </div>
+
     <!-- بطاقات الإحصائيات الرئيسية -->
     <div class="stats-grid-advanced">
         <div class="stat-card-advanced blue">
@@ -201,6 +332,120 @@
         gap: 1rem;
     }
 
+    .premium-report-section {
+        background: linear-gradient(145deg, #fffdf7 0%, #fff6dd 100%);
+        border: 1px solid rgba(212, 167, 47, 0.28);
+        margin-bottom: 2rem;
+    }
+
+    .period-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .period-tabs {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .period-tab {
+        border: 1px solid rgba(212, 167, 47, 0.35);
+        background: rgba(255, 255, 255, 0.9);
+        color: #7a5f10;
+        border-radius: 999px;
+        padding: 0.65rem 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .period-tab.active,
+    .period-tab:hover {
+        background: #1c2f4b;
+        color: #f8e7b0;
+        border-color: #1c2f4b;
+    }
+
+    .period-meta {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-chip {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(28, 47, 75, 0.12);
+        color: #4d5561;
+        border-radius: 999px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.9rem;
+    }
+
+    .comparison-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comparison-card {
+        background: rgba(255, 255, 255, 0.88);
+        border-radius: 14px;
+        border: 1px solid rgba(28, 47, 75, 0.08);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .comparison-label {
+        color: #7a6a45;
+        font-size: 0.9rem;
+    }
+
+    .comparison-value {
+        color: #1c2f4b;
+        font-size: 1.4rem;
+    }
+
+    .period-breakdown-section {
+        margin-top: 1rem;
+    }
+
+    .period-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.75rem 0 1rem;
+        flex-wrap: wrap;
+    }
+
+    .preview-subtitle {
+        margin: 0.35rem 0 0;
+        color: #7a6a45;
+    }
+
+    .report-preview-card {
+        background: #18253a;
+        color: #f6ecd0;
+        border-radius: 18px;
+        padding: 1.5rem;
+        line-height: 1.9;
+        border: 1px solid rgba(245, 197, 66, 0.25);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        white-space: pre-line;
+    }
+
+    .report-preview-card b {
+        color: #ffd76a;
+    }
+
     .stats-grid-advanced {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -381,24 +626,47 @@
         background: #0f1a2d;
         color: #fff;
     }
+
+    @media (max-width: 768px) {
+        .reports-container {
+            padding: 1rem;
+        }
+
+        .reports-header,
+        .period-toolbar,
+        .period-preview-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .charts-section,
+        .tables-section {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let signalsChart, qualityChart;
+    let currentReportPeriod = 'daily';
 
     async function loadReportsData() {
-        const [statsResult, reportResult, tradesResult] = await Promise.allSettled([
+        updatePeriodButtons();
+
+        const [statsResult, reportResult, tradesResult, periodicResult] = await Promise.allSettled([
             fetch('/api/stats').then((r) => r.json()),
             fetch('/api/detailed-report').then((r) => r.json()),
-            fetch('/api/trades-report').then((r) => r.json())
+            fetch('/api/trades-report').then((r) => r.json()),
+            fetch(`/api/periodic-report?period=${encodeURIComponent(currentReportPeriod)}`).then((r) => r.json())
         ]);
 
         const stats = statsResult.status === 'fulfilled' ? (statsResult.value || {}) : {};
         const report = reportResult.status === 'fulfilled' ? (reportResult.value || {}) : {};
         const trades = tradesResult.status === 'fulfilled' ? (tradesResult.value || {}) : {};
+        const periodic = periodicResult.status === 'fulfilled' ? (periodicResult.value || {}) : {};
 
-        // تحديث البطاقات الأساسية حتى لو فشل API آخر
         document.getElementById('total-signals').textContent = stats.signals_count || 0;
         document.getElementById('buy-count').textContent = stats.buy_signals || 0;
         document.getElementById('sell-count').textContent = stats.sell_signals || 0;
@@ -415,14 +683,105 @@
         updateCharts(stats, report);
         updateDetailedReport(report);
         updateTradesReport(trades);
+        updatePeriodicReport(periodic.report || {});
 
-        if (statsResult.status === 'rejected' || reportResult.status === 'rejected' || tradesResult.status === 'rejected') {
+        if (statsResult.status === 'rejected' || reportResult.status === 'rejected' || tradesResult.status === 'rejected' || periodicResult.status === 'rejected') {
             console.error('بعض بيانات التقارير فشلت في التحميل', {
                 statsError: statsResult.status === 'rejected' ? statsResult.reason : null,
                 reportError: reportResult.status === 'rejected' ? reportResult.reason : null,
                 tradesError: tradesResult.status === 'rejected' ? tradesResult.reason : null,
+                periodicError: periodicResult.status === 'rejected' ? periodicResult.reason : null,
             });
         }
+    }
+
+    function selectReportPeriod(period) {
+        currentReportPeriod = period;
+        loadReportsData();
+    }
+
+    function updatePeriodButtons() {
+        document.querySelectorAll('.period-tab').forEach((button) => {
+            button.classList.toggle('active', button.dataset.period === currentReportPeriod);
+        });
+    }
+
+    function formatSignedNumber(value) {
+        const number = Number(value || 0);
+        return number > 0 ? `+${number}` : `${number}`;
+    }
+
+    function formatSignedDecimal(value) {
+        const number = Number(value || 0);
+        const fixed = number.toFixed(2);
+        return number > 0 ? `+${fixed}` : fixed;
+    }
+
+    function updatePeriodicReport(report) {
+        const summary = report.summary || {};
+        const comparison = report.comparison || {};
+
+        document.getElementById('period-report-title').textContent = `${report.icon || '📊'} التقرير ${report.period_label || ''} الاحترافي`;
+        document.getElementById('period-range-text').textContent = report.date_range_text || '-';
+        document.getElementById('period-generated-at').textContent = report.generated_at || '-';
+        document.getElementById('period-total-closed').textContent = summary.total_closed_trades || 0;
+        document.getElementById('period-wins').textContent = summary.wins || 0;
+        document.getElementById('period-losses').textContent = summary.losses || 0;
+        document.getElementById('period-win-rate').textContent = `${summary.win_rate || 0}%`;
+        document.getElementById('period-net-profit').textContent = `${summary.net_profit_percent || 0}%`;
+        document.getElementById('period-active-trades').textContent = summary.active_trades || 0;
+        document.getElementById('period-delta-trades').textContent = formatSignedNumber(comparison.trades_delta || 0);
+        document.getElementById('period-delta-win-rate').textContent = `${formatSignedDecimal(comparison.win_rate_delta || 0)}%`;
+        document.getElementById('period-delta-profit').textContent = `${formatSignedDecimal(comparison.profit_delta || 0)}%`;
+        document.getElementById('period-quality-rr').textContent = `${summary.avg_quality || 0} / ${summary.avg_rr || 0}`;
+
+        updatePeriodTopSymbolsTable(report.top_symbols || []);
+        updatePeriodTimeframesTable(report.timeframes || []);
+        document.getElementById('periodic-report-preview').innerHTML = report.message_html || 'لا توجد بيانات كافية لإنشاء التقرير حالياً.';
+    }
+
+    function updatePeriodTopSymbolsTable(items) {
+        const tbody = document.getElementById('period-top-symbols-body');
+        tbody.innerHTML = '';
+
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">لا توجد بيانات لهذه الفترة</td></tr>';
+            return;
+        }
+
+        items.forEach((item) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${item.symbol || '-'}</strong></td>
+                    <td>${item.total || 0}</td>
+                    <td>${item.wins || 0}</td>
+                    <td>${item.win_rate || 0}%</td>
+                    <td>${item.net_profit_percent || 0}%</td>
+                </tr>
+            `;
+        });
+    }
+
+    function updatePeriodTimeframesTable(items) {
+        const tbody = document.getElementById('period-timeframes-body');
+        tbody.innerHTML = '';
+
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">لا توجد بيانات لهذه الفترة</td></tr>';
+            return;
+        }
+
+        items.forEach((item) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${item.timeframe || '-'}</strong></td>
+                    <td>${item.total || 0}</td>
+                    <td>${item.wins || 0}</td>
+                    <td>${item.losses || 0}</td>
+                    <td>${item.win_rate || 0}%</td>
+                </tr>
+            `;
+        });
     }
 
     function updateTopPairsTable(topPairs, total) {
@@ -609,7 +968,61 @@
     }
 
     function exportReport() {
-        alert('⏳ جاري تجهيز التقرير للتصدير...\n\nهذه الميزة قيد التطوير');
+        const reportTitle = document.getElementById('period-report-title').textContent;
+        const previewHtml = document.getElementById('periodic-report-preview').innerHTML;
+        const printWindow = window.open('', '_blank', 'width=1000,height=800');
+        if (!printWindow) {
+            alert('تعذر فتح نافذة التصدير. تأكد من السماح بالنوافذ المنبثقة.');
+            return;
+        }
+
+        printWindow.document.write(`
+            <html lang="ar" dir="rtl">
+            <head>
+                <title>${reportTitle}</title>
+                <style>
+                    body { font-family: Tahoma, Arial, sans-serif; padding: 32px; color: #1c2f4b; }
+                    .sheet { border: 1px solid #d8c07a; border-radius: 18px; padding: 28px; background: #fffdf7; }
+                    h1 { color: #8e6c0d; margin-top: 0; }
+                    .preview { background: #18253a; color: #f6ecd0; border-radius: 14px; padding: 22px; line-height: 1.9; white-space: pre-line; }
+                    .preview b { color: #ffd76a; }
+                </style>
+            </head>
+            <body>
+                <div class="sheet">
+                    <h1>${reportTitle}</h1>
+                    <div class="preview">${previewHtml}</div>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+
+    async function sendPeriodicReport() {
+        const button = document.getElementById('send-periodic-report-btn');
+        if (button) button.disabled = true;
+
+        try {
+            const response = await fetch('/api/admin/send-periodic-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ period: currentReportPeriod })
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'تعذر إرسال التقرير');
+            }
+
+            alert(`تم إرسال التقرير ${data.period_label || ''}\n\nإلى المشتركين: ${data.subscribers_sent_count || 0}\nإلى الأهداف المخصصة: ${data.targets_sent_count || 0}`);
+        } catch (error) {
+            alert(`فشل إرسال التقرير: ${error.message || error}`);
+        } finally {
+            if (button) button.disabled = false;
+        }
     }
 
     // التحميل الأولي

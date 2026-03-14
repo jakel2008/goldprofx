@@ -130,6 +130,38 @@
         .log-warning { color: #ffff00; }
         .log-error { color: #ff0000; }
         .log-success { color: #00ffff; }
+
+        .archive-mini-card {
+            background: #fff9eb;
+            border: 1px solid rgba(196, 155, 46, 0.25);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            height: 100%;
+        }
+
+        .archive-mini-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1c2f4b;
+            margin: 8px 0;
+        }
+
+        .archive-mini-card .label {
+            color: #7a6a45;
+            font-size: 0.95rem;
+        }
+
+        .archive-mini-card .note {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .archive-note {
+            margin-top: 12px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
     </style>
 {% endblock %}
 
@@ -273,6 +305,69 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="dashboard-card p-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h5 class="mb-1"><i class="bi bi-archive-fill"></i> صحة أرشيف الصفقات</h5>
+                            <small class="text-muted">الفرق بين السجلات الخام والعدد الفعلي بعد إزالة التكرار</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <div class="archive-mini-card">
+                                <div class="label">المغلقة الخام</div>
+                                <div class="value" id="archiveRawTotal">0</div>
+                                <div class="note">قبل إزالة التكرار</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="archive-mini-card">
+                                <div class="label">المغلقة الفعلية</div>
+                                <div class="value" id="archiveActualTotal">0</div>
+                                <div class="note">بعد التطبيع</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="archive-mini-card">
+                                <div class="label">المكرر المحذوف</div>
+                                <div class="value" id="archiveDuplicates">0</div>
+                                <div class="note">سجلات غير فعلية</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="archive-mini-card">
+                                <div class="label">مصدر الأرشيف</div>
+                                <div class="value" id="archiveSource">-</div>
+                                <div class="note">database / json</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>المؤشر</th>
+                                    <th>الخام</th>
+                                    <th>الفعلي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archiveStatsTableBody">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="archive-note" id="archiveMetaNote">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="dashboard-card p-4">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h5 class="mb-1"><i class="bi bi-file-earmark-spreadsheet"></i> تحكم تقرير CSV اليومي</h5>
@@ -326,6 +421,7 @@
                         // تحديث حالة المكونات
                         updateComponentStatus(data.status);
                         updateDeliverySchedulerMeta(data);
+                        updateArchiveHealth(data.archive_stats || {});
                         
                         // تحديث المقاييس
                         document.getElementById('totalUsers').textContent = data.metrics.total_users || 0;
@@ -391,6 +487,39 @@
             const dailyTime = meta.daily_time || '-';
             const csvPath = meta.last_csv_path || '-';
             metaEl.textContent = `آخر تشغيل: ${lastRun} | rows: ${rows} | time: ${dailyTime} | file: ${csvPath}`;
+        }
+
+        function updateArchiveHealth(stats) {
+            document.getElementById('archiveRawTotal').textContent = stats.raw_closed_total || 0;
+            document.getElementById('archiveActualTotal').textContent = stats.actual_closed_total || 0;
+            document.getElementById('archiveDuplicates').textContent = stats.duplicates_removed || 0;
+            document.getElementById('archiveSource').textContent = stats.storage_source || '-';
+
+            const tbody = document.getElementById('archiveStatsTableBody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td><strong>الرابحة</strong></td>
+                        <td>${stats.raw_wins || 0}</td>
+                        <td>${stats.actual_wins || 0}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>الخاسرة</strong></td>
+                        <td>${stats.raw_losses || 0}</td>
+                        <td>${stats.actual_losses || 0}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>إجمالي المغلقة</strong></td>
+                        <td>${stats.raw_closed_total || 0}</td>
+                        <td>${stats.actual_closed_total || 0}</td>
+                    </tr>
+                `;
+            }
+
+            const note = document.getElementById('archiveMetaNote');
+            if (note) {
+                note.textContent = `DB rows: ${stats.database_rows || 0} | JSON rows: ${stats.json_rows || 0} | Raw merged: ${stats.raw_combined_rows || 0}`;
+            }
         }
 
         function controlDeliveryScheduler(action) {

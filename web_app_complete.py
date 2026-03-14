@@ -3840,6 +3840,213 @@ def _deduplicate_archived_trade_rows(trade_rows):
     return deduplicated
 
 
+def _load_raw_archived_trade_rows(limit=100000):
+    """تحميل صفوف الأرشيف الخام من قاعدة البيانات وملف JSON قبل إزالة التكرار."""
+    _ensure_signals_archive_table()
+
+    safe_limit = max(1, int(limit or 100000))
+    database_rows = []
+    json_rows = []
+
+    try:
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT *
+            FROM signals_archive
+            ORDER BY COALESCE(archived_at, created_at) DESC
+            LIMIT ?
+        ''', (safe_limit,))
+        database_rows = [dict(item) for item in c.fetchall()]
+        conn.close()
+    except Exception:
+        database_rows = []
+
+    if CLOSED_TRADES_ARCHIVE_FILE.exists():
+        try:
+            with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f) or []
+            if isinstance(data, list):
+                json_rows = [row for row in reversed(data[-safe_limit:]) if isinstance(row, dict)]
+        except Exception:
+            json_rows = []
+
+    return {
+        'database_rows': database_rows,
+        'json_rows': json_rows,
+        'combined_rows': list(database_rows) + list(json_rows),
+    }
+
+
+def _archived_trade_storage_row(row):
+    """تحويل صف أرشيف عام إلى الصفوف المدعومة في جدول signals_archive وملف JSON."""
+    if not isinstance(row, dict):
+        return None
+
+    def _safe_int(value):
+        try:
+            if value in (None, ''):
+                return None
+            return int(value)
+        except Exception:
+            return None
+
+    return {
+        'signal_id': _safe_int(row.get('signal_id')),
+        'symbol': row.get('symbol') or row.get('pair'),
+        'signal_type': row.get('signal_type') or row.get('signal'),
+        'entry_price': row.get('entry_price') if row.get('entry_price') is not None else row.get('entry'),
+        'stop_loss': row.get('stop_loss'),
+        'take_profit_1': row.get('take_profit_1') if row.get('take_profit_1') is not None else row.get('take_profit1'),
+        'take_profit_2': row.get('take_profit_2'),
+        'take_profit_3': row.get('take_profit_3'),
+        'quality_score': row.get('quality_score'),
+        'timeframe': row.get('timeframe') or row.get('tf') or '1h',
+        'status': row.get('status') or 'closed',
+        'result': row.get('result'),
+        'current_price': row.get('current_price'),
+        'close_price': row.get('close_price'),
+        'tp1_locked': row.get('tp1_locked', 0),
+        'tp2_locked': row.get('tp2_locked', 0),
+        'tp3_locked': row.get('tp3_locked', 0),
+        'activated': row.get('activated', 1),
+        'created_at': row.get('created_at'),
+        'archived_at': row.get('archived_at') or row.get('closed_at') or row.get('created_at'),
+        'archive_reason': row.get('archive_reason') or 'normalized_archive',
+    }
+
+
+def _write_archived_trades_to_database(trade_rows, replace_all=True):
+    """مزامنة الصفقات المؤرشفة المنزوعة التكرار إلى قاعدة البيانات."""
+    _ensure_signals_archive_table()
+
+    safe_rows = []
+    for row in trade_rows or []:
+        normalized = _archived_trade_storage_row(row)
+        if normalized is not None:
+            safe_rows.append(normalized)
+
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    if replace_all:
+        c.execute('DELETE FROM signals_archive')
+
+    for row in safe_rows:
+        c.execute('''
+            INSERT INTO signals_archive (
+                signal_id, symbol, signal_type, entry_price, stop_loss,
+                take_profit_1, take_profit_2, take_profit_3,
+                quality_score, timeframe, status, result,
+                current_price, close_price,
+                tp1_locked, tp2_locked, tp3_locked, activated,
+                created_at, archived_at, archive_reason
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            row.get('signal_id'),
+            row.get('symbol'),
+            row.get('signal_type'),
+            row.get('entry_price'),
+            row.get('stop_loss'),
+            row.get('take_profit_1'),
+            row.get('take_profit_2'),
+            row.get('take_profit_3'),
+            row.get('quality_score'),
+            row.get('timeframe'),
+            row.get('status'),
+            row.get('result'),
+            row.get('current_price'),
+            row.get('close_price'),
+            row.get('tp1_locked'),
+            row.get('tp2_locked'),
+            row.get('tp3_locked'),
+            row.get('activated'),
+            row.get('created_at'),
+            row.get('archived_at'),
+            row.get('archive_reason'),
+        ))
+
+    conn.commit()
+    conn.close()
+    return len(safe_rows)
+
+
+def _write_archived_trades_to_json(trade_rows, backup_existing=False):
+    """حفظ نسخة JSON نظيفة من الأرشيف مع عمل backup اختياري."""
+    backup_path = None
+    if backup_existing and CLOSED_TRADES_ARCHIVE_FILE.exists():
+        try:
+            BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+            backup_path = BACKUPS_DIR / f"closed_trades_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            shutil.copy2(CLOSED_TRADES_ARCHIVE_FILE, backup_path)
+        except Exception:
+            backup_path = None
+
+    safe_rows = []
+    for row in trade_rows or []:
+        normalized = _archived_trade_storage_row(row)
+        if normalized is not None:
+            safe_rows.append(normalized)
+
+    with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(safe_rows, f, ensure_ascii=False, indent=2)
+
+    return str(backup_path) if backup_path else None
+
+
+def _build_archive_stats(raw_payload=None, deduplicated_rows=None):
+    """إحصاءات الأرشيف الخام مقابل الفعلي بعد إزالة التكرار."""
+    raw_payload = raw_payload or _load_raw_archived_trade_rows(limit=100000)
+    combined_rows = list(raw_payload.get('combined_rows') or [])
+    deduplicated_rows = deduplicated_rows if deduplicated_rows is not None else _deduplicate_archived_trade_rows(combined_rows)
+
+    def _count_results(rows):
+        wins = 0
+        losses = 0
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            result = str(row.get('result') or '').strip().lower()
+            if result == 'win':
+                wins += 1
+            elif result == 'loss':
+                losses += 1
+        return wins, losses
+
+    raw_wins, raw_losses = _count_results(combined_rows)
+    actual_wins, actual_losses = _count_results(deduplicated_rows)
+    raw_closed_total = raw_wins + raw_losses
+    actual_closed_total = actual_wins + actual_losses
+
+    return {
+        'database_rows': len(raw_payload.get('database_rows') or []),
+        'json_rows': len(raw_payload.get('json_rows') or []),
+        'raw_combined_rows': len(combined_rows),
+        'raw_closed_total': raw_closed_total,
+        'raw_wins': raw_wins,
+        'raw_losses': raw_losses,
+        'actual_closed_total': actual_closed_total,
+        'actual_wins': actual_wins,
+        'actual_losses': actual_losses,
+        'duplicates_removed': max(0, raw_closed_total - actual_closed_total),
+        'storage_source': 'database' if len(raw_payload.get('database_rows') or []) > 0 else ('json' if len(raw_payload.get('json_rows') or []) > 0 else 'none'),
+    }
+
+
+def _normalize_archived_trades_storage(backup_json=True):
+    """تنظيف الأرشيف وترحيله إلى قاعدة البيانات مع الحفاظ على نسخة JSON نظيفة."""
+    raw_payload = _load_raw_archived_trade_rows(limit=100000)
+    deduplicated_rows = _deduplicate_archived_trade_rows(raw_payload.get('combined_rows') or [])
+
+    backup_path = _write_archived_trades_to_json(deduplicated_rows, backup_existing=backup_json)
+    stored_count = _write_archived_trades_to_database(deduplicated_rows, replace_all=True)
+
+    stats = _build_archive_stats(raw_payload=raw_payload, deduplicated_rows=deduplicated_rows)
+    stats['backup_path'] = backup_path
+    stats['stored_rows'] = stored_count
+    return stats
+
+
 def _load_archived_trades(limit=2000):
     """تحميل الصفقات المنتهية من أرشيف قاعدة البيانات مع رجوع احتياطي لملف JSON."""
     _ensure_signals_archive_table()
@@ -3869,6 +4076,10 @@ def _load_archived_trades(limit=2000):
                 data = json.load(f) or []
             if isinstance(data, list):
                 deduplicated_rows = _deduplicate_archived_trade_rows(list(reversed(data)))
+                try:
+                    _write_archived_trades_to_database(deduplicated_rows, replace_all=True)
+                except Exception:
+                    pass
                 return deduplicated_rows[:max(1, int(limit or 2000))]
         except Exception:
             return []
@@ -6610,6 +6821,27 @@ def api_trades_report():
         }), 500
 
 
+@app.route('/api/archive-stats')
+@login_required
+def api_archive_stats():
+    """إرجاع إحصاءات الأرشيف الخام مقابل الفعلي بعد إزالة التكرار."""
+    try:
+        return jsonify({'success': True, 'stats': _build_archive_stats()})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/archive-normalize', methods=['POST'])
+@admin_required
+def api_admin_archive_normalize():
+    """تنظيف الأرشيف الحالي وإعادة ترحيله إلى قاعدة البيانات وJSON."""
+    try:
+        stats = _normalize_archived_trades_storage(backup_json=True)
+        return jsonify({'success': True, 'stats': stats})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/periodic-report')
 @login_required
 def api_periodic_report():
@@ -9226,6 +9458,7 @@ def api_system_status():
             win_rate = 0
         
         adaptive_overview = _build_adaptive_thresholds_overview(limit_rows=20)
+        archive_stats = _build_archive_stats()
 
         return jsonify({
             'success': True,
@@ -9236,6 +9469,7 @@ def api_system_status():
                 'active_trades': active_trades_count,
                 'win_rate': win_rate
             },
+            'archive_stats': archive_stats,
             'adaptive_overview': adaptive_overview.get('summary', {}),
             'continuous_analyzer': CONTINUOUS_ANALYZER_STATE,
             'continuous_analyzer_thread_alive': analyzer_alive,

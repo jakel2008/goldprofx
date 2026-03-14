@@ -143,6 +143,87 @@
         <div class="report-preview-card" id="periodic-report-preview">جاري إعداد المعاينة...</div>
     </div>
 
+    <div class="detailed-report-section archive-health-section">
+        <div class="period-preview-header">
+            <div>
+                <h3>🗃️ صحة أرشيف الصفقات</h3>
+                <p class="preview-subtitle">يوضح الفرق بين عدد السجلات الخام والعدد الفعلي بعد إزالة التكرار.</p>
+            </div>
+            {% if user and user.is_admin %}
+            <button onclick="normalizeArchiveStore()" class="btn btn-secondary" id="normalize-archive-btn">🧹 تنظيف وترحيل الأرشيف</button>
+            {% endif %}
+        </div>
+
+        <div class="stats-grid-advanced archive-summary-grid">
+            <div class="stat-card-advanced blue">
+                <div class="stat-icon">📚</div>
+                <div class="stat-content">
+                    <div class="stat-label">السجلات الخام المغلقة</div>
+                    <div class="stat-value" id="archive-raw-total">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">العدد الفعلي المغلق</div>
+                    <div class="stat-value" id="archive-actual-total">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced orange">
+                <div class="stat-icon">🧹</div>
+                <div class="stat-content">
+                    <div class="stat-label">السجلات المكررة المحذوفة</div>
+                    <div class="stat-value" id="archive-duplicates">0</div>
+                </div>
+            </div>
+            <div class="stat-card-advanced purple">
+                <div class="stat-icon">💾</div>
+                <div class="stat-content">
+                    <div class="stat-label">مصدر الأرشيف الحالي</div>
+                    <div class="stat-value archive-source-value" id="archive-source">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tables-section period-breakdown-section">
+            <div class="table-card">
+                <h3>📊 مقارنة الخام مقابل الفعلي</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>المؤشر</th>
+                                <th>الخام</th>
+                                <th>الفعلي</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archive-counts-body">
+                            <tr><td colspan="3">جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3>🧾 تفاصيل التخزين</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>المخزن</th>
+                                <th>عدد السجلات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archive-storage-body">
+                            <tr><td colspan="2">جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="archive-note" id="archive-note">-</div>
+            </div>
+        </div>
+    </div>
+
     <!-- بطاقات الإحصائيات الرئيسية -->
     <div class="stats-grid-advanced">
         <div class="stat-card-advanced blue">
@@ -446,6 +527,20 @@
         color: #ffd76a;
     }
 
+    .archive-health-section {
+        margin-bottom: 2rem;
+    }
+
+    .archive-source-value {
+        font-size: 1.25rem;
+    }
+
+    .archive-note {
+        margin-top: 1rem;
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
     .stats-grid-advanced {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -655,17 +750,19 @@
     async function loadReportsData() {
         updatePeriodButtons();
 
-        const [statsResult, reportResult, tradesResult, periodicResult] = await Promise.allSettled([
+        const [statsResult, reportResult, tradesResult, periodicResult, archiveResult] = await Promise.allSettled([
             fetch('/api/stats').then((r) => r.json()),
             fetch('/api/detailed-report').then((r) => r.json()),
             fetch('/api/trades-report').then((r) => r.json()),
-            fetch(`/api/periodic-report?period=${encodeURIComponent(currentReportPeriod)}`).then((r) => r.json())
+            fetch(`/api/periodic-report?period=${encodeURIComponent(currentReportPeriod)}`).then((r) => r.json()),
+            fetch('/api/archive-stats').then((r) => r.json())
         ]);
 
         const stats = statsResult.status === 'fulfilled' ? (statsResult.value || {}) : {};
         const report = reportResult.status === 'fulfilled' ? (reportResult.value || {}) : {};
         const trades = tradesResult.status === 'fulfilled' ? (tradesResult.value || {}) : {};
         const periodic = periodicResult.status === 'fulfilled' ? (periodicResult.value || {}) : {};
+        const archive = archiveResult.status === 'fulfilled' ? (archiveResult.value || {}) : {};
 
         document.getElementById('total-signals').textContent = stats.signals_count || 0;
         document.getElementById('buy-count').textContent = stats.buy_signals || 0;
@@ -684,15 +781,61 @@
         updateDetailedReport(report);
         updateTradesReport(trades);
         updatePeriodicReport(periodic.report || {});
+        updateArchiveStats(archive.stats || {});
 
-        if (statsResult.status === 'rejected' || reportResult.status === 'rejected' || tradesResult.status === 'rejected' || periodicResult.status === 'rejected') {
+        if (statsResult.status === 'rejected' || reportResult.status === 'rejected' || tradesResult.status === 'rejected' || periodicResult.status === 'rejected' || archiveResult.status === 'rejected') {
             console.error('بعض بيانات التقارير فشلت في التحميل', {
                 statsError: statsResult.status === 'rejected' ? statsResult.reason : null,
                 reportError: reportResult.status === 'rejected' ? reportResult.reason : null,
                 tradesError: tradesResult.status === 'rejected' ? tradesResult.reason : null,
                 periodicError: periodicResult.status === 'rejected' ? periodicResult.reason : null,
+                archiveError: archiveResult.status === 'rejected' ? archiveResult.reason : null,
             });
         }
+    }
+
+    function updateArchiveStats(stats) {
+        document.getElementById('archive-raw-total').textContent = stats.raw_closed_total || 0;
+        document.getElementById('archive-actual-total').textContent = stats.actual_closed_total || 0;
+        document.getElementById('archive-duplicates').textContent = stats.duplicates_removed || 0;
+        document.getElementById('archive-source').textContent = stats.storage_source || 'none';
+
+        const countsBody = document.getElementById('archive-counts-body');
+        countsBody.innerHTML = `
+            <tr>
+                <td><strong>الرابحة</strong></td>
+                <td>${stats.raw_wins || 0}</td>
+                <td>${stats.actual_wins || 0}</td>
+            </tr>
+            <tr>
+                <td><strong>الخاسرة</strong></td>
+                <td>${stats.raw_losses || 0}</td>
+                <td>${stats.actual_losses || 0}</td>
+            </tr>
+            <tr>
+                <td><strong>إجمالي المغلقة</strong></td>
+                <td>${stats.raw_closed_total || 0}</td>
+                <td>${stats.actual_closed_total || 0}</td>
+            </tr>
+        `;
+
+        const storageBody = document.getElementById('archive-storage-body');
+        storageBody.innerHTML = `
+            <tr>
+                <td><strong>signals_archive DB</strong></td>
+                <td>${stats.database_rows || 0}</td>
+            </tr>
+            <tr>
+                <td><strong>closed_trades.json</strong></td>
+                <td>${stats.json_rows || 0}</td>
+            </tr>
+            <tr>
+                <td><strong>الإجمالي الخام المدمج</strong></td>
+                <td>${stats.raw_combined_rows || 0}</td>
+            </tr>
+        `;
+
+        document.getElementById('archive-note').textContent = `المكرر الذي تمت إزالته: ${stats.duplicates_removed || 0} | المصدر الفعلي المستخدم: ${stats.storage_source || 'none'}`;
     }
 
     function selectReportPeriod(period) {
@@ -1020,6 +1163,32 @@
             alert(`تم إرسال التقرير ${data.period_label || ''}\n\nإلى المشتركين: ${data.subscribers_sent_count || 0}\nإلى الأهداف المخصصة: ${data.targets_sent_count || 0}`);
         } catch (error) {
             alert(`فشل إرسال التقرير: ${error.message || error}`);
+        } finally {
+            if (button) button.disabled = false;
+        }
+    }
+
+    async function normalizeArchiveStore() {
+        const button = document.getElementById('normalize-archive-btn');
+        if (button) button.disabled = true;
+
+        try {
+            const response = await fetch('/api/admin/archive-normalize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'تعذر تنظيف الأرشيف');
+            }
+
+            updateArchiveStats(data.stats || {});
+            loadReportsData();
+
+            const backupText = data.stats && data.stats.backup_path ? `\nنسخة احتياطية: ${data.stats.backup_path}` : '';
+            alert(`تم تنظيف الأرشيف وترحيله بنجاح\n\nالعدد الفعلي: ${(data.stats || {}).actual_closed_total || 0}\nالمكرر المحذوف: ${(data.stats || {}).duplicates_removed || 0}${backupText}`);
+        } catch (error) {
+            alert(`فشل تنظيف الأرشيف: ${error.message || error}`);
         } finally {
             if (button) button.disabled = false;
         }

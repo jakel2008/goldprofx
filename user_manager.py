@@ -18,6 +18,7 @@ except Exception:
     pass
 
 DATABASE_FILE = Path(os.environ.get('USERS_DB_PATH', str(_data_dir / 'users.db')))
+EMAIL_ACTIVATION_REQUIRED = os.environ.get('EMAIL_ACTIVATION_REQUIRED', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 
 class UserManager:
     def _normalize_email(self, email):
@@ -96,6 +97,19 @@ class UserManager:
             cursor.execute("UPDATE users SET email_verified = 1 WHERE email_verified IS NULL")
             cursor.execute("UPDATE users SET marketing_email_opt_in = 1 WHERE marketing_email_opt_in IS NULL")
             cursor.execute("UPDATE users SET whatsapp_opt_in = 0 WHERE whatsapp_opt_in IS NULL")
+            if not EMAIL_ACTIVATION_REQUIRED:
+                cursor.execute(
+                    '''
+                    UPDATE users
+                    SET email_verified = 1,
+                        is_active = 1,
+                        activated_at = COALESCE(activated_at, CURRENT_TIMESTAMP),
+                        activation_token = NULL,
+                        activation_sent_at = NULL
+                    WHERE (deleted_at IS NULL OR deleted_at = '')
+                      AND COALESCE(email_verified, 0) = 0
+                    '''
+                )
             
             # جدول جلسات المستخدمين
             cursor.execute('''
@@ -149,7 +163,7 @@ class UserManager:
     
     def register_user(self, username, email, password, full_name, phone=None, country=None, nickname=None,
                       marketing_email_opt_in=True, whatsapp_opt_in=False):
-        """تسجيل مستخدم جديد مع إنشاء رمز تفعيل وإبقاء بيانات التواصل محفوظة."""
+        """تسجيل مستخدم جديد مع دعم تفعيل البريد حسب إعدادات البيئة."""
         try:
             normalized_email = self._normalize_email(email)
             conn = sqlite3.connect(self.db_file)
@@ -168,14 +182,16 @@ class UserManager:
                 return {'success': False, 'message': 'اسم المستخدم أو البريد موجود بالفعل'}
             # إضافة المستخدم الجديد
             password_hash = self.hash_password(password)
-            activation_token = self._generate_activation_token()
+            activation_required = EMAIL_ACTIVATION_REQUIRED
+            activation_token = self._generate_activation_token() if activation_required else None
+            activation_sent_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S') if activation_required else None
             cursor.execute('''
                 INSERT INTO users (
                     username, email, password_hash, full_name, role, is_admin,
                     phone, country, nickname, is_active, email_verified,
                     activation_token, activation_sent_at, marketing_email_opt_in, whatsapp_opt_in
                 )
-                VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, ?, ?)
+                VALUES (?, ?, ?, ?, 'user', 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 username,
                 normalized_email,
@@ -184,7 +200,10 @@ class UserManager:
                 phone,
                 country,
                 nickname,
+                0 if activation_required else 1,
+                0 if activation_required else 1,
                 activation_token,
+                activation_sent_at,
                 1 if marketing_email_opt_in else 0,
                 1 if whatsapp_opt_in else 0,
             ))
@@ -195,9 +214,10 @@ class UserManager:
             self.log_activity(user_id, 'registration', 'New user registered')
             return {
                 'success': True,
-                'message': 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني لتفعيل الحساب.',
+                'message': 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني لتفعيل الحساب.' if activation_required else 'تم التسجيل بنجاح. يمكنك تسجيل الدخول مباشرة.',
                 'user_id': user_id,
                 'activation_token': activation_token,
+                'activation_required': activation_required,
                 'email': normalized_email
             }
         except Exception as e:
@@ -366,15 +386,33 @@ class UserManager:
             if deleted_at:
                 conn.close()
                 return {'success': False, 'message': 'الحساب محذوف بواسطة الإدارة'}
-            if not email_verified:
+            if EMAIL_ACTIVATION_REQUIRED and not email_verified:
                 conn.close()
                 return {'success': False, 'message': 'الحساب غير مفعل بعد. افتح رابط التفعيل المرسل إلى بريدك الإلكتروني.'}
-            if not is_active:
-                conn.close()
-                return {'success': False, 'message': 'الحساب غير مفعل'}
             if not self.verify_password(password_hash, password):
                 conn.close()
                 return {'success': False, 'message': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة'}
+
+            # ترقية الحسابات القديمة غير المفعلة بعد نجاح كلمة المرور.
+            if not EMAIL_ACTIVATION_REQUIRED and not email_verified:
+                cursor.execute(
+                    '''
+                    UPDATE users
+                    SET email_verified = 1,
+                        activated_at = COALESCE(activated_at, CURRENT_TIMESTAMP),
+                        activation_token = NULL,
+                        activation_sent_at = NULL,
+                        is_active = 1
+                    WHERE id = ?
+                    ''',
+                    (user_id,)
+                )
+                is_active = 1
+                email_verified = 1
+
+            if not is_active:
+                conn.close()
+                return {'success': False, 'message': 'الحساب غير مفعل'}
             # إنشاء جلسة جديدة
             session_token = secrets.token_urlsafe(32)
             cursor.execute('''
@@ -733,3 +771,6 @@ class UserManager:
 
 # إنشاء مثيل عام
 user_manager = UserManager()
+
+
+

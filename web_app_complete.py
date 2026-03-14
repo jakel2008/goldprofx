@@ -138,11 +138,15 @@ app.secret_key = 'your-secret-key-change-this-to-random-string'
 
 ADMIN_USERNAME = 'jakel2008'
 ADMIN_PASSWORD = 'JAKEL2008'
+EMAIL_ACTIVATION_REQUIRED = os.environ.get('EMAIL_ACTIVATION_REQUIRED', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 
 TELEGRAM_COMMAND_BOT_ENABLED = os.environ.get('TELEGRAM_COMMAND_BOT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 TELEGRAM_COMMAND_BOT = TelegramCommandBot(Path(__file__).parent) if TelegramCommandBot else None
 BACKGROUND_SERVICES_ENABLED = os.environ.get('BACKGROUND_SERVICES_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 BACKGROUND_SERVICES_BOOTSTRAPPED = False
+BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = False
+BACKGROUND_SERVICES_BOOTSTRAP_THREAD = None
+BACKGROUND_SERVICES_BOOTSTRAP_LOCK = threading.Lock()
 
 
 def start_telegram_command_bot():
@@ -155,6 +159,61 @@ def start_telegram_command_bot():
         return TELEGRAM_COMMAND_BOT.start()
     except Exception as e:
         return False, str(e)
+
+
+def _bootstrap_background_services_once():
+    """تشغيل خدمات الخلفية خارج مسار الطلب حتى لا تحجب الاستجابة الأولى."""
+    global BACKGROUND_SERVICES_BOOTSTRAPPED, BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS
+
+    try:
+        try:
+            start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+        except Exception:
+            pass
+
+        try:
+            start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
+        except Exception:
+            pass
+
+        try:
+            start_delivery_report_scheduler(
+                daily_time=DELIVERY_REPORT_DAILY_TIME,
+                check_interval_seconds=DELIVERY_REPORT_CHECK_INTERVAL_SECONDS
+            )
+        except Exception:
+            pass
+
+        try:
+            if TELEGRAM_COMMAND_BOT_ENABLED and TELEGRAM_COMMAND_BOT is not None:
+                start_telegram_command_bot()
+        except Exception:
+            pass
+    finally:
+        with BACKGROUND_SERVICES_BOOTSTRAP_LOCK:
+            BACKGROUND_SERVICES_BOOTSTRAPPED = True
+            BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = False
+
+
+def _schedule_background_services_bootstrap():
+    """جدولة تشغيل خدمات الخلفية بشكل غير حاجب للاستجابة."""
+    global BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS, BACKGROUND_SERVICES_BOOTSTRAP_THREAD
+
+    if not BACKGROUND_SERVICES_ENABLED or BACKGROUND_SERVICES_BOOTSTRAPPED:
+        return False
+
+    with BACKGROUND_SERVICES_BOOTSTRAP_LOCK:
+        if BACKGROUND_SERVICES_BOOTSTRAPPED or BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS:
+            return False
+
+        BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = True
+        BACKGROUND_SERVICES_BOOTSTRAP_THREAD = threading.Thread(
+            target=_bootstrap_background_services_once,
+            daemon=True,
+            name='background-services-bootstrap'
+        )
+        BACKGROUND_SERVICES_BOOTSTRAP_THREAD.start()
+        return True
 
 
 @app.route('/healthz')
@@ -3541,38 +3600,13 @@ def add_no_cache_headers(response):
 @app.before_request
 def ensure_background_services_running():
     """ضمان تشغيل خدمات الخلفية عند العمل عبر WSGI (مثل Render/Gunicorn)."""
-    global BACKGROUND_SERVICES_BOOTSTRAPPED
-
-    if not BACKGROUND_SERVICES_ENABLED:
-        return
-    if BACKGROUND_SERVICES_BOOTSTRAPPED:
+    if request.path == '/healthz':
         return
 
-    try:
-        start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
-    except Exception:
-        pass
+    if not BACKGROUND_SERVICES_ENABLED or BACKGROUND_SERVICES_BOOTSTRAPPED:
+        return
 
-    try:
-        start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
-    except Exception:
-        pass
-
-    try:
-        start_delivery_report_scheduler(
-            daily_time=DELIVERY_REPORT_DAILY_TIME,
-            check_interval_seconds=DELIVERY_REPORT_CHECK_INTERVAL_SECONDS
-        )
-    except Exception:
-        pass
-
-    try:
-        if TELEGRAM_COMMAND_BOT_ENABLED and TELEGRAM_COMMAND_BOT is not None:
-            start_telegram_command_bot()
-    except Exception:
-        pass
-
-    BACKGROUND_SERVICES_BOOTSTRAPPED = True
+    _schedule_background_services_bootstrap()
 
 # Decorator لصلاحيات الأدمن
 def admin_required(f):
@@ -5301,14 +5335,18 @@ def register():
         )
         
         if result['success']:
-            activation_link = _build_public_url(url_for('activate_account', token=result.get('activation_token')))
-            email_sent, email_message = email_service.send_account_activation(email, full_name, activation_link)
-            flash('تم إنشاء الحساب. افتح رابط التفعيل المرسل إلى بريدك الإلكتروني قبل تسجيل الدخول.', 'success')
-            if email_sent:
-                flash('تم إرسال رابط التفعيل إلى بريدك الإلكتروني.', 'info')
-            else:
-                flash(f'تم حفظ الحساب لكن تعذر إرسال البريد الآن: {email_message}', 'warning')
-            return redirect(url_for('activation_pending', email=email))
+            if EMAIL_ACTIVATION_REQUIRED and result.get('activation_token'):
+                activation_link = _build_public_url(url_for('activate_account', token=result.get('activation_token')))
+                email_sent, email_message = email_service.send_account_activation(email, full_name, activation_link)
+                flash('تم إنشاء الحساب. افتح رابط التفعيل المرسل إلى بريدك الإلكتروني قبل تسجيل الدخول.', 'success')
+                if email_sent:
+                    flash('تم إرسال رابط التفعيل إلى بريدك الإلكتروني.', 'info')
+                else:
+                    flash(f'تم حفظ الحساب لكن تعذر إرسال البريد الآن: {email_message}', 'warning')
+                return redirect(url_for('activation_pending', email=email))
+
+            flash('تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول مباشرة.', 'success')
+            return redirect(url_for('login'))
         else:
             return render_template('register.html', error=result['message'], form_data=form_data)
     
@@ -9052,19 +9090,7 @@ def _auto_start_background_services_for_wsgi():
         return
     if not BACKGROUND_SERVICES_ENABLED:
         return
-    try:
-        start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
-    except Exception:
-        pass
-    try:
-        start_cleanup_scheduler(interval_seconds=CLEANUP_INTERVAL_DEFAULT)
-    except Exception:
-        pass
-    try:
-        if TELEGRAM_COMMAND_BOT_ENABLED and TELEGRAM_COMMAND_BOT is not None:
-            start_telegram_command_bot()
-    except Exception:
-        pass
+    _schedule_background_services_bootstrap()
 
 
 _auto_start_background_services_for_wsgi()
@@ -9091,4 +9117,8 @@ if __name__ == '__main__':
         print(f"[TELEGRAM_COMMAND_BOT] {cmd_msg}")
 
     app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=debug_mode)
+
+
+
+
 

@@ -10,6 +10,13 @@
             <p class="text-muted mb-0">مراجعة العملاء الذين سجلوا ولم يفعّلوا بريدهم، مع إعادة إرسال رابط التفعيل من لوحة الأدمن.</p>
         </div>
         <div class="col-md-5 text-end">
+            <form method="POST" action="/admin/pending-activations/activate-all" class="d-inline-block me-2">
+                <input type="hidden" name="q" value="{{ (filter_state or {}).get('q', '') }}">
+                <input type="hidden" name="older_than" value="{{ (filter_state or {}).get('older_than', 24) }}">
+                <button type="submit" class="btn btn-success" onclick="return confirm('سيتم تفعيل كل الحسابات غير المفعلة الظاهرة حالياً. هل تريد المتابعة؟');">
+                    <i class="fas fa-user-check"></i> تفعيل جميع الظاهرين
+                </button>
+            </form>
             <a href="/admin/customer-communications" class="btn btn-secondary">
                 <i class="fas fa-arrow-right"></i> العودة إلى مراسلات العملاء
             </a>

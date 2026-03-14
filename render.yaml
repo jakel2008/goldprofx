@@ -31,6 +31,8 @@ services:
         value: "4"
       - key: PUBLIC_BASE_URL
         value: "https://goldprofx.onrender.com"
+      - key: EMAIL_ACTIVATION_REQUIRED
+        value: "0"
       - key: SMTP_ENABLED
         value: "1"
       - key: SMTP_SERVER
@@ -49,3 +51,4 @@ services:
         sync: false
       - key: MM_TELEGRAM_CHAT_ID
         sync: false
+

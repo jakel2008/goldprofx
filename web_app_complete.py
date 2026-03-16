@@ -5237,7 +5237,8 @@ def load_signals(include_closed=False):
     # بروتوكول التنظيف قبل فتح اتصال القراءة لتجنب تعارض قفل قاعدة البيانات
     _run_cleanup_protocol_once()
     _refresh_active_signal_statuses()
-    
+
+    conn = None
     try:
         conn = sqlite3.connect('vip_signals.db')
         conn.row_factory = sqlite3.Row
@@ -5272,6 +5273,9 @@ def load_signals(include_closed=False):
             ''', (start_date,))
             rows = c.fetchall()
             allow_recent_any = bool(rows)
+
+        conn.close()
+        conn = None
 
         for row in rows:
             symbol = _normalize_symbol_key(row['symbol'])
@@ -5316,18 +5320,6 @@ def load_signals(include_closed=False):
                             status = 'closed'
                             result = sl_outcome
                             close_price = current_price
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET status='closed', result=?, close_price=? 
-                                    WHERE signal_id=?
-                                ''', (sl_outcome, current_price, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         # فحص الأهداف بنظام القفل
                         elif current_price >= tp3:
                             tp_levels_hit = 3
@@ -5338,19 +5330,6 @@ def load_signals(include_closed=False):
                                 status = 'closed'
                                 result = 'win'
                                 close_price = current_price
-                                try:
-                                    conn2 = sqlite3.connect('vip_signals.db')
-                                    c2 = conn2.cursor()
-                                    c2.execute('''
-                                        UPDATE signals 
-                                        SET status='closed', result='win', close_price=?,
-                                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                        WHERE signal_id=?
-                                    ''', (current_price, row['signal_id']))
-                                    conn2.commit()
-                                    conn2.close()
-                                except:
-                                    pass
                             else:
                                 tp_levels_hit = 3
                         elif current_price >= tp2 and not tp2_locked:
@@ -5363,18 +5342,6 @@ def load_signals(include_closed=False):
                                 current_sl = float(entry or 0)
                             new_sl = max(current_sl, float(tp1 or entry or 0))
                             sl = new_sl
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                                    WHERE signal_id=?
-                                ''', (new_sl, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         elif current_price >= tp1 and not tp1_locked:
                             tp_levels_hit = 1
                             tp1_locked = 1
@@ -5384,18 +5351,6 @@ def load_signals(include_closed=False):
                                 current_sl = float(entry or 0)
                             new_sl = max(current_sl, float(entry or 0))
                             sl = new_sl
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals 
-                                    SET result='win', tp1_locked=1, stop_loss=?
-                                    WHERE signal_id=?
-                                ''', (new_sl, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         else:
                             # عدد المقفلة من قبل
                             tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
@@ -5411,18 +5366,6 @@ def load_signals(include_closed=False):
                             status = 'closed'
                             result = sl_outcome
                             close_price = current_price
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals
-                                    SET status='closed', result=?, close_price=?
-                                    WHERE signal_id=?
-                                ''', (sl_outcome, current_price, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         # فحص الأهداف بنظام القفل
                         elif current_price <= tp3:
                             tp_levels_hit = 3
@@ -5433,19 +5376,6 @@ def load_signals(include_closed=False):
                                 status = 'closed'
                                 result = 'win'
                                 close_price = current_price
-                                try:
-                                    conn2 = sqlite3.connect('vip_signals.db')
-                                    c2 = conn2.cursor()
-                                    c2.execute('''
-                                        UPDATE signals
-                                        SET status='closed', result='win', close_price=?,
-                                            tp1_locked=1, tp2_locked=1, tp3_locked=1
-                                        WHERE signal_id=?
-                                    ''', (current_price, row['signal_id']))
-                                    conn2.commit()
-                                    conn2.close()
-                                except:
-                                    pass
                             else:
                                 tp_levels_hit = 3
                         elif current_price <= tp2 and not tp2_locked:
@@ -5458,18 +5388,6 @@ def load_signals(include_closed=False):
                                 current_sl = float(entry or 0)
                             new_sl = min(current_sl, float(tp1 or entry or 0))
                             sl = new_sl
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals
-                                    SET result='win', tp1_locked=1, tp2_locked=1, stop_loss=?
-                                    WHERE signal_id=?
-                                ''', (new_sl, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         elif current_price <= tp1 and not tp1_locked:
                             tp_levels_hit = 1
                             tp1_locked = 1
@@ -5479,18 +5397,6 @@ def load_signals(include_closed=False):
                                 current_sl = float(entry or 0)
                             new_sl = min(current_sl, float(entry or 0))
                             sl = new_sl
-                            try:
-                                conn2 = sqlite3.connect('vip_signals.db')
-                                c2 = conn2.cursor()
-                                c2.execute('''
-                                    UPDATE signals
-                                    SET result='win', tp1_locked=1, stop_loss=?
-                                    WHERE signal_id=?
-                                ''', (new_sl, row['signal_id']))
-                                conn2.commit()
-                                conn2.close()
-                            except:
-                                pass
                         else:
                             # عدد المقفلة من قبل
                             tp_levels_hit = tp1_locked + tp2_locked + tp3_locked
@@ -5500,16 +5406,6 @@ def load_signals(include_closed=False):
                 # حساب التقدم
                 if total_range != 0:
                     progress = int((pips / total_range) * 100)
-                
-                # تحديث السعر في قاعدة البيانات
-                try:
-                    conn2 = sqlite3.connect('vip_signals.db')
-                    c2 = conn2.cursor()
-                    c2.execute('UPDATE signals SET current_price=? WHERE signal_id=?', (current_price, row['signal_id']))
-                    conn2.commit()
-                    conn2.close()
-                except:
-                    pass
             
             signal_obj = {
                 'signal_id': row['signal_id'],
@@ -5558,10 +5454,15 @@ def load_signals(include_closed=False):
             if include_closed or signal_obj.get('status') == 'active' or allow_recent_any:
                 signals.append(signal_obj)
         
-        conn.close()
     except Exception as e:
         print(f"❌ خطأ في تحميل الإشارات: {e}")
-    
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
     return _deduplicate_signal_objects(signals)
 
 

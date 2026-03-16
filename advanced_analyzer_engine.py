@@ -18,6 +18,8 @@ def analyze_with_indicators(df):
     if not TA_AVAILABLE:
         return df
 
+    df = df.copy()
+
     # التأكد من وجود الأعمدة الأساسية
     if 'Close' not in df.columns:
         raise ValueError(f"العمود 'Close' غير موجود. الأعمدة المتوفرة: {df.columns.tolist()}")
@@ -99,6 +101,8 @@ def calculate_pivot_point(df):
     """حساب نقاط الارتكاز"""
     if df.empty or len(df) < 2:
         return None, None, None, None, None
+
+    df = df.copy()
     
     df['DateOnly'] = pd.to_datetime(df['Date']).dt.date
     last_date = df.iloc[-1]["DateOnly"]

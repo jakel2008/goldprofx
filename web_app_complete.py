@@ -6138,23 +6138,80 @@ def save_public_ads(new_ads):
 
 
 def get_latest_registered_users(limit=5):
-    """جلب آخر المستخدمين المسجلين من قاعدة المستخدمين."""
-    rows = []
+    """جلب آخر المنضمين من users.db و vip_subscriptions.db بدون تكرار."""
+    safe_limit = max(1, int(limit))
+    merged = {}
+
     try:
         conn = sqlite3.connect(user_manager.db_file)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute('''
-            SELECT username, full_name, created_at
+            SELECT id, username, full_name, email, created_at
             FROM users
-            ORDER BY datetime(created_at) DESC
+            WHERE (deleted_at IS NULL OR deleted_at = '')
+            ORDER BY created_at DESC
             LIMIT ?
-        ''', (max(1, int(limit)),))
-        rows = [dict(item) for item in c.fetchall()]
+        ''', (max(safe_limit * 5, 20),))
+        for item in c.fetchall():
+            row = dict(item)
+            email_key = str(row.get('email') or '').strip().lower()
+            username_key = str(row.get('username') or '').strip().lower()
+            key = email_key or username_key or str(row.get('id') or '').strip()
+            if not key:
+                continue
+            merged[key] = {
+                'user_id': row.get('id'),
+                'username': row.get('username'),
+                'full_name': row.get('full_name'),
+                'email': row.get('email'),
+                'created_at': row.get('created_at'),
+                'source': 'users.db'
+            }
         conn.close()
     except Exception as e:
-        print(f"[WARN] Could not load latest users: {e}")
-    return rows
+        print(f"[WARN] Could not load latest users from users.db: {e}")
+
+    try:
+        conn = sqlite3.connect('vip_subscriptions.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('PRAGMA table_info(users)')
+        cols = {row[1] for row in c.fetchall()}
+        query_cols = ['user_id', 'username', 'first_name', 'email', 'created_at']
+        if all(col in cols for col in query_cols):
+            c.execute(
+                f"SELECT {', '.join(query_cols)} FROM users WHERE (deleted_at IS NULL OR deleted_at = '') ORDER BY created_at DESC LIMIT ?",
+                (max(safe_limit * 5, 20),)
+            )
+            for item in c.fetchall():
+                row = dict(item)
+                email_key = str(row.get('email') or '').strip().lower()
+                username_key = str(row.get('username') or '').strip().lower()
+                key = email_key or username_key or str(row.get('user_id') or '').strip()
+                if not key:
+                    continue
+                existing = merged.get(key, {})
+                candidate_created_at = row.get('created_at') or existing.get('created_at')
+                existing_created_at = _parse_datetime_flexible(existing.get('created_at')) if existing else None
+                candidate_created = _parse_datetime_flexible(candidate_created_at)
+                should_replace = (not existing) or (candidate_created and (not existing_created_at or candidate_created >= existing_created_at))
+                if should_replace:
+                    merged[key] = {
+                        'user_id': row.get('user_id') or existing.get('user_id'),
+                        'username': row.get('username') or existing.get('username'),
+                        'full_name': row.get('first_name') or existing.get('full_name'),
+                        'email': row.get('email') or existing.get('email'),
+                        'created_at': candidate_created_at,
+                        'source': 'users.db+vip_subscriptions.db' if existing else 'vip_subscriptions.db'
+                    }
+        conn.close()
+    except Exception as e:
+        print(f"[WARN] Could not load latest users from vip_subscriptions.db: {e}")
+
+    rows = list(merged.values())
+    rows.sort(key=lambda item: (_parse_datetime_flexible(item.get('created_at')) or datetime.min), reverse=True)
+    return rows[:safe_limit]
 
 
 def get_recent_closed_trade_news(limit=8):
@@ -9688,6 +9745,7 @@ if __name__ == '__main__':
         print(f"[TELEGRAM_COMMAND_BOT] {cmd_msg}")
 
     app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=debug_mode)
+
 
 
 

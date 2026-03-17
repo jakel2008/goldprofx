@@ -3712,27 +3712,13 @@ def archive_and_cleanup_closed_signals():
                             created_at, archived_at, archive_reason
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
-                        row_dict.get('signal_id'),
-                        row_dict.get('symbol'),
-                        row_dict.get('signal_type'),
-                        row_dict.get('entry_price'),
-                        row_dict.get('stop_loss'),
-                        row_dict.get('take_profit_1'),
-                        row_dict.get('take_profit_2'),
-                        row_dict.get('take_profit_3'),
-                        row_dict.get('quality_score'),
-                        row_dict.get('timeframe'),
-                        row_dict.get('status'),
-                        row_dict.get('result'),
-                        row_dict.get('current_price'),
-                        row_dict.get('close_price'),
-                        row_dict.get('tp1_locked', 0),
-                        row_dict.get('tp2_locked', 0),
-                        row_dict.get('tp3_locked', 0),
-                        row_dict.get('activated', 1),
-                        row_dict.get('created_at'),
-                        archived_at,
-                        'auto_cleanup_protocol'
+                        row_dict.get('signal_id'), row_dict.get('symbol'), row_dict.get('signal_type'),
+                        row_dict.get('entry_price'), row_dict.get('stop_loss'), row_dict.get('take_profit_1'),
+                        row_dict.get('take_profit_2'), row_dict.get('take_profit_3'), row_dict.get('quality_score'),
+                        row_dict.get('timeframe'), row_dict.get('status'), row_dict.get('result'),
+                        row_dict.get('current_price'), row_dict.get('close_price'), row_dict.get('tp1_locked', 0),
+                        row_dict.get('tp2_locked', 0), row_dict.get('tp3_locked', 0), row_dict.get('activated', 1),
+                        row_dict.get('created_at'), archived_at, 'auto_cleanup_protocol'
                     ))
                 except Exception:
                     pass
@@ -3751,12 +3737,14 @@ def archive_and_cleanup_closed_signals():
 
         if archived_count > 0:
             archived.extend(rows_to_append)
+            archived = _deduplicate_archived_trade_rows(archived)
             with open(CLOSED_TRADES_ARCHIVE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(archived[-3000:], f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print(f"Error in archive_and_cleanup_closed_signals: {e}")
+                json.dump(archived, f, ensure_ascii=False, indent=2)
 
-    return archived_count
+        return archived_count
+    except Exception as e:
+        print(f"[WARN] Could not archive closed signals: {e}")
+        return archived_count
 
 
 def _deduplicate_archived_trade_rows(trade_rows):
@@ -3770,71 +3758,97 @@ def _deduplicate_archived_trade_rows(trade_rows):
 
     def _sort_key(row):
         return (
-            str(row.get('archived_at') or row.get('closed_at') or row.get('created_at') or ''),
+            _parse_datetime_flexible(row.get('archived_at') or row.get('closed_at') or row.get('created_at')) or datetime.min,
             str(row.get('signal_id') or ''),
         )
+
+    def _numeric_value(row, *keys):
+        for key in keys:
+            value = row.get(key)
+            if value in (None, ''):
+                continue
+            try:
+                return float(value)
+            except Exception:
+                continue
+        return 0.0
+
+    def _price_tolerance(value):
+        try:
+            numeric = abs(float(value or 0))
+        except Exception:
+            numeric = 0.0
+        return max(0.0005, numeric * 0.0015)
+
+    def _close_enough(first, second):
+        tolerance = max(_price_tolerance(first), _price_tolerance(second))
+        return abs(float(first or 0) - float(second or 0)) <= tolerance
 
     normalized_rows.sort(key=_sort_key, reverse=True)
 
     seen_signal_ids = set()
-    seen_structural_keys = set()
     deduplicated = []
 
     for row in normalized_rows:
         signal_id = row.get('signal_id')
+        signal_id_key = None
         if signal_id not in (None, ''):
             signal_id_key = str(signal_id).strip()
             if signal_id_key in seen_signal_ids:
                 continue
-        else:
-            signal_id_key = None
 
-        symbol = str(row.get('symbol') or row.get('pair') or '').upper().replace('/', '').strip()
-        signal_type = _normalize_signal_type(row.get('signal_type') or row.get('signal') or '', default='buy')
+        symbol = _normalize_symbol_key(row.get('symbol') or row.get('pair') or '')
+        signal_type = _normalize_signal_type(row.get('signal_type') or row.get('signal') or '', default='unknown')
         timeframe = str(row.get('timeframe') or row.get('tf') or '1h').strip().lower()
         result = str(row.get('result') or '').strip().lower()
+        entry_price = round(_numeric_value(row, 'entry_price', 'entry'), 5)
+        close_price = round(_numeric_value(row, 'close_price', 'current_price'), 5)
+        stop_loss = round(_numeric_value(row, 'stop_loss'), 5)
+        take_profit_1 = round(_numeric_value(row, 'take_profit_1', 'take_profit1', 'tp1'), 5)
+        closed_at_dt = _parse_datetime_flexible(row.get('archived_at') or row.get('closed_at') or row.get('created_at'))
 
-        try:
-            entry_price = round(float(row.get('entry_price') or row.get('entry') or 0), 5)
-        except Exception:
-            entry_price = 0.0
+        is_logical_duplicate = False
+        for kept in deduplicated:
+            kept_symbol = _normalize_symbol_key(kept.get('symbol') or kept.get('pair') or '')
+            kept_signal_type = _normalize_signal_type(kept.get('signal_type') or kept.get('signal') or '', default='unknown')
+            kept_timeframe = str(kept.get('timeframe') or kept.get('tf') or '1h').strip().lower()
+            kept_result = str(kept.get('result') or '').strip().lower()
 
-        try:
-            close_price = round(float(row.get('close_price') or row.get('current_price') or 0), 5)
-        except Exception:
-            close_price = 0.0
+            if symbol != kept_symbol or signal_type != kept_signal_type or timeframe != kept_timeframe or result != kept_result:
+                continue
 
-        try:
-            stop_loss = round(float(row.get('stop_loss') or 0), 5)
-        except Exception:
-            stop_loss = 0.0
+            kept_closed_at_dt = _parse_datetime_flexible(kept.get('archived_at') or kept.get('closed_at') or kept.get('created_at'))
+            if closed_at_dt and kept_closed_at_dt:
+                if abs((kept_closed_at_dt - closed_at_dt).total_seconds()) > 21600:
+                    continue
 
-        try:
-            take_profit_1 = round(float(row.get('take_profit_1') or row.get('take_profit1') or 0), 5)
-        except Exception:
-            take_profit_1 = 0.0
+            kept_entry_price = round(_numeric_value(kept, 'entry_price', 'entry'), 5)
+            kept_close_price = round(_numeric_value(kept, 'close_price', 'current_price'), 5)
+            kept_stop_loss = round(_numeric_value(kept, 'stop_loss'), 5)
+            kept_take_profit_1 = round(_numeric_value(kept, 'take_profit_1', 'take_profit1', 'tp1'), 5)
 
-        timestamp = str(row.get('archived_at') or row.get('closed_at') or row.get('created_at') or '').strip()
-        timestamp_bucket = timestamp[:16] if len(timestamp) >= 16 else timestamp
+            close_match = _close_enough(close_price, kept_close_price)
+            entry_match = _close_enough(entry_price, kept_entry_price)
+            stop_match = _close_enough(stop_loss, kept_stop_loss)
+            target_match = True
+            if take_profit_1 and kept_take_profit_1:
+                target_match = _close_enough(take_profit_1, kept_take_profit_1)
 
-        structural_key = (
-            symbol,
-            signal_type,
-            timeframe,
-            result,
-            entry_price,
-            close_price,
-            stop_loss,
-            take_profit_1,
-            timestamp_bucket,
-        )
+            recent_close_cluster = False
+            if closed_at_dt and kept_closed_at_dt:
+                recent_close_cluster = abs((kept_closed_at_dt - closed_at_dt).total_seconds()) <= 3600
 
-        if structural_key in seen_structural_keys:
+            if not close_match:
+                continue
+            if (entry_match and stop_match and target_match) or (recent_close_cluster and (entry_match or stop_match or target_match)):
+                is_logical_duplicate = True
+                break
+
+        if is_logical_duplicate:
             continue
 
         if signal_id_key is not None:
             seen_signal_ids.add(signal_id_key)
-        seen_structural_keys.add(structural_key)
         deduplicated.append(row)
 
     return deduplicated
@@ -6173,77 +6187,96 @@ def get_latest_registered_users(limit=5):
         print(f"[WARN] Could not load latest users from users.db: {e}")
 
     try:
-        conn = sqlite3.connect('vip_subscriptions.db')
+        conn = sqlite3.connect(str(VIP_SUBSCRIPTIONS_DB_PATH))
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute('PRAGMA table_info(users)')
         cols = {row[1] for row in c.fetchall()}
-        query_cols = ['user_id', 'username', 'first_name', 'email', 'created_at']
-        if all(col in cols for col in query_cols):
-            c.execute(
-                f"SELECT {', '.join(query_cols)} FROM users WHERE (deleted_at IS NULL OR deleted_at = '') ORDER BY created_at DESC LIMIT ?",
-                (max(safe_limit * 5, 20),)
-            )
-            for item in c.fetchall():
-                row = dict(item)
-                email_key = str(row.get('email') or '').strip().lower()
-                username_key = str(row.get('username') or '').strip().lower()
-                key = email_key or username_key or str(row.get('user_id') or '').strip()
-                if not key:
-                    continue
-                existing = merged.get(key, {})
-                candidate_created_at = row.get('created_at') or existing.get('created_at')
-                existing_created_at = _parse_datetime_flexible(existing.get('created_at')) if existing else None
-                candidate_created = _parse_datetime_flexible(candidate_created_at)
-                should_replace = (not existing) or (candidate_created and (not existing_created_at or candidate_created >= existing_created_at))
-                if should_replace:
-                    merged[key] = {
-                        'user_id': row.get('user_id') or existing.get('user_id'),
-                        'username': row.get('username') or existing.get('username'),
-                        'full_name': row.get('first_name') or existing.get('full_name'),
-                        'email': row.get('email') or existing.get('email'),
-                        'created_at': candidate_created_at,
-                        'source': 'users.db+vip_subscriptions.db' if existing else 'vip_subscriptions.db'
-                    }
+
+        preferred_cols = ['user_id', 'username', 'first_name', 'email', 'created_at']
+        if all(col in cols for col in preferred_cols):
+            select_clause = ', '.join(preferred_cols)
+        else:
+            select_parts = [
+                'user_id' if 'user_id' in cols else 'NULL AS user_id',
+                'username' if 'username' in cols else 'NULL AS username',
+                'first_name' if 'first_name' in cols else ('full_name AS first_name' if 'full_name' in cols else 'NULL AS first_name'),
+                'email' if 'email' in cols else 'NULL AS email',
+                'created_at' if 'created_at' in cols else ('subscription_start AS created_at' if 'subscription_start' in cols else 'CURRENT_TIMESTAMP AS created_at'),
+            ]
+            select_clause = ', '.join(select_parts)
+
+        c.execute(f'''
+            SELECT {select_clause}
+            FROM users
+            ORDER BY datetime(COALESCE(created_at, CURRENT_TIMESTAMP)) DESC
+            LIMIT ?
+        ''', (max(safe_limit * 5, 20),))
+
+        for item in c.fetchall():
+            row = dict(item)
+            email_key = str(row.get('email') or '').strip().lower()
+            username_key = str(row.get('username') or '').strip().lower()
+            user_id_key = str(row.get('user_id') or '').strip()
+            key = email_key or username_key or user_id_key
+            if not key or key in merged:
+                continue
+            merged[key] = {
+                'user_id': row.get('user_id'),
+                'username': row.get('username'),
+                'full_name': row.get('first_name') or row.get('username'),
+                'email': row.get('email'),
+                'created_at': row.get('created_at'),
+                'source': 'vip_subscriptions.db'
+            }
         conn.close()
     except Exception as e:
         print(f"[WARN] Could not load latest users from vip_subscriptions.db: {e}")
 
-    rows = list(merged.values())
-    rows.sort(key=lambda item: (_parse_datetime_flexible(item.get('created_at')) or datetime.min), reverse=True)
-    return rows[:safe_limit]
+    users = list(merged.values())
+    users.sort(
+        key=lambda item: _parse_datetime_flexible(item.get('created_at')) or datetime.min,
+        reverse=True
+    )
+    return users[:safe_limit]
 
 
 def get_recent_closed_trade_news(limit=8):
     """جلب آخر أخبار إغلاقات الصفقات (رابحة/خاسرة)."""
     items = []
+    seen_messages = set()
     try:
-        if CLOSED_TRADES_ARCHIVE_FILE.exists():
-            with open(CLOSED_TRADES_ARCHIVE_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f) or []
-                for trade in reversed(data):
-                    if not isinstance(trade, dict):
-                        continue
+        archived_rows = _load_archived_trades(limit=max(50, int(limit or 8) * 15))
+        for trade in archived_rows:
+            if not isinstance(trade, dict):
+                continue
 
-                    result = str(trade.get('result') or '').lower()
-                    if result not in ('win', 'loss'):
-                        continue
+            result = str(trade.get('result') or '').strip().lower()
+            if result not in ('win', 'loss'):
+                continue
 
-                    pair = str(trade.get('symbol') or trade.get('pair') or 'N/A').upper()
-                    pips_val = trade.get('pips')
-                    profit_percent = trade.get('profit_percent')
+            pair = str(trade.get('symbol') or trade.get('pair') or 'N/A').upper()
+            pips_val = trade.get('pips')
+            profit_percent = trade.get('profit_percent')
+            if profit_percent is None:
+                profit_percent = _calc_archived_profit_percent(trade)
 
-                    perf = ''
-                    if pips_val is not None:
-                        perf = f" ({pips_val} نقطة)"
-                    elif profit_percent is not None:
-                        perf = f" ({profit_percent}%)"
+            perf = ''
+            if pips_val not in (None, ''):
+                perf = f" ({pips_val} نقطة)"
+            elif profit_percent is not None:
+                perf = f" ({profit_percent}%)"
 
-                    label = 'رابحة' if result == 'win' else 'خاسرة'
-                    icon = '✅' if result == 'win' else '❌'
-                    items.append(f"{icon} إغلاق {pair} صفقة {label}{perf}")
-                    if len(items) >= max(1, int(limit)):
-                        break
+            label = 'رابحة' if result == 'win' else 'خاسرة'
+            icon = '✅' if result == 'win' else '❌'
+            message = f"{icon} إغلاق {pair} صفقة {label}{perf}"
+            if message in seen_messages:
+                continue
+
+            seen_messages.add(message)
+            items.append(message)
+            if len(items) >= max(1, int(limit)):
+                break
     except Exception as e:
         print(f"[WARN] Could not load recent closed trades for ticker: {e}")
     return items

@@ -52,11 +52,22 @@
             font-size: 0.85rem;
             font-weight: bold;
         }
+        .activity-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 8px;
+        }
         .status-active { background: #d4edda; color: #155724; }
         .status-inactive { background: #f8d7da; color: #721c24; }
         .status-expired { background: #fff3cd; color: #856404; }
         .status-cancelled { background: #f8d7da; color: #721c24; }
         .status-pending { background: #d1ecf1; color: #0c5460; }
+        .activity-online { background: #d1fae5; color: #065f46; }
+        .activity-offline { background: #e5e7eb; color: #374151; }
+        .activity-never { background: #fef3c7; color: #92400e; }
         
         .btn-primary {
             background: linear-gradient(135deg, #d4a72f 0%, #b68a13 100%);
@@ -379,9 +390,12 @@
             subscriptions.forEach(sub => {
                 const status = getSubscriptionStatus(sub);
                 const statusBadge = getStatusBadge(status);
+                const activityBadge = getActivityBadge(sub);
                 const planBadge = getPlanBadge(sub.plan);
                 const endDate = sub.subscription_end ? new Date(sub.subscription_end).toLocaleDateString('ar-EG') : 'غير محدد';
                 const startDate = sub.subscription_start ? new Date(sub.subscription_start).toLocaleDateString('ar-EG') : 'غير محدد';
+                const lastSeen = formatDateTime(sub.last_seen, 'لا يوجد ظهور حديث');
+                const lastLogin = formatDateTime(sub.last_login, 'لم يسجل دخول');
 
                 const subCard = `
                     <div class="subscription-card" data-status="${status}">
@@ -403,6 +417,7 @@
                                             <i class="fas fa-at"></i> @${sub.username}
                                         </p>
                                         ${statusBadge}
+                                        <div>${activityBadge}</div>
                                     </div>
                                 </div>
                             </div>
@@ -413,6 +428,14 @@
                                 <br>
                                 <small class="text-muted">
                                     <i class="fas fa-calendar-times"></i> نهاية: ${endDate}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-wave-square"></i> آخر ظهور: ${lastSeen}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-sign-in-alt"></i> آخر تسجيل دخول: ${lastLogin}
                                 </small>
                                 <br>
                                 ${sub.referral_code ? `<small class="text-muted"><i class="fas fa-link"></i> كود الإحالة: ${sub.referral_code}</small>` : ''}
@@ -470,6 +493,23 @@
                 'pending': '<span class="status-badge status-pending"><i class="fas fa-hourglass-half"></i> قيد الانتظار</span>'
             };
             return badges[status] || badges['inactive'];
+        }
+
+        function getActivityBadge(sub) {
+            if (sub.is_online_now) {
+                return '<span class="activity-badge activity-online"><i class="fas fa-circle"></i> نشط الآن</span>';
+            }
+            if (!sub.last_login) {
+                return '<span class="activity-badge activity-never"><i class="fas fa-user-clock"></i> لم يسجل دخول</span>';
+            }
+            return '<span class="activity-badge activity-offline"><i class="fas fa-moon"></i> غير نشط الآن</span>';
+        }
+
+        function formatDateTime(value, fallback) {
+            if (!value) return fallback;
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return fallback;
+            return parsed.toLocaleString('ar-EG');
         }
 
         // الحصول على badge الخطة

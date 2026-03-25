@@ -139,6 +139,8 @@ app.secret_key = 'your-secret-key-change-this-to-random-string'
 ADMIN_USERNAME = 'jakel2008'
 ADMIN_PASSWORD = 'JAKEL2008'
 EMAIL_ACTIVATION_REQUIRED = os.environ.get('EMAIL_ACTIVATION_REQUIRED', '0').strip().lower() in ('1', 'true', 'yes', 'on')
+ONLINE_ACTIVITY_WINDOW_MINUTES = max(1, int(os.environ.get('ONLINE_ACTIVITY_WINDOW_MINUTES', '5')))
+LAST_SEEN_TOUCH_THROTTLE_SECONDS = max(15, int(os.environ.get('LAST_SEEN_TOUCH_THROTTLE_SECONDS', '60')))
 
 TELEGRAM_COMMAND_BOT_ENABLED = os.environ.get('TELEGRAM_COMMAND_BOT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 TELEGRAM_COMMAND_BOT = TelegramCommandBot(Path(__file__).parent) if TelegramCommandBot else None
@@ -3320,6 +3322,44 @@ def get_live_price(symbol):
     return None
 
 
+def _touch_authenticated_session(session_token):
+    """تحديث last_seen بشكل مركزي للمستخدمين الحقيقيين فقط."""
+    if not session_token or _is_local_admin_session():
+        return False
+    try:
+        return bool(user_manager.touch_session(session_token, LAST_SEEN_TOUCH_THROTTLE_SECONDS))
+    except Exception:
+        return False
+
+
+def _enrich_subscriptions_with_activity(subscriptions):
+    """إضافة آخر تسجيل دخول وآخر ظهور وحالة الاتصال لكل اشتراك."""
+    if not isinstance(subscriptions, list) or not subscriptions:
+        return subscriptions if isinstance(subscriptions, list) else []
+
+    user_ids = []
+    for sub in subscriptions:
+        try:
+            user_ids.append(int((sub or {}).get('user_id')))
+        except Exception:
+            continue
+
+    presence_map = user_manager.get_users_presence(user_ids=user_ids, online_window_minutes=ONLINE_ACTIVITY_WINDOW_MINUTES)
+    enriched = []
+    for sub in subscriptions:
+        row = dict(sub or {})
+        try:
+            presence = presence_map.get(int(row.get('user_id') or 0), {})
+        except Exception:
+            presence = {}
+        row['last_login'] = presence.get('last_login')
+        row['last_seen'] = presence.get('last_seen')
+        row['is_online_now'] = bool(presence.get('is_online_now'))
+        row['activity_status'] = presence.get('activity_status') or ('never_logged_in' if not presence.get('last_login') else 'offline')
+        enriched.append(row)
+    return enriched
+
+
 def login_required(f):
     """Decorator للتحقق من تسجيل الدخول"""
     @wraps(f)
@@ -3335,6 +3375,8 @@ def login_required(f):
         if not user_info['success']:
             session.clear()
             return redirect(url_for('login'))
+
+        _touch_authenticated_session(session_token)
         
         return f(*args, **kwargs)
     return decorated_function
@@ -3355,7 +3397,10 @@ def get_current_user():
 
     session_token = session.get('session_token')
     if session_token:
-        return user_manager.verify_session(session_token)
+        user_info = user_manager.verify_session(session_token)
+        if user_info.get('success'):
+            _touch_authenticated_session(session_token)
+        return user_info
     return {'success': False}
 
 
@@ -3627,6 +3672,7 @@ def admin_required(f):
             if is_api_request:
                 return jsonify({'success': False, 'error': 'Forbidden', 'code': 'ADMIN_REQUIRED'}), 403
             return redirect(url_for('home'))
+        _touch_authenticated_session(session_token)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -7353,7 +7399,7 @@ def api_admin_set_active():
 def api_admin_subscriptions():
     """الحصول على جميع الاشتراكات"""
     sync_summary = _sync_registered_users_to_subscriptions(prefer_trial_for_missing=False)
-    subscriptions = subscription_manager.get_all_subscriptions()
+    subscriptions = _enrich_subscriptions_with_activity(subscription_manager.get_all_subscriptions())
     return jsonify({'success': True, 'subscriptions': subscriptions, 'sync': sync_summary})
 
 

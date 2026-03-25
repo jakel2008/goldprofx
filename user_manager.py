@@ -19,6 +19,8 @@ except Exception:
 
 DATABASE_FILE = Path(os.environ.get('USERS_DB_PATH', str(_data_dir / 'users.db')))
 EMAIL_ACTIVATION_REQUIRED = os.environ.get('EMAIL_ACTIVATION_REQUIRED', '0').strip().lower() in ('1', 'true', 'yes', 'on')
+ONLINE_ACTIVITY_WINDOW_MINUTES = max(1, int(os.environ.get('ONLINE_ACTIVITY_WINDOW_MINUTES', '5')))
+LAST_SEEN_TOUCH_THROTTLE_SECONDS = max(15, int(os.environ.get('LAST_SEEN_TOUCH_THROTTLE_SECONDS', '60')))
 
 class UserManager:
     def _normalize_email(self, email):
@@ -118,11 +120,16 @@ class UserManager:
                     user_id INTEGER NOT NULL,
                     session_token TEXT UNIQUE NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_seen TIMESTAMP,
                     expires_at TIMESTAMP,
                     ip_address TEXT,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             ''')
+            cursor.execute("PRAGMA table_info(user_sessions)")
+            session_columns = [row[1] for row in cursor.fetchall()]
+            if 'last_seen' not in session_columns:
+                cursor.execute("ALTER TABLE user_sessions ADD COLUMN last_seen TIMESTAMP")
             
             # جدول الأنشطة
             cursor.execute('''
@@ -416,8 +423,8 @@ class UserManager:
             # إنشاء جلسة جديدة
             session_token = secrets.token_urlsafe(32)
             cursor.execute('''
-                INSERT INTO user_sessions (user_id, session_token, ip_address, expires_at)
-                VALUES (?, ?, ?, datetime('now', '+30 days'))
+                INSERT INTO user_sessions (user_id, session_token, ip_address, last_seen, expires_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, datetime('now', '+30 days'))
             ''', (user_id, session_token, ip_address))
             # تحديث آخر تسجيل دخول
             cursor.execute('''
@@ -471,6 +478,100 @@ class UserManager:
             return {'success': False}
         except:
             return {'success': False}
+
+    def touch_session(self, session_token, throttle_seconds=None):
+        """تحديث last_seen للجلسة بشكل مخفف لتقليل الكتابة على SQLite."""
+        try:
+            safe_throttle = max(15, int(throttle_seconds or LAST_SEEN_TOUCH_THROTTLE_SECONDS))
+            conn = sqlite3.connect(self.db_file)
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                UPDATE user_sessions
+                SET last_seen = CURRENT_TIMESTAMP
+                WHERE session_token = ?
+                  AND expires_at > CURRENT_TIMESTAMP
+                  AND (
+                        last_seen IS NULL
+                        OR datetime(last_seen) <= datetime('now', ?)
+                  )
+                ''',
+                (session_token, f'-{safe_throttle} seconds')
+            )
+            conn.commit()
+            touched = int(cursor.rowcount or 0) > 0
+            conn.close()
+            return touched
+        except Exception:
+            return False
+
+    def get_users_presence(self, user_ids=None, online_window_minutes=None):
+        """إرجاع آخر login/seen وحالة الاتصال الحالية لمجموعة مستخدمين."""
+        try:
+            online_window = max(1, int(online_window_minutes or ONLINE_ACTIVITY_WINDOW_MINUTES))
+            conn = sqlite3.connect(self.db_file)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            params = [f'-{online_window} minutes']
+            where_clause = "WHERE (u.deleted_at IS NULL OR u.deleted_at = '')"
+            normalized_user_ids = []
+            for raw_user_id in user_ids or []:
+                try:
+                    normalized_user_ids.append(int(raw_user_id))
+                except Exception:
+                    continue
+            if normalized_user_ids:
+                placeholders = ', '.join(['?'] * len(normalized_user_ids))
+                where_clause += f" AND u.id IN ({placeholders})"
+                params.extend(normalized_user_ids)
+
+            cursor.execute(
+                f'''
+                SELECT
+                    u.id AS user_id,
+                    u.last_login AS last_login,
+                    MAX(CASE WHEN us.expires_at > CURRENT_TIMESTAMP THEN us.last_seen END) AS last_seen,
+                    MAX(
+                        CASE
+                            WHEN us.expires_at > CURRENT_TIMESTAMP
+                             AND us.last_seen IS NOT NULL
+                             AND datetime(us.last_seen) >= datetime('now', ?)
+                            THEN 1 ELSE 0
+                        END
+                    ) AS is_online_now
+                FROM users u
+                LEFT JOIN user_sessions us ON us.user_id = u.id
+                {where_clause}
+                GROUP BY u.id, u.last_login
+                ''',
+                tuple(params)
+            )
+            rows = cursor.fetchall()
+            conn.close()
+
+            presence_map = {}
+            for row in rows:
+                last_login = row['last_login']
+                last_seen = row['last_seen']
+                is_online_now = bool(row['is_online_now'])
+                if is_online_now:
+                    activity_status = 'online_now'
+                elif last_seen:
+                    activity_status = 'recently_active'
+                elif last_login:
+                    activity_status = 'offline'
+                else:
+                    activity_status = 'never_logged_in'
+                presence_map[int(row['user_id'])] = {
+                    'last_login': last_login,
+                    'last_seen': last_seen,
+                    'is_online_now': is_online_now,
+                    'activity_status': activity_status,
+                }
+            return presence_map
+        except Exception:
+            return {}
 
     def set_user_role(self, user_id, role):
         """تحديث دور المستخدم (developer/admin/user)"""

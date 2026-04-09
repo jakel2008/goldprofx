@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>المحلل</title>
+    <style>
+        :root {
+            --surface: rgba(30, 22, 15, 0.82);
+            --surface-alt: rgba(39, 28, 18, 0.94);
+            --line: rgba(232, 191, 96, 0.18);
+            --line-strong: rgba(242, 206, 118, 0.34);
+            --text: #f9efd3;
+            --muted: #ccb98d;
+            --primary-strong: #f0c96c;
+            --accent: #ffe29f;
+            --danger: #ff8c42;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+            --glow: 0 0 0 1px rgba(255, 221, 149, 0.14), 0 18px 50px rgba(212, 165, 60, 0.14);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 21%),
+                radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+                linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .shell {
+            width: min(1220px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: var(--text);
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(42, 31, 20, 0.84), rgba(24, 18, 12, 0.94));
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .header a:hover,
+        .button:hover,
+        .metric:hover,
+        .panel:hover {
+            transform: translateY(-2px);
+        }
+
+        .hero,
+        .panel,
+        .metric,
+        .note {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            border-radius: 30px;
+        }
+
+        .hero,
+        .panel {
+            padding: 28px;
+        }
+
+        .hero {
+            margin-bottom: 22px;
+        }
+
+        .eyebrow,
+        .pill {
+            display: inline-flex;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(232, 191, 96, 0.10);
+            color: var(--primary-strong);
+            border: 1px solid rgba(255, 222, 138, 0.16);
+            font-weight: 700;
+        }
+
+        .eyebrow { margin-bottom: 14px; }
+
+        h1, h2, h3 { margin-top: 0; }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 3.1rem);
+            margin-bottom: 8px;
+        }
+
+        .muted {
+            color: var(--muted);
+            line-height: 1.9;
+        }
+
+        .selector-form {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.9fr auto auto;
+            gap: 12px;
+            align-items: end;
+            margin-top: 20px;
+        }
+
+        .field { display: grid; gap: 8px; }
+
+        label {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #f4dca1;
+        }
+
+        input, select, button { font: inherit; }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+        }
+
+        .button {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            padding: 13px 16px;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: transform 0.18s ease;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+        }
+
+        .button-secondary {
+            background: linear-gradient(180deg, rgba(44, 33, 22, 0.86), rgba(24, 18, 12, 0.96));
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        .metrics,
+        .grid-2,
+        .grid-3 {
+            display: grid;
+            gap: 18px;
+        }
+
+        .metrics {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin: 22px 0;
+        }
+
+        .metric {
+            padding: 20px;
+            box-shadow: var(--glow);
+            transition: transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .metric .label {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+        }
+
+        .value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .buy { color: #f4d27c; }
+        .sell { color: #ffad5c; }
+        .neutral { color: #f1d999; }
+
+        .grid-2 { grid-template-columns: 1.1fr 0.9fr; margin-bottom: 20px; }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .list,
+        .kv { display: grid; gap: 10px; margin-top: 14px; }
+
+        .note {
+            padding: 18px;
+            box-shadow: var(--glow);
+        }
+
+        .error {
+            background: linear-gradient(180deg, rgba(61, 25, 14, 0.94), rgba(39, 16, 9, 0.98));
+            border: 1px solid rgba(255, 140, 66, 0.24);
+            color: #ffd0b0;
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .selector-form,
+            .metrics,
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .selector-form > :last-child {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .shell {
+                width: min(100% - 20px, 1220px);
+                padding-top: 18px;
+            }
+
+            .hero,
+            .panel,
+            .metric,
+            .note {
+                padding: 20px;
+                border-radius: 24px;
+            }
+
+            .selector-form,
+            .metrics,
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="header">
+            <a href="{{ main_site_url }}">الرئيسية</a>
+            <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">التحليل الكامل</a>
+            <a href="{{ forex_base_path }}/strong-signals?symbol=ALL&interval={{ selected_interval }}&return_to={{ return_to_param }}">الإشارات القوية</a>
+        </div>
+
+        <section class="hero">
+            <div class="eyebrow">رأي المحلل</div>
+            <h1>{{ analyst.symbol_label if analyst.success else selected_symbol }} · {{ selected_interval }}</h1>
+            <p class="muted">صفحة مخصصة لعرض قراءة المحلل بصيغة تفسيرية وتنفيذية فوق نفس المحرك الفني الموجود لديك.</p>
+
+            <form class="selector-form" action="{{ forex_base_path }}/analyst" method="get">
+                <input type="hidden" name="return_to" value="{{ main_site_url }}">
+                <div class="field">
+                    <label for="symbol-search">بحث داخل الرموز</label>
+                    <input id="symbol-search" type="text" placeholder="مثال: EUR أو Gold أو BTC">
+                </div>
+                <div class="field">
+                    <label for="symbol">الرمز</label>
+                    <select id="symbol" name="symbol" required>
+                        {% for group in grouped_symbol_options %}
+                        <optgroup label="{{ group.label }}">
+                            {% for option in group.options %}
+                            <option value="{{ option.value }}" {% if option.value == selected_symbol %}selected{% endif %}>{{ option.label }} - {{ option.value }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="interval">الإطار الزمني</label>
+                    <select id="interval" name="interval" required>
+                        {% for option in interval_options %}
+                        <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="button button-secondary" type="button" id="clear-search">مسح البحث</button>
+                <button class="button button-primary" type="submit">تحديث رأي المحلل</button>
+            </form>
+        </section>
+
+        {% if not analyst.success %}
+        <div class="error">
+            <strong>تعذر تحميل صفحة المحلل</strong>
+            <p>{{ analyst.error }}</p>
+        </div>
+        {% else %}
+        <section class="metrics">
+            <article class="metric">
+                <span class="label">التوصية</span>
+                <div class="value {% if 'شراء' in analyst.recommendation %}buy{% elif 'بيع' in analyst.recommendation %}sell{% else %}neutral{% endif %}">{{ analyst.recommendation }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">درجة الثقة</span>
+                <div class="value">{{ analyst.analyst_report.positioning.confidence }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">قوة الشراء / البيع</span>
+                <div class="value">{{ analyst.buy_score }} / {{ analyst.sell_score }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">آخر تحديث</span>
+                <div class="value" style="font-size:1.05rem;">{{ analyst.fetched_at }}</div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <div class="panel">
+                <div class="pill">{{ analyst.analyst_report.headline }}</div>
+                <div class="list">
+                    <div class="note">{{ analyst.analyst_report.market_pulse }}</div>
+                    <div class="note">{{ analyst.analyst_report.desk_call }}</div>
+                    <div class="note">{{ analyst.analyst_report.context_note }}</div>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>خطة التنفيذ</h2>
+                <div class="list">
+                    {% for item in analyst.analyst_report.execution_plan %}
+                    <div class="note">{{ item }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="grid-2">
+            <div class="panel">
+                <h2>قراءة المؤشرات</h2>
+                <div class="grid-3">
+                    {% for item in analyst.analyst_report.indicator_biases %}
+                    <div class="note">
+                        <strong>{{ item.name }}</strong>
+                        <div class="kv">
+                            <div>{{ item.state }}</div>
+                            <div>{{ item.comment }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel">
+                <h2>مستويات المحلل</h2>
+                <div class="kv">
+                    <div><strong>الدخول:</strong> {{ analyst.analyst_report.levels.entry }}</div>
+                    <div><strong>وقف الخسارة:</strong> {{ analyst.analyst_report.levels.stop_loss }}</div>
+                    <div><strong>الهدف الأول:</strong> {{ analyst.analyst_report.levels.take_profit1 }}</div>
+                    <div><strong>الهدف الثاني:</strong> {{ analyst.analyst_report.levels.take_profit2 }}</div>
+                    <div><strong>الهدف الثالث:</strong> {{ analyst.analyst_report.levels.take_profit3 }}</div>
+                    <div><strong>الدعم:</strong> {{ analyst.analyst_report.levels.support }}</div>
+                    <div><strong>المحور:</strong> {{ analyst.analyst_report.levels.pivot }}</div>
+                    <div><strong>المقاومة:</strong> {{ analyst.analyst_report.levels.resistance }}</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid-2">
+            <div class="panel">
+                <h2>تنبيهات المخاطر</h2>
+                <div class="list">
+                    {% for item in analyst.analyst_report.risk_flags %}
+                    <div class="note">{{ item }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel">
+                <h2>السيناريوهات الزمنية</h2>
+                <div class="list">
+                    {% for horizon in [analyst.scenario_horizons.short_term, analyst.scenario_horizons.medium_term, analyst.scenario_horizons.long_term] %}
+                    <div class="note">
+                        <strong>{{ horizon.title }}</strong>
+                        <div class="kv">
+                            <div><strong>التموضع:</strong> {{ horizon.stance }}</div>
+                            <div><strong>الزناد:</strong> {{ horizon.trigger }}</div>
+                            <div><strong>منطقة الدخول:</strong> {{ horizon.entry_zone }}</div>
+                            <div><strong>الهدف:</strong> {{ horizon.target }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <script id="grouped-symbol-options" type="application/json">{{ grouped_symbol_options|tojson|safe }}</script>
+    <script id="selected-symbol" type="application/json">{{ selected_symbol|tojson|safe }}</script>
+    <script>
+        const searchInput = document.getElementById('symbol-search');
+        const clearButton = document.getElementById('clear-search');
+        const select = document.getElementById('symbol');
+        const groups = JSON.parse(document.getElementById('grouped-symbol-options').textContent);
+        const currentValue = JSON.parse(document.getElementById('selected-symbol').textContent);
+
+        function rebuildOptions(filterText) {
+            const query = (filterText || '').trim().toLowerCase();
+            const previousValue = select.value || currentValue;
+            select.innerHTML = '';
+
+            for (const group of groups) {
+                const matching = group.options.filter((option) => {
+                    const haystack = `${option.label} ${option.value}`.toLowerCase();
+                    return haystack.includes(query);
+                });
+
+                if (!matching.length) {
+                    continue;
+                }
+
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.label;
+
+                for (const option of matching) {
+                    const element = document.createElement('option');
+                    element.value = option.value;
+                    element.textContent = `${option.label} - ${option.value}`;
+                    if (option.value === previousValue) {
+                        element.selected = true;
+                    }
+                    optgroup.appendChild(element);
+                }
+
+                select.appendChild(optgroup);
+            }
+
+            if (!select.value && select.options.length) {
+                select.options[0].selected = true;
+            }
+        }
+
+        if (searchInput && clearButton && select) {
+            searchInput.addEventListener('input', (event) => rebuildOptions(event.target.value));
+            clearButton.addEventListener('click', () => {
+                searchInput.value = '';
+                rebuildOptions('');
+                searchInput.focus();
+            });
+        }
+    </script>
+</body>
+</html>

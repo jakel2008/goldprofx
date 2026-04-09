@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>محاكي التداول</title>
+    <style>
+        :root {
+            --surface: rgba(30, 22, 15, 0.82);
+            --surface-alt: rgba(39, 28, 18, 0.94);
+            --line: rgba(232, 191, 96, 0.18);
+            --line-strong: rgba(242, 206, 118, 0.34);
+            --text: #f9efd3;
+            --muted: #ccb98d;
+            --primary-strong: #f0c96c;
+            --accent: #ffe29f;
+            --danger: #ff8c42;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+            --glow: 0 0 0 1px rgba(255, 221, 149, 0.14), 0 18px 50px rgba(212, 165, 60, 0.14);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 21%),
+                radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+                linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body.embed-mode {
+            background: transparent;
+            min-height: auto;
+        }
+
+        .shell {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        body.embed-mode .shell {
+            width: min(100%, calc(100% - 12px));
+            padding: 6px 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: var(--text);
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(42, 31, 20, 0.84), rgba(24, 18, 12, 0.94));
+        }
+
+        .hero, .panel, .metric, .note, .result-card {
+            background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        body.embed-mode .hero,
+        body.embed-mode .panel,
+        body.embed-mode .metric,
+        body.embed-mode .note,
+        body.embed-mode .result-card {
+            border-radius: 22px;
+            box-shadow: var(--glow);
+        }
+
+        .hero, .panel { padding: 28px; }
+        .hero { margin-bottom: 22px; }
+
+        .eyebrow, .pill {
+            display: inline-flex;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(232, 191, 96, 0.10);
+            color: var(--primary-strong);
+            border: 1px solid rgba(255, 222, 138, 0.16);
+            font-weight: 700;
+        }
+
+        h1, h2, h3 { margin-top: 0; }
+        h1 { font-size: clamp(2rem, 4vw, 3.1rem); margin-bottom: 8px; }
+        .muted { color: var(--muted); line-height: 1.9; }
+
+        .simulator-form {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr 0.9fr 0.8fr 0.8fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-top: 20px;
+        }
+
+        .field { display: grid; gap: 8px; }
+        label { font-size: 0.92rem; font-weight: 700; color: #f4dca1; }
+        input, select, button { font: inherit; }
+        input, select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+        }
+
+        .button {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            padding: 13px 16px;
+            border-radius: 15px;
+            font-weight: 700;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+        }
+
+        .button-secondary {
+            background: rgba(232, 191, 96, 0.10);
+            color: var(--text);
+            border: 1px solid rgba(255, 222, 138, 0.18);
+        }
+
+        .metrics, .grid-2, .grid-3, .timeline-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 22px 0; }
+        .metric, .result-card, .note { padding: 20px; box-shadow: var(--glow); }
+        .metric .label { display:block; color: var(--muted); margin-bottom: 8px; font-size: 0.92rem; }
+        .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+        .buy { color: #f4d27c; }
+        .sell { color: #ffad5c; }
+        .grid-2 { grid-template-columns: 1.05fr 0.95fr; margin-bottom: 20px; }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .timeline-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .kv, .notes-list { display: grid; gap: 10px; margin-top: 14px; color: var(--muted); line-height: 1.8; }
+        .timeline-table-wrap {
+            overflow-x: auto;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background: rgba(14, 10, 7, 0.72);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 880px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: right;
+            border-bottom: 1px solid rgba(232, 191, 96, 0.12);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            transition: opacity 0.22s ease, transform 0.22s ease, background-color 0.22s ease;
+        }
+
+        tbody tr.replay-hidden {
+            display: none;
+        }
+
+        tbody tr.replay-active {
+            background: rgba(240, 201, 108, 0.08);
+        }
+
+        th {
+            color: var(--accent);
+            background: rgba(240, 201, 108, 0.06);
+            font-size: 0.92rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 222, 138, 0.16);
+        }
+
+        .status-open { background: rgba(232, 191, 96, 0.10); color: #f3d37f; }
+        .status-closed { background: rgba(255, 140, 66, 0.12); color: #ffbb84; }
+        .replay-note { margin-top: 16px; }
+        .playback-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .playback-controls .field {
+            min-width: 180px;
+        }
+
+        .playback-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .playback-status {
+            display: grid;
+            gap: 8px;
+            margin: 0 0 18px;
+            color: var(--muted);
+        }
+
+        .playback-status strong {
+            color: var(--accent);
+        }
+        .error {
+            background: linear-gradient(180deg, rgba(61, 25, 14, 0.94), rgba(39, 16, 9, 0.98));
+            border: 1px solid rgba(255, 140, 66, 0.24);
+            color: #ffd0b0;
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .simulator-form, .metrics, .grid-2, .grid-3, .timeline-grid { grid-template-columns: 1fr 1fr; }
+            .simulator-form > :last-child { grid-column: span 2; }
+        }
+
+        @media (max-width: 760px) {
+            .shell { width: min(100% - 20px, 1240px); padding-top: 18px; }
+            .hero, .panel, .metric, .result-card, .note { padding: 20px; border-radius: 24px; }
+            .simulator-form, .metrics, .grid-2, .grid-3, .timeline-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+    <div class="shell">
+        {% if not embed_mode %}
+        <div class="header">
+            <a href="{{ main_site_url }}">الرئيسية</a>
+            <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">التحليل الكامل</a>
+            <a href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">المحلل</a>
+            <a href="{{ forex_base_path }}/strong-signals?symbol=ALL&interval={{ selected_interval }}&return_to={{ return_to_param }}">الإشارات القوية</a>
+        </div>
+        {% endif %}
+
+        <section class="hero">
+            <div class="eyebrow">اختبار التداول المباشر</div>
+            <h1>{{ simulation.symbol_label if simulation.success else selected_symbol }} · {{ selected_interval }}</h1>
+            <p class="muted">أدخل رأس المال والرافعة ونسبة المخاطرة، وسيحسب الموقع حجم اللوت المناسب تلقائيًا من الإشارة الحالية للزوج المختار مع توقع الربح والخسارة عند الأهداف ووقف الخسارة.</p>
+
+            <form class="simulator-form" action="{{ forex_base_path }}/trade-simulator" method="get">
+                <input type="hidden" name="return_to" value="{{ main_site_url }}">
+                <div class="field">
+                    <label for="symbol">الرمز</label>
+                    <select id="symbol" name="symbol" required>
+                        {% for group in grouped_symbol_options %}
+                        <optgroup label="{{ group.label }}">
+                            {% for option in group.options %}
+                            <option value="{{ option.value }}" {% if option.value == selected_symbol %}selected{% endif %}>{{ option.label }} - {{ option.value }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="interval">الإطار الزمني</label>
+                    <select id="interval" name="interval" required>
+                        {% for option in interval_options %}
+                        <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="capital">رأس المال</label>
+                    <input id="capital" name="capital" type="number" min="1" step="0.01" value="{{ request.args.get('capital', '1000') }}" required>
+                </div>
+                <div class="field">
+                    <label for="leverage">الرافعة</label>
+                    <input id="leverage" name="leverage" type="number" min="1" step="1" value="{{ request.args.get('leverage', '100') }}" required>
+                </div>
+                <div class="field">
+                    <label for="risk_percent">نسبة المخاطرة %</label>
+                    <input id="risk_percent" name="risk_percent" type="number" min="0.1" step="0.1" value="{{ request.args.get('risk_percent', '1') }}" required>
+                </div>
+                <div class="field">
+                    <label for="replay_bars">إعادة التشغيل التاريخية</label>
+                    <input id="replay_bars" name="replay_bars" type="number" min="5" step="1" value="{{ request.args.get('replay_bars', '24') }}" required>
+                </div>
+                <button class="button button-primary" type="submit">حساب المحاكاة</button>
+            </form>
+        </section>
+
+        {% if not simulation.success %}
+        <div class="error">
+            <strong>تعذر بناء المحاكاة</strong>
+            <p>{{ simulation.error }}</p>
+        </div>
+        {% elif not simulation.trade_allowed %}
+        <div class="error">
+            <strong>لا توجد صفقة قابلة للمحاكاة الآن</strong>
+            <p>{{ simulation.message }}</p>
+        </div>
+        {% else %}
+        <section class="metrics">
+            <article class="metric">
+                <span class="label">التوصية الحالية</span>
+                <div class="value {% if 'شراء' in simulation.recommendation %}buy{% else %}sell{% endif %}">{{ simulation.recommendation }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">حجم اللوت</span>
+                <div class="value">{{ simulation.lot_size }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">الهامش المطلوب</span>
+                <div class="value">${{ simulation.margin_required }}</div>
+            </article>
+            <article class="metric">
+                <span class="label">المخاطرة الفعلية</span>
+                <div class="value">${{ simulation.effective_risk_amount }}</div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <div class="panel">
+                <h2>إعداد الصفقة</h2>
+                <div class="kv">
+                    <div><strong>اتجاه الصفقة:</strong> {{ simulation.direction_label }}</div>
+                    <div><strong>نوع اللوت:</strong> {{ simulation.lot_name }}</div>
+                    <div><strong>عدد الوحدات / العقود:</strong> {{ simulation.position_units }} {{ simulation.unit_name }}</div>
+                    <div><strong>القيمة الاسمية:</strong> ${{ simulation.notional_value }}</div>
+                    <div><strong>المخاطرة المستهدفة:</strong> ${{ simulation.risk_amount_target }}</div>
+                    <div><strong>المخاطرة الفعلية %:</strong> {{ simulation.effective_risk_percent }}%</div>
+                    <div><strong>الرصيد المتبقي بعد الهامش:</strong> ${{ simulation.free_margin_after_entry }}</div>
+                    <div><strong>تقييد الرافعة:</strong> {{ 'نعم' if simulation.capped_by_leverage else 'لا' }}</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>مستويات الإشارة الحالية</h2>
+                <div class="grid-2" style="margin-bottom:0;">
+                    <div class="result-card"><span class="label">الدخول</span><div class="value">{{ simulation.entry_price }}</div></div>
+                    <div class="result-card"><span class="label">وقف الخسارة</span><div class="value sell">{{ simulation.stop_loss }}</div></div>
+                    <div class="result-card"><span class="label">الهدف الأول</span><div class="value buy">{{ simulation.take_profit1 }}</div></div>
+                    <div class="result-card"><span class="label">الهدف الثاني</span><div class="value buy">{{ simulation.take_profit2 }}</div></div>
+                    <div class="result-card"><span class="label">الهدف الثالث</span><div class="value buy">{{ simulation.take_profit3 }}</div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" style="margin-bottom:20px;">
+            <h2>سيناريو الربح والخسارة</h2>
+            <div class="grid-3">
+                <div class="result-card">
+                    <span class="label">عند الهدف الأول</span>
+                    <div class="value buy">${{ simulation.profits.take_profit1 }}</div>
+                    <div class="kv"><div><strong>العائد %:</strong> {{ simulation.returns_pct.take_profit1 }}%</div><div><strong>العائد/المخاطرة:</strong> {{ simulation.risk_reward.take_profit1 }} : 1</div></div>
+                </div>
+                <div class="result-card">
+                    <span class="label">عند الهدف الثاني</span>
+                    <div class="value buy">${{ simulation.profits.take_profit2 }}</div>
+                    <div class="kv"><div><strong>العائد %:</strong> {{ simulation.returns_pct.take_profit2 }}%</div><div><strong>العائد/المخاطرة:</strong> {{ simulation.risk_reward.take_profit2 }} : 1</div></div>
+                </div>
+                <div class="result-card">
+                    <span class="label">عند الهدف الثالث</span>
+                    <div class="value buy">${{ simulation.profits.take_profit3 }}</div>
+                    <div class="kv"><div><strong>العائد %:</strong> {{ simulation.returns_pct.take_profit3 }}%</div><div><strong>العائد/المخاطرة:</strong> {{ simulation.risk_reward.take_profit3 }} : 1</div></div>
+                </div>
+            </div>
+            <div class="result-card" style="margin-top:18px;">
+                <span class="label">في حالة ضرب وقف الخسارة</span>
+                <div class="value sell">${{ simulation.profits.stop_loss }}</div>
+                <div class="kv"><div><strong>الأثر على الحساب:</strong> {{ simulation.returns_pct.stop_loss }}%</div></div>
+            </div>
+        </section>
+
+        <section class="grid-2">
+            <div class="panel">
+                <h2>ملاحظات المحاكاة</h2>
+                <div class="notes-list">
+                    {% for note in simulation.notes %}
+                    <div class="note">{{ note }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel">
+                <h2>الربط مع الإشارة</h2>
+                <div class="notes-list">
+                    <div class="note">النتيجة مبنية على الإشارة الحالية: {{ simulation.recommendation }}</div>
+                    <div class="note">يمكنك تغيير الزوج أو الإطار الزمني أو إدارة رأس المال وإعادة الحساب فورًا.</div>
+                    <div class="note">إعادة التشغيل التاريخية تستخدم إشارة قديمة قبل {{ simulation.replay_bars }} شموع، ثم تتبع الصفقة حتى آخر البيانات المتاحة.</div>
+                    <div class="note">للمراجعة الفنية التفصيلية ارجع إلى <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}" style="color:#f0c96c;">صفحة التحليل الكامل</a>.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" style="margin-top:20px;">
+            <div class="header" style="margin-bottom:18px;">
+                <div>
+                    <div class="eyebrow">إعادة تشغيل الصفقة</div>
+                    <h2 style="margin:10px 0 6px;">محاكاة شمعة بشمعة</h2>
+                    <p class="muted" style="margin:0;">بناء إشارة تاريخية ثم تتبع النتيجة الفعلية عبر الشموع التالية حتى الهدف أو الوقف أو آخر شمعة متاحة.</p>
+                </div>
+                {% if simulation.historical_replay and simulation.historical_replay.success %}
+                <div class="status-pill {% if simulation.historical_replay.final_status == 'مغلقة' %}status-closed{% else %}status-open{% endif %}">
+                    {{ simulation.historical_replay.final_status }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if not simulation.historical_replay.success %}
+            <div class="error">
+                <strong>تعذر تشغيل الإعادة التاريخية</strong>
+                <p>{{ simulation.historical_replay.error }}</p>
+            </div>
+            {% elif not simulation.historical_replay.trade_allowed %}
+            <div class="error">
+                <strong>لا توجد صفقة تاريخية قابلة للإعادة</strong>
+                <p>{{ simulation.historical_replay.message }}</p>
+            </div>
+            {% else %}
+            <div class="timeline-grid" style="margin-bottom:20px;">
+                <article class="result-card">
+                    <span class="label">وقت الإشارة التاريخية</span>
+                    <div class="value">{{ simulation.historical_replay.signal_time }}</div>
+                </article>
+                <article class="result-card">
+                    <span class="label">النتيجة النهائية</span>
+                    <div class="value {% if simulation.historical_replay.final_profit >= 0 %}buy{% else %}sell{% endif %}">${{ simulation.historical_replay.final_profit }}</div>
+                </article>
+                <article class="result-card">
+                    <span class="label">أفضل امتداد</span>
+                    <div class="value buy">${{ simulation.historical_replay.max_favorable_profit }}</div>
+                </article>
+                <article class="result-card">
+                    <span class="label">أسوأ سحب</span>
+                    <div class="value sell">${{ simulation.historical_replay.max_adverse_profit }}</div>
+                </article>
+            </div>
+
+            <div class="grid-2" style="margin-bottom:20px;">
+                <div class="panel">
+                    <h3>ملخص الإعادة</h3>
+                    <div class="kv">
+                        <div><strong>التوصية وقت الإشارة:</strong> {{ simulation.historical_replay.recommendation }}</div>
+                        <div><strong>الثقة:</strong> {{ simulation.historical_replay.confidence }}</div>
+                        <div><strong>بداية إعادة التشغيل:</strong> {{ simulation.historical_replay.replay_start_time }}</div>
+                        <div><strong>نهاية البيانات:</strong> {{ simulation.historical_replay.replay_end_time }}</div>
+                        <div><strong>عدد الشموع المعاد تشغيلها:</strong> {{ simulation.historical_replay.bars_replayed }} / {{ simulation.historical_replay.bars_requested }}</div>
+                        <div><strong>أعلى هدف تم بلوغه:</strong> {{ simulation.historical_replay.highest_target_reached }}</div>
+                        <div><strong>سعر الخروج / التقييم:</strong> {{ simulation.historical_replay.exit_price }}</div>
+                        <div><strong>العائد على الحساب:</strong> {{ simulation.historical_replay.final_return_pct }}%</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>مستويات الصفقة التاريخية</h3>
+                    <div class="kv">
+                        <div><strong>الدخول:</strong> {{ simulation.historical_replay.entry_price }}</div>
+                        <div><strong>وقف الخسارة:</strong> {{ simulation.historical_replay.stop_loss }}</div>
+                        <div><strong>الهدف الأول:</strong> {{ simulation.historical_replay.take_profit1 }}</div>
+                        <div><strong>الهدف الثاني:</strong> {{ simulation.historical_replay.take_profit2 }}</div>
+                        <div><strong>الهدف الثالث:</strong> {{ simulation.historical_replay.take_profit3 }}</div>
+                        <div><strong>قوة الشراء/البيع:</strong> {{ simulation.historical_replay.buy_score }} / {{ simulation.historical_replay.sell_score }}</div>
+                        <div><strong>سبب الإغلاق:</strong> {{ simulation.historical_replay.exit_reason }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="playback-controls">
+                <div class="field">
+                    <label for="playback-speed">سرعة العرض</label>
+                    <select id="playback-speed">
+                        <option value="1500">بطيء</option>
+                        <option value="900" selected>متوسط</option>
+                        <option value="450">سريع</option>
+                        <option value="220">سريع جدًا</option>
+                    </select>
+                </div>
+                <div class="playback-buttons">
+                    <button class="button button-primary" type="button" id="playback-toggle">بدء العرض الحي</button>
+                    <button class="button button-secondary" type="button" id="playback-reset">إعادة الضبط</button>
+                    <button class="button button-secondary" type="button" id="playback-show-all">عرض كل الشموع</button>
+                </div>
+            </div>
+
+            <div class="playback-status" id="playback-status">
+                <div><strong>الحالة:</strong> جاهز لبدء العرض</div>
+                <div><strong>الشمعة الحالية:</strong> لم يبدأ بعد</div>
+                <div><strong>آخر حدث:</strong> لا يوجد</div>
+            </div>
+
+            <div class="timeline-table-wrap" id="replay-table-wrap">
+                <table id="replay-table">
+                    <thead>
+                        <tr>
+                            <th>الشمعة</th>
+                            <th>الوقت</th>
+                            <th>الافتتاح</th>
+                            <th>الأعلى</th>
+                            <th>الأدنى</th>
+                            <th>الإغلاق</th>
+                            <th>ربح/خسارة التقييم</th>
+                            <th>العائد %</th>
+                            <th>الحدث</th>
+                        </tr>
+                    </thead>
+                    <tbody id="replay-timeline-body">
+                        {% for candle in simulation.historical_replay.timeline %}
+                        <tr data-step="{{ candle.step }}" data-time="{{ candle.time }}" data-event="{{ candle.event|e }}">
+                            <td>{{ candle.step }}</td>
+                            <td>{{ candle.time }}</td>
+                            <td>{{ candle.open }}</td>
+                            <td>{{ candle.high }}</td>
+                            <td>{{ candle.low }}</td>
+                            <td>{{ candle.close }}</td>
+                            <td class="{% if candle.mark_profit >= 0 %}buy{% else %}sell{% endif %}">${{ candle.mark_profit }}</td>
+                            <td class="{% if candle.mark_return_pct >= 0 %}buy{% else %}sell{% endif %}">{{ candle.mark_return_pct }}%</td>
+                            <td>{{ candle.event }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="notes-list replay-note">
+                {% for note in simulation.historical_replay.notes %}
+                <div class="note">{{ note }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+    <script>
+        (() => {
+            const timelineBody = document.getElementById('replay-timeline-body');
+            const toggleButton = document.getElementById('playback-toggle');
+            const resetButton = document.getElementById('playback-reset');
+            const showAllButton = document.getElementById('playback-show-all');
+            const speedSelect = document.getElementById('playback-speed');
+            const statusPanel = document.getElementById('playback-status');
+            const tableWrap = document.getElementById('replay-table-wrap');
+
+            if (!timelineBody || !toggleButton || !resetButton || !showAllButton || !speedSelect || !statusPanel || !tableWrap) {
+                return;
+            }
+
+            const rows = Array.from(timelineBody.querySelectorAll('tr'));
+            if (!rows.length) {
+                return;
+            }
+
+            let currentIndex = -1;
+            let timerId = null;
+            let isRunning = false;
+            let revealMode = false;
+
+            const updateStatus = (stateText, row) => {
+                const currentText = row ? `الشمعة ${row.dataset.step} · ${row.dataset.time}` : 'لم يبدأ بعد';
+                const eventText = row ? row.dataset.event : 'لا يوجد';
+                statusPanel.innerHTML = `
+                    <div><strong>الحالة:</strong> ${stateText}</div>
+                    <div><strong>الشمعة الحالية:</strong> ${currentText}</div>
+                    <div><strong>آخر حدث:</strong> ${eventText}</div>
+                `;
+            };
+
+            const clearActiveState = () => {
+                rows.forEach((row) => row.classList.remove('replay-active'));
+            };
+
+            const revealUpTo = (index) => {
+                rows.forEach((row, rowIndex) => {
+                    row.classList.toggle('replay-hidden', revealMode && rowIndex > index);
+                });
+            };
+
+            const focusRow = (index, stateText) => {
+                clearActiveState();
+                const row = rows[index] || null;
+                if (!row) {
+                    updateStatus(stateText, null);
+                    return;
+                }
+                row.classList.add('replay-active');
+                revealUpTo(index);
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                tableWrap.scrollLeft = 0;
+                updateStatus(stateText, row);
+            };
+
+            const stopPlayback = (stateText) => {
+                if (timerId) {
+                    window.clearTimeout(timerId);
+                    timerId = null;
+                }
+                isRunning = false;
+                toggleButton.textContent = currentIndex >= rows.length - 1 ? 'إعادة التشغيل من البداية' : 'استئناف العرض';
+                focusRow(Math.max(currentIndex, 0), stateText);
+            };
+
+            const stepPlayback = () => {
+                if (!isRunning) {
+                    return;
+                }
+
+                currentIndex += 1;
+                if (currentIndex >= rows.length) {
+                    currentIndex = rows.length - 1;
+                    stopPlayback('اكتمل العرض');
+                    return;
+                }
+
+                focusRow(currentIndex, 'العرض يعمل');
+                timerId = window.setTimeout(stepPlayback, Number(speedSelect.value));
+            };
+
+            const resetPlayback = ({ showAll = false } = {}) => {
+                if (timerId) {
+                    window.clearTimeout(timerId);
+                    timerId = null;
+                }
+                isRunning = false;
+                currentIndex = -1;
+                revealMode = !showAll;
+                clearActiveState();
+                rows.forEach((row) => row.classList.toggle('replay-hidden', !showAll));
+                toggleButton.textContent = 'بدء العرض الحي';
+                updateStatus(showAll ? 'تم إظهار كل الشموع' : 'جاهز لبدء العرض', null);
+            };
+
+            toggleButton.addEventListener('click', () => {
+                if (isRunning) {
+                    stopPlayback('تم إيقاف العرض مؤقتًا');
+                    return;
+                }
+
+                if (currentIndex >= rows.length - 1 || currentIndex === -1) {
+                    resetPlayback();
+                }
+
+                revealMode = true;
+                isRunning = true;
+                toggleButton.textContent = 'إيقاف مؤقت';
+                stepPlayback();
+            });
+
+            resetButton.addEventListener('click', () => {
+                resetPlayback();
+            });
+
+            showAllButton.addEventListener('click', () => {
+                resetPlayback({ showAll: true });
+            });
+
+            speedSelect.addEventListener('change', () => {
+                if (!isRunning || !timerId) {
+                    return;
+                }
+                window.clearTimeout(timerId);
+                timerId = window.setTimeout(stepPlayback, Number(speedSelect.value));
+            });
+
+            resetPlayback({ showAll: true });
+        })();
+    </script>
+</body>
+</html>

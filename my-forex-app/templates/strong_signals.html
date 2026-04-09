@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>الإشارات القوية</title>
+    <style>
+        :root {
+            --bg: #0b0907;
+            --surface: rgba(30, 22, 15, 0.82);
+            --surface-alt: rgba(39, 28, 18, 0.94);
+            --line: rgba(232, 191, 96, 0.18);
+            --line-strong: rgba(242, 206, 118, 0.34);
+            --text: #f9efd3;
+            --muted: #ccb98d;
+            --primary: #d4a53c;
+            --primary-strong: #f0c96c;
+            --accent: #ffe29f;
+            --danger: #ff8c42;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+            --glow: 0 0 0 1px rgba(255, 221, 149, 0.14), 0 18px 50px rgba(212, 165, 60, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 21%),
+                radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+                linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: var(--text);
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(42, 31, 20, 0.84), rgba(24, 18, 12, 0.94));
+            box-shadow: inset 0 1px 0 rgba(255, 231, 173, 0.09);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .header a:hover {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+        }
+
+        .hero,
+        .block,
+        .signal-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            border-radius: 30px;
+            padding: 24px;
+            animation: fade-up 0.7s ease both;
+        }
+
+        .hero::before,
+        .block::before,
+        .signal-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 18%, rgba(255, 221, 149, 0.04) 50%, transparent 82%);
+            transform: translateX(-120%);
+            animation: sheen 10s linear infinite;
+            pointer-events: none;
+        }
+
+        .hero {
+            margin-bottom: 22px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(232, 191, 96, 0.10);
+            color: var(--primary-strong);
+            border: 1px solid rgba(255, 222, 138, 0.16);
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-top: 0;
+        }
+
+        .muted {
+            color: var(--muted);
+            line-height: 1.9;
+        }
+
+        .selector-form {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.9fr auto auto;
+            gap: 12px;
+            align-items: end;
+            margin-top: 20px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #f4dca1;
+        }
+
+        input,
+        select,
+        button {
+            font: inherit;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+            box-shadow: inset 0 1px 0 rgba(255, 231, 173, 0.06);
+        }
+
+        input::placeholder {
+            color: #a9936a;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--line-strong);
+            box-shadow: 0 0 0 4px rgba(212, 165, 60, 0.12);
+        }
+
+        .button {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            padding: 13px 16px;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+            box-shadow: 0 16px 34px rgba(212, 165, 60, 0.24);
+        }
+
+        .button-secondary {
+            background: linear-gradient(180deg, rgba(44, 33, 22, 0.86), rgba(24, 18, 12, 0.96));
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        .summary-grid,
+        .signals-grid,
+        .horizons {
+            display: grid;
+            gap: 18px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1.15fr 0.85fr;
+            margin-bottom: 20px;
+        }
+
+        .signals-grid,
+        .horizons {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .summary-card,
+        .horizon-card,
+        .signal-card,
+        .empty,
+        .error,
+        .filter-chip {
+            background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--glow);
+            transition: transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .summary-card:hover,
+        .horizon-card:hover,
+        .signal-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--line-strong);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0 0 20px;
+        }
+
+        .filter-chip {
+            appearance: none;
+            padding: 10px 14px;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .filter-chip:hover {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+        }
+
+        .filter-chip.active {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+        }
+
+        .pill {
+            display: inline-flex;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(232, 191, 96, 0.10);
+            color: var(--primary-strong);
+            border: 1px solid rgba(255, 222, 138, 0.14);
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .buy {
+            color: #f4d27c;
+        }
+
+        .sell {
+            color: #ffad5c;
+        }
+
+        .kv {
+            display: grid;
+            gap: 8px;
+            color: var(--muted);
+            line-height: 1.85;
+            margin-top: 12px;
+        }
+
+        .error {
+            background: linear-gradient(180deg, rgba(61, 25, 14, 0.94), rgba(39, 16, 9, 0.98));
+            border-color: rgba(255, 140, 66, 0.24);
+            color: #ffd0b0;
+        }
+
+        .empty {
+            text-align: center;
+        }
+
+        .signal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .signal-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .auto-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 0 0 20px;
+        }
+
+        .auto-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            color: var(--muted);
+        }
+
+        .auto-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+            box-shadow: var(--glow);
+        }
+
+        .auto-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-item {
+            display: grid;
+            gap: 8px;
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+            box-shadow: var(--glow);
+        }
+
+        .history-item strong {
+            color: var(--accent);
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            color: var(--muted);
+        }
+
+        .history-empty {
+            color: var(--muted);
+            text-align: center;
+            padding: 14px 0;
+        }
+
+        .spotlight-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f7df9a 0%, #e3b654 48%, #9f7622 100%);
+            color: #1a1209;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .live-alert {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 0 18px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 222, 138, 0.28);
+            background: linear-gradient(180deg, rgba(84, 60, 25, 0.95), rgba(39, 27, 15, 0.98));
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+        }
+
+        .live-alert.visible {
+            display: flex;
+            animation: fade-up 0.35s ease both;
+        }
+
+        .live-alert strong {
+            color: var(--accent);
+        }
+
+        .hidden-card {
+            display: none;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes sheen {
+            0% {
+                transform: translateX(-120%);
+            }
+            24%, 100% {
+                transform: translateX(140%);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .selector-form,
+            .summary-grid,
+            .signals-grid,
+            .horizons {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .selector-form > :last-child {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .shell {
+                width: min(100% - 20px, 1180px);
+                padding-top: 18px;
+            }
+
+            .hero,
+            .block,
+            .summary-card,
+            .signal-card,
+            .horizon-card {
+                padding: 20px;
+                border-radius: 24px;
+            }
+
+            .selector-form,
+            .summary-grid,
+            .signals-grid,
+            .horizons {
+                grid-template-columns: 1fr;
+            }
+
+            .auto-toolbar {
+                align-items: stretch;
+            }
+
+            .auto-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="header">
+            <a href="{{ main_site_url }}" style="font-weight:800;">⭐ العودة للرئيسية</a>
+            <a href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">المحلل</a>
+            <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">التحليل الكامل</a>
+        </div>
+
+        <section class="hero">
+            <div class="eyebrow">ماسح الإشارات القوية</div>
+            <h1>{{ strong_signals.symbol_label if strong_signals.success else selected_symbol }} · {{ selected_interval }}</h1>
+            <p class="muted">هذه الصفحة تفحص السوق أو الرمز المحدد وتعرض فقط الإشارات التي خرجت من نظام البحث بتوصية شراء قوي أو بيع قوي. عند اختيار كل الأسواق، يتم التحديث الآلي بشكل دوري.</p>
+
+            <form class="selector-form" action="{{ forex_base_path }}/strong-signals" method="get">
+                <input type="hidden" name="return_to" value="{{ main_site_url }}">
+                <div class="field">
+                    <label for="symbol-search">بحث داخل الرموز</label>
+                    <input id="symbol-search" type="text" placeholder="مثال: XAU أو BTC أو US500">
+                </div>
+                <div class="field">
+                    <label for="symbol">الرمز</label>
+                    <select id="symbol" name="symbol" required>
+                        {% for group in grouped_symbol_options %}
+                        <optgroup label="{{ group.label }}">
+                            {% for option in group.options %}
+                            <option value="{{ option.value }}" {% if option.value == selected_symbol %}selected{% endif %}>{{ option.label }} - {{ option.value }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="interval">الإطار الزمني</label>
+                    <select id="interval" name="interval" required>
+                        {% for option in interval_options %}
+                        <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="button button-secondary" type="button" id="clear-search">مسح البحث</button>
+                <button class="button button-primary" type="submit">تشغيل البحث</button>
+            </form>
+        </section>
+
+        {% if not strong_signals.success %}
+        <div class="error">
+            <strong>تعذر جلب الإشارات القوية</strong>
+            <p>{{ strong_signals.error }}</p>
+        </div>
+        {% else %}
+        <div class="live-alert" id="live-alert">
+            <div>
+                <strong id="live-alert-title">تم رصد إشارة جديدة</strong>
+                <div class="muted" id="live-alert-message">سيتم عرض تفاصيل الإشارة الجديدة هنا.</div>
+            </div>
+            <button class="filter-chip" type="button" id="dismiss-live-alert">إخفاء</button>
+        </div>
+
+        <section class="summary-grid">
+            <div class="summary-card">
+                <h2>ملخص الفحص</h2>
+                <div class="pill" id="matched-signals-pill">تم العثور على {{ strong_signals.matched_signals }} إشارة قوية</div>
+                <div class="kv">
+                    <div><strong>نطاق البحث:</strong> <span id="scan-target-label">{{ strong_signals.symbol_label }}</span></div>
+                    <div><strong>عدد الرموز المفحوصة:</strong> <span id="scanned-symbols-count">{{ strong_signals.scanned_symbols }}</span></div>
+                    <div><strong>الإطار الزمني:</strong> <span id="scan-interval-label">{{ strong_signals.interval }}</span></div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h2>حالة نظام البحث</h2>
+                <div class="kv">
+                    <div>تعرض الصفحة فقط النتائج التي بلغت مستوى قوة كافٍ داخل المحرك.</div>
+                    <div>الرموز التي لم تنتج شراء قوي أو بيع قوي لا تظهر في هذه الصفحة.</div>
+                    <div><strong>أخطاء الفحص:</strong> <span id="scan-errors-count">{{ strong_signals.scan_errors|length }}</span></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="auto-toolbar">
+            <div class="auto-status">
+                <div class="auto-chip"><strong>آخر فحص:</strong> <span id="generated-at-label">{{ strong_signals.generated_at }}</span></div>
+                <div class="auto-chip"><strong>الوضع الحالي:</strong> <span id="scan-mode-label">{% if strong_signals.symbol == 'ALL' %}فحص تلقائي لجميع الأزواج{% else %}فحص مخصص لرمز واحد{% endif %}</span></div>
+                <div class="auto-chip"><strong>التحديث التالي:</strong> <span id="auto-refresh-countdown">--</span></div>
+            </div>
+            <div class="auto-actions">
+                <div class="auto-chip"><strong>إشعارات المتصفح:</strong> <span id="notification-status">غير معروفة</span></div>
+                <button class="filter-chip" type="button" id="request-notification-permission">تفعيل الإشعارات</button>
+                <button class="filter-chip" type="button" id="toggle-auto-refresh">إيقاف التحديث الآلي</button>
+            </div>
+        </div>
+
+        <div class="filter-row" id="category-filters">
+            <button class="filter-chip active" type="button" data-category-filter="ALL">كل الفئات</button>
+            {% for category in strong_signals.categories %}
+            <button class="filter-chip" type="button" data-category-filter="{{ category }}">{{ category }}</button>
+            {% endfor %}
+        </div>
+
+        <section class="signals-grid" style="margin-bottom:20px;" id="signals-container">
+        {% if strong_signals.signals %}
+            {% for signal in strong_signals.signals %}
+            <article class="signal-card" data-category="{{ signal.category }}" data-rank="{{ loop.index }}">
+                <div class="signal-header">
+                    <div class="signal-tags">
+                        <div class="pill">{{ signal.symbol_label }} · {{ signal.symbol }}</div>
+                        <div class="pill">{{ signal.category }}</div>
+                    </div>
+                    {% if loop.first %}
+                    <div class="spotlight-badge">الأفضل الآن</div>
+                    {% endif %}
+                </div>
+                <h3 class="{% if 'شراء' in signal.recommendation %}buy{% else %}sell{% endif %}">{{ signal.recommendation }}</h3>
+                <div class="kv">
+                    <div><strong>الترتيب:</strong> #{{ loop.index }}</div>
+                    <div><strong>قوة الشراء:</strong> {{ signal.buy_score }}</div>
+                    <div><strong>قوة البيع:</strong> {{ signal.sell_score }}</div>
+                    <div><strong>فارق القوة:</strong> {{ signal.score_gap }}</div>
+                    <div><strong>التغير الأخير:</strong> {{ signal.price_change_pct }}%</div>
+                    <div><strong>الدخول:</strong> {{ signal.entry_price }}</div>
+                    <div><strong>TP1:</strong> {{ signal.take_profit1 }}</div>
+                    <div><strong>TP2:</strong> {{ signal.take_profit2 }}</div>
+                    <div><strong>TP3:</strong> {{ signal.take_profit3 }}</div>
+                    <div><strong>وقف الخسارة:</strong> {{ signal.stop_loss }}</div>
+                    <div><strong>الثقة:</strong> {{ signal.confidence }}</div>
+                </div>
+                {% if signal.scenario %}
+                <div class="kv">
+                    <div><strong>السيناريو:</strong> {{ signal.scenario.primary.title }}</div>
+                    <div>{{ signal.scenario.primary.trigger }}</div>
+                    <div>{{ signal.scenario.primary.invalidation }}</div>
+                </div>
+                {% endif %}
+                {% if signal.executive_summary %}
+                <div class="kv">
+                    <div><strong>خلاصة سريعة:</strong> {{ signal.executive_summary.overview }}</div>
+                </div>
+                {% endif %}
+                <div class="kv">
+                    <a href="{{ forex_base_path }}/trade-simulator?symbol={{ signal.symbol }}&interval={{ strong_signals.interval }}&return_to={{ return_to_param }}" style="color:#f0c96c; font-weight:700; text-decoration:none;">فتح المحاكاة على هذه الإشارة</a>
+                </div>
+            </article>
+            {% endfor %}
+        {% endif %}
+        </section>
+
+        <div class="empty {% if strong_signals.signals %}hidden-card{% endif %}" id="empty-state">
+            <h2>لا توجد إشارة قوية حالياً</h2>
+            <p class="muted">نظام البحث فحص النطاق المطلوب، لكنه لم يجد حالياً أي أصل وصل إلى شراء قوي أو بيع قوي على هذا الإطار الزمني.</p>
+        </div>
+
+        <section class="block {% if not strong_signals.scan_errors %}hidden-card{% endif %}" id="scan-errors-block">
+            <h2>أخطاء أثناء الفحص</h2>
+            <div class="horizons" id="scan-errors-container">
+                {% if strong_signals.scan_errors %}
+                {% for item in strong_signals.scan_errors %}
+                <div class="horizon-card">
+                    <h3>{{ item.symbol }}</h3>
+                    <div class="kv">
+                        <div>{{ item.error }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="block" id="signal-history-block">
+            <h2>آخر إشارة لكل زوج</h2>
+            <div class="history-list" id="signal-history-list"></div>
+        </section>
+        {% endif %}
+    </div>
+
+    <script id="grouped-symbol-options" type="application/json">{{ grouped_symbol_options|tojson|safe }}</script>
+    <script id="selected-symbol" type="application/json">{{ selected_symbol|tojson|safe }}</script>
+    <script id="initial-strong-signals-data" type="application/json">{{ strong_signals|tojson|safe }}</script>
+    <script>
+        const searchInput = document.getElementById('symbol-search');
+        const clearButton = document.getElementById('clear-search');
+        const select = document.getElementById('symbol');
+        const intervalSelect = document.getElementById('interval');
+        const autoRefreshButton = document.getElementById('toggle-auto-refresh');
+        const requestNotificationPermissionButton = document.getElementById('request-notification-permission');
+        const notificationStatus = document.getElementById('notification-status');
+        const countdownElement = document.getElementById('auto-refresh-countdown');
+        const categoryFiltersContainer = document.getElementById('category-filters');
+        const signalsContainer = document.getElementById('signals-container');
+        const emptyState = document.getElementById('empty-state');
+        const scanErrorsBlock = document.getElementById('scan-errors-block');
+        const scanErrorsContainer = document.getElementById('scan-errors-container');
+        const signalHistoryList = document.getElementById('signal-history-list');
+        const liveAlert = document.getElementById('live-alert');
+        const liveAlertTitle = document.getElementById('live-alert-title');
+        const liveAlertMessage = document.getElementById('live-alert-message');
+        const dismissLiveAlertButton = document.getElementById('dismiss-live-alert');
+        const matchedSignalsPill = document.getElementById('matched-signals-pill');
+        const scanTargetLabel = document.getElementById('scan-target-label');
+        const scannedSymbolsCount = document.getElementById('scanned-symbols-count');
+        const scanIntervalLabel = document.getElementById('scan-interval-label');
+        const scanErrorsCount = document.getElementById('scan-errors-count');
+        const generatedAtLabel = document.getElementById('generated-at-label');
+        const scanModeLabel = document.getElementById('scan-mode-label');
+        const groups = JSON.parse(document.getElementById('grouped-symbol-options').textContent);
+        const currentValue = JSON.parse(document.getElementById('selected-symbol').textContent);
+        const initialStrongSignalsData = JSON.parse(document.getElementById('initial-strong-signals-data').textContent);
+        const autoRefreshStorageKey = 'strongSignalsAutoRefreshEnabled';
+        const seenSignalsStorageKey = 'strongSignalsSeenIds';
+        const latestSignalsMetaStorageKey = 'strongSignalsLatestMeta';
+        const autoRefreshSeconds = 180;
+        let secondsRemaining = autoRefreshSeconds;
+        let countdownTimer = null;
+        let activeCategory = 'ALL';
+        let currentScanData = initialStrongSignalsData;
+
+        function rebuildOptions(filterText) {
+            const query = (filterText || '').trim().toLowerCase();
+            const previousValue = select.value || currentValue;
+            select.innerHTML = '';
+
+            for (const group of groups) {
+                const matching = group.options.filter((option) => {
+                    const haystack = `${option.label} ${option.value}`.toLowerCase();
+                    return haystack.includes(query);
+                });
+
+                if (!matching.length) {
+                    continue;
+                }
+
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.label;
+
+                for (const option of matching) {
+                    const element = document.createElement('option');
+                    element.value = option.value;
+                    element.textContent = `${option.label} - ${option.value}`;
+                    if (option.value === previousValue) {
+                        element.selected = true;
+                    }
+                    optgroup.appendChild(element);
+                }
+
+                select.appendChild(optgroup);
+            }
+
+            if (!select.value && select.options.length) {
+                select.options[0].selected = true;
+            }
+        }
+
+        if (searchInput && clearButton && select) {
+            searchInput.addEventListener('input', (event) => rebuildOptions(event.target.value));
+            clearButton.addEventListener('click', () => {
+                searchInput.value = '';
+                rebuildOptions('');
+                searchInput.focus();
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function signalIdentity(signal) {
+            return [signal.symbol, signal.recommendation, signal.entry_price, signal.take_profit1, signal.stop_loss].join('|');
+        }
+
+        function formatTimestamp(value) {
+            try {
+                return new Intl.DateTimeFormat('ar', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }).format(new Date(value));
+            } catch {
+                return value;
+            }
+        }
+
+        function getSeenSignalIds() {
+            try {
+                const raw = window.localStorage.getItem(seenSignalsStorageKey);
+                return raw ? JSON.parse(raw) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function setSeenSignalIds(ids) {
+            window.localStorage.setItem(seenSignalsStorageKey, JSON.stringify(ids));
+        }
+
+        function getLatestSignalMeta() {
+            try {
+                const raw = window.localStorage.getItem(latestSignalsMetaStorageKey);
+                return raw ? JSON.parse(raw) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function setLatestSignalMeta(meta) {
+            window.localStorage.setItem(latestSignalsMetaStorageKey, JSON.stringify(meta));
+        }
+
+        function updateNotificationPermissionState() {
+            if (!notificationStatus) {
+                return;
+            }
+            if (!('Notification' in window)) {
+                notificationStatus.textContent = 'غير مدعومة';
+                requestNotificationPermissionButton?.classList.add('hidden-card');
+                return;
+            }
+
+            const stateMap = {
+                granted: 'مفعلة',
+                denied: 'مرفوضة',
+                default: 'بانتظار الإذن',
+            };
+            notificationStatus.textContent = stateMap[Notification.permission] || Notification.permission;
+        }
+
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                showLiveAlert('الإشعارات غير مدعومة', 'المتصفح الحالي لا يدعم إشعارات النظام.');
+                return;
+            }
+
+            const permission = await Notification.requestPermission();
+            updateNotificationPermissionState();
+            if (permission === 'granted') {
+                showLiveAlert('تم تفعيل إشعارات المتصفح', 'سيصلك إشعار حقيقي عند ظهور إشارة قوية جديدة.');
+            }
+        }
+
+        function sendBrowserNotification(signal) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return;
+            }
+
+            const notification = new Notification('إشارة قوية جديدة', {
+                body: `${signal.symbol_label} - ${signal.recommendation}`,
+                tag: signalIdentity(signal),
+                renotify: true,
+            });
+
+            notification.onclick = () => {
+                window.focus();
+                notification.close();
+            };
+        }
+
+        function playAlertTone() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    return;
+                }
+                const audioContext = new AudioContextClass();
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.08, audioContext.currentTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.45);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.48);
+            } catch {
+                // Ignore audio failures in unsupported browsers.
+            }
+        }
+
+        function showLiveAlert(title, message) {
+            if (!liveAlert || !liveAlertTitle || !liveAlertMessage) {
+                return;
+            }
+            liveAlertTitle.textContent = title;
+            liveAlertMessage.textContent = message;
+            liveAlert.classList.add('visible');
+        }
+
+        function hideLiveAlert() {
+            if (liveAlert) {
+                liveAlert.classList.remove('visible');
+            }
+        }
+
+        function buildSignalCard(signal, index) {
+            const spotlight = index === 0 ? '<div class="spotlight-badge">الأفضل الآن</div>' : '';
+            const overview = signal.executive_summary ? `<div class="kv"><div><strong>خلاصة سريعة:</strong> ${escapeHtml(signal.executive_summary.overview)}</div></div>` : '';
+            const scenario = signal.scenario ? `
+                <div class="kv">
+                    <div><strong>السيناريو:</strong> ${escapeHtml(signal.scenario.primary.title)}</div>
+                    <div>${escapeHtml(signal.scenario.primary.trigger)}</div>
+                    <div>${escapeHtml(signal.scenario.primary.invalidation)}</div>
+                </div>` : '';
+
+            return `
+                <article class="signal-card" data-category="${escapeHtml(signal.category)}" data-rank="${index + 1}">
+                    <div class="signal-header">
+                        <div class="signal-tags">
+                            <div class="pill">${escapeHtml(signal.symbol_label)} · ${escapeHtml(signal.symbol)}</div>
+                            <div class="pill">${escapeHtml(signal.category)}</div>
+                        </div>
+                        ${spotlight}
+                    </div>
+                    <h3 class="${signal.recommendation.includes('شراء') ? 'buy' : 'sell'}">${escapeHtml(signal.recommendation)}</h3>
+                    <div class="kv">
+                        <div><strong>الترتيب:</strong> #${index + 1}</div>
+                        <div><strong>قوة الشراء:</strong> ${escapeHtml(signal.buy_score)}</div>
+                        <div><strong>قوة البيع:</strong> ${escapeHtml(signal.sell_score)}</div>
+                        <div><strong>فارق القوة:</strong> ${escapeHtml(signal.score_gap)}</div>
+                        <div><strong>التغير الأخير:</strong> ${escapeHtml(signal.price_change_pct)}%</div>
+                        <div><strong>الدخول:</strong> ${escapeHtml(signal.entry_price)}</div>
+                        <div><strong>TP1:</strong> ${escapeHtml(signal.take_profit1)}</div>
+                        <div><strong>TP2:</strong> ${escapeHtml(signal.take_profit2)}</div>
+                        <div><strong>TP3:</strong> ${escapeHtml(signal.take_profit3)}</div>
+                        <div><strong>وقف الخسارة:</strong> ${escapeHtml(signal.stop_loss)}</div>
+                        <div><strong>الثقة:</strong> ${escapeHtml(signal.confidence)}</div>
+                    </div>
+                    ${scenario}
+                    ${overview}
+                </article>`;
+        }
+
+        function buildScanErrorCard(item) {
+            return `
+                <div class="horizon-card">
+                    <h3>${escapeHtml(item.symbol)}</h3>
+                    <div class="kv"><div>${escapeHtml(item.error)}</div></div>
+                </div>`;
+        }
+
+        function buildHistoryItem(item) {
+            return `
+                <div class="history-item">
+                    <strong>${escapeHtml(item.symbol_label)} · ${escapeHtml(item.symbol)}</strong>
+                    <div class="history-meta">
+                        <span>${escapeHtml(item.recommendation)}</span>
+                        <span>•</span>
+                        <span>${escapeHtml(item.category)}</span>
+                        <span>•</span>
+                        <span>${escapeHtml(item.interval)}</span>
+                    </div>
+                    <div class="muted">آخر تحديث: ${escapeHtml(formatTimestamp(item.updatedAt))}</div>
+                </div>`;
+        }
+
+        function renderCategoryFilters(categories) {
+            if (!categoryFiltersContainer) {
+                return;
+            }
+            const categoryMarkup = ['<button class="filter-chip" type="button" data-category-filter="ALL">كل الفئات</button>']
+                .concat(categories.map((category) => `<button class="filter-chip" type="button" data-category-filter="${escapeHtml(category)}">${escapeHtml(category)}</button>`))
+                .join('');
+            categoryFiltersContainer.innerHTML = categoryMarkup;
+            categoryFiltersContainer.querySelectorAll('[data-category-filter]').forEach((button) => {
+                button.addEventListener('click', () => applyCategoryFilter(button.dataset.categoryFilter));
+            });
+        }
+
+        function renderSignals(data) {
+            if (!signalsContainer || !emptyState) {
+                return;
+            }
+            const signals = data.signals || [];
+            signalsContainer.innerHTML = signals.map((signal, index) => buildSignalCard(signal, index)).join('');
+            emptyState.classList.toggle('hidden-card', signals.length > 0);
+            applyCategoryFilter(activeCategory);
+        }
+
+        function renderScanErrors(data) {
+            if (!scanErrorsBlock || !scanErrorsContainer) {
+                return;
+            }
+            const scanErrors = data.scan_errors || [];
+            scanErrorsContainer.innerHTML = scanErrors.map((item) => buildScanErrorCard(item)).join('');
+            scanErrorsBlock.classList.toggle('hidden-card', scanErrors.length === 0);
+        }
+
+        function renderSummary(data) {
+            if (matchedSignalsPill) {
+                matchedSignalsPill.textContent = `تم العثور على ${data.matched_signals} إشارة قوية`;
+            }
+            if (scanTargetLabel) {
+                scanTargetLabel.textContent = data.symbol_label;
+            }
+            if (scannedSymbolsCount) {
+                scannedSymbolsCount.textContent = data.scanned_symbols;
+            }
+            if (scanIntervalLabel) {
+                scanIntervalLabel.textContent = data.interval;
+            }
+            if (scanErrorsCount) {
+                scanErrorsCount.textContent = (data.scan_errors || []).length;
+            }
+            if (generatedAtLabel) {
+                generatedAtLabel.textContent = data.generated_at;
+            }
+            if (scanModeLabel) {
+                scanModeLabel.textContent = data.symbol === 'ALL' ? 'فحص تلقائي لجميع الأزواج' : 'فحص مخصص لرمز واحد';
+            }
+        }
+
+        function renderSignalHistory() {
+            if (!signalHistoryList) {
+                return;
+            }
+
+            const meta = Object.values(getLatestSignalMeta())
+                .filter((item) => {
+                    const currentSymbolValue = select?.value || currentValue;
+                    const currentIntervalValue = intervalSelect?.value || '{{ selected_interval }}';
+                    const sameSymbolScope = currentSymbolValue === 'ALL' ? true : item.symbol === currentSymbolValue;
+                    return sameSymbolScope && item.interval === currentIntervalValue;
+                })
+                .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
+
+            signalHistoryList.innerHTML = meta.length
+                ? meta.map(buildHistoryItem).join('')
+                : '<div class="history-empty">لا توجد إشارات محفوظة بعد لهذا النطاق.</div>';
+        }
+
+        function syncSignalHistory(data) {
+            const meta = getLatestSignalMeta();
+            const nowIso = new Date().toISOString();
+            for (const signal of (data.signals || [])) {
+                const pairKey = `${signal.symbol}|${data.interval}`;
+                meta[pairKey] = {
+                    id: signalIdentity(signal),
+                    pairKey,
+                    symbol: signal.symbol,
+                    symbol_label: signal.symbol_label,
+                    recommendation: signal.recommendation,
+                    category: signal.category,
+                    interval: data.interval,
+                    updatedAt: nowIso,
+                };
+            }
+            setLatestSignalMeta(meta);
+            renderSignalHistory();
+            return meta;
+        }
+
+        function applyCategoryFilter(category) {
+            const buttons = Array.from(document.querySelectorAll('[data-category-filter]'));
+            const cards = Array.from(document.querySelectorAll('.signal-card[data-category]'));
+            activeCategory = buttons.some((button) => button.dataset.categoryFilter === category) ? category : 'ALL';
+
+            for (const button of buttons) {
+                button.classList.toggle('active', button.dataset.categoryFilter === activeCategory);
+            }
+
+            let visibleCount = 0;
+            for (const card of cards) {
+                const visible = activeCategory === 'ALL' || card.dataset.category === activeCategory;
+                card.classList.toggle('hidden-card', !visible);
+                if (visible) {
+                    visibleCount += 1;
+                }
+            }
+
+            if (emptyState && currentScanData?.signals?.length) {
+                emptyState.classList.toggle('hidden-card', visibleCount > 0);
+            }
+        }
+
+        async function refreshStrongSignalsInBackground() {
+            const symbol = select?.value || currentValue;
+            const interval = intervalSelect?.value || '{{ selected_interval }}';
+            const response = await fetch(`/api/strong-signals?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}`, {
+                headers: { 'X-Requested-With': 'fetch' },
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'تعذر تحديث نتائج الإشارات القوية.');
+            }
+
+            const previousIds = getSeenSignalIds();
+            const nextIds = (data.signals || []).map(signalIdentity);
+            const newIds = nextIds.filter((id) => !previousIds.includes(id));
+
+            currentScanData = data;
+            renderSummary(data);
+            renderCategoryFilters(data.categories || []);
+            renderSignals(data);
+            renderScanErrors(data);
+            setSeenSignalIds(nextIds);
+            syncSignalHistory(data);
+
+            if (newIds.length > 0) {
+                const firstNewSignal = data.signals.find((signal) => newIds.includes(signalIdentity(signal)));
+                if (firstNewSignal) {
+                    showLiveAlert(
+                        'تم رصد إشارة قوية جديدة',
+                        `${firstNewSignal.symbol_label} - ${firstNewSignal.recommendation} ظهرت الآن ضمن نتائج الفحص.`
+                    );
+                    playAlertTone();
+                    sendBrowserNotification(firstNewSignal);
+                }
+            }
+        }
+
+        function getAutoRefreshEnabled() {
+            const stored = window.localStorage.getItem(autoRefreshStorageKey);
+            if (stored === null) {
+                return (select?.value || currentValue) === 'ALL';
+            }
+            return stored === 'true';
+        }
+
+        function setAutoRefreshButtonState(enabled) {
+            if (!autoRefreshButton) {
+                return;
+            }
+            autoRefreshButton.textContent = enabled ? 'إيقاف التحديث الآلي' : 'تشغيل التحديث الآلي';
+            autoRefreshButton.classList.toggle('active', enabled);
+        }
+
+        function updateCountdownText(enabled) {
+            if (!countdownElement) {
+                return;
+            }
+            const currentSymbolValue = select?.value || currentValue;
+            if (currentSymbolValue !== 'ALL') {
+                countdownElement.textContent = 'متاح عند اختيار كل الأسواق';
+                return;
+            }
+            countdownElement.textContent = enabled ? `${secondsRemaining} ثانية` : 'متوقف';
+        }
+
+        function restartAutoRefreshLoop() {
+            const enabled = getAutoRefreshEnabled();
+            window.localStorage.setItem(autoRefreshStorageKey, String(enabled));
+            setAutoRefreshButtonState(enabled);
+            secondsRemaining = autoRefreshSeconds;
+            updateCountdownText(enabled);
+
+            if (countdownTimer) {
+                window.clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            const currentSymbolValue = select?.value || currentValue;
+            if (!enabled || currentSymbolValue !== 'ALL') {
+                return;
+            }
+
+            countdownTimer = window.setInterval(async () => {
+                secondsRemaining -= 1;
+                updateCountdownText(true);
+                if (secondsRemaining <= 0) {
+                    window.clearInterval(countdownTimer);
+                    countdownTimer = null;
+                    try {
+                        await refreshStrongSignalsInBackground();
+                    } catch (error) {
+                        showLiveAlert('تعذر تحديث الفحص', error.message || 'حدث خطأ أثناء جلب النتائج الجديدة.');
+                    }
+                    restartAutoRefreshLoop();
+                }
+            }, 1000);
+        }
+
+        if (autoRefreshButton) {
+            autoRefreshButton.addEventListener('click', () => {
+                const nextState = !getAutoRefreshEnabled();
+                window.localStorage.setItem(autoRefreshStorageKey, String(nextState));
+                restartAutoRefreshLoop();
+            });
+        }
+
+        if (requestNotificationPermissionButton) {
+            requestNotificationPermissionButton.addEventListener('click', requestNotificationPermission);
+        }
+
+        if (dismissLiveAlertButton) {
+            dismissLiveAlertButton.addEventListener('click', hideLiveAlert);
+        }
+
+        if (select || intervalSelect) {
+            const restartOnSelectionChange = () => {
+                hideLiveAlert();
+                renderSignalHistory();
+                restartAutoRefreshLoop();
+            };
+            select?.addEventListener('change', restartOnSelectionChange);
+            intervalSelect?.addEventListener('change', restartOnSelectionChange);
+        }
+
+        renderCategoryFilters(initialStrongSignalsData.categories || []);
+        renderSignals(initialStrongSignalsData);
+        renderScanErrors(initialStrongSignalsData);
+        renderSummary(initialStrongSignalsData);
+        setSeenSignalIds((initialStrongSignalsData.signals || []).map(signalIdentity));
+        syncSignalHistory(initialStrongSignalsData);
+        updateNotificationPermissionState();
+
+        restartAutoRefreshLoop();
+    </script>
+</body>
+</html>

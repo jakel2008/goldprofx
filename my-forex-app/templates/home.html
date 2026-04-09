@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>لوحة تحليل الأسواق</title>
+    <style>
+        :root {
+            --bg: #0b0907;
+            --bg-soft: #17120d;
+            --surface: rgba(30, 22, 15, 0.82);
+            --surface-strong: rgba(38, 28, 18, 0.92);
+            --line: rgba(232, 191, 96, 0.18);
+            --line-strong: rgba(242, 206, 118, 0.36);
+            --text: #f9efd3;
+            --muted: #cdb98f;
+            --primary: #d4a53c;
+            --primary-strong: #f0c96c;
+            --accent: #ffde8a;
+            --accent-soft: rgba(232, 191, 96, 0.14);
+            --danger: #f97316;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+            --glow: 0 0 0 1px rgba(255, 221, 149, 0.16), 0 18px 48px rgba(212, 165, 60, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 20%),
+                radial-gradient(circle at 18% 18%, rgba(255, 225, 160, 0.08), transparent 18%),
+                radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+                linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(12px);
+        }
+
+        body::before {
+            top: 72px;
+            right: 4%;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 221, 149, 0.12), transparent 65%);
+        }
+
+        body::after {
+            bottom: 30px;
+            left: 2%;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201, 145, 37, 0.10), transparent 68%);
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 56px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-size: 1.28rem;
+            font-weight: 800;
+            color: var(--primary-strong);
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 18px rgba(240, 201, 108, 0.14);
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--text);
+            padding: 11px 17px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(42, 31, 20, 0.84), rgba(24, 18, 12, 0.92));
+            border: 1px solid var(--line);
+            box-shadow: inset 0 1px 0 rgba(255, 231, 173, 0.10);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav a:hover {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 231, 173, 0.12);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.25fr 0.95fr;
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 24px;
+        }
+
+        .panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            border-radius: 30px;
+            padding: 30px;
+            animation: fade-up 0.7s ease both;
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 18%, rgba(255, 221, 149, 0.05) 50%, transparent 82%);
+            transform: translateX(-100%);
+            animation: sheen 9s linear infinite;
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(232, 191, 96, 0.10);
+            border: 1px solid rgba(255, 222, 138, 0.16);
+            color: var(--primary-strong);
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0 0 14px;
+            font-size: clamp(2.2rem, 4vw, 3.7rem);
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+        }
+
+        .lead {
+            margin: 0 0 24px;
+            color: var(--muted);
+            font-size: 1.04rem;
+            line-height: 1.9;
+            max-width: 60ch;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 26px;
+        }
+
+        .button {
+            appearance: none;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 13px 18px;
+            border-radius: 15px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+            box-shadow: 0 16px 34px rgba(212, 165, 60, 0.28);
+        }
+
+        .button-primary:hover {
+            box-shadow: 0 20px 42px rgba(212, 165, 60, 0.35);
+        }
+
+        .button-secondary {
+            background: linear-gradient(180deg, rgba(44, 33, 22, 0.86), rgba(24, 18, 12, 0.96));
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+
+        .button-secondary:hover {
+            border-color: var(--line-strong);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat {
+            padding: 18px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(52, 38, 23, 0.76), rgba(28, 21, 14, 0.92));
+            border: 1px solid var(--line);
+            box-shadow: var(--glow);
+            transition: transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .stat:hover {
+            transform: translateY(-4px);
+            border-color: var(--line-strong);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.45rem;
+            margin-bottom: 6px;
+            color: var(--accent);
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .selector-card h2,
+        .section h2 {
+            margin: 0 0 10px;
+            font-size: 1.24rem;
+            color: var(--accent);
+        }
+
+        .selector-card p,
+        .section p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .selector-form {
+            margin-top: 22px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .field,
+        .search-stack {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f4dca1;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+            font-size: 0.98rem;
+            box-shadow: inset 0 1px 0 rgba(255, 231, 173, 0.06);
+        }
+
+        input::placeholder {
+            color: #a9936a;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--line-strong);
+            box-shadow: 0 0 0 4px rgba(212, 165, 60, 0.12);
+        }
+
+        .inline-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ghost-btn {
+            appearance: none;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: linear-gradient(180deg, rgba(39, 29, 19, 0.86), rgba(20, 15, 10, 0.96));
+            color: var(--text);
+            border-radius: 13px;
+            padding: 11px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .ghost-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 24px;
+        }
+
+        .section {
+            margin-top: 24px;
+        }
+
+        .feature {
+            position: relative;
+            background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glow);
+            transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-6px);
+            border-color: var(--line-strong);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 221, 149, 0.16);
+        }
+
+        .feature .tag {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            border: 1px solid rgba(255, 222, 138, 0.14);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.86rem;
+        }
+
+        .feature h3 {
+            margin: 0 0 10px;
+            font-size: 1.08rem;
+            color: #fff1c8;
+        }
+
+        .feature ul {
+            margin: 14px 0 0;
+            padding-inline-start: 18px;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes sheen {
+            0% {
+                transform: translateX(-120%);
+            }
+            24%, 100% {
+                transform: translateX(140%);
+            }
+        }
+
+        @media (max-width: 980px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .shell {
+                width: min(100% - 20px, 1180px);
+                padding-top: 20px;
+            }
+
+            .panel,
+            .feature {
+                padding: 20px;
+                border-radius: 24px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .inline-actions,
+            .actions {
+                flex-direction: column;
+            }
+
+            .button,
+            .ghost-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header class="header">
+            <div class="brand">منصة تحليل الأسواق</div>
+            <nav class="nav">
+                <a href="{{ main_site_url }}">الرئيسية</a>
+                <a href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">المحلل</a>
+                <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">التحليل الكامل</a>
+                <a href="{{ forex_base_path }}/strong-signals?symbol=ALL&interval={{ selected_interval }}&return_to={{ return_to_param }}">الإشارات القوية</a>
+                <a href="{{ forex_base_path }}/advanced-analyzer?symbol={{ selected_symbol }}&interval={{ selected_interval }}">المحلل المتقدم</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div class="panel">
+                <div class="eyebrow">بيانات مباشرة وتحليل منظم</div>
+                <h1>واجهة احترافية لمتابعة الفوركس والمؤشرات والمعادن والعملات المشفرة</h1>
+                <p class="lead">
+                    اختر الأصل والإطار الزمني ثم انتقل مباشرة إلى تحليل متكامل يشمل التوصية، مستويات الدخول والأهداف،
+                    الملخص التنفيذي، والسيناريوهات القصيرة والمتوسطة والطويلة.
+                </p>
+                <div class="actions">
+                    <a class="button button-secondary" href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">رأي المحلل</a>
+                    <a class="button button-primary" href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">فتح التحليل الكامل</a>
+                    <a class="button button-secondary" href="{{ forex_base_path }}/strong-signals?symbol=ALL&interval={{ selected_interval }}&return_to={{ return_to_param }}">عرض الإشارات القوية</a>
+                    <a class="button button-secondary" href="{{ forex_base_path }}/advanced-analyzer?symbol={{ selected_symbol }}&interval={{ selected_interval }}">فتح المحلل المتقدم</a>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <strong>{{ symbol_count }}</strong>
+                        <span>أصل متاح للتحليل</span>
+                    </div>
+                    <div class="stat">
+                        <strong>{{ interval_count }}</strong>
+                        <span>إطار زمني مدعوم</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Live</strong>
+                        <span>تغذية سعرية عبر Yahoo Finance</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel selector-card">
+                <h2>اختيار السوق</h2>
+                <p>استخدم البحث السريع داخل القائمة، ثم انتقل للصفحة المطلوبة بنفس الخيارات المحددة.</p>
+                <form class="selector-form" action="{{ forex_base_path }}/signals" method="get">
+                    <input type="hidden" name="return_to" value="{{ main_site_url }}">
+                    <div class="search-stack">
+                        <label for="symbol-search">بحث داخل الرموز</label>
+                        <input id="symbol-search" type="text" placeholder="مثال: EUR أو Gold أو BTC">
+                    </div>
+
+                    <div class="field">
+                        <label for="symbol">الرمز</label>
+                        <select id="symbol" name="symbol" required>
+                            {% for group in grouped_symbol_options %}
+                            <optgroup label="{{ group.label }}">
+                                {% for option in group.options %}
+                                <option value="{{ option.value }}" {% if option.value == selected_symbol %}selected{% endif %}>{{ option.label }} - {{ option.value }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="interval">الإطار الزمني</label>
+                        <select id="interval" name="interval" required>
+                            {% for option in interval_options %}
+                            <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="inline-actions">
+                        <button class="button button-primary" type="submit">تحليل الآن</button>
+                        <button class="ghost-btn" type="button" id="clear-search">مسح البحث</button>
+                        <button class="ghost-btn" type="submit" formaction="{{ forex_base_path }}/strong-signals">الإشارات القوية</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="grid-3">
+                <article class="feature">
+                    <span class="tag">القرار</span>
+                    <h3>ملخص تنفيذي مباشر</h3>
+                    <p>رأس تنفيذي واضح يشرح الانحياز الحالي، الموقف التكتيكي، وملاحظات القناعة الفنية بدون ازدحام بصري.</p>
+                    <ul>
+                        <li>توصية قابلة للتنفيذ</li>
+                        <li>درجة الثقة</li>
+                        <li>قراءة سريعة للزخم</li>
+                    </ul>
+                </article>
+
+                <article class="feature">
+                    <span class="tag">السيناريو</span>
+                    <h3>خطة أساسية وبديلة</h3>
+                    <p>الصفحات تعرض سيناريو احترافي يتضمن شروط التفعيل، منطقة المتابعة، الأهداف، والإبطال.</p>
+                    <ul>
+                        <li>دعم ومحور ومقاومة</li>
+                        <li>نسبة عائد إلى مخاطرة</li>
+                        <li>إدارة مخاطرة مختصرة</li>
+                    </ul>
+                </article>
+
+                <article class="feature">
+                    <span class="tag">الأفق الزمني</span>
+                    <h3>تقسيم قصير ومتوسط وطويل</h3>
+                    <p>رؤية منفصلة لكل أفق زمني حتى لا تختلط صفقة سريعة بخطة احتفاظ أطول.</p>
+                    <ul>
+                        <li>Trigger واضح</li>
+                        <li>منطقة دخول مقترحة</li>
+                        <li>شرط إلغاء الخطة</li>
+                    </ul>
+                </article>
+
+                <article class="feature">
+                    <span class="tag">الدمج</span>
+                    <h3>المحلل المتقدم داخل نفس التطبيق</h3>
+                    <p>تم دمج محرك Gold Pro داخل التطبيق الحالي بحيث تعمل المدارس التحليلية، الأوزان، والشرح العربي من نفس السيرفر وداخل نفس الواجهة العامة.</p>
+                    <ul>
+                        <li>تنقل داخلي بالكامل</li>
+                        <li>واجهة واحدة بدل تطبيقين</li>
+                        <li>تحليل المدارس المضافة بالكامل</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <script id="grouped-symbol-options" type="application/json">{{ grouped_symbol_options|tojson|safe }}</script>
+    <script id="selected-symbol" type="application/json">{{ selected_symbol|tojson|safe }}</script>
+    <script>
+        const searchInput = document.getElementById('symbol-search');
+        const clearButton = document.getElementById('clear-search');
+        const select = document.getElementById('symbol');
+        const groups = JSON.parse(document.getElementById('grouped-symbol-options').textContent);
+        const currentValue = JSON.parse(document.getElementById('selected-symbol').textContent);
+
+        function rebuildOptions(filterText) {
+            const query = (filterText || '').trim().toLowerCase();
+            const previousValue = select.value || currentValue;
+            select.innerHTML = '';
+
+            for (const group of groups) {
+                const matching = group.options.filter((option) => {
+                    const haystack = `${option.label} ${option.value}`.toLowerCase();
+                    return haystack.includes(query);
+                });
+
+                if (!matching.length) {
+                    continue;
+                }
+
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.label;
+
+                for (const option of matching) {
+                    const element = document.createElement('option');
+                    element.value = option.value;
+                    element.textContent = `${option.label} - ${option.value}`;
+                    if (option.value === previousValue) {
+                        element.selected = true;
+                    }
+                    optgroup.appendChild(element);
+                }
+
+                select.appendChild(optgroup);
+            }
+
+            if (!select.value && select.options.length) {
+                select.options[0].selected = true;
+            }
+        }
+
+        searchInput.addEventListener('input', (event) => rebuildOptions(event.target.value));
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            rebuildOptions('');
+            searchInput.focus();
+        });
+    </script>
+</body>
+</html>

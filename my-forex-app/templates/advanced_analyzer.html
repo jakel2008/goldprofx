@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>المحلل المتقدم الموحّد</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b0907;
+            --surface: rgba(30, 22, 15, 0.84);
+            --surface-alt: rgba(39, 28, 18, 0.96);
+            --line: rgba(232, 191, 96, 0.18);
+            --line-strong: rgba(242, 206, 118, 0.34);
+            --text: #f9efd3;
+            --muted: #ccb98d;
+            --primary: #d4a53c;
+            --primary-strong: #f0c96c;
+            --accent: #ffe29f;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+            --success: #1f9d55;
+            --danger: #c0392b;
+            --neutral: #f39c12;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 21%),
+                radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+                linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .shell {
+            width: min(1280px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .header,
+        .panel,
+        .section {
+            background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .header,
+        .panel,
+        .section {
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--primary-strong);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        a,
+        button {
+            font: inherit;
+        }
+
+        .button,
+        .nav-link {
+            text-decoration: none;
+            cursor: pointer;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            color: var(--text);
+            background: linear-gradient(180deg, rgba(42, 31, 20, 0.84), rgba(24, 18, 12, 0.94));
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .button:hover,
+        .nav-link:hover {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+            color: #1a1209;
+            border: none;
+            font-weight: 800;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2, h3, h4 { margin-top: 0; }
+
+        .muted {
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .selector-form {
+            display: grid;
+            grid-template-columns: 1.3fr 0.9fr 0.9fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-top: 20px;
+        }
+
+        .field { display: grid; gap: 8px; }
+
+        label {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #f4dca1;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+        }
+
+        .recommendation-box {
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 18px;
+            font-size: 1.18rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .rec-buy-strong,
+        .rec-buy { background: linear-gradient(135deg, #1f9d55, #127643); color: #fff; }
+        .rec-sell-strong,
+        .rec-sell { background: linear-gradient(135deg, #c0392b, #8f271c); color: #fff; }
+        .rec-neutral { background: linear-gradient(135deg, #f39c12, #c57c0c); color: #fff; }
+
+        .stats-grid,
+        .schools-grid,
+        .levels-grid,
+        .fib-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .stats-grid,
+        .levels-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .schools-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+        .fib-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+        .metric,
+        .school-card,
+        .level-card,
+        .fib-level,
+        .text-block,
+        .chart-card {
+            background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        .metric strong,
+        .level-card strong,
+        .fib-level strong {
+            display: block;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+        }
+
+        .metric span,
+        .level-card span,
+        .fib-level span {
+            color: var(--muted);
+        }
+
+        .section {
+            margin-bottom: 18px;
+        }
+
+        .school-card.buy { border-right: 4px solid var(--success); }
+        .school-card.sell { border-right: 4px solid var(--danger); }
+        .school-card.hold { border-right: 4px solid var(--neutral); }
+
+        .school-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .school-pill {
+            border-radius: 999px;
+            padding: 5px 10px;
+            color: #fff;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .school-pill.buy { background: var(--success); }
+        .school-pill.sell { background: var(--danger); }
+        .school-pill.hold { background: var(--neutral); }
+
+        .school-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .school-metric {
+            background: rgba(16, 12, 8, 0.58);
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .school-metric strong {
+            display: block;
+            color: var(--primary-strong);
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+        }
+
+        .school-explanation,
+        .analysis-text {
+            color: var(--muted);
+            line-height: 1.9;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 18px 0;
+            color: var(--primary-strong);
+            font-weight: 700;
+        }
+
+        .loading.active { display: block; }
+        #resultsSection { display: none; }
+        #chartContent { width: 100%; height: 420px; }
+
+        @media (max-width: 1100px) {
+            .hero,
+            .selector-form,
+            .stats-grid,
+            .levels-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .shell { width: min(100% - 20px, 1280px); }
+            .hero,
+            .selector-form,
+            .stats-grid,
+            .levels-grid,
+            .school-metrics {
+                grid-template-columns: 1fr;
+            }
+            .header-actions {
+                width: 100%;
+            }
+            .nav-link,
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header class="header">
+            <div>
+                <div class="brand">المحلل المتقدم الموحّد</div>
+                <p class="muted">صفحة واحدة تجمع صفحات My Forex App مع محرك Gold Pro المتقدم من نفس الخادم.</p>
+            </div>
+            <div class="header-actions">
+                <a class="nav-link" href="{{ forex_base_path }}">العودة للرئيسية</a>
+                <a class="nav-link" href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}">التحليل الكامل</a>
+                <a class="nav-link" href="{{ forex_base_path }}/strong-signals?symbol=ALL&interval={{ selected_interval }}">الإشارات القوية</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="panel">
+                <h1>تحليل Gold Pro داخل نفس التطبيق</h1>
+                <p class="muted">يمكنك الآن الوصول إلى المحلل المتقدم، المدارس التحليلية المضافة، والأوزان والشرح العربي من داخل نفس تطبيق My Forex App بدون تشغيل واجهتين منفصلتين.</p>
+                <form class="selector-form" id="analyzerForm">
+                    <div class="field">
+                        <label for="symbolSelect">الرمز</label>
+                        <select id="symbolSelect" name="symbol">
+                            {% for group in grouped_symbol_options %}
+                            <optgroup label="{{ group.label }}">
+                                {% for option in group.options %}
+                                <option value="{{ option.value }}" {% if option.value == selected_symbol %}selected{% endif %}>{{ option.label }} - {{ option.value }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="intervalSelect">الإطار الزمني</label>
+                        <select id="intervalSelect" name="interval">
+                            {% for option in interval_options %}
+                            <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="strategySelect">الاستراتيجية</label>
+                        <select id="strategySelect" name="strategy">
+                            {% for strategy in strategy_options %}
+                            <option value="{{ strategy }}">{{ strategy }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="button button-primary" type="button" onclick="runAnalysis()">تشغيل التحليل</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>ما الذي تم دمجه؟</h2>
+                <div class="stats-grid">
+                    <div class="metric">
+                        <strong>{{ symbol_count }}</strong>
+                        <span>رمز متاح من التطبيق الأساسي</span>
+                    </div>
+                    <div class="metric">
+                        <strong>{{ interval_count }}</strong>
+                        <span>إطار زمني مدعوم</span>
+                    </div>
+                    <div class="metric">
+                        <strong>5</strong>
+                        <span>مدارس تحليلية إضافية</span>
+                    </div>
+                    <div class="metric">
+                        <strong>1</strong>
+                        <span>خادم موحّد للتطبيقين</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="loading" id="loadingSpinner">جاري تحليل البيانات من محرك Gold Pro...</div>
+
+        <div id="resultsSection">
+            <div id="recommendationBox"></div>
+
+            <section class="section">
+                <h2>المدارس التحليلية المدمجة</h2>
+                <div id="schoolsContent" class="schools-grid"></div>
+            </section>
+
+            <section class="section">
+                <h2>المستويات الأساسية</h2>
+                <div id="levelsContent" class="levels-grid"></div>
+            </section>
+
+            <section class="section chart-card">
+                <h2>الرسم البياني</h2>
+                <div id="chartContent"></div>
+            </section>
+
+            <section class="section">
+                <h2>مستويات فيبوناتشي</h2>
+                <div id="fibonacciContent" class="fib-grid"></div>
+            </section>
+
+            <section class="section text-block">
+                <h2>التحليل النصي الكامل</h2>
+                <div id="analysisText" class="analysis-text"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        async function runAnalysis() {
+            const symbol = document.getElementById('symbolSelect').value;
+            const interval = document.getElementById('intervalSelect').value;
+            const strategy = document.getElementById('strategySelect').value;
+            document.getElementById('loadingSpinner').classList.add('active');
+            document.getElementById('resultsSection').style.display = 'none';
+
+            try {
+                const response = await fetch('{{ forex_base_path }}/api/advanced-analysis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol, interval, strategy })
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'فشل التحليل');
+                }
+
+                displayResults(result.data || {});
+            } catch (error) {
+                alert('خطأ في تشغيل التحليل: ' + error.message);
+            } finally {
+                document.getElementById('loadingSpinner').classList.remove('active');
+            }
+        }
+
+        function displayResults(data) {
+            displayRecommendation(data);
+            displaySchools(data.analysis_schools || {});
+            displayLevels(data);
+            displayFibonacci(data.fibonacci_levels || {});
+            displayAnalysisText(data.explanation || data.analysis_text || 'لا توجد بيانات تحليلية');
+            displayChart(data.chart_data || null);
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function displayRecommendation(data) {
+            const signal = data.signal || 'حياد';
+            const explanation = data.recommendation || data.confidence || 'لا توجد توصية';
+            let className = 'rec-neutral';
+
+            if (signal.includes('شراء') || signal.toUpperCase().includes('BUY')) {
+                className = signal.includes('قوي') ? 'rec-buy-strong' : 'rec-buy';
+            } else if (signal.includes('بيع') || signal.toUpperCase().includes('SELL')) {
+                className = signal.includes('قوي') ? 'rec-sell-strong' : 'rec-sell';
+            }
+
+            document.getElementById('recommendationBox').innerHTML = `
+                <div class="recommendation-box ${className}">
+                    التوصية: ${signal}
+                    <div style="margin-top: 10px; font-size: 0.94rem; opacity: 0.92;">${explanation}</div>
+                </div>
+            `;
+        }
+
+        function displaySchools(schools) {
+            const container = document.getElementById('schoolsContent');
+            const entries = Object.entries(schools || {});
+
+            if (!entries.length) {
+                container.innerHTML = '<div class="text-block">لا توجد بيانات مدارس تحليلية في هذه النتيجة.</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([key, school]) => {
+                const signal = (school.signal || 'hold').toLowerCase();
+                const label = school.label || key;
+                const signalLabel = signal === 'buy' ? 'شراء' : signal === 'sell' ? 'بيع' : 'حياد';
+                return `
+                    <article class="school-card ${signal}">
+                        <div class="school-title">
+                            <strong>${label}</strong>
+                            <span class="school-pill ${signal}">${signalLabel}</span>
+                        </div>
+                        <div class="school-metrics">
+                            <div class="school-metric">
+                                <strong>الثقة</strong>
+                                <span>${Number(school.confidence || 0).toFixed(0)}%</span>
+                            </div>
+                            <div class="school-metric">
+                                <strong>الوزن</strong>
+                                <span>${Number(school.weight || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="school-metric">
+                                <strong>التأثير</strong>
+                                <span>${Number(school.weighted_score || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="school-explanation">${school.explanation_ar || 'لا يوجد شرح تفصيلي.'}</div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function displayLevels(data) {
+            const levels = [
+                ['سعر الدخول', data.entry_point],
+                ['وقف الخسارة', data.stop_loss],
+                ['TP1', data.take_profit1],
+                ['TP2', data.take_profit2],
+                ['TP3', data.take_profit3],
+                ['الدعم', data.support],
+                ['المحور', data.pivot],
+                ['المقاومة', data.resistance],
+            ];
+
+            document.getElementById('levelsContent').innerHTML = levels.map(([label, value]) => `
+                <div class="level-card">
+                    <strong>${label}</strong>
+                    <span>${typeof value === 'number' ? value.toFixed(5) : (value || 'N/A')}</span>
+                </div>
+            `).join('');
+        }
+
+        function displayFibonacci(levels) {
+            const entries = Object.entries(levels || {});
+            const container = document.getElementById('fibonacciContent');
+            if (!entries.length) {
+                container.innerHTML = '<div class="fib-level"><strong>لا توجد بيانات</strong><span>مستويات فيبوناتشي غير متاحة</span></div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([level, value]) => `
+                <div class="fib-level">
+                    <strong>${level}</strong>
+                    <span>${Number(value).toFixed(5)}</span>
+                </div>
+            `).join('');
+        }
+
+        function displayAnalysisText(text) {
+            document.getElementById('analysisText').textContent = text;
+        }
+
+        function displayChart(chartData) {
+            if (!chartData || !chartData.dates || !chartData.close) {
+                document.getElementById('chartContent').innerHTML = '<div class="text-block">لا توجد بيانات رسم بياني.</div>';
+                return;
+            }
+
+            Plotly.newPlot('chartContent', [{
+                x: chartData.dates,
+                open: chartData.open,
+                high: chartData.high,
+                low: chartData.low,
+                close: chartData.close,
+                type: 'candlestick',
+                increasing: { line: { color: '#1f9d55' } },
+                decreasing: { line: { color: '#c0392b' } },
+                name: 'السعر'
+            }], {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#f9efd3' },
+                margin: { t: 20, r: 20, b: 40, l: 40 },
+                xaxis: { title: 'الوقت' },
+                yaxis: { title: 'السعر' }
+            }, { responsive: true });
+        }
+    </script>
+</body>
+</html>

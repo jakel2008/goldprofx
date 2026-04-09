@@ -139,7 +139,10 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
 
 MY_FOREX_BASE_PATH = os.environ.get('MY_FOREX_BASE_PATH', '/forex-app').rstrip('/') or '/forex-app'
-MY_FOREX_APP_DIR = Path(os.environ.get('MY_FOREX_APP_DIR', Path(__file__).resolve().parent.parent / 'my-forex-app'))
+# البحث أولاً داخل المشروع (للإنتاج)، ثم المجلد المجاور (للتطوير المحلي)
+_my_forex_local = Path(__file__).resolve().parent / 'my-forex-app'
+_my_forex_sibling = Path(__file__).resolve().parent.parent / 'my-forex-app'
+MY_FOREX_APP_DIR = Path(os.environ.get('MY_FOREX_APP_DIR', str(_my_forex_local if _my_forex_local.exists() else _my_forex_sibling)))
 MY_FOREX_TEMPLATES_DIR = MY_FOREX_APP_DIR / 'templates'
 
 if MY_FOREX_TEMPLATES_DIR.exists():

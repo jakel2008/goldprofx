@@ -17,7 +17,10 @@ links = [
     {"name": "لوحة الأدمن", "url": "/admin-panel", "icon": "🔐", "admin": True},
     {"name": "إدارة الاشتراكات", "url": "/subscriptions_management", "icon": "👥", "admin": True},
     {"name": "بوتات التداول", "url": "/bot-management", "icon": "🤖", "admin": True},
-    {"name": "المحلل الذكي", "url": "/advanced_analyzer", "icon": "🧠", "admin": True},
+    {"name": "المحلل المتقدم", "url": "/advanced_analyzer", "icon": "🧠", "admin": True},
+
+    # زر التحليل (الإشارات القوية) - إضافة منفصلة
+    {"name": "التحليل", "url": "/forex-app/strong-signals", "icon": "📡"},
 
     # روابط الضيف فقط
     {"name": "تسجيل الدخول", "url": "/login?first=1", "icon": "🔓", "guest": True},

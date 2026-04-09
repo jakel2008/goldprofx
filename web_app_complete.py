@@ -20,15 +20,17 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 import sqlite3
 from werkzeug.utils import secure_filename
 import requests
+from jinja2 import ChoiceLoader, FileSystemLoader, PrefixLoader
 # ============== Bot Management Routes ==============
 
 # Define CHAT_ID for bot test send (replace with your actual chat id)
 CHAT_ID = os.environ.get('MM_TELEGRAM_CHAT_ID', '')
-from functools import wraps
+from functools import wraps, lru_cache
 import json
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
+from urllib.parse import quote
 
 # --- Fix ImportError for vip_subscription_system ---
 import sys
@@ -136,6 +138,16 @@ except Exception:
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
 
+MY_FOREX_BASE_PATH = os.environ.get('MY_FOREX_BASE_PATH', '/forex-app').rstrip('/') or '/forex-app'
+MY_FOREX_APP_DIR = Path(os.environ.get('MY_FOREX_APP_DIR', Path(__file__).resolve().parent.parent / 'my-forex-app'))
+MY_FOREX_TEMPLATES_DIR = MY_FOREX_APP_DIR / 'templates'
+
+if MY_FOREX_TEMPLATES_DIR.exists():
+    app.jinja_loader = ChoiceLoader([
+        app.jinja_loader,
+        PrefixLoader({'my_forex': FileSystemLoader(str(MY_FOREX_TEMPLATES_DIR))}),
+    ])
+
 ADMIN_USERNAME = 'jakel2008'
 ADMIN_PASSWORD = 'JAKEL2008'
 EMAIL_ACTIVATION_REQUIRED = os.environ.get('EMAIL_ACTIVATION_REQUIRED', '0').strip().lower() in ('1', 'true', 'yes', 'on')
@@ -149,6 +161,50 @@ BACKGROUND_SERVICES_BOOTSTRAPPED = False
 BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = False
 BACKGROUND_SERVICES_BOOTSTRAP_THREAD = None
 BACKGROUND_SERVICES_BOOTSTRAP_LOCK = threading.Lock()
+
+
+@lru_cache(maxsize=1)
+def load_my_forex_module():
+    """تحميل تطبيق My Forex داخل النظام الرئيسي دون تشغيل خادم منفصل."""
+    app_path = MY_FOREX_APP_DIR / 'app.py'
+    if not app_path.exists():
+        raise FileNotFoundError(f'My Forex app.py not found at {app_path}')
+
+    if str(MY_FOREX_APP_DIR) not in sys.path:
+        sys.path.insert(0, str(MY_FOREX_APP_DIR))
+
+    module_name = 'integrated_my_forex_app'
+    existing_module = sys.modules.get(module_name)
+    if existing_module is not None:
+        return existing_module
+
+    spec = importlib.util.spec_from_file_location(module_name, str(app_path))
+    if spec is None or spec.loader is None:
+        raise ImportError(f'Unable to load My Forex application from {app_path}')
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def build_my_forex_context(selected_symbol='EURUSD', selected_interval='1h', include_all_option=False):
+    module = load_my_forex_module()
+    return {
+        'symbol_options': [
+            {'value': symbol, 'label': info['label']}
+            for symbol, info in module.SUPPORTED_SYMBOLS.items()
+        ],
+        'grouped_symbol_options': module.build_grouped_symbol_options(include_all_option=include_all_option),
+        'interval_options': list(module.SUPPORTED_INTERVALS.keys()),
+        'selected_symbol': selected_symbol,
+        'selected_interval': selected_interval,
+        'symbol_count': len(module.SUPPORTED_SYMBOLS),
+        'interval_count': len(module.SUPPORTED_INTERVALS),
+        'main_site_url': '/',
+        'return_to_param': quote('/', safe=''),
+        'forex_base_path': MY_FOREX_BASE_PATH,
+    }
 
 
 def start_telegram_command_bot():
@@ -6655,21 +6711,39 @@ def _filter_signals_for_user(signals, user_info):
 def signals():
     """صفحة الإشارات - تتطلب تسجيل الدخول"""
     user_info = get_current_user()
-    
-    # تحويل غير المسجلين إلى صفحة الدخول
+
     if not user_info['success']:
         return redirect(url_for('login'))
-    
-    signals = load_signals()
-    filtered_signals = _filter_signals_for_user(signals, user_info)
-    
-    return render_template('signals_gold_card.html', 
-                         signals=filtered_signals,
-                         all_signals_count=len(signals),
-                         visible_signals_count=len(filtered_signals),
-                         is_logged_in=True,
-                         is_admin=user_info.get('is_admin', False),
-                         user=user_info)
+
+    try:
+        signals_data = load_signals()
+        filtered_signals = _filter_signals_for_user(signals_data, user_info)
+
+        # القالب الأساسي
+        return render_template(
+            'signals_gold_card.html',
+            signals=filtered_signals,
+            all_signals_count=len(signals_data),
+            visible_signals_count=len(filtered_signals),
+            is_logged_in=True,
+            is_admin=user_info.get('is_admin', False),
+            user=user_info
+        )
+    except Exception as e:
+        # fallback آمن لو القالب مفقود/به خطأ Jinja
+        print(f"[ERROR] /signals failed: {e}")
+        try:
+            return render_template(
+                'signals_old.html',
+                signals=[],
+                all_signals_count=0,
+                visible_signals_count=0,
+                is_logged_in=True,
+                is_admin=user_info.get('is_admin', False),
+                user=user_info
+            )
+        except Exception:
+            return "Signals page temporarily unavailable", 500
 
 
 @app.route('/trades')
@@ -8462,14 +8536,157 @@ def forex_analyzer():
     return redirect(url_for('advanced_analyzer_page'))
 
 
+@app.route('/strong-signals')
+def strong_signals_page():
+    """اختصار يحوّل إلى صفحة الإشارات القوية ضمن مسار forex-app مع نقل كل البارامترات."""
+    query_args = request.args.to_dict(flat=True)
+    return redirect(url_for('my_forex_strong_signals_page', **query_args))
+
+
+@app.route('/smart-analyzer')
+def smart_analyzer_redirect():
+    """توافق فقط مع الروابط السابقة: تحويل إلى صفحة الإشارات القوية المستقلة."""
+    query_args = request.args.to_dict(flat=True)
+    return redirect(url_for('strong_signals_page', **query_args))
+
+
+@app.route('/api/strong-signals')
+def api_strong_signals():
+    module = load_my_forex_module()
+    symbol = request.args.get('symbol', 'ALL')
+    interval = request.args.get('interval', '1h')
+    result = module.get_strong_signals(symbol, interval)
+    status_code = 200 if result.get('success') else 400
+    return jsonify(result), status_code
+
+
+@app.route('/api/smart-signals')
+def api_smart_signals():
+    """توافق فقط مع الاستدعاءات السابقة لنفس بيانات الإشارات القوية."""
+    return api_strong_signals()
+
+
 @app.route('/advanced_analyzer')
+@app.route('/advanced-analyzer')
 @admin_required
 def advanced_analyzer_page():
     """صفحة المحلل المتقدم"""
     user_info = get_current_user()
     return render_template('advanced_analyzer.html', user_info=user_info)
 
+
+@app.route(f'{MY_FOREX_BASE_PATH}')
+def my_forex_home_page():
+    query_args = request.args.to_dict(flat=True)
+    return redirect(url_for('my_forex_strong_signals_page', **query_args))
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/signals')
+def my_forex_signals_page():
+    module = load_my_forex_module()
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    signals_data = module.get_signals(symbol, interval)
+    return render_template('my_forex/signals.html', signals=signals_data, **build_my_forex_context(symbol, interval))
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/analyst')
+def my_forex_analyst_page():
+    module = load_my_forex_module()
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    analyst_data = module.get_analyst_view(symbol, interval)
+    return render_template('my_forex/analyst.html', analyst=analyst_data, **build_my_forex_context(symbol, interval))
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/strong-signals')
+def my_forex_strong_signals_page():
+    module = load_my_forex_module()
+    symbol = request.args.get('symbol', 'ALL')
+    interval = request.args.get('interval', '1h')
+    strong_signals_data = module.get_strong_signals(symbol, interval)
+    return render_template(
+        'my_forex/strong_signals.html',
+        strong_signals=strong_signals_data,
+        **build_my_forex_context(symbol, interval, include_all_option=True),
+    )
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/trade-simulator')
+def my_forex_trade_simulator_page():
+    module = load_my_forex_module()
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    capital = request.args.get('capital', '1000')
+    leverage = request.args.get('leverage', '100')
+    risk_percent = request.args.get('risk_percent', '1')
+    replay_bars = request.args.get('replay_bars', '24')
+    embed_mode = request.args.get('embed', '0') == '1'
+    simulation = module.get_trade_simulation(symbol, interval, capital, leverage, risk_percent, replay_bars)
+    return render_template(
+        'my_forex/trade_simulator.html',
+        simulation=simulation,
+        embed_mode=embed_mode,
+        **build_my_forex_context(symbol, interval),
+    )
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/api/trade-simulator', methods=['GET', 'OPTIONS'])
+def my_forex_trade_simulator_api():
+    module = load_my_forex_module()
+    if request.method == 'OPTIONS':
+        return jsonify({}), 204
+
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    capital = request.args.get('capital', '1000')
+    leverage = request.args.get('leverage', '100')
+    risk_percent = request.args.get('risk_percent', '1')
+    replay_bars = request.args.get('replay_bars', '24')
+    simulation = module.get_trade_simulation(symbol, interval, capital, leverage, risk_percent, replay_bars)
+    status_code = 200 if simulation.get('success') else 400
+    return jsonify(simulation), status_code
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/advanced-analyzer')
+@app.route(f'{MY_FOREX_BASE_PATH}/advanced_analyzer')
+def my_forex_advanced_analyzer_page():
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    return render_template(
+        'my_forex/advanced_analyzer.html',
+        strategy_options=['harmonic', 'elliott', 'head_shoulders', 'smc', 'ict', 'ist'],
+        **build_my_forex_context(symbol, interval),
+    )
+
+
+@app.route(f'{MY_FOREX_BASE_PATH}/api/advanced-analysis', methods=['POST'])
+@app.route(f'{MY_FOREX_BASE_PATH}/api/advanced_analysis', methods=['POST'])
+def my_forex_advanced_analysis_api():
+    data = request.json or {}
+    symbol = data.get('symbol', 'EURUSD')
+    interval = data.get('interval', '1h')
+
+    try:
+        try:
+            from advanced_analyzer_engine import perform_full_analysis # type: ignore
+        except ImportError:
+            analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
+            spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
+            analyzer_module = importlib.util.module_from_spec(spec)
+            sys.modules['advanced_analyzer_engine'] = analyzer_module
+            spec.loader.exec_module(analyzer_module)
+            perform_full_analysis = analyzer_module.perform_full_analysis
+
+        result = perform_full_analysis(symbol, interval)
+        if result.get('success'):
+            return jsonify({'success': True, 'data': result})
+        return jsonify({'success': False, 'error': result.get('error', 'خطأ غير معروف')}), 400
+    except Exception as error:
+        return jsonify({'success': False, 'error': f'خطأ في التحليل: {error}'}), 500
+
 @app.route('/api/forex-analysis', methods=['POST'])
+@app.route('/api/advanced_analysis', methods=['POST'])
 @app.route('/api/advanced-analysis', methods=['POST'])
 @admin_required
 def api_forex_analysis():

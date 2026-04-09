@@ -570,7 +570,35 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 
 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
+	"""جلب بيانات السوق مع دعم مصادر متعددة (forex_analyzer → yfinance fallback)."""
 	interval_info = SUPPORTED_INTERVALS[interval]
+	# المحاولة الأولى: forex_analyzer من GOLD PRO (مصادر متعددة + كاش)
+	try:
+		import sys
+		from pathlib import Path
+		gold_pro_dir = Path(__file__).resolve().parent.parent.parent
+		if str(gold_pro_dir) not in sys.path:
+			sys.path.insert(0, str(gold_pro_dir))
+		from forex_analyzer import fetch_data as gp_fetch  # type: ignore
+		interval_map = {"5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
+		gp_interval = interval_map.get(interval, "1H")
+		gp_data = gp_fetch(symbol, gp_interval, outputsize=240)
+		if gp_data is not None and len(gp_data) >= 60:
+			# تحويل الأعمدة إلى الشكل المطلوب
+			for col in ("Open", "High", "Low", "Close"):
+				gp_data[col] = pd.to_numeric(gp_data[col], errors="coerce")
+			if "Volume" not in gp_data.columns:
+				gp_data["Volume"] = 0
+			gp_data = gp_data.dropna(subset=["Open", "High", "Low", "Close"])
+			if "Date" in gp_data.columns:
+				gp_data["Date"] = pd.to_datetime(gp_data["Date"], utc=True, errors="coerce")
+				gp_data = gp_data.set_index("Date")
+			if len(gp_data) >= 60:
+				return gp_data
+	except Exception:
+		pass
+
+	# المحاولة الثانية: yfinance مباشرة
 	ticker = SUPPORTED_SYMBOLS[symbol]["ticker"]
 	data = yf.download(
 		tickers=ticker,
@@ -582,9 +610,7 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 	)
 	if isinstance(data.columns, pd.MultiIndex):
 		data.columns = data.columns.get_level_values(0)
-	# Remove duplicate columns that yfinance may produce (e.g. 'Adj Close' & 'Close' both flattened)
 	data = data.loc[:, ~data.columns.duplicated()]
-	# Ensure core columns are 1-D Series
 	for col in ("Open", "High", "Low", "Close", "Volume"):
 		if col in data.columns and isinstance(data[col], pd.DataFrame):
 			data[col] = data[col].iloc[:, 0]

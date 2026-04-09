@@ -1,0 +1,80 @@
+{
+  "users_target": "D:\\GOLD PRO\\merged_restore\\users_merged_all.db",
+  "vip_target": "D:\\GOLD PRO\\merged_restore\\vip_subscriptions_merged_all.db",
+  "users_summary": {
+    "inserted": 0,
+    "updated": 0,
+    "skipped": 38,
+    "total": 12,
+    "sources": [
+      {
+        "source": "D:\\GOLD PRO\\backups\\users_20260310_014305.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 12
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\users_20260304_214500.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 12
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\users_20260304_214432.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 7
+      },
+      {
+        "source": "D:\\GOLDPROFX\\users.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 7
+      }
+    ]
+  },
+  "vip_summary": {
+    "inserted": 0,
+    "updated": 8,
+    "skipped": 156,
+    "total": 35,
+    "sources": [
+      {
+        "source": "D:\\GOLD PRO\\backups\\vip_subscriptions_20260310_014305.db",
+        "inserted": 0,
+        "updated": 6,
+        "skipped": 29
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\vip_subscriptions_pre_invalid_cleanup_20260304_215504.db",
+        "inserted": 0,
+        "updated": 1,
+        "skipped": 29
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\vip_subscriptions_pre_seed_reset_20260304_215336.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 30
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\vip_subscriptions_20260304_214500.db",
+        "inserted": 0,
+        "updated": 1,
+        "skipped": 25
+      },
+      {
+        "source": "D:\\GOLD PRO\\backups\\vip_subscriptions_20260304_214432.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 25
+      },
+      {
+        "source": "D:\\GOLDPROFX\\vip_subscriptions.db",
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 18
+      }
+    ]
+  }
+}

@@ -8569,6 +8569,29 @@ def api_smart_signals():
     return api_strong_signals()
 
 
+@app.route(f'{MY_FOREX_BASE_PATH}/debug-status')
+def my_forex_debug_status():
+    import traceback as tb
+    info = {
+        'MY_FOREX_APP_DIR': str(MY_FOREX_APP_DIR),
+        'dir_exists': MY_FOREX_APP_DIR.exists(),
+        'app_py_exists': (MY_FOREX_APP_DIR / 'app.py').exists(),
+        'templates_dir_exists': MY_FOREX_TEMPLATES_DIR.exists(),
+    }
+    try:
+        module = load_my_forex_module()
+        info['module_loaded'] = True
+        info['has_get_strong_signals'] = hasattr(module, 'get_strong_signals')
+        info['has_SUPPORTED_SYMBOLS'] = hasattr(module, 'SUPPORTED_SYMBOLS')
+        if hasattr(module, 'SUPPORTED_SYMBOLS'):
+            info['symbol_count'] = len(module.SUPPORTED_SYMBOLS)
+    except Exception as e:
+        info['module_loaded'] = False
+        info['module_error'] = f'{type(e).__name__}: {e}'
+        info['module_traceback'] = tb.format_exc()
+    return jsonify(info)
+
+
 @app.route('/advanced_analyzer')
 @app.route('/advanced-analyzer')
 @admin_required
@@ -8604,14 +8627,40 @@ def my_forex_analyst_page():
 
 @app.route(f'{MY_FOREX_BASE_PATH}/strong-signals')
 def my_forex_strong_signals_page():
-    module = load_my_forex_module()
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
-    strong_signals_data = module.get_strong_signals(symbol, interval)
+    try:
+        module = load_my_forex_module()
+        strong_signals_data = module.get_strong_signals(symbol, interval)
+    except Exception as e:
+        import traceback
+        strong_signals_data = {
+            'success': False,
+            'error': f'{type(e).__name__}: {e}',
+            'traceback': traceback.format_exc(),
+            'signals': [],
+            'symbol': symbol,
+            'interval': interval,
+            'symbol_label': symbol,
+            'scanned_symbols': 0,
+            'matched_signals': 0,
+            'scan_errors': [f'{type(e).__name__}: {e}'],
+            'categories': [],
+        }
+    try:
+        ctx = build_my_forex_context(symbol, interval, include_all_option=True)
+    except Exception:
+        ctx = {
+            'symbol_options': [], 'grouped_symbol_options': [],
+            'interval_options': ['1h'], 'selected_symbol': symbol,
+            'selected_interval': interval, 'symbol_count': 0, 'interval_count': 1,
+            'main_site_url': '/', 'return_to_param': quote('/', safe=''),
+            'forex_base_path': MY_FOREX_BASE_PATH,
+        }
     return render_template(
         'my_forex/strong_signals.html',
         strong_signals=strong_signals_data,
-        **build_my_forex_context(symbol, interval, include_all_option=True),
+        **ctx,
     )
 
 

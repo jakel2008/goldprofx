@@ -3474,7 +3474,8 @@ ALLOWED_TUTORIAL_VIDEO_EXTENSIONS = {'mp4', 'webm', 'ogg', 'mov', 'm4v'}
 DEFAULT_SITE_SETTINGS = {
     'support_email': 'mahmoodalqaise750@gmail.com',
     'support_phone': '00962770078321',
-    'support_whatsapp': '00962770078321',
+    'support_whatsapp': '+962770078321',
+    'support_telegram': 'https://t.me/abo_hashim1983',
     'support_help_url': '/plans',
     'support_bug_url': '/profile',
     'support_feature_url': '/profile',

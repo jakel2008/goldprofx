@@ -278,10 +278,21 @@
 
     {% set support_email = 'mahmoodalqaise750@gmail.com' %}
     {% set support_hub = 'https://linktr.ee/VipGoldprofx' %}
-    {% set support_whatsapp = site_settings.support_whatsapp|default('') %}
-    {% set support_telegram = site_settings.support_telegram|default('') %}
-    {% set wa_link = ('https://wa.me/' ~ support_whatsapp) if support_whatsapp else ('mailto:' ~ support_email) %}
-    {% set tg_link = ('https://t.me/' ~ support_telegram) if support_telegram else ('mailto:' ~ support_email) %}
+    {% set support_whatsapp = site_settings.support_whatsapp|default('+962770078321') %}
+    {% set support_telegram = site_settings.support_telegram|default('https://t.me/abo_hashim1983') %}
+    {% set wa_number = support_whatsapp|replace('+', '')|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') %}
+    {% if wa_number.startswith('00') %}
+        {% set wa_number = wa_number[2:] %}
+    {% endif %}
+    {% set wa_link = ('https://wa.me/' ~ wa_number) if wa_number else ('mailto:' ~ support_email) %}
+    {% if support_telegram.startswith('http://') or support_telegram.startswith('https://') %}
+        {% set tg_link = support_telegram %}
+    {% elif support_telegram %}
+        {% set tg_username = support_telegram|replace('@', '')|replace(' ', '') %}
+        {% set tg_link = 'https://t.me/' ~ tg_username %}
+    {% else %}
+        {% set tg_link = 'mailto:' ~ support_email %}
+    {% endif %}
 
     <div class="support-fab" id="supportFab">
         <button type="button" class="support-fab-btn" id="supportFabBtn" aria-label="فتح الدعم والمساعدة" title="الدعم والمساعدة">

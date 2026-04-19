@@ -7077,26 +7077,96 @@ def api_cleanup_audit():
     })
 
 
+SUBSCRIPTION_DURATION_OPTIONS = {
+    'monthly': {'label': 'شهر واحد', 'days': 30},
+    'quarterly': {'label': '3 أشهر', 'days': 90},
+    'semiannual': {'label': '6 أشهر', 'days': 180},
+    'annual': {'label': '12 شهر (سنة)', 'days': 365},
+}
+
+SUBSCRIPTION_PLAN_CATALOG = {
+    'bronze': {
+        'name': 'Bronze',
+        'signals': 3,
+        'prices': {'monthly': 25, 'quarterly': 68, 'semiannual': 128, 'annual': 240},
+    },
+    'silver': {
+        'name': 'Silver',
+        'signals': 5,
+        'prices': {'monthly': 50, 'quarterly': 135, 'semiannual': 255, 'annual': 480},
+    },
+    'gold': {
+        'name': 'Gold',
+        'signals': 7,
+        'prices': {'monthly': 100, 'quarterly': 270, 'semiannual': 510, 'annual': 960},
+    },
+    'platinum': {
+        'name': 'Platinum',
+        'signals': 10,
+        'prices': {'monthly': 250, 'quarterly': 675, 'semiannual': 1275, 'annual': 2400},
+    },
+}
+
+
+def _normalize_duration_key(duration_key):
+    key = str(duration_key or '').strip().lower()
+    if key not in SUBSCRIPTION_DURATION_OPTIONS:
+        return 'monthly'
+    return key
+
+
+def _build_plan_data(plan, duration_key='monthly'):
+    duration_key = _normalize_duration_key(duration_key)
+    plan_info = SUBSCRIPTION_PLAN_CATALOG.get(plan)
+    if not plan_info:
+        return None
+
+    duration_info = SUBSCRIPTION_DURATION_OPTIONS[duration_key]
+    return {
+        'name': plan_info['name'],
+        'plan': plan,
+        'price': plan_info['prices'][duration_key],
+        'duration_days': duration_info['days'],
+        'duration_key': duration_key,
+        'duration_label': duration_info['label'],
+        'signals': plan_info['signals'],
+        'signals_per_day': plan_info['signals'],
+    }
+
+
+def _build_duration_options(plan):
+    plan_info = SUBSCRIPTION_PLAN_CATALOG.get(plan)
+    if not plan_info:
+        return []
+
+    options = []
+    for key in ('monthly', 'quarterly', 'semiannual', 'annual'):
+        duration_info = SUBSCRIPTION_DURATION_OPTIONS[key]
+        options.append({
+            'key': key,
+            'label': duration_info['label'],
+            'duration_days': duration_info['days'],
+            'price': plan_info['prices'][key],
+        })
+    return options
+
+
 @app.route('/select_location/<plan>')
 @login_required
 def select_location(plan):
     """صفحة اختيار الموقع الجغرافي للدفع"""
     user_info = get_current_user()
-    
-    # خطط الاشتراك
-    plans = {
-        'bronze': {'name': 'Bronze', 'price': 29, 'duration_days': 30, 'signals': 3},
-        'silver': {'name': 'Silver', 'price': 69, 'duration_days': 90, 'signals': 5},
-        'gold': {'name': 'Gold', 'price': 199, 'duration_days': 365, 'signals': 7},
-        'platinum': {'name': 'Platinum', 'price': 499, 'duration_days': 365, 'signals': 10}
-    }
-    
-    if plan not in plans:
+
+    duration_key = _normalize_duration_key(request.args.get('duration', 'monthly'))
+    plan_data = _build_plan_data(plan, duration_key)
+    if not plan_data:
         return redirect(url_for('home'))
-    
-    return render_template('select_location.html', 
+
+    return render_template('select_location.html',
                          plan=plan,
-                         plan_data=plans[plan],
+                         plan_data=plan_data,
+                         duration_key=duration_key,
+                         duration_options=_build_duration_options(plan),
                          user=user_info)
 
 
@@ -7105,19 +7175,13 @@ def select_location(plan):
 def payment_page(location, plan):
     """صفحة الدفع حسب الموقع"""
     user_info = get_current_user()
-    
-    plans = {
-        'bronze': {'name': 'Bronze', 'price': 29, 'duration_days': 30, 'signals': 3},
-        'silver': {'name': 'Silver', 'price': 69, 'duration_days': 90, 'signals': 5},
-        'gold': {'name': 'Gold', 'price': 199, 'duration_days': 365, 'signals': 7},
-        'platinum': {'name': 'Platinum', 'price': 499, 'duration_days': 365, 'signals': 10}
-    }
-    
-    if plan not in plans or location not in ['jordan', 'international']:
+
+    duration_key = _normalize_duration_key(request.args.get('duration', 'monthly'))
+    plan_data = _build_plan_data(plan, duration_key)
+
+    if not plan_data or location not in ['jordan', 'international']:
         return redirect(url_for('home'))
-    
-    plan_data = plans[plan]
-    
+
     # تحويل السعر حسب الموقع
     if location == 'jordan':
         # تحويل الدولار للدينار الأردني (1 دولار = 0.71 دينار تقريباً)
@@ -7129,6 +7193,7 @@ def payment_page(location, plan):
     return render_template(template,
                          location=location,
                          plan=plan,
+                         duration_key=duration_key,
                          plan_data=plan_data,
                          user=user_info)
 
@@ -7149,14 +7214,16 @@ def payment_international_legacy():
 @login_required
 def payment_jordan_plan(plan):
     """توافق مع الروابط القديمة للدفع داخل الأردن"""
-    return redirect(url_for('payment_page', location='jordan', plan=plan))
+    duration_key = _normalize_duration_key(request.args.get('duration', 'monthly'))
+    return redirect(url_for('payment_page', location='jordan', plan=plan, duration=duration_key))
 
 
 @app.route('/payment_international/<plan>')
 @login_required
 def payment_international_plan(plan):
     """توافق مع الروابط القديمة للدفع الدولي"""
-    return redirect(url_for('payment_page', location='international', plan=plan))
+    duration_key = _normalize_duration_key(request.args.get('duration', 'monthly'))
+    return redirect(url_for('payment_page', location='international', plan=plan, duration=duration_key))
 
 
 @app.route('/dashboard')
@@ -8066,30 +8133,35 @@ def subscribe():
     
     data = request.json
     plan = data.get('plan', 'bronze')
+    duration_key = _normalize_duration_key(data.get('duration_key', 'monthly'))
     location = data.get('location', 'jordan')  # jordan أو international
     payment_method = data.get('payment_method', 'cliq')  # cliq, bank_transfer, visa, crypto
     transaction_id = data.get('transaction_id', '')  # رقم العملية أو المعاملة
     
     try:
-        # تفاصيل الخطة
-        plans_info = {
-            'free': {'name': 'Free', 'price': 0, 'duration_days': 0, 'signals_per_day': 1, 'plan': 'free'},
-            'bronze': {'name': 'Bronze', 'price': 29, 'duration_days': 30, 'signals_per_day': 3, 'plan': 'bronze'},
-            'silver': {'name': 'Silver', 'price': 69, 'duration_days': 90, 'signals_per_day': 5, 'plan': 'silver'},
-            'gold': {'name': 'Gold', 'price': 199, 'duration_days': 365, 'signals_per_day': 7, 'plan': 'gold'},
-            'platinum': {'name': 'Platinum', 'price': 499, 'duration_days': 365, 'signals_per_day': 10, 'plan': 'platinum'}
-        }
-        
-        if plan not in plans_info:
-            return jsonify({'success': False, 'error': 'خطة غير صحيحة'}), 400
-        
-        plan_data = plans_info[plan]
+        if plan == 'free':
+            plan_data = {
+                'name': 'Free',
+                'price': 0,
+                'duration_days': 0,
+                'duration_key': 'monthly',
+                'duration_label': 'مجاني',
+                'signals_per_day': 1,
+                'signals': 1,
+                'plan': 'free'
+            }
+        else:
+            plan_data = _build_plan_data(plan, duration_key)
+            if not plan_data:
+                return jsonify({'success': False, 'error': 'خطة غير صحيحة'}), 400
         
         # إضافة معلومات الموقع والدفع
         payment_info = {
             'location': location,
             'payment_method': payment_method,
-            'transaction_id': transaction_id
+            'transaction_id': transaction_id,
+            'duration_key': plan_data.get('duration_key'),
+            'duration_label': plan_data.get('duration_label')
         }
         
         # حفظ طلب الاشتراك وإرسال إيميل

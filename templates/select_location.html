@@ -27,13 +27,27 @@
                     {% set monthly_usd = (plan_data.price / months) if months else plan_data.price %}
                     {% set monthly_jod = monthly_usd * 0.71 %}
 
+                    <div class="alert alert-light border mb-4">
+                        <label for="duration-selector" class="form-label fw-bold mb-2">
+                            <i class="fas fa-calendar-alt"></i>
+                            اختر مدة الاشتراك
+                        </label>
+                        <select id="duration-selector" class="form-select" onchange="changeDuration(this.value)">
+                            {% for option in duration_options %}
+                            <option value="{{ option.key }}" {% if option.key == duration_key %}selected{% endif %}>
+                                {{ option.label }} - ${{ option.price }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <!-- تفاصيل الخطة المختارة -->
                     <div class="alert alert-info text-center mb-4 selected-plan-summary">
                         <h4 class="mb-2"><i class="fas fa-crown"></i> الخطة المختارة: {{ plan_label }}</h4>
                         <div class="summary-chips">
                             <span class="summary-chip">${{ plan_data.price }} إجمالي</span>
                             <span class="summary-chip">${{ "%.2f"|format(monthly_usd) }} / شهر</span>
-                            <span class="summary-chip">{{ plan_data.duration_days }} يوم</span>
+                            <span class="summary-chip">{{ plan_data.duration_label }}</span>
                             <span class="summary-chip">{{ plan_data.signals }} إشارات يوميًا</span>
                         </div>
                     </div>
@@ -41,7 +55,7 @@
                     <div class="row g-4">
                         <!-- داخل الأردن -->
                         <div class="col-md-6">
-                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/jordan/{{ plan }}'">
+                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/jordan/{{ plan }}?duration={{ duration_key }}'">
                                 <div class="card-body text-center p-4">
                                     <div class="mb-3">
                                         <i class="fas fa-flag" style="font-size: 4rem; color: #000;"></i>
@@ -79,7 +93,7 @@
 
                         <!-- خارج الأردن -->
                         <div class="col-md-6">
-                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/international/{{ plan }}'">
+                            <div class="card h-100 location-card border-3 hover-effect" onclick="window.location.href='/payment/international/{{ plan }}?duration={{ duration_key }}'">
                                 <div class="card-body text-center p-4">
                                     <div class="mb-3">
                                         <i class="fas fa-globe-americas" style="font-size: 4rem; color: #007bff;"></i>
@@ -199,4 +213,12 @@
     height: 500px;
 }
 </style>
+
+<script>
+function changeDuration(durationKey) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('duration', durationKey);
+    window.location.href = `/select_location/{{ plan }}?${params.toString()}`;
+}
+</script>
 {% endblock %}

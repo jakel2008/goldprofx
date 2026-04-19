@@ -113,6 +113,7 @@ class EmailService:
         location = payment_info.get('location', 'unknown')
         payment_method = payment_info.get('payment_method', 'unknown')
         transaction_id = payment_info.get('transaction_id', '')
+        duration_label = plan_data.get('duration_label')
         
         # تحديد نص طريقة الدفع
         payment_methods = {
@@ -140,7 +141,7 @@ class EmailService:
         تفاصيل الخطة:
         - اسم الخطة: {plan_data['name']}
         - السعر: ${plan_data['price']}
-        - المدة: {plan_data['duration_days']} يوم
+        - المدة: {duration_label or (str(plan_data['duration_days']) + ' يوم')}
         - عدد الإشارات اليومية: {plan_data['signals_per_day']}
         
         معلومات الدفع:

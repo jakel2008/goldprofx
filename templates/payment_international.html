@@ -27,7 +27,7 @@
                         <div class="summary-chips">
                             <span class="summary-chip">${{ plan_data.price }} إجمالي</span>
                             <span class="summary-chip">${{ "%.2f"|format(monthly_usd) }} / شهر</span>
-                            <span class="summary-chip">{{ plan_data.duration_days }} يوم</span>
+                            <span class="summary-chip">{{ plan_data.duration_label }}</span>
                             <span class="summary-chip">{{ plan_data.signals }} إشارات يوميًا</span>
                         </div>
                     </div>
@@ -361,7 +361,7 @@ function contactSupport(method) {
     const cryptoDetails = method === 'crypto'
         ? `\n- العملة: ${cryptoType}\n- TX Hash: ${txHash || 'غير مضاف بعد'}`
         : '';
-    const body = `مرحبًا،\n\nأرغب في الاشتراك في خطة {{ plan_label }} باستخدام ${paymentMethod}.\n\nتفاصيل الخطة:\n- السعر: \u0024{{ plan_data.price }}\n- المدة: {{ plan_data.duration_days }} يوم\n- الإشارات: {{ plan_data.signals }} يوميًا${cryptoDetails}\n\nيرجى تزويدي بخطوات إتمام الدفع.\nشكرًا لكم.`;
+    const body = `مرحبًا،\n\nأرغب في الاشتراك في خطة {{ plan_label }} باستخدام ${paymentMethod}.\n\nتفاصيل الخطة:\n- السعر: \u0024{{ plan_data.price }}\n- المدة: {{ plan_data.duration_label }} ({{ plan_data.duration_days }} يوم)\n- الإشارات: {{ plan_data.signals }} يوميًا${cryptoDetails}\n\nيرجى تزويدي بخطوات إتمام الدفع.\nشكرًا لكم.`;
     window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 

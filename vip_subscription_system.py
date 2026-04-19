@@ -47,10 +47,10 @@ class SubscriptionManager:
     
     PLANS = {
         'free': {'price': 0, 'duration_days': 0, 'signals_per_day': 1},
-        'bronze': {'price': 29, 'duration_days': 30, 'signals_per_day': 3},
-        'silver': {'price': 69, 'duration_days': 90, 'signals_per_day': 5},
-        'gold': {'price': 199, 'duration_days': 365, 'signals_per_day': 7},
-        'platinum': {'price': 499, 'duration_days': 365, 'signals_per_day': 10}
+        'bronze': {'price': 25, 'duration_days': 30, 'signals_per_day': 3},
+        'silver': {'price': 50, 'duration_days': 30, 'signals_per_day': 5},
+        'gold': {'price': 100, 'duration_days': 30, 'signals_per_day': 7},
+        'platinum': {'price': 250, 'duration_days': 30, 'signals_per_day': 10}
     }
     
     def __init__(self, db_path='vip_subscriptions.db'):

@@ -5278,22 +5278,7 @@ def _refresh_active_signal_statuses(lookback_days=None):
                         item['set_tp3_locked'],
                         item['signal_id']
                     ))
-                    # إشعار نتيجة الصفقة
-                    try:
-                        sym = item.get('symbol', '')
-                        if not sym:
-                            c2 = conn.cursor()
-                            c2.execute('SELECT symbol FROM signals WHERE signal_id=?', (item['signal_id'],))
-                            r2 = c2.fetchone()
-                            sym = r2['symbol'] if r2 else str(item['signal_id'])
-                        if item['close_result'] == 'win':
-                            _create_notification('win', f"✅ صفقة رابحة: {sym}",
-                                f"أُغلقت بربح | سعر الإغلاق: {item['close_price']:.5f}", signal_id=item['signal_id'])
-                        else:
-                            _create_notification('loss', f"❌ صفقة خاسرة: {sym}",
-                                f"أُغلقت بخسارة | سعر الإغلاق: {item['close_price']:.5f}", signal_id=item['signal_id'])
-                    except Exception as _notif_err:
-                        print(f"[NOTIF] {_notif_err}")
+                    # الإشعارات مخصصة للإشارات الجديدة فقط (بدون إشعارات ربح/خسارة)
                     continue
 
                 if any(value is not None for value in (item['set_result'], item['set_tp1_locked'], item['set_tp2_locked'], item['set_stop_loss'])):

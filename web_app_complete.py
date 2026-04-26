@@ -138,6 +138,10 @@ except Exception:
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
 
+MOBILE_DOWNLOADS_DIR = Path(__file__).parent / 'static' / 'downloads'
+ANDROID_APK_FILENAME = os.environ.get('ANDROID_APK_FILENAME', 'goldprofx-android.apk').strip() or 'goldprofx-android.apk'
+IOS_APP_URL = os.environ.get('IOS_APP_URL', '').strip()
+
 MY_FOREX_BASE_PATH = os.environ.get('MY_FOREX_BASE_PATH', '/forex-app').rstrip('/') or '/forex-app'
 # البحث أولاً داخل المشروع (للإنتاج)، ثم المجلد المجاور (للتطوير المحلي)
 _my_forex_local = Path(__file__).resolve().parent / 'my-forex-app'
@@ -3463,6 +3467,22 @@ def get_current_user():
     return {'success': False}
 
 
+def is_mobile_view_request():
+    """تحديد ما إذا كان الطلب يفضّل واجهة الموبايل."""
+    forced_view = (request.args.get('view') or '').strip().lower()
+    if forced_view == 'mobile':
+        return True
+    if forced_view == 'web':
+        return False
+
+    ua = (request.headers.get('User-Agent') or '').lower()
+    mobile_markers = (
+        'android', 'iphone', 'ipad', 'ipod', 'windows phone',
+        'mobile', 'opera mini', 'iemobile'
+    )
+    return any(marker in ua for marker in mobile_markers)
+
+
 LEGACY_SITE_SETTINGS_FILE = Path(__file__).parent / 'site_settings.json'
 LEGACY_TUTORIAL_UPLOAD_DIR = Path(__file__).parent / 'static' / 'uploads' / 'tutorials'
 LEGACY_TUTORIAL_VIDEOS_FILE = Path(__file__).parent / 'tutorial_videos.json'
@@ -3689,7 +3709,8 @@ def inject_user_and_links():
         'is_logged_in': user_info['success'],
         'user': user_info if user_info['success'] else None,
         'site_links': site_links.links,
-        'site_settings': get_site_settings()
+        'site_settings': get_site_settings(),
+        'is_mobile_view': is_mobile_view_request()
     }
 
 
@@ -6654,19 +6675,53 @@ def home():
     """الصفحة الرئيسية الجديدة"""
     user_info = get_current_user()
     if not user_info['success']:
+        template_name = 'public_landing_mobile.html' if is_mobile_view_request() else 'public_landing.html'
         return render_template(
-            'public_landing.html',
+            template_name,
             ads=get_public_ads(),
             is_logged_in=False,
             user=None
         )
     signals = load_signals()
     stats = get_statistics()
-    return render_template('home.html', 
+    template_name = 'home_mobile.html' if is_mobile_view_request() else 'home.html'
+    return render_template(template_name,
                          signals=signals,
                          stats=stats,
                          is_logged_in=True,
                          user=user_info)
+
+
+@app.route('/download-app')
+def download_app_page():
+    """صفحة تنزيل تطبيقات الموبايل (Android/iOS)."""
+    apk_available = (MOBILE_DOWNLOADS_DIR / ANDROID_APK_FILENAME).exists()
+    return render_template(
+        'download_app.html',
+        apk_available=apk_available,
+        ios_app_url=IOS_APP_URL,
+    )
+
+
+@app.route('/download/android')
+def download_android_apk():
+    """تنزيل ملف APK الرسمي من خادم الموقع."""
+    apk_file = MOBILE_DOWNLOADS_DIR / ANDROID_APK_FILENAME
+    if not apk_file.exists():
+        return render_template(
+            'download_app.html',
+            apk_available=False,
+            ios_app_url=IOS_APP_URL,
+            download_error='ملف Android APK غير متوفر حاليا. حاول لاحقا.',
+        ), 404
+
+    return send_from_directory(
+        MOBILE_DOWNLOADS_DIR,
+        ANDROID_APK_FILENAME,
+        as_attachment=True,
+        download_name='GoldProFX-Android.apk',
+        conditional=True,
+    )
 
 
 def _filter_signals_for_user(signals, user_info):
@@ -6722,10 +6777,11 @@ def signals():
     try:
         signals_data = load_signals()
         filtered_signals = _filter_signals_for_user(signals_data, user_info)
+        template_name = 'signals_mobile.html' if is_mobile_view_request() else 'signals_gold_card.html'
 
         # القالب الأساسي
         return render_template(
-            'signals_gold_card.html',
+            template_name,
             signals=filtered_signals,
             all_signals_count=len(signals_data),
             visible_signals_count=len(filtered_signals),
@@ -6758,7 +6814,8 @@ def trades():
     if not user_info['success']:
         return redirect(url_for('login'))
 
-    return render_template('trades.html',
+    template_name = 'trades_mobile.html' if is_mobile_view_request() else 'trades.html'
+    return render_template(template_name,
                          is_logged_in=True,
                          is_admin=user_info.get('is_admin', False),
                          user=user_info)
@@ -7235,8 +7292,9 @@ def dashboard():
     
     # تحميل تفضيلات الأزواج من قاعدة البيانات
     user_pairs = _load_user_selected_pairs(user_info.get('user_id'))
+    template_name = 'dashboard_mobile.html' if is_mobile_view_request() else 'dashboard.html'
     
-    return render_template('dashboard.html',
+    return render_template(template_name,
                          user=user_info,
                          is_logged_in=True,
                          is_admin=user_info.get('is_admin', False),

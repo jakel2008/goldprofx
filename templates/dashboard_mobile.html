@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم - موبايل{% endblock %}
+
+{% block content %}
+<div class="m-dashboard">
+    <div class="m-header">
+        <h2>لوحة التحكم</h2>
+        <p>نسخة موبايل مبسطة لنفس حسابك وبياناتك.</p>
+    </div>
+
+    <div class="m-grid">
+        <div class="m-box">
+            <span>المستخدم</span>
+            <strong>{{ user.get('username', '-') if user else '-' }}</strong>
+        </div>
+        <div class="m-box">
+            <span>الخطة</span>
+            <strong>{{ user.get('plan', 'free') if user else 'free' }}</strong>
+        </div>
+        <div class="m-box">
+            <span>الأزواج المختارة</span>
+            <strong>{{ selected_pairs_count or 0 }}</strong>
+        </div>
+        <div class="m-box">
+            <span>الحالة</span>
+            <strong>{{ 'مدير' if is_admin else 'مستخدم' }}</strong>
+        </div>
+    </div>
+
+    <div class="m-links">
+        <a href="/pairs-selection" class="btn btn-primary w-100">إدارة الأزواج</a>
+        <a href="/signals" class="btn btn-outline-dark w-100">فتح الإشارات</a>
+        <a href="/trades" class="btn btn-outline-dark w-100">متابعة الصفقات</a>
+    </div>
+</div>
+
+<style>
+.m-dashboard { max-width: 560px; margin: 0 auto; display: grid; gap: 12px; }
+.m-header {
+    background: linear-gradient(160deg, #0f1a2d 0%, #1f3150 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid rgba(245, 197, 66, 0.3);
+}
+.m-header h2 { margin: 0; color: #f5c542; font-size: 1.25rem; }
+.m-header p { margin: 6px 0 0; color: #f2e5c2; font-size: 0.9rem; }
+.m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.m-box {
+    background: #fff;
+    border: 1px solid #efdcae;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.m-box span { color: #7a6a45; font-size: 0.8rem; }
+.m-box strong { font-size: 1rem; color: #1f2a44; }
+.m-links { display: grid; gap: 8px; }
+</style>
+{% endblock %}

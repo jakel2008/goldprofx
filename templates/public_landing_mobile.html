@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}GOLD PRO - نسخة الموبايل{% endblock %}
+
+{% block content %}
+<div class="mobile-landing">
+    <div class="mobile-hero">
+        <h1>GOLD PRO</h1>
+        <p>واجهة موبايل سريعة لنفس النظام ونفس الحساب.</p>
+        <div class="hero-actions">
+            <a href="/login?first=1" class="btn btn-primary w-100">تسجيل الدخول</a>
+            <a href="/register?first=1" class="btn btn-outline-dark w-100">تسجيل جديد</a>
+        </div>
+    </div>
+
+    <div class="mobile-section-title">العروض الحالية</div>
+    <div class="mobile-ads">
+        {% for ad in ads %}
+        <article class="mobile-ad-card">
+            <div class="mobile-ad-badge">{{ ad.badge or 'إعلان' }}</div>
+            <h3>{{ ad.title }}</h3>
+            <p>{{ ad.text }}</p>
+            <a href="{{ ad.cta_url or '/plans' }}" class="mobile-ad-link">{{ ad.cta_text or 'عرض التفاصيل' }}</a>
+        </article>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.mobile-landing {
+    max-width: 560px;
+    margin: 0 auto;
+    display: grid;
+    gap: 12px;
+}
+.mobile-hero {
+    background: linear-gradient(165deg, #0f1a2d 0%, #1b2e49 65%, #c39a2b 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 16px;
+}
+.mobile-hero h1 {
+    margin: 0;
+    color: #f5c542;
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+.mobile-hero p {
+    margin: 8px 0 12px;
+    color: #f4e7c4;
+}
+.hero-actions {
+    display: grid;
+    gap: 8px;
+}
+.mobile-section-title {
+    font-weight: 800;
+    color: #8a6c1f;
+    margin-top: 4px;
+}
+.mobile-ads {
+    display: grid;
+    gap: 10px;
+}
+.mobile-ad-card {
+    background: #fff;
+    border: 1px solid #ecdcae;
+    border-radius: 12px;
+    padding: 12px;
+}
+.mobile-ad-badge {
+    display: inline-block;
+    background: #fff2d2;
+    color: #8a6c1f;
+    border: 1px solid #d4a72f;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+}
+.mobile-ad-card h3 {
+    margin: 8px 0 6px;
+    font-size: 1rem;
+}
+.mobile-ad-card p {
+    margin: 0 0 8px;
+    color: #5d6370;
+    line-height: 1.6;
+    font-size: 0.92rem;
+}
+.mobile-ad-link {
+    text-decoration: none;
+    color: #8a6c1f;
+    font-weight: 700;
+}
+</style>
+{% endblock %}

@@ -6,6 +6,7 @@ links = [
     {"name": "لوحة التحكم", "url": "/dashboard", "icon": "📊"},
     {"name": "الإشارات", "url": "/signals", "icon": "📈"},
     {"name": "الصفقات", "url": "/trades", "icon": "💹"},
+    {"name": "تحميل التطبيق", "url": "/download-app", "icon": "📲"},
     {"name": "التقارير", "url": "/reports", "icon": "📑"},
     {"name": "الخطط", "url": "/plans", "icon": "💰"},
     {"name": "التعليم", "url": "/tutorials", "icon": "🎓", "auth": True},

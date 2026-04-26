@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}الإشارات - موبايل{% endblock %}
+
+{% block content %}
+<div class="m-signals">
+    <div class="m-head">
+        <h2>الإشارات المباشرة</h2>
+        <p>المعروض: {{ visible_signals_count }} من أصل {{ all_signals_count }}</p>
+    </div>
+
+    {% if signals %}
+        <div class="m-cards">
+            {% for signal in signals %}
+            {% set symbol = signal.get('symbol') or signal.get('pair') or '-' %}
+            {% set side = (signal.get('signal_type') or signal.get('trade_type') or signal.get('signal') or '').lower() %}
+            {% set entry = signal.get('entry') or signal.get('entry_price') or '-' %}
+            {% set sl = signal.get('sl') or signal.get('stop_loss') or '-' %}
+            {% set tp1 = signal.get('tp1') or signal.get('take_profit_1') or '-' %}
+            <article class="m-signal-card {{ 'sell' if side == 'sell' else 'buy' }}">
+                <div class="top">
+                    <strong>{{ symbol }}</strong>
+                    <span class="pill {{ 'sell' if side == 'sell' else 'buy' }}">{{ side.upper() if side else 'SIGNAL' }}</span>
+                </div>
+                <div class="row"><span>الدخول</span><strong>{{ entry }}</strong></div>
+                <div class="row"><span>وقف الخسارة</span><strong>{{ sl }}</strong></div>
+                <div class="row"><span>الهدف الأول</span><strong>{{ tp1 }}</strong></div>
+            </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="m-empty">لا توجد إشارات متاحة الآن</div>
+    {% endif %}
+</div>
+
+<style>
+.m-signals { max-width: 560px; margin: 0 auto; display: grid; gap: 12px; }
+.m-head {
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(160deg, #0f1a2d 0%, #1f3150 100%);
+    color: #fff;
+    border: 1px solid rgba(245, 197, 66, 0.3);
+}
+.m-head h2 { margin: 0; color: #f5c542; font-size: 1.2rem; }
+.m-head p { margin: 6px 0 0; color: #f2e5c2; font-size: 0.9rem; }
+.m-cards { display: grid; gap: 8px; }
+.m-signal-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #ecd9a9;
+    display: grid;
+    gap: 6px;
+}
+.m-signal-card.buy { border-right: 4px solid #059669; }
+.m-signal-card.sell { border-right: 4px solid #dc2626; }
+.top { display: flex; justify-content: space-between; align-items: center; }
+.pill { border-radius: 999px; padding: 2px 8px; font-size: 0.74rem; font-weight: 700; }
+.pill.buy { background: rgba(5, 150, 105, 0.12); color: #059669; }
+.pill.sell { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+.row { display: flex; justify-content: space-between; color: #4b5563; font-size: 0.88rem; }
+.row strong { color: #111827; }
+.m-empty { background: #fff; border: 1px solid #ecd9a9; border-radius: 10px; padding: 10px; text-align: center; color: #6b7280; }
+</style>
+{% endblock %}

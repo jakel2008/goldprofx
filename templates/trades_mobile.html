@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}متابعة الصفقات - موبايل{% endblock %}
+
+{% block content %}
+<div class="m-trades">
+    <div class="m-top">
+        <h2>متابعة الصفقات</h2>
+        <p>تحديث تلقائي كل 20 ثانية.</p>
+    </div>
+
+    <div class="m-stats">
+        <div class="s"><span>الإجمالي</span><strong id="total">0</strong></div>
+        <div class="s"><span>نشطة</span><strong id="active">0</strong></div>
+        <div class="s"><span>رابحة</span><strong id="winners">0</strong></div>
+        <div class="s"><span>خاسرة</span><strong id="losers">0</strong></div>
+    </div>
+
+    <div class="m-list" id="active-list">
+        <div class="m-empty">جارٍ تحميل الصفقات...</div>
+    </div>
+</div>
+
+<style>
+.m-trades { max-width: 560px; margin: 0 auto; display: grid; gap: 12px; }
+.m-top {
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(160deg, #0f1a2d 0%, #1f3150 100%);
+    color: #fff;
+    border: 1px solid rgba(245, 197, 66, 0.3);
+}
+.m-top h2 { margin: 0; color: #f5c542; font-size: 1.2rem; }
+.m-top p { margin: 6px 0 0; color: #f2e5c2; font-size: 0.9rem; }
+.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.s {
+    background: #fff;
+    border: 1px solid #efdcae;
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+}
+.s span { display: block; color: #7a6a45; font-size: 0.8rem; }
+.s strong { color: #1f2a44; font-size: 1rem; }
+.m-list { display: grid; gap: 8px; }
+.trade-card {
+    background: #fff;
+    border: 1px solid #ecd9a9;
+    border-radius: 10px;
+    padding: 10px;
+    display: grid;
+    gap: 6px;
+}
+.trade-top { display: flex; justify-content: space-between; align-items: center; }
+.pill { border-radius: 999px; padding: 2px 8px; font-size: 0.74rem; font-weight: 700; }
+.pill.buy { background: rgba(5, 150, 105, 0.12); color: #059669; }
+.pill.sell { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+.trade-meta { color: #4b5563; font-size: 0.85rem; display: flex; justify-content: space-between; }
+.m-empty { background: #fff; border: 1px solid #ecd9a9; border-radius: 10px; padding: 10px; color: #6b7280; text-align: center; }
+</style>
+
+<script>
+async function fetchTrades() {
+    try {
+        const res = await fetch('/api/trades_status');
+        const data = await res.json();
+
+        const summary = data.summary || {};
+        document.getElementById('total').textContent = summary.total_trades ?? 0;
+        document.getElementById('active').textContent = summary.active ?? 0;
+        document.getElementById('winners').textContent = summary.winners ?? 0;
+        document.getElementById('losers').textContent = summary.losers ?? 0;
+
+        const active = data.active_trades || [];
+        const list = document.getElementById('active-list');
+
+        if (!active.length) {
+            list.innerHTML = '<div class="m-empty">لا توجد صفقات نشطة الآن</div>';
+            return;
+        }
+
+        list.innerHTML = active.map((t) => {
+            const dir = (t.signal || '').toLowerCase();
+            return `
+                <article class="trade-card">
+                    <div class="trade-top">
+                        <strong>${t.pair || '-'}</strong>
+                        <span class="pill ${dir === 'sell' ? 'sell' : 'buy'}">${(t.signal || '-').toUpperCase()}</span>
+                    </div>
+                    <div class="trade-meta"><span>دخول: ${t.entry ?? '-'}</span><span>حالي: ${t.current_price ?? '-'}</span></div>
+                    <div class="trade-meta"><span>الربح/الخسارة</span><strong>${t.profit_percent ?? 0}%</strong></div>
+                </article>
+            `;
+        }).join('');
+    } catch (e) {
+        document.getElementById('active-list').innerHTML = '<div class="m-empty">تعذر تحميل بيانات الصفقات</div>';
+    }
+}
+
+fetchTrades();
+setInterval(fetchTrades, 20000);
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}الرئيسية - موبايل{% endblock %}
+
+{% block content %}
+<div class="m-home">
+    <section class="m-hero">
+        <div class="m-brand">GOLD PRO</div>
+        <div class="m-sub">نفس البيانات والحساب، لكن بواجهة موبايل مركزة.</div>
+        <div class="m-actions">
+            <a href="/signals" class="btn btn-primary">الإشارات</a>
+            <a href="/trades" class="btn btn-outline-dark">الصفقات</a>
+            <a href="/dashboard" class="btn btn-outline-dark">لوحتي</a>
+        </div>
+    </section>
+
+    <section class="m-stats">
+        <div class="m-card"><span>إجمالي الإشارات</span><strong>{{ stats.get('total_signals', 0) }}</strong></div>
+        <div class="m-card"><span>إجمالي التوصيات</span><strong>{{ stats.get('total_recommendations', 0) }}</strong></div>
+        <div class="m-card"><span>حالة الجلسة</span><strong>{{ 'نشطة' if is_logged_in else 'غير مسجل' }}</strong></div>
+        <div class="m-card"><span>المستخدم</span><strong>{{ user.get('username', '-') if user else '-' }}</strong></div>
+    </section>
+</div>
+
+<style>
+.m-home { max-width: 560px; margin: 0 auto; display: grid; gap: 12px; }
+.m-hero {
+    background: linear-gradient(160deg, #101a2d 0%, #1f3150 60%, #c29a2b 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(245, 197, 66, 0.35);
+}
+.m-brand { color: #f5c542; font-weight: 900; font-size: 1.5rem; }
+.m-sub { margin-top: 6px; color: #f2e5c2; }
+.m-actions { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.m-actions .btn { font-size: 0.9rem; padding: 8px 6px; }
+.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.m-card {
+    background: #fff;
+    border: 1px solid #efe1bc;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.m-card span { color: #7a6a45; font-size: 0.8rem; }
+.m-card strong { color: #1d2a40; font-size: 1.1rem; }
+</style>
+{% endblock %}

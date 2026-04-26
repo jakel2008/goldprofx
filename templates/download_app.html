@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}تحميل تطبيق GOLD PRO{% endblock %}
+
+{% block content %}
+<div class="download-wrap">
+    <section class="download-hero">
+        <h1>تحميل تطبيق GOLD PRO</h1>
+        <p>نفس حسابك ونفس بياناتك. اختر المنصة المناسبة لهاتفك.</p>
+    </section>
+
+    {% if download_error %}
+    <div class="alert alert-warning">{{ download_error }}</div>
+    {% endif %}
+
+    <section class="download-grid">
+        <article class="dl-card android">
+            <div class="dl-icon">🤖</div>
+            <h2>Android APK</h2>
+            <p>نسخة رسمية موقعة للتثبيت المباشر على أجهزة Android.</p>
+            {% if apk_available %}
+            <a href="/download/android" class="btn btn-primary w-100">⬇️ تنزيل Android</a>
+            <div class="dl-note">إذا ظهر تحذير: فعّل التثبيت من مصادر غير معروفة ثم أعد المحاولة.</div>
+            {% else %}
+            <button class="btn btn-secondary w-100" disabled>غير متوفر حاليا</button>
+            {% endif %}
+        </article>
+
+        <article class="dl-card ios">
+            <div class="dl-icon">🍎</div>
+            <h2>iOS / iCloud</h2>
+            <p>إطلاق iOS يتم عادة عبر App Store أو TestFlight.</p>
+            {% if ios_app_url %}
+            <a href="{{ ios_app_url }}" class="btn btn-dark w-100" target="_blank" rel="noopener noreferrer">فتح رابط iOS</a>
+            {% else %}
+            <button class="btn btn-outline-dark w-100" disabled>قريبا على iOS</button>
+            {% endif %}
+            <div class="dl-note">عند تجهيز رابط iOS أضفه في متغير البيئة IOS_APP_URL.</div>
+        </article>
+    </section>
+</div>
+
+<style>
+.download-wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+}
+
+.download-hero {
+    background: linear-gradient(145deg, #0f1a2d 0%, #1f3150 65%, #c39a2b 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(245, 197, 66, 0.35);
+}
+
+.download-hero h1 {
+    margin: 0;
+    color: #f5c542;
+    font-weight: 900;
+    font-size: 1.8rem;
+}
+
+.download-hero p {
+    margin: 8px 0 0;
+    color: #f2e5c2;
+}
+
+.download-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.dl-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eddcb2;
+    padding: 14px;
+    display: grid;
+    gap: 8px;
+}
+
+.dl-card.android {
+    border-right: 4px solid #059669;
+}
+
+.dl-card.ios {
+    border-right: 4px solid #111827;
+}
+
+.dl-icon {
+    font-size: 2rem;
+}
+
+.dl-card h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #1f2a44;
+}
+
+.dl-card p {
+    margin: 0;
+    color: #5b6475;
+    line-height: 1.6;
+}
+
+.dl-note {
+    font-size: 0.83rem;
+    color: #6b7280;
+}
+</style>
+{% endblock %}

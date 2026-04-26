@@ -1962,9 +1962,6 @@ def _ensure_signals_archive_table():
     conn.close()
 
 
-def _deduplicate_signals_continuously():
-
-
 def _ensure_notifications_table():
     """إنشاء جدول الإشعارات في قاعدة بيانات الإشارات."""
     conn = sqlite3.connect('vip_signals.db')

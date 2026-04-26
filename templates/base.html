@@ -241,12 +241,146 @@
         }
     </style>
 </head>
+        /* ===== نظام الإشعارات ===== */
+        .notif-bell-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 8px;
+        }
+        .notif-bell-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.85);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: color .2s, background .2s;
+            position: relative;
+        }
+        .notif-bell-btn:hover { color: #f5c542; background: rgba(245,197,66,.12); }
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -4px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            background: #15253f;
+            border: 1px solid rgba(245,197,66,.3);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            z-index: 9999;
+            display: none;
+            overflow: hidden;
+            max-height: 420px;
+            flex-direction: column;
+        }
+        .notif-dropdown.open { display: flex; }
+        .notif-header {
+            padding: 10px 14px;
+            background: rgba(245,197,66,.1);
+            border-bottom: 1px solid rgba(245,197,66,.2);
+            font-size: 0.85rem;
+            color: #f5c542;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notif-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .notif-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .notif-item:hover { background: rgba(255,255,255,.05); }
+        .notif-item.unread { border-right: 3px solid #f5c542; }
+        .notif-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #e8e8e8;
+            margin-bottom: 2px;
+        }
+        .notif-body {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,.55);
+        }
+        .notif-time {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,.35);
+            margin-top: 3px;
+        }
+        .notif-empty {
+            padding: 24px;
+            text-align: center;
+            color: rgba(255,255,255,.35);
+            font-size: 0.82rem;
+        }
+        .notif-footer {
+            padding: 8px 14px;
+            text-align: center;
+            border-top: 1px solid rgba(245,197,66,.15);
+        }
+        .notif-footer button {
+            background: none;
+            border: none;
+            color: #f5c542;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        @media (max-width: 575px) {
+            .notif-dropdown { width: 290px; left: auto; right: 0; transform: none; }
+        }
+    </style>
+</head>
 <body>
     <!-- Navbar -->
     {% if request.endpoint not in ['login', 'register', 'forgot_password', 'reset_password', 'index', 'activate', 'activation_pending', 'resend_activation', 'activate_account'] %}
     <nav class="navbar navbar-expand-lg navbar-dark dark-navbar sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">⭐ GOLD PRO</a>
+            {% if is_logged_in %}
+            <!-- جرس الإشعارات -->
+            <div class="notif-bell-wrap" id="notifWrap">
+                <button class="notif-bell-btn" id="notifBellBtn" title="الإشعارات" aria-label="الإشعارات">
+                    🔔
+                    <span class="notif-badge" id="notifBadge"></span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <span>🔔 الإشعارات</span>
+                        <span id="notifUnreadLabel"></span>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">لا توجد إشعارات</div>
+                    </div>
+                    <div class="notif-footer">
+                        <button onclick="markAllRead()">تحديد الكل كمقروء ✓</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="تبديل القائمة" aria-label="تبديل القائمة">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -365,6 +499,130 @@
             });
         })();
     </script>
+        <script>
+            (function () {
+                const bellBtn = document.getElementById('notifBellBtn');
+                const badge = document.getElementById('notifBadge');
+                const dropdown = document.getElementById('notifDropdown');
+                const list = document.getElementById('notifList');
+                const unreadLabel = document.getElementById('notifUnreadLabel');
+                if (!bellBtn || !badge || !dropdown || !list || !unreadLabel) {
+                    return;
+                }
+
+                let lastSeenNotificationId = 0;
+                let hasNotificationPermissionAsked = false;
+
+                function updateBadge(unread) {
+                    if (unread > 0) {
+                        badge.style.display = 'flex';
+                        badge.textContent = unread > 99 ? '99+' : String(unread);
+                        unreadLabel.textContent = unread + ' جديد';
+                    } else {
+                        badge.style.display = 'none';
+                        unreadLabel.textContent = '';
+                    }
+                }
+
+                function renderNotifications(items) {
+                    if (!items || items.length === 0) {
+                        list.innerHTML = '<div class="notif-empty">لا توجد إشعارات</div>';
+                        return;
+                    }
+                    list.innerHTML = items.map(function (n) {
+                        const unreadClass = n.is_read ? '' : ' unread';
+                        const created = n.created_at || '';
+                        return '<div class="notif-item' + unreadClass + '" data-id="' + n.id + '">' +
+                               '<div class="notif-title">' + (n.title || '') + '</div>' +
+                               '<div class="notif-body">' + (n.body || '') + '</div>' +
+                               '<div class="notif-time">' + created.replace('T', ' ') + '</div>' +
+                               '</div>';
+                    }).join('');
+                }
+
+                function maybeNotifyBrowser(newItems) {
+                    if (!newItems || newItems.length === 0) {
+                        return;
+                    }
+                    if (!('Notification' in window)) {
+                        return;
+                    }
+                    if (Notification.permission === 'default' && !hasNotificationPermissionAsked) {
+                        hasNotificationPermissionAsked = true;
+                        Notification.requestPermission().catch(function () {});
+                        return;
+                    }
+                    if (Notification.permission !== 'granted') {
+                        return;
+                    }
+                    newItems.forEach(function (n) {
+                        try {
+                            const notification = new Notification(n.title || 'GOLD PRO', {
+                                body: n.body || '',
+                                icon: '/static/favicon.ico'
+                            });
+                            setTimeout(function () { notification.close(); }, 5000);
+                        } catch (e) {
+                            console.log('Browser notification failed', e);
+                        }
+                    });
+                }
+
+                async function fetchNotifications() {
+                    try {
+                        const res = await fetch('/api/notifications', { cache: 'no-store' });
+                        const data = await res.json();
+                        const items = data.notifications || [];
+                        const unread = Number(data.unread_count || 0);
+                        renderNotifications(items);
+                        updateBadge(unread);
+
+                        if (items.length > 0) {
+                            if (!lastSeenNotificationId) {
+                                lastSeenNotificationId = items[0].id;
+                            } else if (items[0].id > lastSeenNotificationId) {
+                                const newItems = items.filter(function (n) { return n.id > lastSeenNotificationId; });
+                                maybeNotifyBrowser(newItems.reverse());
+                                lastSeenNotificationId = items[0].id;
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Notifications polling error', e);
+                    }
+                }
+
+                window.markAllRead = async function () {
+                    try {
+                        await fetch('/api/notifications/mark-read', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({})
+                        });
+                        await fetchNotifications();
+                    } catch (e) {
+                        console.log('Mark notifications read failed', e);
+                    }
+                };
+
+                bellBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    dropdown.classList.toggle('open');
+                    if (dropdown.classList.contains('open')) {
+                        window.markAllRead();
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    const wrap = document.getElementById('notifWrap');
+                    if (wrap && !wrap.contains(event.target)) {
+                        dropdown.classList.remove('open');
+                    }
+                });
+
+                fetchNotifications();
+                setInterval(fetchNotifications, 12000);
+            })();
+        </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

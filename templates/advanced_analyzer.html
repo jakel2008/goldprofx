@@ -202,6 +202,95 @@
             background: linear-gradient(135deg, #e8f4f8, #d4e6f1);
             border: 1px solid #d4a72f;
         }
+
+        .schools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 15px 0;
+        }
+
+        .school-card {
+            border: 1px solid #e6d5a0;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #fffdf7 0%, #fff5dc 100%);
+            padding: 16px;
+            box-shadow: 0 6px 20px rgba(15, 26, 45, 0.08);
+        }
+
+        .school-card.buy {
+            border-right: 5px solid #1f9d55;
+        }
+
+        .school-card.sell {
+            border-right: 5px solid #c0392b;
+        }
+
+        .school-card.hold {
+            border-right: 5px solid #f39c12;
+        }
+
+        .school-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .school-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .school-pill.buy {
+            background: #1f9d55;
+        }
+
+        .school-pill.sell {
+            background: #c0392b;
+        }
+
+        .school-pill.hold {
+            background: #f39c12;
+        }
+
+        .school-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .school-metric {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .school-metric strong {
+            display: block;
+            color: #7a5b0a;
+            font-size: 0.85rem;
+        }
+
+        .school-metric span {
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .school-explanation {
+            margin: 0;
+            color: #334155;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
         
         .nav-tabs .nav-link {
             color: #7a5b0a;
@@ -475,6 +564,7 @@
         function displaySignals(data) {
             const container = document.getElementById('signalsContent');
             const explanation = data.explanation || 'لا توجد معلومات';
+            const schoolsHtml = buildSchoolsSection(data.analysis_schools || {});
             
             container.innerHTML = `
                 <div class="mb-4">
@@ -497,6 +587,11 @@
                         SL: ${data.stop_loss ? data.stop_loss.toFixed(5) : 'N/A'}
                     </div>
                 </div>
+
+                <div class="mb-4">
+                    <h5>🏫 المدارس التحليلية المضافة</h5>
+                    ${schoolsHtml}
+                </div>
                 
                 <div class="mb-4">
                     <h5>📝 التحليل الشامل</h5>
@@ -505,6 +600,64 @@
                     </div>
                 </div>
             `;
+        }
+
+        function buildSchoolsSection(analysisSchools) {
+            const schoolEntries = Object.entries(analysisSchools || {});
+
+            if (!schoolEntries.length) {
+                return '<div class="alert alert-warning mb-0">لا توجد بيانات مدارس تحليلية إضافية في هذه النتيجة.</div>';
+            }
+
+            return `
+                <div class="schools-grid">
+                    ${schoolEntries.map(([schoolKey, school]) => renderSchoolCard(schoolKey, school)).join('')}
+                </div>
+            `;
+        }
+
+        function renderSchoolCard(schoolKey, school) {
+            const signal = (school.signal || 'hold').toLowerCase();
+            const signalLabel = getSchoolSignalLabel(signal);
+            const label = school.label || schoolKey;
+            const confidence = Number(school.confidence || 0).toFixed(0);
+            const weight = Number(school.weight || 0).toFixed(2);
+            const weightedScore = Number(school.weighted_score || 0).toFixed(2);
+            const explanation = school.explanation_ar || 'لا يوجد شرح تفصيلي متاح.';
+
+            return `
+                <div class="school-card ${signal}">
+                    <div class="school-title">
+                        <span>${label}</span>
+                        <span class="school-pill ${signal}">${signalLabel}</span>
+                    </div>
+                    <div class="school-metrics">
+                        <div class="school-metric">
+                            <strong>الثقة</strong>
+                            <span>${confidence}%</span>
+                        </div>
+                        <div class="school-metric">
+                            <strong>الوزن</strong>
+                            <span>${weight}</span>
+                        </div>
+                        <div class="school-metric">
+                            <strong>التأثير</strong>
+                            <span>${weightedScore}</span>
+                        </div>
+                    </div>
+                    <p class="school-explanation">${explanation}</p>
+                </div>
+            `;
+        }
+
+        function getSchoolSignalLabel(signal) {
+            if (signal === 'buy') {
+                return 'شراء';
+            }
+            if (signal === 'sell') {
+                return 'بيع';
+            }
+            return 'حياد';
         }
         
         function displayLevels(data) {

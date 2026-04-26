@@ -1963,6 +1963,55 @@ def _ensure_signals_archive_table():
 
 
 def _deduplicate_signals_continuously():
+
+
+def _ensure_notifications_table():
+    """إنشاء جدول الإشعارات في قاعدة بيانات الإشارات."""
+    conn = sqlite3.connect('vip_signals.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            signal_id INTEGER,
+            is_read INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+_notifications_table_ready = False
+
+def _create_notification(notif_type, title, body, signal_id=None):
+    """إضافة إشعار جديد إلى جدول الإشعارات."""
+    global _notifications_table_ready
+    try:
+        if not _notifications_table_ready:
+            _ensure_notifications_table()
+            _notifications_table_ready = True
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        c.execute(
+            'INSERT INTO notifications (type, title, body, signal_id) VALUES (?, ?, ?, ?)',
+            (notif_type, title, body, signal_id)
+        )
+        # الاحتفاظ بآخر 200 إشعار فقط
+        c.execute('''
+            DELETE FROM notifications WHERE id NOT IN (
+                SELECT id FROM notifications ORDER BY created_at DESC LIMIT 200
+            )
+        ''')
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[NOTIF] خطأ في إنشاء الإشعار: {e}")
+
+
+def _deduplicate_signals_continuously():
     """إزالة الإشارات المكررة بشكل دوري مع الاحتفاظ بأحدث سجل."""
     _ensure_signals_table()
     lock_acquired = VIP_SIGNALS_DB_LOCK.acquire(timeout=2)
@@ -2406,6 +2455,14 @@ def _insert_generated_signal(signal_row):
                 ''', (signal_row['symbol'], signal_id))
         conn.commit()
         conn.close()
+        # إشعار بإشارة جديدة
+        direction = '🟢 شراء' if signal_row.get('signal_type') == 'buy' else '🔴 بيع'
+        _create_notification(
+            'new_signal',
+            f"إشارة جديدة: {signal_row['symbol']}",
+            f"{direction} | دخول: {signal_row['entry_price']:.5f} | جودة: {signal_row.get('quality_score', 0)}%",
+            signal_id=signal_id
+        )
         return signal_id
 
 
@@ -5122,6 +5179,7 @@ def _refresh_active_signal_statuses(lookback_days=None):
                 'set_tp3_locked': None,
                 'set_stop_loss': None,
                 'set_result': None
+                        update_item['symbol'] = _normalize_symbol_key(row['symbol'])
             }
 
             signal_type = _normalize_signal_type(row['signal_type'])
@@ -5223,6 +5281,22 @@ def _refresh_active_signal_statuses(lookback_days=None):
                         item['set_tp3_locked'],
                         item['signal_id']
                     ))
+                    # إشعار نتيجة الصفقة
+                    try:
+                        sym = item.get('symbol', '')
+                        if not sym:
+                            c2 = conn.cursor()
+                            c2.execute('SELECT symbol FROM signals WHERE signal_id=?', (item['signal_id'],))
+                            r2 = c2.fetchone()
+                            sym = r2['symbol'] if r2 else str(item['signal_id'])
+                        if item['close_result'] == 'win':
+                            _create_notification('win', f"✅ صفقة رابحة: {sym}",
+                                f"أُغلقت بربح | سعر الإغلاق: {item['close_price']:.5f}", signal_id=item['signal_id'])
+                        else:
+                            _create_notification('loss', f"❌ صفقة خاسرة: {sym}",
+                                f"أُغلقت بخسارة | سعر الإغلاق: {item['close_price']:.5f}", signal_id=item['signal_id'])
+                    except Exception as _notif_err:
+                        print(f"[NOTIF] {_notif_err}")
                     continue
 
                 if any(value is not None for value in (item['set_result'], item['set_tp1_locked'], item['set_tp2_locked'], item['set_stop_loss'])):
@@ -10189,6 +10263,59 @@ def api_update_status():
         })
 
 # ============== نهاية API للتحديث التلقائي ==============
+
+
+def _auto_start_background_services_for_wsgi():
+# ============== API الإشعارات ==============
+
+@app.route('/api/notifications')
+def api_notifications():
+    """جلب آخر الإشعارات (مقروءة وغير مقروءة)."""
+    try:
+        _ensure_notifications_table()
+        conn = sqlite3.connect('vip_signals.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('''
+            SELECT id, type, title, body, signal_id, is_read,
+                   strftime('%Y-%m-%dT%H:%M:%S', created_at) as created_at
+            FROM notifications
+            ORDER BY created_at DESC
+            LIMIT 30
+        ''')
+        rows = c.fetchall()
+        unread = c.execute('SELECT COUNT(*) FROM notifications WHERE is_read=0').fetchone()[0]
+        conn.close()
+        return jsonify({
+            'notifications': [dict(r) for r in rows],
+            'unread_count': unread
+        })
+    except Exception as e:
+        return jsonify({'notifications': [], 'unread_count': 0, 'error': str(e)})
+
+
+@app.route('/api/notifications/mark-read', methods=['POST'])
+def api_notifications_mark_read():
+    """تحديد الإشعارات كمقروءة."""
+    try:
+        _ensure_notifications_table()
+        data = request.get_json(silent=True) or {}
+        notif_ids = data.get('ids')  # قائمة IDs، أو None لتحديد الكل
+        conn = sqlite3.connect('vip_signals.db')
+        c = conn.cursor()
+        if notif_ids:
+            placeholders = ','.join('?' * len(notif_ids))
+            c.execute(f'UPDATE notifications SET is_read=1 WHERE id IN ({placeholders})', notif_ids)
+        else:
+            c.execute('UPDATE notifications SET is_read=1')
+        conn.commit()
+        conn.close()
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)})
+
+
+# ============== نهاية API الإشعارات ==============
 
 
 def _auto_start_background_services_for_wsgi():

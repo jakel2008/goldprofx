@@ -1,0 +1,29 @@
+{
+  "appId": "com.goldprofx.app",
+  "appName": "GoldPro FX",
+  "webDir": "www",
+  "server": {
+    "url": "https://goldprofx-1.onrender.com",
+    "cleartext": false,
+    "allowNavigation": [
+      "goldprofx-1.onrender.com"
+    ]
+  },
+  "android": {
+    "backgroundColor": "#1a1a2e",
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#1a1a2e",
+      "showSpinner": true,
+      "spinnerColor": "#f0b429",
+      "androidSpinnerStyle": "large",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
+  }
+}

@@ -177,6 +177,441 @@ def calculate_tp_sl(recommendation, entry_price, atr_value, volatility):
     
     return tp1, tp2, tp3, sl
 
+
+def evaluate_quantitative_statistical(df):
+    """المدرسة الكمية والإحصائية."""
+    if df is None or len(df) < 60:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'بيانات غير كافية'}
+
+    close = df['Close'].astype(float)
+    returns = np.log(close / close.shift(1)).dropna()
+    if len(returns) < 30:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'عوائد غير كافية'}
+
+    rolling_mean = close.rolling(20).mean()
+    rolling_std = close.rolling(20).std()
+    current = float(close.iloc[-1])
+    mean_value = float(rolling_mean.iloc[-1])
+    std_value = float(rolling_std.iloc[-1]) if not pd.isna(rolling_std.iloc[-1]) else 0.0
+    z_score = (current - mean_value) / std_value if std_value > 0 else 0.0
+
+    recent_close = close.tail(20).reset_index(drop=True)
+    x_axis = np.arange(len(recent_close), dtype=float)
+    slope = float(np.polyfit(x_axis, recent_close, 1)[0]) if len(recent_close) >= 2 else 0.0
+    correlation = float(np.corrcoef(x_axis, recent_close)[0, 1]) if len(recent_close) >= 2 else 0.0
+    trend_fit = abs(correlation) if not np.isnan(correlation) else 0.0
+    vol_short = float(returns.tail(10).std()) if len(returns) >= 10 else 0.0
+    vol_long = float(returns.tail(30).std()) if len(returns) >= 30 else 0.0
+    volatility_ratio = vol_short / vol_long if vol_long > 0 else 1.0
+    momentum_10 = ((current / float(close.iloc[-11])) - 1.0) * 100 if len(close) > 10 else 0.0
+
+    signal = 'hold'
+    confidence = 30
+    regime = 'neutral'
+
+    if z_score <= -1.8:
+        signal = 'buy'
+        confidence = 84
+        regime = 'mean_reversion_buy'
+    elif z_score >= 1.8:
+        signal = 'sell'
+        confidence = 84
+        regime = 'mean_reversion_sell'
+    elif slope > 0 and trend_fit >= 0.65 and momentum_10 > 0 and volatility_ratio <= 1.35:
+        signal = 'buy'
+        confidence = 72
+        regime = 'trend_following_buy'
+    elif slope < 0 and trend_fit >= 0.65 and momentum_10 < 0 and volatility_ratio <= 1.35:
+        signal = 'sell'
+        confidence = 72
+        regime = 'trend_following_sell'
+
+    return {
+        'signal': signal,
+        'confidence': confidence,
+        'details': {
+            'regime': regime,
+            'z_score_20': round(z_score, 3),
+            'trend_slope_20': round(slope, 6),
+            'trend_fit': round(trend_fit, 3),
+            'momentum_10_pct': round(momentum_10, 3),
+            'volatility_ratio': round(volatility_ratio, 3),
+        }
+    }
+
+
+def evaluate_digital_structure(df):
+    """المدرسة الرقمية عبر ترميز سلوك الشموع والزخم."""
+    if df is None or len(df) < 20:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'بيانات غير كافية'}
+
+    recent = df.tail(8).copy()
+    direction_bits = [1 if close_value > open_value else 0 for open_value, close_value in zip(recent['Open'], recent['Close'])]
+    binary_bias = sum(1 if bit == 1 else -1 for bit in direction_bits)
+
+    max_run = 1
+    current_run = 1
+    for index in range(1, len(direction_bits)):
+        if direction_bits[index] == direction_bits[index - 1]:
+            current_run += 1
+            max_run = max(max_run, current_run)
+        else:
+            current_run = 1
+    compression_ratio = max_run / len(direction_bits) if direction_bits else 0.0
+
+    range_high = float(df['High'].tail(14).max())
+    range_low = float(df['Low'].tail(14).min())
+    current = float(df['Close'].iloc[-1])
+    range_span = range_high - range_low
+    close_location_value = ((current - range_low) / range_span) if range_span > 0 else 0.5
+
+    signal = 'hold'
+    confidence = 30
+    if binary_bias >= 4 and compression_ratio >= 0.5 and close_location_value > 0.65:
+        signal = 'buy'
+        confidence = 74
+    elif binary_bias <= -4 and compression_ratio >= 0.5 and close_location_value < 0.35:
+        signal = 'sell'
+        confidence = 74
+    elif binary_bias >= 2 and close_location_value > 0.58:
+        signal = 'buy'
+        confidence = 55
+    elif binary_bias <= -2 and close_location_value < 0.42:
+        signal = 'sell'
+        confidence = 55
+
+    return {
+        'signal': signal,
+        'confidence': confidence,
+        'details': {
+            'direction_bits': ''.join(str(bit) for bit in direction_bits),
+            'binary_bias': binary_bias,
+            'compression_ratio': round(compression_ratio, 3),
+            'close_location_value': round(close_location_value, 3),
+        }
+    }
+
+
+def extract_alternating_pivots(df, lookback=60, window=2):
+    """استخراج آخر 5 قمم/قيعان متناوبة للنماذج الموجية."""
+    sample = df.tail(lookback).reset_index(drop=True)
+    pivots = []
+
+    for index in range(window, len(sample) - window):
+        high_slice = sample['High'].iloc[index - window:index + window + 1]
+        low_slice = sample['Low'].iloc[index - window:index + window + 1]
+
+        high_value = float(sample['High'].iloc[index])
+        low_value = float(sample['Low'].iloc[index])
+
+        if high_value == float(high_slice.max()):
+            pivots.append({'idx': index, 'type': 'high', 'price': high_value})
+        if low_value == float(low_slice.min()):
+            pivots.append({'idx': index, 'type': 'low', 'price': low_value})
+
+    pivots.sort(key=lambda item: item['idx'])
+    filtered = []
+    for pivot in pivots:
+        if not filtered:
+            filtered.append(pivot)
+            continue
+
+        previous = filtered[-1]
+        if previous['idx'] == pivot['idx']:
+            if pivot['type'] == 'high' and previous['type'] == 'low':
+                filtered[-1] = pivot
+            continue
+
+        if previous['type'] == pivot['type']:
+            if pivot['type'] == 'high' and pivot['price'] >= previous['price']:
+                filtered[-1] = pivot
+            elif pivot['type'] == 'low' and pivot['price'] <= previous['price']:
+                filtered[-1] = pivot
+            continue
+
+        filtered.append(pivot)
+
+    return filtered[-5:] if len(filtered) >= 5 else []
+
+
+def evaluate_wolfwave(df):
+    """مدرسة Wolfwave / Wolfe Wave بشكل هندسي مبسط."""
+    if df is None or len(df) < 40:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'بيانات غير كافية'}
+
+    pivots = extract_alternating_pivots(df)
+    if len(pivots) < 5:
+        return {'signal': 'hold', 'confidence': 25, 'details': 'لا توجد نقاط موجية كافية'}
+
+    p1, p2, p3, p4, p5 = pivots
+    sequence = [point['type'] for point in pivots]
+    signal = 'hold'
+    confidence = 30
+    pattern = 'none'
+
+    denominator = max(1, p3['idx'] - p1['idx'])
+    slope_13 = (p3['price'] - p1['price']) / denominator
+    projected_p5 = p1['price'] + slope_13 * (p5['idx'] - p1['idx'])
+    alignment_error = abs(p5['price'] - projected_p5) / max(abs(projected_p5), 1e-9)
+
+    if sequence == ['low', 'high', 'low', 'high', 'low']:
+        if p3['price'] < p1['price'] and p4['price'] < p2['price'] and p5['price'] <= p3['price'] * 1.01 and alignment_error <= 0.03:
+            signal = 'buy'
+            confidence = 78
+            pattern = 'bullish_wolfwave'
+    elif sequence == ['high', 'low', 'high', 'low', 'high']:
+        if p3['price'] > p1['price'] and p4['price'] > p2['price'] and p5['price'] >= p3['price'] * 0.99 and alignment_error <= 0.03:
+            signal = 'sell'
+            confidence = 78
+            pattern = 'bearish_wolfwave'
+
+    return {
+        'signal': signal,
+        'confidence': confidence,
+        'details': {
+            'pattern': pattern,
+            'pivot_sequence': sequence,
+            'alignment_error': round(alignment_error, 4),
+            'pivots': [{
+                'type': point['type'],
+                'index': point['idx'],
+                'price': round(point['price'], 5)
+            } for point in pivots],
+        }
+    }
+
+
+def extract_analysis_timestamp(df):
+    """استخراج آخر وقت من إطار البيانات إن وجد."""
+    if 'Date' in df.columns:
+        try:
+            return pd.to_datetime(df['Date'].iloc[-1]).to_pydatetime()
+        except Exception:
+            pass
+    return datetime.utcnow()
+
+
+def evaluate_astral_cycles(df):
+    """المدرسة الفلكية الزمنية كعامل دوري مساعد منخفض الوزن."""
+    if df is None or len(df) < 30:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'بيانات غير كافية'}
+
+    timestamp = extract_analysis_timestamp(df)
+    current = float(df['Close'].iloc[-1])
+    range_high = float(df['High'].tail(20).max())
+    range_low = float(df['Low'].tail(20).min())
+    range_span = range_high - range_low
+    range_position = ((current - range_low) / range_span) if range_span > 0 else 0.5
+
+    lunar_origin = datetime(2000, 1, 6)
+    lunar_days = (timestamp - lunar_origin).total_seconds() / 86400.0
+    lunar_phase = (lunar_days % 29.53058867) / 29.53058867
+    day_of_year = timestamp.timetuple().tm_yday
+    solar_phase = day_of_year / 365.2425
+
+    signal = 'hold'
+    confidence = 25
+    cycle_state = 'neutral'
+
+    if (lunar_phase <= 0.12 or lunar_phase >= 0.88) and range_position < 0.30:
+        signal = 'buy'
+        confidence = 58
+        cycle_state = 'new_moon_reversal_window'
+    elif 0.38 <= lunar_phase <= 0.62 and range_position > 0.70:
+        signal = 'sell'
+        confidence = 58
+        cycle_state = 'full_moon_reversal_window'
+    elif timestamp.weekday() in (1, 2) and range_position < 0.40:
+        signal = 'buy'
+        confidence = 42
+        cycle_state = 'midweek_recovery_bias'
+    elif timestamp.weekday() in (3, 4) and range_position > 0.60:
+        signal = 'sell'
+        confidence = 42
+        cycle_state = 'lateweek_distribution_bias'
+
+    return {
+        'signal': signal,
+        'confidence': confidence,
+        'details': {
+            'cycle_state': cycle_state,
+            'timestamp': timestamp.isoformat(),
+            'lunar_phase_pct': round(lunar_phase * 100, 2),
+            'solar_phase_pct': round(solar_phase * 100, 2),
+            'range_position_pct': round(range_position * 100, 2),
+        }
+    }
+
+
+def evaluate_wyckoff(df):
+    """نظرية وايكوف: التجميع/التصريف والـ Spring / Upthrust."""
+    if df is None or len(df) < 40:
+        return {'signal': 'hold', 'confidence': 0, 'details': 'بيانات غير كافية'}
+
+    recent = df.tail(40).copy()
+    current_close = float(recent['Close'].iloc[-1])
+    current_high = float(recent['High'].iloc[-1])
+    current_low = float(recent['Low'].iloc[-1])
+    current_open = float(recent['Open'].iloc[-1])
+
+    if 'Volume' in recent.columns:
+        volume_series = pd.to_numeric(recent['Volume'], errors='coerce').fillna(0.0)
+    else:
+        volume_series = pd.Series(np.zeros(len(recent)), index=recent.index, dtype=float)
+    avg_volume = float(volume_series.tail(20).mean()) if len(volume_series) >= 20 else 0.0
+    current_volume = float(volume_series.iloc[-1])
+
+    range_high = float(recent['High'].max())
+    range_low = float(recent['Low'].min())
+    range_span = range_high - range_low
+    range_position = ((current_close - range_low) / range_span) if range_span > 0 else 0.5
+
+    prior_high = float(recent['High'].iloc[-15:-1].max()) if len(recent) >= 16 else range_high
+    prior_low = float(recent['Low'].iloc[-15:-1].min()) if len(recent) >= 16 else range_low
+    candle_span = max(current_high - current_low, 1e-9)
+    close_location = (current_close - current_low) / candle_span
+
+    spring = current_low < prior_low and current_close > prior_low and close_location > 0.60 and current_volume > avg_volume * 1.10
+    upthrust = current_high > prior_high and current_close < prior_high and close_location < 0.40 and current_volume > avg_volume * 1.10
+    accumulation = range_position < 0.35 and current_close > current_open and current_volume <= (avg_volume * 1.05 if avg_volume > 0 else current_volume)
+    distribution = range_position > 0.65 and current_close < current_open and current_volume <= (avg_volume * 1.05 if avg_volume > 0 else current_volume)
+
+    signal = 'hold'
+    confidence = 30
+    structure = 'neutral'
+
+    if spring:
+        signal = 'buy'
+        confidence = 86
+        structure = 'spring'
+    elif upthrust:
+        signal = 'sell'
+        confidence = 86
+        structure = 'upthrust'
+    elif accumulation:
+        signal = 'buy'
+        confidence = 64
+        structure = 'accumulation'
+    elif distribution:
+        signal = 'sell'
+        confidence = 64
+        structure = 'distribution'
+
+    return {
+        'signal': signal,
+        'confidence': confidence,
+        'details': {
+            'structure': structure,
+            'range_position_pct': round(range_position * 100, 2),
+            'close_location_pct': round(close_location * 100, 2),
+            'current_volume': round(current_volume, 2),
+            'average_volume_20': round(avg_volume, 2),
+            'spring': spring,
+            'upthrust': upthrust,
+        }
+    }
+
+
+SCHOOL_WEIGHTS = {
+    'quant_statistical': 1.4,
+    'digital_structure': 1.0,
+    'wolfwave': 1.2,
+    'astral_cycles': 0.5,
+    'wyckoff': 1.3,
+}
+
+SCHOOL_LABELS = {
+    'quant_statistical': 'المدرسة الكمية والإحصائية',
+    'digital_structure': 'المدرسة الرقمية',
+    'wolfwave': 'مدرسة Wolfwave',
+    'astral_cycles': 'المدرسة الفلكية',
+    'wyckoff': 'نظرية وايكوف',
+}
+
+
+def build_school_explanation(school_key, school_result):
+    """صياغة شرح عربي موجز ومفيد لكل مدرسة تحليلية."""
+    signal = school_result.get('signal', 'hold')
+    confidence = float(school_result.get('confidence', 0) or 0)
+    details = school_result.get('details', {})
+    signal_map = {
+        'buy': 'تميل إلى الشراء',
+        'sell': 'تميل إلى البيع',
+        'hold': 'تميل إلى الحياد',
+    }
+    signal_text = signal_map.get(signal, 'تميل إلى الحياد')
+
+    if not isinstance(details, dict):
+        return f"هذه المدرسة {signal_text} بثقة {confidence:.0f}%، لكن التفاصيل التشغيلية غير متاحة في هذه الدورة."
+
+    if school_key == 'quant_statistical':
+        regime = details.get('regime', 'neutral')
+        z_score = details.get('z_score_20', 0)
+        momentum = details.get('momentum_10_pct', 0)
+        vol_ratio = details.get('volatility_ratio', 1)
+        return (
+            f"تعتمد هذه المدرسة على الانحراف الإحصائي والزخم. الحالة الحالية هي {regime}، "
+            f"وقيمة Z-Score عند {z_score} مع زخم {momentum}% ونسبة تقلب {vol_ratio}. "
+            f"لذلك فهي {signal_text} بثقة {confidence:.0f}%."
+        )
+
+    if school_key == 'digital_structure':
+        bits = details.get('direction_bits', 'غير متاح')
+        bias = details.get('binary_bias', 0)
+        clv = details.get('close_location_value', 0)
+        compression = details.get('compression_ratio', 0)
+        return (
+            f"ترصد هذه المدرسة البنية الرقمية للشموع عبر تسلسل الاتجاهات {bits}. "
+            f"الانحياز الرقمي الحالي {bias} مع تمركز إغلاق {clv} ونسبة ضغط {compression}. "
+            f"بناءً على ذلك فهي {signal_text} بثقة {confidence:.0f}%."
+        )
+
+    if school_key == 'wolfwave':
+        pattern = details.get('pattern', 'none')
+        alignment_error = details.get('alignment_error', 0)
+        pivots = details.get('pivots', [])
+        pivot_count = len(pivots) if isinstance(pivots, list) else 0
+        return (
+            f"تفحص هذه المدرسة التماثل الهندسي لنموذج Wolfe Wave. النمط المكتشف هو {pattern} "
+            f"بخطأ محاذاة {alignment_error} اعتماداً على {pivot_count} نقاط محورية، "
+            f"ولذلك فهي {signal_text} بثقة {confidence:.0f}%."
+        )
+
+    if school_key == 'astral_cycles':
+        cycle_state = details.get('cycle_state', 'neutral')
+        lunar_phase = details.get('lunar_phase_pct', 0)
+        solar_phase = details.get('solar_phase_pct', 0)
+        range_position = details.get('range_position_pct', 0)
+        return (
+            f"تستخدم هذه المدرسة الدورات الزمنية كعامل ترجيح مساعد منخفض الوزن. "
+            f"الحالة الحالية {cycle_state} مع طور قمري {lunar_phase}% وطور موسمي {solar_phase}% "
+            f"وموضع سعري داخل النطاق عند {range_position}%. النتيجة أنها {signal_text} بثقة {confidence:.0f}%."
+        )
+
+    if school_key == 'wyckoff':
+        structure = details.get('structure', 'neutral')
+        range_position = details.get('range_position_pct', 0)
+        close_location = details.get('close_location_pct', 0)
+        return (
+            f"تبحث نظرية وايكوف عن مراحل التجميع والتصريف وإشارات Spring و Upthrust. "
+            f"البنية الحالية {structure} مع تموضع سعري {range_position}% وإغلاق داخل الشمعة {close_location}%. "
+            f"لهذا فهي {signal_text} بثقة {confidence:.0f}%."
+        )
+
+    return f"هذه المدرسة {signal_text} بثقة {confidence:.0f}% وفق تفاصيلها الداخلية الحالية."
+
+
+def enrich_school_result(school_key, school_result):
+    """إضافة حقول عرض جاهزة للواجهة."""
+    result = dict(school_result or {})
+    confidence = float(result.get('confidence', 0) or 0)
+    weight = SCHOOL_WEIGHTS.get(school_key, 1.0)
+    result['label'] = SCHOOL_LABELS.get(school_key, school_key)
+    result['weight'] = weight
+    result['weighted_score'] = round(weight * min(confidence / 100.0, 1.0), 2)
+    result['explanation_ar'] = build_school_explanation(school_key, result)
+    return result
+
 def detect_comprehensive_signals(df, symbol, interval):
     """كشف الإشارات الشامل مع جميع المؤشرات"""
     signals = []
@@ -305,6 +740,38 @@ def detect_comprehensive_signals(df, symbol, interval):
         else:
             sell_score += 0.5
             confidence_factors.append("اتجاه هابط")
+
+    # 10. Advanced Schools
+    school_results = {
+        'quant_statistical': enrich_school_result('quant_statistical', evaluate_quantitative_statistical(df)),
+        'digital_structure': enrich_school_result('digital_structure', evaluate_digital_structure(df)),
+        'wolfwave': enrich_school_result('wolfwave', evaluate_wolfwave(df)),
+        'astral_cycles': enrich_school_result('astral_cycles', evaluate_astral_cycles(df)),
+        'wyckoff': enrich_school_result('wyckoff', evaluate_wyckoff(df)),
+    }
+
+    signals.append("\n" + "="*50)
+    signals.append("🏫 تحليل المدارس الإضافية")
+    signals.append("="*50)
+
+    for school_key, school_result in school_results.items():
+        school_signal = school_result.get('signal', 'hold')
+        school_confidence = float(school_result.get('confidence', 0) or 0)
+        weight = school_result.get('weight', SCHOOL_WEIGHTS.get(school_key, 1.0))
+        score_contribution = school_result.get('weighted_score', round(weight * min(school_confidence / 100.0, 1.0), 2))
+        label = school_result.get('label', SCHOOL_LABELS.get(school_key, school_key))
+
+        if school_signal == 'buy':
+            buy_score += score_contribution
+            confidence_factors.append(label)
+            signals.append(f"🟢 {label}: شراء ({school_confidence:.0f}%) | وزن {weight} | تأثير {score_contribution}")
+        elif school_signal == 'sell':
+            sell_score += score_contribution
+            confidence_factors.append(label)
+            signals.append(f"🔴 {label}: بيع ({school_confidence:.0f}%) | وزن {weight} | تأثير {score_contribution}")
+        else:
+            signals.append(f"⚪ {label}: حياد ({school_confidence:.0f}%) | وزن {weight} | تأثير {score_contribution}")
+        signals.append(f"   └─ {school_result.get('explanation_ar', 'لا يوجد شرح إضافي')}")
     
     # تحديد التوصية
     if buy_score > sell_score:
@@ -643,14 +1110,21 @@ def detect_comprehensive_signals(df, symbol, interval):
         "Score Gap": score_gap,
         "Risk Reward TP1": rr_tp1,
         "Volatility": round(float(volatility), 4),
-        "ATR": round(float(atr_value), 6)
+        "ATR": round(float(atr_value), 6),
+        "Analysis Schools": school_results
     }
     
     return signals, final_recommendation, levels, fib_levels
 
 def perform_full_analysis(symbol, interval, force_live=False):
     """التحليل الكامل المتكامل"""
-    from forex_analyzer import fetch_data, DataFetchError
+    try:
+        from forex_analyzer import fetch_data, DataFetchError
+    except ImportError:
+        return {
+            'success': False,
+            'error': 'لم يتمكن من استيراد وحدة forex_analyzer. تأكد من تثبيتها.'
+        }
     
     try:
         # Fetch data
@@ -722,6 +1196,7 @@ def perform_full_analysis(symbol, interval, force_live=False):
             'risk_reward_tp1': levels.get('Risk Reward TP1', 0),
             'volatility': levels.get('Volatility', 0),
             'atr': levels.get('ATR', 0)
+            , 'analysis_schools': levels.get('Analysis Schools', {})
             , 'warnings': warnings
         }
         

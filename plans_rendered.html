@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>الخطط والأسعار - GOLD PRO</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <style>
+        :root {
+            --gold: #f5c542;
+            --dark-gold: #b68a13;
+            --gold-soft: #fff5d6;
+            --primary: #e3b23c;
+            --dark: #0f172a;
+            --light: #f6f3eb;
+            --panel: #101a2e;
+        }
+        
+        body {
+            background: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--gold) !important;
+            letter-spacing: 1px;
+            font-size: 1.5rem !important;
+            text-shadow: 0 0 8px rgba(245, 197, 66, 0.25);
+        }
+        
+        .dark-navbar .nav-link {
+            color: #f8fafc !important;
+            transition: 0.25s;
+            margin: 0 0.25rem;
+            border-radius: 10px;
+            padding: 0.5rem 0.7rem !important;
+        }
+        
+        .dark-navbar .nav-link:hover {
+            background: rgba(245, 197, 66, 0.12);
+            color: var(--gold) !important;
+        }
+
+        .dark-navbar .nav-link.active {
+            background: rgba(245, 197, 66, 0.2);
+            color: var(--gold) !important;
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.35);
+        }
+
+        .dark-navbar .nav-link.admin-link {
+            color: #ffd27a !important;
+        }
+        
+        .gold-bg {
+            background: linear-gradient(90deg, var(--gold) 0%, #fffbe6 100%);
+        }
+        
+        .dark-navbar {
+            background: linear-gradient(90deg, #0e1627 0%, #15253f 55%, #1a2f4f 100%) !important;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.2);
+        }
+
+        .dark-navbar .navbar-toggler {
+            border-color: rgba(245, 197, 66, 0.45);
+            background: rgba(245, 197, 66, 0.08);
+        }
+
+        .dark-navbar .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(245, 197, 66, 0.25);
+        }
+
+        .dark-navbar .navbar-toggler-icon {
+            filter: brightness(0) invert(1);
+        }
+
+        @media (max-width: 991.98px) {
+            .dark-navbar .navbar-nav {
+                flex-direction: column !important;
+                align-items: stretch;
+                gap: 0.3rem;
+                padding-top: 0.5rem;
+            }
+
+            .dark-navbar .nav-link {
+                width: 100%;
+                margin: 0;
+            }
+
+            .nav-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .nav-tabs .nav-link {
+                white-space: nowrap;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            padding: 2rem 1rem;
+        }
+        
+        .card {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, var(--gold) 0%, var(--dark-gold) 100%);
+            border: none;
+            color: #222;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(90deg, var(--dark-gold) 0%, var(--gold) 100%);
+            color: #000;
+        }
+        
+        .footer {
+            background: linear-gradient(90deg, #0e1627 0%, #15253f 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(245, 197, 66, 0.2);
+        }
+        
+        .alert {
+            border-radius: 1rem;
+            border: none;
+        }
+
+        .support-fab {
+            position: fixed;
+            bottom: 22px;
+            left: 22px;
+            z-index: 1080;
+        }
+
+        .support-fab-btn {
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f6cf74 0%, #d19a28 55%, #9f6f14 100%);
+            color: #1b1204;
+            font-weight: 800;
+            padding: 12px 16px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .support-fab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .support-panel {
+            position: absolute;
+            bottom: 62px;
+            left: 0;
+            width: min(360px, calc(100vw - 30px));
+            background: linear-gradient(180deg, #0e1627 0%, #13203a 60%, #0f172a 100%);
+            color: #f8fafc;
+            border: 1px solid rgba(245, 197, 66, 0.35);
+            border-radius: 16px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+            padding: 14px;
+            display: none;
+        }
+
+        .support-panel.open {
+            display: block;
+        }
+
+        .support-title {
+            margin: 0;
+            color: #f5c542;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .support-subtitle {
+            color: #d6deeb;
+            margin: 6px 0 12px;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .support-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        .support-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            text-decoration: none;
+            color: #f8fafc;
+            background: rgba(245, 197, 66, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.93rem;
+        }
+
+        .support-item:hover {
+            color: #fff;
+            background: rgba(245, 197, 66, 0.14);
+        }
+
+        .support-note {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            color: #b6c2d8;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .support-fab {
+                bottom: 14px;
+                left: 14px;
+            }
+
+            .support-fab-btn {
+                padding: 11px 14px;
+            }
+
+            .support-panel {
+                bottom: 56px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    
+    <nav class="navbar navbar-expand-lg navbar-dark dark-navbar sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">⭐ GOLD PRO</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="تبديل القائمة" aria-label="تبديل القائمة">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto d-flex flex-lg-row flex-wrap"><a class="nav-link" href="/">🏠 الرئيسية</a><a class="nav-link" href="/dashboard">📊 لوحة التحكم</a><a class="nav-link" href="/signals">📈 الإشارات</a><a class="nav-link" href="/trades">💹 الصفقات</a><a class="nav-link" href="/reports">📑 التقارير</a><a class="nav-link active" href="/plans">💰 الخطط</a><a class="nav-link" href="/pairs-selection">🎯 اختيار الأزواج</a><a class="nav-link" href="/profile">👤 الملف الشخصي</a><a class="nav-link" href="/forex-app/strong-signals">📡 التحليل</a><a class="nav-link" href="/login?first=1">🔓 تسجيل الدخول</a><a class="nav-link" href="/register?first=1">✍️ تسجيل جديد</a></div>
+            </div>
+        </div>
+    </nav>
+    
+    
+    <!-- Alerts -->
+    <div class="container">
+        
+            
+        
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container">
+        
+<div class="pricing-page">
+    <section class="pricing-hero">
+        <h1>GOLD PRO FX</h1>
+        <p>خطط الاشتراك المرنة - كلما طالت المدة زاد التوفير</p>
+    </section>
+
+    <section class="pricing-panel">
+        <div class="duration-picker-wrap">
+            <label for="global-duration" class="duration-label">اختر مدة الاشتراك</label>
+            <select id="global-duration" class="duration-picker" aria-label="مدة الاشتراك">
+                <option value="monthly">شهر واحد</option>
+                <option value="quarterly">3 أشهر</option>
+                <option value="semiannual">6 أشهر</option>
+                <option value="annual">12 شهر (سنة)</option>
+            </select>
+        </div>
+
+        <div class="pricing-matrix-wrap">
+            <table class="pricing-matrix">
+                <thead>
+                    <tr>
+                        <th>الخطة</th>
+                        <th>شهر واحد</th>
+                        <th>3 أشهر</th>
+                        <th>6 أشهر</th>
+                        <th>12 شهر (سنة)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bronze / برونزي</td>
+                        <td>$25</td>
+                        <td>$68</td>
+                        <td>$128</td>
+                        <td>$240</td>
+                    </tr>
+                    <tr>
+                        <td>Silver / فضي</td>
+                        <td>$50</td>
+                        <td>$135</td>
+                        <td>$255</td>
+                        <td>$480</td>
+                    </tr>
+                    <tr>
+                        <td>Gold VIP / ذهبي</td>
+                        <td>$100</td>
+                        <td>$270</td>
+                        <td>$510</td>
+                        <td>$960</td>
+                    </tr>
+                    <tr class="platinum-row">
+                        <td>Platinum / بلاتينيوم</td>
+                        <td>$250</td>
+                        <td>$675</td>
+                        <td>$1275</td>
+                        <td>$2400</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="plan-cards">
+            <article class="plan-card" data-plan="bronze">
+                <h3>برونزي</h3>
+                <p class="plan-subtitle">Bronze</p>
+                <div class="plan-price" data-plan-price="bronze">$25</div>
+                <p class="plan-duration" data-plan-duration="bronze">لمدة شهر واحد</p>
+                <ul>
+                    <li>3 إشارات يوميا</li>
+                    <li>جودة عالية ومتوسطة</li>
+                    <li>أزواج فوركس رئيسية</li>
+                </ul>
+                <button class="plan-btn" type="button">اشترك الآن</button>
+            </article>
+
+            <article class="plan-card" data-plan="silver">
+                <h3>فضي</h3>
+                <p class="plan-subtitle">Silver</p>
+                <div class="plan-price" data-plan-price="silver">$50</div>
+                <p class="plan-duration" data-plan-duration="silver">لمدة شهر واحد</p>
+                <ul>
+                    <li>5 إشارات يوميا</li>
+                    <li>تغطية أوسع للأسواق</li>
+                    <li>دعم أولوية</li>
+                </ul>
+                <button class="plan-btn" type="button">اشترك الآن</button>
+            </article>
+
+            <article class="plan-card featured" data-plan="gold">
+                <span class="card-badge">الأكثر طلبا</span>
+                <h3>ذهبي VIP</h3>
+                <p class="plan-subtitle">Gold VIP</p>
+                <div class="plan-price" data-plan-price="gold">$100</div>
+                <p class="plan-duration" data-plan-duration="gold">لمدة شهر واحد</p>
+                <ul>
+                    <li>7 إشارات يوميا</li>
+                    <li>دخول VIP للتحليلات</li>
+                    <li>أولوية عالية في التنبيهات</li>
+                </ul>
+                <button class="plan-btn" type="button">اشترك الآن</button>
+            </article>
+
+            <article class="plan-card platinum" data-plan="platinum">
+                <span class="card-badge">أفضل قيمة</span>
+                <h3>بلاتينيوم</h3>
+                <p class="plan-subtitle">Platinum</p>
+                <div class="plan-price" data-plan-price="platinum">$250</div>
+                <p class="plan-duration" data-plan-duration="platinum">لمدة شهر واحد</p>
+                <ul>
+                    <li>10 إشارات يوميا</li>
+                    <li>دعم VIP مباشر</li>
+                    <li>أولوية قصوى لكل التنبيهات</li>
+                </ul>
+                <button class="plan-btn" type="button">اشترك الآن</button>
+            </article>
+        </div>
+
+        <div class="free-note">
+            <strong>خطة مجانية:</strong>
+            5 إشارات يومية للتجربة.
+            <span>للترقية اختر أي باقة مدفوعة من الأعلى.</span>
+        </div>
+    </div>
+</div>
+
+<style>
+.pricing-page {
+    min-height: calc(100vh - 140px);
+    padding: 26px 12px 40px;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(255, 214, 124, 0.22), rgba(0, 0, 0, 0) 35%),
+        radial-gradient(circle at 90% 90%, rgba(255, 201, 84, 0.18), rgba(0, 0, 0, 0) 40%),
+        linear-gradient(160deg, #090b10 0%, #101520 35%, #0a0d14 100%);
+    border-radius: 18px;
+}
+
+.pricing-hero {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.pricing-hero h1 {
+    margin: 0;
+    font-size: clamp(2.1rem, 4vw, 3.3rem);
+    color: #f7d17a;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(255, 213, 122, 0.25);
+}
+
+.pricing-hero p {
+    margin-top: 10px;
+    color: #f2f2f2;
+    font-size: 1.1rem;
+}
+
+.pricing-panel {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, rgba(17, 20, 30, 0.92), rgba(10, 12, 18, 0.95));
+    border: 1px solid rgba(242, 198, 106, 0.28);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.duration-picker-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.duration-label {
+    color: #f8df9f;
+    font-weight: 700;
+}
+
+.duration-picker {
+    min-width: 220px;
+    background: #161b26;
+    border: 1px solid rgba(243, 202, 113, 0.5);
+    color: #f9f9f9;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.pricing-matrix-wrap {
+    overflow-x: auto;
+    margin-bottom: 18px;
+}
+
+.pricing-matrix {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.pricing-matrix th,
+.pricing-matrix td {
+    border: 1px solid rgba(241, 199, 105, 0.2);
+    padding: 12px 10px;
+    text-align: center;
+    color: #f4f4f4;
+}
+
+.pricing-matrix thead th {
+    background: linear-gradient(180deg, rgba(241, 199, 105, 0.25), rgba(241, 199, 105, 0.08));
+    color: #f9d98b;
+    font-weight: 700;
+}
+
+.pricing-matrix tbody tr:hover {
+    background: rgba(241, 199, 105, 0.08);
+}
+
+.pricing-matrix .platinum-row {
+    background: linear-gradient(90deg, rgba(231, 239, 255, 0.06), rgba(203, 226, 255, 0.03));
+}
+
+.plan-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.plan-card {
+    position: relative;
+    background: linear-gradient(170deg, rgba(28, 33, 48, 0.95), rgba(14, 18, 29, 0.95));
+    border: 1px solid rgba(242, 199, 104, 0.26);
+    border-radius: 16px;
+    padding: 16px 14px;
+    color: #ededed;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
+}
+
+.plan-card h3 {
+    margin: 0;
+    color: #ffd178;
+    font-size: 1.35rem;
+}
+
+.plan-subtitle {
+    margin: 3px 0 8px;
+    color: #b8c0d4;
+    font-size: 0.92rem;
+}
+
+.plan-price {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff1c6;
+    line-height: 1;
+}
+
+.plan-duration {
+    margin: 8px 0 12px;
+    color: #d0d7eb;
+    font-size: 0.9rem;
+}
+
+.plan-card ul {
+    margin: 0 0 14px;
+    padding-right: 18px;
+    font-size: 0.93rem;
+}
+
+.plan-card li {
+    margin-bottom: 6px;
+}
+
+.card-badge {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: linear-gradient(90deg, #f4cc77, #d8a83f);
+    color: #2f240a;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+}
+
+.plan-card.featured {
+    border-color: rgba(253, 214, 133, 0.6);
+}
+
+.plan-card.platinum {
+    border-color: rgba(210, 226, 255, 0.55);
+    background: linear-gradient(170deg, rgba(38, 45, 61, 0.95), rgba(15, 20, 32, 0.95));
+}
+
+.plan-btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: linear-gradient(90deg, #f3c971, #d49f2e);
+    color: #2b210c;
+    font-weight: 800;
+    transition: filter 0.2s ease;
+}
+
+.plan-btn:hover {
+    filter: brightness(1.06);
+}
+
+.free-note {
+    margin-top: 16px;
+    color: #ced5e5;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.free-note strong {
+    color: #f6d389;
+}
+
+.free-note span {
+    display: block;
+    margin-top: 4px;
+}
+
+@media (max-width: 1100px) {
+    .plan-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .pricing-panel {
+        padding: 14px;
+    }
+
+    .plan-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .plan-price {
+        font-size: 1.8rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const planPrices = {
+        bronze: { monthly: 25, quarterly: 68, semiannual: 128, annual: 240 },
+        silver: { monthly: 50, quarterly: 135, semiannual: 255, annual: 480 },
+        gold: { monthly: 100, quarterly: 270, semiannual: 510, annual: 960 },
+        platinum: { monthly: 250, quarterly: 675, semiannual: 1275, annual: 2400 }
+    };
+
+    const durationLabels = {
+        monthly: 'لمدة شهر واحد',
+        quarterly: 'لمدة 3 أشهر',
+        semiannual: 'لمدة 6 أشهر',
+        annual: 'لمدة سنة كاملة'
+    };
+
+    const buttons = document.querySelectorAll('.plan-btn');
+    const durationSelect = document.getElementById('global-duration');
+    let currentUser = null;
+
+    function updateCardPrices() {
+        const selectedDuration = durationSelect ? durationSelect.value : 'monthly';
+        document.querySelectorAll('[data-plan-price]').forEach((el) => {
+            const plan = el.getAttribute('data-plan-price');
+            if (planPrices[plan] && planPrices[plan][selectedDuration] !== undefined) {
+                el.textContent = `$${planPrices[plan][selectedDuration]}`;
+            }
+        });
+        document.querySelectorAll('[data-plan-duration]').forEach((el) => {
+            el.textContent = durationLabels[selectedDuration] || '';
+        });
+    }
+
+    if (durationSelect) {
+        durationSelect.addEventListener('change', updateCardPrices);
+        updateCardPrices();
+    }
+
+    try {
+        const res = await fetch('/api/user');
+        if (res.ok) {
+            currentUser = await res.json();
+        }
+    } catch (e) { /* ignore */ }
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const card = btn.closest('.plan-card');
+            const plan = card?.getAttribute('data-plan');
+            if (!plan) return;
+
+            if (!currentUser || !currentUser.success) {
+                alert('يجب تسجيل الدخول بحسابك الحالي لإتمام الترقية.');
+                window.location.href = '/login?first=1';
+                return;
+            }
+
+            if (currentUser.plan && currentUser.plan.toLowerCase() === plan.toLowerCase()) {
+                alert('أنت بالفعل على هذه الخطة.');
+                return;
+            }
+
+            const durationKey = durationSelect ? durationSelect.value : 'monthly';
+            window.location.href = `/select_location/${plan}?duration=${durationKey}`;
+        });
+    });
+});
+</script>
+
+    </div>
+
+    
+    
+    
+    
+    
+
+    <div class="support-fab" id="supportFab">
+        <button type="button" class="support-fab-btn" id="supportFabBtn" aria-label="فتح الدعم والمساعدة" title="الدعم والمساعدة">
+            <span>💬</span>
+            <span>الدعم والمساعدة</span>
+        </button>
+        <aside class="support-panel" id="supportPanel" aria-live="polite">
+            <h3 class="support-title">كيف نساعدك؟</h3>
+            <p class="support-subtitle">اختر الطريقة المناسبة للتواصل معنا أو الوصول السريع لأهم الصفحات.</p>
+            <div class="support-grid">
+                <a class="support-item" href="https://wa.me/00962770078321" target="_blank" rel="noopener noreferrer">
+                    <span>📱 واتساب الدعم</span>
+                    <span>↗</span>
+                </a>
+                <a class="support-item" href="mailto:admin.support@example.com" target="_blank" rel="noopener noreferrer">
+                    <span>📨 تليجرام الدعم</span>
+                    <span>↗</span>
+                </a>
+                <a class="support-item" href="mailto:admin.support@example.com?subject=GOLD%20PRO%20Support%20Request">
+                    <span>✉️ البريد الإلكتروني</span>
+                    <span>↗</span>
+                </a>
+                <a class="support-item" href="/plans">
+                    <span>💳 صفحة الخطط والأسعار</span>
+                    <span>↗</span>
+                </a>
+                <a class="support-item" href="/profile">
+                    <span>👤 إدارة الحساب</span>
+                    <span>↗</span>
+                </a>
+            </div>
+            <div class="support-note">متوفرون يوميا للرد على استفسارات الاشتراك والتفعيل والدفع.</div>
+        </aside>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 GOLD PRO - جميع الحقوق محفوظة</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const fab = document.getElementById('supportFab');
+            const btn = document.getElementById('supportFabBtn');
+            const panel = document.getElementById('supportPanel');
+            if (!fab || !btn || !panel) {
+                return;
+            }
+
+            btn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                panel.classList.toggle('open');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!fab.contains(event.target)) {
+                    panel.classList.remove('open');
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    panel.classList.remove('open');
+                }
+            });
+        })();
+    </script>
+    
+</body>
+</html>

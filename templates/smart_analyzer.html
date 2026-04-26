@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}الإشارات القوية - GOLD PRO{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --smart-bg: #0b0907;
+        --smart-surface: rgba(30, 22, 15, 0.82);
+        --smart-surface-alt: rgba(39, 28, 18, 0.94);
+        --smart-line: rgba(232, 191, 96, 0.18);
+        --smart-line-strong: rgba(242, 206, 118, 0.34);
+        --smart-text: #f9efd3;
+        --smart-muted: #ccb98d;
+        --smart-primary: #d4a53c;
+        --smart-primary-strong: #f0c96c;
+        --smart-accent: #ffe29f;
+        --smart-danger: #ff8c42;
+        --smart-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    }
+
+    body {
+        background:
+            radial-gradient(circle at top right, rgba(240, 201, 108, 0.12), transparent 21%),
+            radial-gradient(circle at bottom left, rgba(212, 165, 60, 0.10), transparent 24%),
+            linear-gradient(180deg, #0a0806 0%, #120d09 44%, #0d0906 100%);
+    }
+
+    .smart-shell {
+        display: grid;
+        gap: 1.2rem;
+        color: var(--smart-text);
+    }
+
+    .smart-hero,
+    .smart-block,
+    .smart-card {
+        background: linear-gradient(180deg, rgba(37, 28, 19, 0.88), rgba(19, 14, 10, 0.92));
+        border: 1px solid var(--smart-line);
+        box-shadow: var(--smart-shadow);
+        border-radius: 28px;
+    }
+
+    .smart-hero,
+    .smart-block {
+        padding: 24px;
+    }
+
+    .smart-eyebrow,
+    .smart-pill,
+    .smart-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .smart-eyebrow,
+    .smart-pill {
+        background: rgba(232, 191, 96, 0.10);
+        color: var(--smart-primary-strong);
+        border: 1px solid rgba(255, 222, 138, 0.16);
+    }
+
+    .smart-title {
+        margin: 14px 0 8px;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        color: #fff7e2;
+        font-weight: 800;
+    }
+
+    .smart-muted {
+        color: var(--smart-muted);
+        line-height: 1.9;
+        margin: 0;
+    }
+
+    .smart-form {
+        display: grid;
+        grid-template-columns: 1.2fr 0.7fr auto;
+        gap: 12px;
+        margin-top: 18px;
+        align-items: end;
+    }
+
+    .smart-field {
+        display: grid;
+        gap: 8px;
+    }
+
+    .smart-label {
+        font-size: 0.92rem;
+        color: #f4dca1;
+        font-weight: 700;
+    }
+
+    .smart-input,
+    .smart-select,
+    .smart-button {
+        font: inherit;
+        border-radius: 14px;
+    }
+
+    .smart-input,
+    .smart-select {
+        width: 100%;
+        padding: 13px 14px;
+        background: rgba(17, 12, 8, 0.84);
+        color: var(--smart-text);
+        border: 1px solid rgba(232, 191, 96, 0.22);
+    }
+
+    .smart-button {
+        border: none;
+        cursor: pointer;
+        padding: 13px 18px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+        color: #1a1209;
+    }
+
+    .smart-summary {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .smart-card {
+        padding: 18px;
+    }
+
+    .smart-card-label {
+        display: block;
+        color: var(--smart-muted);
+        margin-bottom: 8px;
+        font-size: 0.92rem;
+    }
+
+    .smart-value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--smart-accent);
+    }
+
+    .smart-filter-row,
+    .smart-toolbar,
+    .smart-signal-head,
+    .smart-meta,
+    .smart-tags {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .smart-filter-row,
+    .smart-toolbar {
+        margin-bottom: 18px;
+    }
+
+    .smart-filter-chip {
+        border: 1px solid var(--smart-line);
+        background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+        color: var(--smart-text);
+        border-radius: 999px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+    .smart-filter-chip.active {
+        background: linear-gradient(135deg, #f3d37f 0%, #d4a53c 50%, #9f7622 100%);
+        color: #1a1209;
+    }
+
+    .smart-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .smart-signal {
+        background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+        border: 1px solid var(--smart-line);
+        border-radius: 24px;
+        padding: 18px;
+    }
+
+    .smart-signal-title {
+        margin: 0;
+        color: #fff6db;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .smart-buy { color: #f4d27c; }
+    .smart-sell { color: #ffad5c; }
+
+    .smart-badge {
+        background: rgba(232, 191, 96, 0.10);
+        color: var(--smart-primary-strong);
+        border: 1px solid rgba(255, 222, 138, 0.16);
+    }
+
+    .smart-spotlight {
+        background: linear-gradient(135deg, #f7df9a 0%, #e3b654 48%, #9f7622 100%);
+        color: #1a1209;
+    }
+
+    .smart-kv {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+        color: var(--smart-muted);
+        line-height: 1.8;
+    }
+
+    .smart-empty,
+    .smart-error {
+        padding: 20px;
+        border-radius: 20px;
+        border: 1px solid var(--smart-line);
+        text-align: center;
+    }
+
+    .smart-error {
+        background: linear-gradient(180deg, rgba(61, 25, 14, 0.94), rgba(39, 16, 9, 0.98));
+        border-color: rgba(255, 140, 66, 0.24);
+        color: #ffd0b0;
+    }
+
+    .smart-empty {
+        background: linear-gradient(180deg, rgba(43, 31, 20, 0.82), rgba(22, 16, 11, 0.94));
+        color: var(--smart-muted);
+    }
+
+    @media (max-width: 1100px) {
+        .smart-summary,
+        .smart-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 760px) {
+        .smart-form,
+        .smart-summary,
+        .smart-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="smart-shell">
+    <section class="smart-hero">
+        <div class="smart-eyebrow">محرك الإشارات القوية</div>
+        <h1 class="smart-title">صفحة الإشارات القوية</h1>
+        <p class="smart-muted">هذه الصفحة تعمل بالكامل داخل GOLD PRO وتعتمد على محرك التحليل الحالي في الموقع، دون تحويل خارجي أو iframe ودون تعديل صفحة المحلل المتقدم الأصلية.</p>
+
+        <form class="smart-form" id="smart-form">
+            <div class="smart-field">
+                <label class="smart-label" for="smart-symbol">الرمز</label>
+                <input class="smart-input" id="smart-symbol" name="symbol" value="{{ selected_symbol }}" placeholder="ALL أو EUR/USD">
+            </div>
+            <div class="smart-field">
+                <label class="smart-label" for="smart-interval">الإطار الزمني</label>
+                <select class="smart-select" id="smart-interval" name="interval">
+                    {% for option in ['1min', '5min', '15min', '30min', '1h', '4h', '1day'] %}
+                    <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="smart-button" type="submit">تشغيل الفحص</button>
+        </form>
+    </section>
+
+    <section class="smart-block">
+        <div class="smart-toolbar">
+            <div class="smart-pill" id="smart-status-chip">جاهز للفحص</div>
+            <div class="smart-muted" id="smart-generated-at">-</div>
+        </div>
+
+        <div class="smart-summary" id="smart-summary"></div>
+    </section>
+
+    <section class="smart-block">
+        <div class="smart-filter-row" id="smart-filter-row"></div>
+        <div id="smart-feedback"></div>
+        <div class="smart-grid" id="smart-signals-grid"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('smart-form');
+    const summary = document.getElementById('smart-summary');
+    const grid = document.getElementById('smart-signals-grid');
+    const feedback = document.getElementById('smart-feedback');
+    const filterRow = document.getElementById('smart-filter-row');
+    const statusChip = document.getElementById('smart-status-chip');
+    const generatedAt = document.getElementById('smart-generated-at');
+
+    let latestPayload = null;
+    let activeCategory = 'ALL';
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function renderSummary(data) {
+        summary.innerHTML = `
+            <article class="smart-card"><span class="smart-card-label">نطاق الفحص</span><div class="smart-value">${escapeHtml(data.symbol_label || data.symbol)}</div></article>
+            <article class="smart-card"><span class="smart-card-label">الإطار الزمني</span><div class="smart-value">${escapeHtml(data.interval)}</div></article>
+            <article class="smart-card"><span class="smart-card-label">الرموز المفحوصة</span><div class="smart-value">${escapeHtml(data.scanned_symbols)}</div></article>
+            <article class="smart-card"><span class="smart-card-label">الإشارات المطابقة</span><div class="smart-value">${escapeHtml(data.matched_signals)}</div></article>
+        `;
+        generatedAt.textContent = `آخر تحديث: ${data.generated_at || '-'}`;
+        statusChip.textContent = data.scan_errors?.length ? `مكتمل مع ${data.scan_errors.length} أخطاء` : 'اكتمل الفحص';
+    }
+
+    function renderFilters(data) {
+        const categories = ['ALL', ...(data.categories || [])];
+        filterRow.innerHTML = categories.map((category) => `
+            <button type="button" class="smart-filter-chip ${category === activeCategory ? 'active' : ''}" data-category="${escapeHtml(category)}">
+                ${category === 'ALL' ? 'كل الفئات' : escapeHtml(category)}
+            </button>
+        `).join('');
+
+        filterRow.querySelectorAll('.smart-filter-chip').forEach((button) => {
+            button.addEventListener('click', () => {
+                activeCategory = button.dataset.category;
+                renderFilters(latestPayload);
+                renderSignals(latestPayload);
+            });
+        });
+    }
+
+    function signalClass(recommendation) {
+        return recommendation.includes('شراء') ? 'smart-buy' : 'smart-sell';
+    }
+
+    function renderSignals(data) {
+        const allSignals = data.signals || [];
+        const signals = activeCategory === 'ALL'
+            ? allSignals
+            : allSignals.filter((signal) => signal.category === activeCategory);
+
+        if (!signals.length) {
+            grid.innerHTML = '<div class="smart-empty">لا توجد إشارات قوية ضمن الفلتر الحالي.</div>';
+            return;
+        }
+
+        grid.innerHTML = signals.map((signal, index) => `
+            <article class="smart-signal">
+                <div class="smart-signal-head">
+                    <div>
+                        <h3 class="smart-signal-title">${escapeHtml(signal.symbol_label)}</h3>
+                        <div class="smart-meta">
+                            <span class="smart-badge">${escapeHtml(signal.symbol)}</span>
+                            <span class="smart-badge">${escapeHtml(signal.category)}</span>
+                            ${index === 0 ? '<span class="smart-badge smart-spotlight">الأفضل الآن</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="smart-value ${signalClass(signal.recommendation)}">${escapeHtml(signal.recommendation)}</div>
+                </div>
+
+                <div class="smart-kv">
+                    <div><strong>الشراء:</strong> ${escapeHtml(signal.buy_score)} | <strong>البيع:</strong> ${escapeHtml(signal.sell_score)} | <strong>فارق القوة:</strong> ${escapeHtml(signal.score_gap)}</div>
+                    <div><strong>الدخول:</strong> ${escapeHtml(signal.entry_price)} | <strong>SL:</strong> ${escapeHtml(signal.stop_loss)}</div>
+                    <div><strong>TP1:</strong> ${escapeHtml(signal.take_profit1)} | <strong>TP2:</strong> ${escapeHtml(signal.take_profit2)} | <strong>TP3:</strong> ${escapeHtml(signal.take_profit3)}</div>
+                    <div><strong>الثقة:</strong> ${escapeHtml(signal.confidence || '-')} | <strong>ATR:</strong> ${escapeHtml(signal.atr || '-')} | <strong>التذبذب:</strong> ${escapeHtml(signal.volatility || '-')}</div>
+                    <div><strong>الدعم:</strong> ${escapeHtml(signal.support || '-')} | <strong>Pivot:</strong> ${escapeHtml(signal.pivot || '-')} | <strong>المقاومة:</strong> ${escapeHtml(signal.resistance || '-')}</div>
+                    <div><strong>ملخص:</strong> ${escapeHtml((signal.signals_list || []).slice(0, 3).join(' | ') || signal.explanation || 'لا يوجد')}</div>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    function renderErrors(data) {
+        if (!data.scan_errors?.length) {
+            feedback.innerHTML = '';
+            return;
+        }
+
+        feedback.innerHTML = `
+            <div class="smart-error">
+                <strong>أخطاء الفحص:</strong>
+                <div style="margin-top:10px; line-height:1.9;">
+                    ${data.scan_errors.slice(0, 8).map((item) => `${escapeHtml(item.symbol)}: ${escapeHtml(item.error)}`).join('<br>')}
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadSignals(symbol, interval) {
+        statusChip.textContent = 'جاري الفحص...';
+        generatedAt.textContent = '-';
+        feedback.innerHTML = '';
+        grid.innerHTML = '';
+        summary.innerHTML = '';
+
+        try {
+            const url = new URL('/api/strong-signals', window.location.origin);
+            url.searchParams.set('symbol', symbol);
+            url.searchParams.set('interval', interval);
+            const response = await fetch(url);
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'تعذر تحميل الإشارات القوية');
+            }
+
+            latestPayload = data;
+            activeCategory = 'ALL';
+            renderSummary(data);
+            renderFilters(data);
+            renderErrors(data);
+            renderSignals(data);
+        } catch (error) {
+            summary.innerHTML = '';
+            filterRow.innerHTML = '';
+            grid.innerHTML = '';
+            feedback.innerHTML = `<div class="smart-error">${escapeHtml(error.message)}</div>`;
+            statusChip.textContent = 'فشل الفحص';
+        }
+    }
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        loadSignals(formData.get('symbol') || 'ALL', formData.get('interval') || '1h');
+    });
+
+    loadSignals('{{ selected_symbol }}', '{{ selected_interval }}');
+</script>
+{% endblock %}

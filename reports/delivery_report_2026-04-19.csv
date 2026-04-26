@@ -1,0 +1,6 @@
+﻿date,2026-04-19
+
+user_id,plan,content_type,quality_score,quality_bucket,status,reason,sent_at
+
+summary_by_plan
+plan,status,count

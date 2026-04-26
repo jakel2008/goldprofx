@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GoldPro FX</string>
+    <string name="title_activity_main">GoldPro FX</string>
+    <string name="package_name">com.goldprofx.app</string>
+    <string name="custom_url_scheme">com.goldprofx.app</string>
+</resources>

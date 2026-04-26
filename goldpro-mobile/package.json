@@ -1,0 +1,19 @@
+{
+  "name": "goldpro-mobile",
+  "version": "1.0.0",
+  "description": "GoldPro FX Mobile App",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo No build step needed",
+    "sync": "npx cap sync android",
+    "open": "npx cap open android"
+  },
+  "keywords": [],
+  "author": "GoldPro",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1"
+  }
+}

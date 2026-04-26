@@ -5167,6 +5167,7 @@ def _refresh_active_signal_statuses(lookback_days=None):
 
             update_item = {
                 'signal_id': row['signal_id'],
+                'symbol': _normalize_symbol_key(row['symbol']),
                 'current_price': current_price,
                 'close_status': None,
                 'close_result': None,
@@ -5176,7 +5177,6 @@ def _refresh_active_signal_statuses(lookback_days=None):
                 'set_tp3_locked': None,
                 'set_stop_loss': None,
                 'set_result': None
-                        update_item['symbol'] = _normalize_symbol_key(row['symbol'])
             }
 
             signal_type = _normalize_signal_type(row['signal_type'])
@@ -10262,7 +10262,6 @@ def api_update_status():
 # ============== نهاية API للتحديث التلقائي ==============
 
 
-def _auto_start_background_services_for_wsgi():
 # ============== API الإشعارات ==============
 
 @app.route('/api/notifications')

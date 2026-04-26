@@ -368,7 +368,10 @@
                 <div class="notif-dropdown" id="notifDropdown">
                     <div class="notif-header">
                         <span>🔔 الإشعارات</span>
-                        <span id="notifUnreadLabel"></span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button id="notifEnableBtn" type="button" style="background:none;border:1px solid rgba(245,197,66,.45);color:#f5c542;border-radius:8px;padding:2px 8px;font-size:.72rem;cursor:pointer;">تفعيل</button>
+                            <span id="notifUnreadLabel"></span>
+                        </div>
                     </div>
                     <div class="notif-list" id="notifList">
                         <div class="notif-empty">لا توجد إشعارات</div>
@@ -504,12 +507,90 @@
                 const dropdown = document.getElementById('notifDropdown');
                 const list = document.getElementById('notifList');
                 const unreadLabel = document.getElementById('notifUnreadLabel');
-                if (!bellBtn || !badge || !dropdown || !list || !unreadLabel) {
+                const enableBtn = document.getElementById('notifEnableBtn');
+                if (!bellBtn || !badge || !dropdown || !list || !unreadLabel || !enableBtn) {
                     return;
                 }
 
                 let lastSeenNotificationId = 0;
-                let hasNotificationPermissionAsked = false;
+
+                function isCapacitorRuntime() {
+                    return !!(window.Capacitor && window.Capacitor.Plugins);
+                }
+
+                function getLocalNotificationsPlugin() {
+                    if (!isCapacitorRuntime()) {
+                        return null;
+                    }
+                    return window.Capacitor.Plugins.LocalNotifications || null;
+                }
+
+                function setEnableBtnState(enabled, label) {
+                    enableBtn.textContent = label || (enabled ? 'مفعل' : 'تفعيل');
+                    enableBtn.style.opacity = enabled ? '0.85' : '1';
+                }
+
+                async function requestNotificationPermissionByUserAction() {
+                    // 1) مسار Capacitor (موبايل حقيقي)
+                    const localNotifications = getLocalNotificationsPlugin();
+                    if (localNotifications) {
+                        try {
+                            const perm = await localNotifications.requestPermissions();
+                            const granted = (perm && (perm.display === 'granted' || perm.receive === 'granted'));
+                            if (granted) {
+                                localStorage.setItem('gp_notif_enabled', '1');
+                                setEnableBtnState(true, 'مفعل');
+                                return true;
+                            }
+                        } catch (e) {
+                            console.log('Capacitor notification permission failed', e);
+                        }
+                    }
+
+                    // 2) مسار المتصفح/WebView
+                    if (!('Notification' in window)) {
+                        setEnableBtnState(false, 'غير مدعوم');
+                        return false;
+                    }
+
+                    try {
+                        if (Notification.permission === 'granted') {
+                            localStorage.setItem('gp_notif_enabled', '1');
+                            setEnableBtnState(true, 'مفعل');
+                            return true;
+                        }
+
+                        const result = await Notification.requestPermission();
+                        const granted = result === 'granted';
+                        localStorage.setItem('gp_notif_enabled', granted ? '1' : '0');
+                        setEnableBtnState(granted, granted ? 'مفعل' : 'مرفوض');
+                        return granted;
+                    } catch (e) {
+                        console.log('Browser notification permission failed', e);
+                        setEnableBtnState(false, 'خطأ');
+                        return false;
+                    }
+                }
+
+                async function showCapacitorLocalNotification(title, body) {
+                    const localNotifications = getLocalNotificationsPlugin();
+                    if (!localNotifications) {
+                        return;
+                    }
+                    try {
+                        const now = Date.now();
+                        await localNotifications.schedule({
+                            notifications: [{
+                                id: Number(String(now).slice(-9)),
+                                title: title || 'GOLD PRO',
+                                body: body || '',
+                                schedule: { at: new Date(now + 250) }
+                            }]
+                        });
+                    } catch (e) {
+                        console.log('Capacitor local notification failed', e);
+                    }
+                }
 
                 function updateBadge(unread) {
                     if (unread > 0) {
@@ -542,18 +623,21 @@
                     if (!newItems || newItems.length === 0) {
                         return;
                     }
-                    if (!('Notification' in window)) {
+                    const enabled = localStorage.getItem('gp_notif_enabled') === '1';
+                    if (!enabled) {
                         return;
                     }
-                    if (Notification.permission === 'default' && !hasNotificationPermissionAsked) {
-                        hasNotificationPermissionAsked = true;
-                        Notification.requestPermission().catch(function () {});
-                        return;
-                    }
-                    if (Notification.permission !== 'granted') {
-                        return;
-                    }
+
                     newItems.forEach(function (n) {
+                        if (getLocalNotificationsPlugin()) {
+                            showCapacitorLocalNotification(n.title || 'GOLD PRO', n.body || '');
+                            return;
+                        }
+
+                        if (!('Notification' in window) || Notification.permission !== 'granted') {
+                            return;
+                        }
+
                         try {
                             const notification = new Notification(n.title || 'GOLD PRO', {
                                 body: n.body || '',
@@ -610,6 +694,11 @@
                     }
                 });
 
+                enableBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    requestNotificationPermissionByUserAction();
+                });
+
                 document.addEventListener('click', function (event) {
                     const wrap = document.getElementById('notifWrap');
                     if (wrap && !wrap.contains(event.target)) {
@@ -619,6 +708,26 @@
 
                 fetchNotifications();
                 setInterval(fetchNotifications, 12000);
+
+                // تهيئة زر التفعيل حسب الحالة الحالية
+                (function initEnableState() {
+                    if (localStorage.getItem('gp_notif_enabled') === '1') {
+                        setEnableBtnState(true, 'مفعل');
+                        return;
+                    }
+                    if (isCapacitorRuntime()) {
+                        setEnableBtnState(false, 'تفعيل');
+                        return;
+                    }
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        localStorage.setItem('gp_notif_enabled', '1');
+                        setEnableBtnState(true, 'مفعل');
+                    } else if ('Notification' in window && Notification.permission === 'denied') {
+                        setEnableBtnState(false, 'مرفوض');
+                    } else {
+                        setEnableBtnState(false, 'تفعيل');
+                    }
+                })();
             })();
         </script>
     {% block scripts %}{% endblock %}

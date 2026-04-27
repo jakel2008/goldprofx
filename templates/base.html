@@ -512,7 +512,13 @@
                     return;
                 }
 
-                let lastSeenNotificationId = 0;
+                function getLastSeenNotificationId() {
+                    return Number(localStorage.getItem('gp_last_notif_id') || '0');
+                }
+
+                function setLastSeenNotificationId(id) {
+                    localStorage.setItem('gp_last_notif_id', String(id));
+                }
 
                 function isCapacitorRuntime() {
                     return !!(window.Capacitor && window.Capacitor.Plugins);
@@ -660,12 +666,13 @@
                         updateBadge(unread);
 
                         if (items.length > 0) {
+                            let lastSeenNotificationId = getLastSeenNotificationId();
                             if (!lastSeenNotificationId) {
-                                lastSeenNotificationId = items[0].id;
+                                setLastSeenNotificationId(items[0].id);
                             } else if (items[0].id > lastSeenNotificationId) {
                                 const newItems = items.filter(function (n) { return n.id > lastSeenNotificationId; });
                                 maybeNotifyBrowser(newItems.reverse());
-                                lastSeenNotificationId = items[0].id;
+                                setLastSeenNotificationId(items[0].id);
                             }
                         }
                     } catch (e) {

@@ -137,6 +137,7 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
+app.permanent_session_lifetime = timedelta(days=30)
 
 MOBILE_DOWNLOADS_DIR = Path(__file__).parent / 'static' / 'downloads'
 ANDROID_APK_FILENAME = os.environ.get('ANDROID_APK_FILENAME', 'goldprofx-android.apk').strip() or 'goldprofx-android.apk'
@@ -5948,6 +5949,7 @@ def login():
                     )
                 except Exception:
                     pass
+                session.permanent = True
                 session['session_token'] = result['session_token']
                 session['user_id'] = result['user_id']
                 print(f"[LOGIN] Session set successfully for user_id: {result['user_id']}")

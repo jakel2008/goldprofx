@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الإدارة | {{ store.name }}{% endblock %}
+
+{% block content %}
+<section class="admin-page shell">
+    <div class="section-heading">
+        <span>إدارة المتجر</span>
+        <h2>المنتجات والطلبات في مكان واحد</h2>
+        <p>يمكنك من هنا إضافة منتج جديد، تعديل المنتجات الحالية، ومتابعة الطلبات الواردة من الزوار.</p>
+    </div>
+
+    <datalist id="subcategory-options">
+        {% for department in departments %}
+            {% for subcategory in department.subcategories %}
+            <option value="{{ subcategory }}">
+            {% endfor %}
+        {% endfor %}
+    </datalist>
+
+    <div class="admin-grid">
+        <section class="detail-block">
+            <h3>إضافة منتج جديد</h3>
+            <form action="{{ url_for('admin_create_product') }}" method="post" enctype="multipart/form-data" class="stack-form">
+                <div class="form-grid two-columns">
+                    <div>
+                        <label class="field-label">اسم المنتج</label>
+                        <input class="text-input" name="name" title="اسم المنتج" required>
+                    </div>
+                    <div>
+                        <label class="field-label">المعرف المختصر</label>
+                        <input class="text-input" name="slug" title="المعرف المختصر" placeholder="يولد تلقائيًا من الاسم">
+                    </div>
+                    <div>
+                        <label class="field-label">القسم الرئيسي</label>
+                        <select class="text-input" name="department" title="القسم الرئيسي" required>
+                            {% for department in departments %}
+                            <option value="{{ department.slug }}">{{ department.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">القسم الفرعي</label>
+                        <input class="text-input" name="subcategory" title="القسم الفرعي" list="subcategory-options" required>
+                    </div>
+                    <div>
+                        <label class="field-label">التصنيف</label>
+                        <input class="text-input" name="category" title="التصنيف" required>
+                    </div>
+                    <div>
+                        <label class="field-label">الشارة</label>
+                        <input class="text-input" name="badge" title="الشارة" value="جديد">
+                    </div>
+                    <div>
+                        <label class="field-label">السعر الحالي</label>
+                        <input class="text-input" type="number" step="0.01" name="price" title="السعر الحالي" required>
+                    </div>
+                    <div>
+                        <label class="field-label">السعر السابق</label>
+                        <input class="text-input" type="number" step="0.01" name="old_price" title="السعر السابق" required>
+                    </div>
+                    <div>
+                        <label class="field-label">التقييم</label>
+                        <input class="text-input" type="number" step="0.1" name="rating" title="التقييم" value="4.5" required>
+                    </div>
+                    <div>
+                        <label class="field-label">حالة المخزون</label>
+                        <input class="text-input" name="stock" title="حالة المخزون" value="متوفر">
+                    </div>
+                </div>
+
+                <label class="field-label">وصف مختصر</label>
+                <textarea class="text-input" name="summary" title="وصف مختصر" rows="2" required></textarea>
+
+                <label class="field-label">الوصف الكامل</label>
+                <textarea class="text-input" name="description" title="الوصف الكامل" rows="4" required></textarea>
+
+                <label class="field-label">المزايا، كل سطر ميزة مستقلة</label>
+                <textarea class="text-input" name="features" title="مزايا المنتج" rows="4" required></textarea>
+
+                <label class="field-label">صور المنتج</label>
+                <input class="text-input file-input" type="file" name="images" title="صور المنتج" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+                <p class="muted-line">يمكنك اختيار عدة صور مرة واحدة، وسيتم عرضها كمعرض تلقائي داخل صفحة المنتج.</p>
+
+                <label class="checkbox-row"><input type="checkbox" name="is_featured"> اجعل هذا المنتج مميزًا</label>
+                <button class="btn btn-primary" type="submit">إضافة المنتج</button>
+            </form>
+        </section>
+
+        <section class="detail-block">
+            <h3>الطلبات</h3>
+            <div class="admin-orders">
+                {% if orders %}
+                    {% for order in orders %}
+                    <article class="order-card">
+                        <div class="order-top">
+                            <div>
+                                <strong>طلب #{{ order.id }}</strong>
+                                <p>{{ order.customer_name }} | {{ order.phone }}</p>
+                            </div>
+                            <div class="order-status">{{ order.order_status_label }}</div>
+                        </div>
+                        <p>{{ order.email }}</p>
+                        <p>المدينة: {{ order.city or '-' }}</p>
+                        <p>{{ order.address }}</p>
+                        <p>قناة التواصل: {{ order.contact_label }}</p>
+                        {% if order.contact_window %}<p>وقت التواصل: {{ order.contact_window }}</p>{% endif %}
+                        <p>طريقة التوصيل: {{ order.delivery_label }} | رسوم التوصيل: {{ order.delivery_fee }} {{ store.currency }}</p>
+                        <p>حالة التوصيل: {{ order.delivery_status_label }} {% if order.tracking_code %}| رقم التتبع: {{ order.tracking_code }}{% endif %}</p>
+                        {% if order.notes %}<p>ملاحظات: {{ order.notes }}</p>{% endif %}
+                        <ul class="feature-list feature-list-dark">
+                            {% for item in order['items'] %}
+                            <li>{{ item.product_name }} × {{ item.quantity }} = {{ item.line_total }} {{ store.currency }}</li>
+                            {% endfor %}
+                        </ul>
+                        <div class="order-actions">
+                            <strong>الإجمالي {{ order.total_amount }} {{ store.currency }}</strong>
+                            <form action="{{ url_for('admin_update_order_status', order_id=order.id) }}" method="post" class="inline-form">
+                                <select class="text-input small-input" name="status" title="حالة الطلب">
+                                    <option value="new" {% if order.status == 'new' %}selected{% endif %}>new</option>
+                                    <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>processing</option>
+                                    <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>completed</option>
+                                    <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>cancelled</option>
+                                </select>
+                                <button class="btn btn-secondary" type="submit">تحديث</button>
+                            </form>
+                            <form action="{{ url_for('admin_update_order_delivery', order_id=order.id) }}" method="post" class="inline-form">
+                                <select class="text-input small-input" name="delivery_status" title="حالة التوصيل">
+                                    <option value="pending" {% if order.delivery_status == 'pending' %}selected{% endif %}>pending</option>
+                                    <option value="prepared" {% if order.delivery_status == 'prepared' %}selected{% endif %}>prepared</option>
+                                    <option value="out_for_delivery" {% if order.delivery_status == 'out_for_delivery' %}selected{% endif %}>out_for_delivery</option>
+                                    <option value="delivered" {% if order.delivery_status == 'delivered' %}selected{% endif %}>delivered</option>
+                                </select>
+                                <input class="text-input small-input" name="tracking_code" title="رقم التتبع" value="{{ order.tracking_code or '' }}" placeholder="رقم تتبع">
+                                <button class="btn btn-secondary" type="submit">تحديث التوصيل</button>
+                            </form>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                <p>لا توجد طلبات حتى الآن.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <section class="detail-block">
+        <h3>إدارة المنتجات الحالية</h3>
+        <div class="admin-products">
+            {% for product in products %}
+            <article class="admin-product-card">
+                <div class="admin-product-head">
+                    <div class="admin-product-preview">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image" loading="lazy">
+                    </div>
+                    <div>
+                        <h4>{{ product.name }}</h4>
+                        <p>{{ department_lookup[product.department].name if product.department in department_lookup else product.department }} | {{ product.subcategory }} | {{ product.stock }}</p>
+                        <p class="muted-line">{{ product.gallery_count }} صورة في المعرض</p>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('admin_update_product', product_id=product.id) }}" method="post" enctype="multipart/form-data" class="stack-form">
+                    <div class="form-grid two-columns">
+                        <div>
+                            <label class="field-label">اسم المنتج</label>
+                            <input class="text-input" name="name" title="اسم المنتج" value="{{ product.name }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">المعرف المختصر</label>
+                            <input class="text-input" name="slug" title="المعرف المختصر" value="{{ product.slug }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">القسم الرئيسي</label>
+                            <select class="text-input" name="department" title="القسم الرئيسي" required>
+                                {% for department in departments %}
+                                <option value="{{ department.slug }}" {% if product.department == department.slug %}selected{% endif %}>{{ department.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">القسم الفرعي</label>
+                            <input class="text-input" name="subcategory" title="القسم الفرعي" value="{{ product.subcategory }}" list="subcategory-options" required>
+                        </div>
+                        <div>
+                            <label class="field-label">التصنيف</label>
+                            <input class="text-input" name="category" title="التصنيف" value="{{ product.category }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">الشارة</label>
+                            <input class="text-input" name="badge" title="الشارة" value="{{ product.badge }}">
+                        </div>
+                        <div>
+                            <label class="field-label">السعر الحالي</label>
+                            <input class="text-input" type="number" step="0.01" name="price" title="السعر الحالي" value="{{ product.price }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">السعر السابق</label>
+                            <input class="text-input" type="number" step="0.01" name="old_price" title="السعر السابق" value="{{ product.old_price }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">التقييم</label>
+                            <input class="text-input" type="number" step="0.1" name="rating" title="التقييم" value="{{ product.rating }}" required>
+                        </div>
+                        <div>
+                            <label class="field-label">حالة المخزون</label>
+                            <input class="text-input" name="stock" title="حالة المخزون" value="{{ product.stock }}">
+                        </div>
+                    </div>
+
+                    <label class="field-label">الوصف المختصر</label>
+                    <textarea class="text-input" name="summary" title="وصف مختصر" rows="2" required>{{ product.summary }}</textarea>
+
+                    <label class="field-label">الوصف الكامل</label>
+                    <textarea class="text-input" name="description" title="الوصف الكامل" rows="3" required>{{ product.description }}</textarea>
+
+                    <label class="field-label">المزايا، كل سطر ميزة مستقلة</label>
+                    <textarea class="text-input" name="features" title="مزايا المنتج" rows="4" required>{% for feature in product.features %}{{ feature }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+
+                    <label class="field-label">إضافة صور جديدة للمعرض</label>
+                    <input class="text-input file-input" type="file" name="images" title="صور المنتج" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+
+                    {% if product.gallery_items %}
+                    <div>
+                        <label class="field-label">إعدادات سلايدات الهيرو لكل صورة</label>
+                        <p class="muted-line">يمكنك تخصيص الشارة والعنوان والوصف وزر الدعوة للإجراء لكل صورة، وسيتم تبديلها تلقائيًا داخل الهيرو.</p>
+                        <div class="admin-gallery-grid">
+                            {% for gallery_item in product.gallery_items %}
+                            <div class="admin-gallery-item">
+                                <img src="{{ gallery_item.image_url }}" alt="{{ product.name }} {{ loop.index }}" class="product-image" loading="lazy">
+                                <div class="form-grid">
+                                    <div>
+                                        <label class="field-label">شارة السلايد</label>
+                                        <input class="text-input" name="gallery_kicker__{{ gallery_item.image_path }}" title="شارة السلايد" value="{{ gallery_item.kicker }}">
+                                    </div>
+                                    <div>
+                                        <label class="field-label">عنوان السلايد</label>
+                                        <input class="text-input" name="gallery_title__{{ gallery_item.image_path }}" title="عنوان السلايد" value="{{ gallery_item.title }}">
+                                    </div>
+                                </div>
+                                <label class="field-label">وصف السلايد</label>
+                                <textarea class="text-input" name="gallery_body__{{ gallery_item.image_path }}" title="وصف السلايد" rows="2">{{ gallery_item.body }}</textarea>
+                                <div class="form-grid two-columns">
+                                    <div>
+                                        <label class="field-label">نص زر CTA</label>
+                                        <input class="text-input" name="gallery_cta_label__{{ gallery_item.image_path }}" title="نص زر CTA" value="{{ gallery_item.cta_label }}">
+                                    </div>
+                                    <div>
+                                        <label class="field-label">رابط زر CTA</label>
+                                        <input class="text-input" name="gallery_cta_url__{{ gallery_item.image_path }}" title="رابط زر CTA" value="{{ gallery_item.cta_url }}" placeholder="/product/{{ product.slug }} أو رابط خارجي">
+                                    </div>
+                                </div>
+                                <label class="checkbox-row compact-check"><input type="checkbox" name="remove_images" value="{{ gallery_item.image_path }}"> إزالة هذه الصورة</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <label class="checkbox-row"><input type="checkbox" name="is_featured" {% if product.is_featured %}checked{% endif %}> منتج مميز</label>
+
+                    <div class="card-actions">
+                        <button class="btn btn-primary" type="submit">حفظ التعديلات</button>
+                    </div>
+                </form>
+
+                <form action="{{ url_for('admin_delete_product', product_id=product.id) }}" method="post" onsubmit="return confirm('حذف المنتج نهائيًا؟');">
+                    <button class="btn btn-danger" type="submit">حذف المنتج</button>
+                </form>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}السلة | {{ store.name }}{% endblock %}
+
+{% block content %}
+<section class="cart-page shell">
+    <div class="section-heading">
+        <span>سلة الشراء</span>
+        <h2>راجع المنتجات ثم أرسل الطلب</h2>
+        <p>السلة مرتبطة بجلسة المتصفح الحالية، وعند إتمام الطلب يتم حفظه في قاعدة البيانات.</p>
+    </div>
+
+    <div class="cart-grid">
+        <section class="detail-block">
+            {% if cart['items'] %}
+                {% for item in cart['items'] %}
+                <div class="cart-item">
+                    <div>
+                        <h3>{{ item.product.name }}</h3>
+                        <p>{{ item.product.summary }}</p>
+                        <span class="muted-line">{{ item.product.price }} {{ store.currency }} للوحدة</span>
+                    </div>
+                    <div class="cart-controls">
+                        <form action="{{ url_for('update_cart') }}" method="post" class="inline-form">
+                            <label class="field-label" for="quantity_{{ item.product.id }}">الكمية</label>
+                            <input class="text-input qty-input" id="quantity_{{ item.product.id }}" type="number" min="1" name="quantity_{{ item.product.id }}" value="{{ item.quantity }}">
+                            <button class="btn btn-secondary" type="submit">تحديث</button>
+                        </form>
+                        <strong>{{ item.line_total }} {{ store.currency }}</strong>
+                        <form action="{{ url_for('remove_from_cart', product_id=item.product.id) }}" method="post">
+                            <button class="btn btn-secondary" type="submit">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <h3>السلة فارغة</h3>
+                <p>أضف بعض المنتجات من الصفحة الرئيسية أو صفحة المنتج.</p>
+                <a class="btn btn-primary" href="{{ url_for('home') }}#catalog">العودة إلى المنتجات</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <aside class="purchase-card">
+            <h3>إتمام الطلب</h3>
+            <div class="checkout-total">
+                <span>الإجمالي</span>
+                <strong>{{ cart.total }} {{ store.currency }}</strong>
+            </div>
+            <div class="contact-service-card">
+                <h4>أفضل طريقة للتواصل معك</h4>
+                <p>اختر قناة التواصل المفضلة، وسيقوم فريق الدعم والتوصيل بمتابعة الطلب حسب طريقتك المريحة.</p>
+                <ul class="feature-list feature-list-dark">
+                    <li>هاتف المتجر: {{ store.phone }}</li>
+                    <li>واتساب: {{ store.whatsapp }}</li>
+                    <li>بريد: {{ store.email }}</li>
+                    <li>ساعات الدعم: {{ store.support_hours }}</li>
+                </ul>
+            </div>
+            <form action="{{ url_for('checkout') }}" method="post" class="stack-form">
+                <label class="field-label" for="customer_name">الاسم الكامل</label>
+                <input class="text-input" id="customer_name" name="customer_name" required>
+
+                <label class="field-label" for="phone">رقم الهاتف</label>
+                <input class="text-input" id="phone" name="phone" required>
+
+                <label class="field-label" for="email">البريد الإلكتروني</label>
+                <input class="text-input" id="email" type="email" name="email" required>
+
+                <label class="field-label" for="city">المدينة</label>
+                <input class="text-input" id="city" name="city" required>
+
+                <label class="field-label" for="address">العنوان</label>
+                <textarea class="text-input" id="address" name="address" rows="3" required></textarea>
+
+                <div class="form-grid two-columns">
+                    <div>
+                        <label class="field-label" for="preferred_contact">قناة التواصل المفضلة</label>
+                        <select class="text-input" id="preferred_contact" name="preferred_contact" required>
+                            {% for contact_key, contact_label in contact_options.items() %}
+                            <option value="{{ contact_key }}">{{ contact_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label" for="contact_window">الوقت الأنسب للتواصل</label>
+                        <input class="text-input" id="contact_window" name="contact_window" placeholder="مثال: بعد 6 مساءً">
+                    </div>
+                </div>
+
+                <label class="field-label" for="delivery_method">خدمة التوصيل</label>
+                <select class="text-input" id="delivery_method" name="delivery_method" required>
+                    {% for delivery_key, option in delivery_options.items() %}
+                    <option value="{{ delivery_key }}">{{ option.label }} - {{ option.fee }} {{ store.currency }} ({{ option.eta }})</option>
+                    {% endfor %}
+                </select>
+
+                <label class="field-label" for="notes">ملاحظات</label>
+                <textarea class="text-input" id="notes" name="notes" rows="3"></textarea>
+
+                <button class="btn btn-primary wide" type="submit" {% if not cart['items'] %}disabled{% endif %}>تأكيد الطلب</button>
+            </form>
+        </aside>
+    </div>
+</section>
+{% endblock %}

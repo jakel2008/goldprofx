@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}دخول الإدارة | {{ store.name }}{% endblock %}
+
+{% block content %}
+<section class="auth-page shell">
+    <div class="auth-card">
+        <span class="eyebrow">لوحة الإدارة</span>
+        <h1>تسجيل دخول المسؤول</h1>
+        <p>استخدم بيانات الإدارة للوصول إلى إدارة المنتجات والطلبات.</p>
+        <form action="{{ url_for('admin_login') }}" method="post" class="stack-form">
+            <label class="field-label" for="username">اسم المستخدم</label>
+            <input class="text-input" id="username" name="username" required>
+
+            <label class="field-label" for="password">كلمة المرور</label>
+            <input class="text-input" id="password" type="password" name="password" required>
+
+            <button class="btn btn-primary wide" type="submit">دخول الإدارة</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

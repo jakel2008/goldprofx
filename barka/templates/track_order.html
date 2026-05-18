@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}تتبع الطلب | {{ store.name }}{% endblock %}
+
+{% block content %}
+<section class="cart-page shell tracking-page">
+    <div class="section-heading">
+        <span>تتبع الطلب</span>
+        <h2>تابع حالة طلبك لحظة بلحظة</h2>
+        <p>أدخل رقم الطلب ورقم الهاتف الذي أُرسل به الطلب لعرض حالة التجهيز والتوصيل ورقم التتبع.</p>
+    </div>
+
+    <div class="cart-grid">
+        <section class="detail-block">
+            <form action="{{ url_for('track_order') }}" method="post" class="stack-form">
+                <label class="field-label" for="order_id">رقم الطلب</label>
+                <input class="text-input" id="order_id" name="order_id" value="{{ submitted_order_id or '' }}" required>
+
+                <label class="field-label" for="phone">رقم الهاتف</label>
+                <input class="text-input" id="phone" name="phone" value="{{ submitted_phone or '' }}" required>
+
+                <button class="btn btn-primary" type="submit">عرض حالة الطلب</button>
+            </form>
+        </section>
+
+        <aside class="purchase-card">
+            <h3>قنوات التواصل</h3>
+            <ul class="feature-list feature-list-dark">
+                <li>واتساب: {{ store.whatsapp }}</li>
+                <li>هاتف: {{ store.phone }}</li>
+                <li>البريد: {{ store.email }}</li>
+                <li>ساعات الدعم: {{ store.support_hours }}</li>
+            </ul>
+        </aside>
+    </div>
+
+    {% if tracked_order %}
+    <section class="detail-block tracking-result">
+        <h3>طلب #{{ tracked_order.id }}</h3>
+        <div class="tracking-status-grid">
+            <div>
+                <span class="muted-line">حالة الطلب</span>
+                <strong class="status-pill">{{ tracked_order.order_status_label }}</strong>
+            </div>
+            <div>
+                <span class="muted-line">حالة التوصيل</span>
+                <strong class="status-pill">{{ tracked_order.delivery_status_label }}</strong>
+            </div>
+            <div>
+                <span class="muted-line">طريقة التوصيل</span>
+                <strong>{{ tracked_order.delivery_label }}</strong>
+            </div>
+            <div>
+                <span class="muted-line">رقم التتبع</span>
+                <strong>{{ tracked_order.tracking_code or '-' }}</strong>
+            </div>
+        </div>
+
+        <p>الإجمالي: {{ tracked_order.total_amount }} {{ store.currency }} (المنتجات: {{ tracked_order.subtotal_amount }} + التوصيل: {{ tracked_order.delivery_fee }})</p>
+        <p>قناة التواصل المختارة: {{ tracked_order.contact_label }} {% if tracked_order.contact_window %}| {{ tracked_order.contact_window }}{% endif %}</p>
+        <p>العنوان: {{ tracked_order.city }} - {{ tracked_order.address }}</p>
+
+        <ul class="feature-list feature-list-dark">
+            {% for item in tracked_order['items'] %}
+            <li>{{ item.product_name }} × {{ item.quantity }} = {{ item.line_total }} {{ store.currency }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}

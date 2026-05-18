@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ store.name }} | متجر إلكتروني{% endblock %}
+
+{% block content %}
+<section class="hero-section cinematic-hero">
+    {% set hero_slide = featured_product.gallery_items[0] if featured_product.gallery_items else none %}
+    <div class="shell hero-grid">
+        <div class="hero-copy">
+            <span class="eyebrow">متجر إلكتروني جديد</span>
+            <h1>{{ store.headline }}</h1>
+            <p>واجهة تسوق شاملة تغطي {{ departments|length }} قسمًا رئيسيًا مع دليل واسع للأقسام الفرعية، من الإلكترونيات والكهربائيات والموضة إلى العقارات والسيارات والمعدات المتخصصة.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="#catalog">تصفح المنتجات</a>
+                <a class="btn btn-secondary" href="{{ url_for('product_details', slug=featured_product.slug) }}">المنتج المميز</a>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <strong>{{ store_metrics.product_count }}</strong>
+                    <span>عنصر معروض</span>
+                </div>
+                <div>
+                    <strong>{{ store_metrics.department_count }}</strong>
+                    <span>قسم رئيسي</span>
+                </div>
+                <div>
+                    <strong>{{ store_metrics.subcategory_count }}</strong>
+                    <span>قسم فرعي</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-panel hero-panel-cinematic">
+            <div class="hero-panel-media {% if featured_product.image_urls|length > 1 %}has-card-slider hero-media-slider{% endif %}" {% if featured_product.image_urls|length > 1 %}data-card-gallery data-interval="2800"{% endif %}>
+                {% if featured_product.image_urls|length > 1 %}
+                    {% for gallery_item in featured_product.gallery_items %}
+                    <img src="{{ gallery_item.image_url }}" alt="{{ featured_product.name }} {{ loop.index }}" class="product-image card-gallery-image {% if loop.first %}is-active{% endif %}" loading="eager" data-card-image data-slide-kicker="{{ gallery_item.kicker }}" data-slide-title="{{ gallery_item.title }}" data-slide-body="{{ gallery_item.body }}" data-slide-price="{{ featured_product.price }} {{ store.currency }}" data-slide-old-price="{{ featured_product.old_price }} {{ store.currency }}" data-slide-cta-label="{{ gallery_item.cta_label }}" data-slide-cta-url="{{ gallery_item.cta_url }}">
+                    {% endfor %}
+                    <span class="card-gallery-badge hero-gallery-badge">عرض تلقائي</span>
+                    <span class="hero-gallery-sheen"></span>
+                {% else %}
+                <img src="{{ featured_product.image_url }}" alt="{{ featured_product.name }}" class="product-image" loading="eager">
+                {% endif %}
+                <div class="hero-media-copy">
+                    <span class="hero-media-kicker" data-hero-kicker>{{ hero_slide.kicker if hero_slide else featured_product.badge }}</span>
+                    <h2 data-hero-title>{{ hero_slide.title if hero_slide else featured_product.name }}</h2>
+                    <p data-hero-body>{{ hero_slide.body if hero_slide else featured_product.summary }}</p>
+                    <div class="hero-media-meta">
+                        <strong data-hero-price>{{ featured_product.price }} {{ store.currency }}</strong>
+                        <span data-hero-old-price>{{ featured_product.old_price }} {{ store.currency }}</span>
+                    </div>
+                    <a class="btn btn-primary" href="{{ hero_slide.cta_url if hero_slide else url_for('product_details', slug=featured_product.slug) }}" data-hero-cta>{{ hero_slide.cta_label if hero_slide else 'اكتشف المنتج' }}</a>
+                </div>
+            </div>
+            <p>{{ featured_product.summary }}</p>
+            <div class="price-row">
+                <strong>{{ featured_product.price }} {{ store.currency }}</strong>
+                <span>{{ featured_product.old_price }} {{ store.currency }}</span>
+            </div>
+            <form action="{{ url_for('add_to_cart', product_id=featured_product.id) }}" method="post" class="inline-form">
+                <button type="submit" class="btn btn-primary wide">أضف المنتج المميز إلى السلة</button>
+            </form>
+            <ul class="feature-list">
+                {% for feature in featured_product.features %}
+                <li>{{ feature }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="catalog-tools shell">
+    <form action="{{ url_for('home') }}" method="get" class="search-panel">
+        <div class="search-grid">
+            <div>
+                <label class="field-label" for="q">ابحث داخل المتجر</label>
+                <input class="text-input" id="q" name="q" value="{{ search_term }}" placeholder="مثال: هاتف، جاكيت، عطر، شقة، SUV">
+            </div>
+            <div>
+                <label class="field-label" for="department">القسم الرئيسي</label>
+                <select class="text-input" id="department" name="department">
+                    <option value="">كل الأقسام</option>
+                    {% for department in departments %}
+                    <option value="{{ department.slug }}" {% if selected_department == department.slug %}selected{% endif %}>{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="field-label" for="subcategory">القسم الفرعي</label>
+                <input class="text-input" id="subcategory" name="subcategory" value="{{ selected_subcategory }}" placeholder="مثال: هواتف، شقق، رجالي">
+            </div>
+            <div>
+                <label class="field-label" for="sort">الفرز</label>
+                <select class="text-input" id="sort" name="sort">
+                    {% for sort_key, sort_option in sort_options.items() %}
+                    <option value="{{ sort_key }}" {% if selected_sort == sort_key %}selected{% endif %}>{{ sort_option.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="card-actions spaced-actions">
+            <button class="btn btn-primary" type="submit">تطبيق التصفية</button>
+            <a class="btn btn-secondary" href="{{ url_for('home') }}">عرض كل الأقسام</a>
+        </div>
+    </form>
+
+    <section class="catalog-explorer">
+        <div class="section-heading small catalog-explorer-heading">
+            <span>مستكشف الأقسام</span>
+            <h2>اختر القسم الذي تريد استعراضه باحترافية</h2>
+            <p>كل بطاقة تمنحك مسارين واضحين: معاينة مباشرة داخل الكاتالوج أو فتح صفحة القسم الكاملة بتفاصيله ومنتجاته وأقسامه الفرعية.</p>
+        </div>
+
+        <div class="department-strip department-strip-compact">
+            {% for department in departments %}
+            <a class="department-chip {% if selected_department == department.slug %}active{% endif %}" href="{{ url_for('department_page', department_slug=department.slug) }}">
+                <strong>{{ department.name }}</strong>
+                <span>{{ department.description }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="catalog-explorer-grid">
+            {% for department in catalog_directory %}
+            <article class="explorer-card {% if selected_department == department.slug %}is-selected{% endif %}">
+                <div class="explorer-card-top">
+                    <span class="explorer-kicker">{{ loop.index }}. {{ department.name }}</span>
+                    <span class="directory-count">{{ department.item_count }} عنصر</span>
+                </div>
+                <div class="explorer-copy">
+                    <h3>{{ department.name }}</h3>
+                    <p>{{ department.description }}</p>
+                </div>
+                <div class="explorer-subcategories">
+                    {% for subcategory in department.subcategories[:6] %}
+                    <a class="subcategory-chip compact" href="{{ url_for('subcategory_page', department_slug=department.slug, subcategory_slug=subcategory|lower|replace(' ', '-')) }}">{{ subcategory }}</a>
+                    {% endfor %}
+                </div>
+                <div class="explorer-actions">
+                    {% if department.item_count %}
+                    <a class="btn btn-primary" href="#dept-{{ department.slug }}">معاينة داخل الكاتالوج</a>
+                    {% else %}
+                    <span class="btn btn-secondary btn-static">سيظهر هنا عند إضافة منتجات</span>
+                    {% endif %}
+                    <a class="btn btn-secondary" href="{{ url_for('department_page', department_slug=department.slug) }}">عرض تفاصيل القسم</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+
+<section class="catalog-section shell" id="catalog">
+    <div class="section-heading">
+        <span>كتالوج Barka</span>
+        <h2>{% if selected_department_info %}{{ selected_department_info.name }}{% else %}متجر شامل مع تقسيم احترافي{% endif %}</h2>
+        <p>{% if selected_department_info %}{{ selected_department_info.description }}{% else %}اختر القسم الرئيسي أو الفرعي أو استخدم البحث للوصول إلى المنتج المناسب بسرعة ووضوح.{% endif %}</p>
+    </div>
+
+    {% if department_sections %}
+    <div class="catalog-section-selector">
+        <span class="catalog-selector-label">اختيار سريع للقسم:</span>
+        <div class="catalog-selector-scroll">
+            {% for section in department_sections %}
+            <a class="catalog-selector-card {% if selected_department == section.department.slug %}is-selected{% endif %}" href="#dept-{{ section.department.slug }}">
+                <strong>{{ section.department.name }}</strong>
+                <span>{{ section.products|length }} منتج</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if products %}
+        {% for section in department_sections %}
+        <section class="department-section" id="dept-{{ section.department.slug }}">
+            <div class="department-header">
+                <div>
+                    <span class="eyebrow">{{ section.department.name }}</span>
+                    <h3>{{ section.department.description }}</h3>
+                </div>
+                <div class="department-meta">
+                    <span>{{ section.products|length }} عنصر</span>
+                    <span>{{ section.subsections|length }} قسم فرعي</span>
+                    <a class="department-link" href="{{ url_for('department_page', department_slug=section.department.slug) }}">صفحة القسم</a>
+                </div>
+            </div>
+
+            <div class="subcategory-strip">
+                {% for subsection in section.subsections %}
+                <a class="subcategory-chip {% if not subsection.count %}is-empty{% endif %}" href="{{ url_for('subcategory_page', department_slug=section.department.slug, subcategory_slug=subsection.name|lower|replace(' ', '-')) }}">{{ subsection.name }}{% if subsection.count %} <small>{{ subsection.count }}</small>{% endif %}</a>
+                {% endfor %}
+            </div>
+
+            <div class="catalog-grid">
+                {% for product in section.products %}
+                <article class="product-card">
+                    <a class="product-media {% if product.image_urls|length > 1 %}has-card-slider{% endif %}" href="{{ url_for('product_details', slug=product.slug) }}" {% if product.image_urls|length > 1 %}data-card-gallery data-interval="3200"{% endif %}>
+                        {% if product.image_urls|length > 1 %}
+                            {% for image_url in product.image_urls %}
+                            <img src="{{ image_url }}" alt="{{ product.name }} {{ loop.index }}" class="product-image card-gallery-image {% if loop.first %}is-active{% endif %}" loading="lazy" data-card-image>
+                            {% endfor %}
+                            <span class="card-gallery-badge">{{ product.gallery_count }} صور</span>
+                        {% else %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image" loading="lazy">
+                        {% endif %}
+                    </a>
+                    <span class="product-badge">{{ product.badge }}</span>
+                    <div class="product-meta">
+                        <span>{{ section.department.name }}</span>
+                        <span>{{ product.subcategory or product.category }}</span>
+                        <span>{{ product.stock }}</span>
+                    </div>
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.summary }}</p>
+                    <div class="rating-row">
+                        <span>التقييم {{ product.rating }}</span>
+                    </div>
+                    <div class="price-row compact">
+                        <strong>{{ product.price }} {{ store.currency }}</strong>
+                        <span>{{ product.old_price }} {{ store.currency }}</span>
+                    </div>
+                    <div class="card-actions">
+                        <a class="card-link" href="{{ url_for('product_details', slug=product.slug) }}">عرض المنتج</a>
+                        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-secondary">أضف للسلة</button>
+                        </form>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <h3>لا توجد نتائج مطابقة</h3>
+        <p>جرّب تعديل القسم أو القسم الفرعي أو عبارة البحث، ثم أعد المحاولة.</p>
+        <a class="btn btn-primary" href="{{ url_for('home') }}">العودة لكل المنتجات</a>
+    </div>
+    {% endif %}
+</section>
+
+<section class="about-section" id="about">
+    <div class="shell about-grid">
+        <div>
+            <span class="eyebrow">عن المشروع</span>
+            <h2>موقع جديد من البداية باسم Barka</h2>
+            <p>هذا المشروع مستقل داخل مساحة العمل الحالية، ويقدم أساس متجر إلكتروني شامل وسهل الاستخدام مع تصنيف رئيسي وفرعي ولوحة إدارة مرنة.</p>
+        </div>
+        <div class="info-card">
+            <h3>ما الذي جهزناه؟</h3>
+            <ul class="feature-list feature-list-dark">
+                <li>أقسام رئيسية وفرعية واضحة</li>
+                <li>دليل شامل لكل الأقسام الممكنة</li>
+                <li>بحث وفلاتر مباشرة داخل المتجر</li>
+                <li>صفحات منتجات مع صور وتفاصيل</li>
+                <li>سلة شراء وطلب فعلي</li>
+                <li>لوحة إدارة للمنتجات والطلبات</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

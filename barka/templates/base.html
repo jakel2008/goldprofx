@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ store.name }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="shell nav-shell">
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="brand-mark">B</span>
+                <span>
+                    <strong>{{ store.name }}</strong>
+                    <small>{{ store.tagline }}</small>
+                </span>
+            </a>
+            <nav class="top-nav">
+                <div class="mega-nav-item">
+                    <a href="{{ url_for('home') }}#catalog">الأقسام</a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-grid">
+                            {% for department in nav_departments %}
+                            <a class="mega-menu-card" href="{{ url_for('department_page', department_slug=department.slug) }}">
+                                <strong>{{ department.name }}</strong>
+                                <span>{{ department.description }}</span>
+                                <small>{% if department.item_count %}{{ department.item_count }} عنصر{% else %}جاهز للإضافة والتوسع{% endif %}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('cart_view') }}">السلة <span class="nav-counter">{{ cart_summary.count }}</span></a>
+                <a href="{{ url_for('track_order') }}">تتبع الطلب</a>
+                <a href="{{ url_for('home') }}#about">عن المتجر</a>
+                <a href="{{ url_for('home') }}#contact">التواصل</a>
+                {% if admin_logged_in %}
+                <a href="{{ url_for('admin_dashboard') }}">الإدارة</a>
+                <a href="{{ url_for('admin_logout') }}">خروج الإدارة</a>
+                {% else %}
+                <a href="{{ url_for('admin_login') }}">دخول الإدارة</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="shell flash-stack">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer" id="contact">
+        <div class="shell footer-grid">
+            <div>
+                <h3>{{ store.name }}</h3>
+                <p>{{ store.description }}</p>
+            </div>
+            <div>
+                <h4>معلومات التواصل</h4>
+                <p>{{ store.phone }}</p>
+                <p><a href="https://wa.me/{{ store.whatsapp|replace('+', '') }}" target="_blank" rel="noopener">واتساب مباشر</a></p>
+                <p>{{ store.email }}</p>
+                <p>{{ store.address }}</p>
+                <p>{{ store.support_hours }}</p>
+            </div>
+        </div>
+    </footer>
+    <script src="{{ url_for('static', filename='js/catalog-card-gallery.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} | {{ store.name }}{% endblock %}
+
+{% block content %}
+<section class="product-page shell">
+    <div class="product-hero">
+        <div class="product-visual-card product-slider-card {% if product.image_urls|length > 1 %}has-slider{% endif %}" {% if product.image_urls|length > 1 %}data-product-gallery data-autoplay="true" data-interval="3800"{% endif %}>
+            <div class="product-visual-frame slider-stage">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image product-image-large gallery-main-image" loading="eager" data-gallery-main>
+                {% if product.image_urls|length > 1 %}
+                <div class="gallery-overlay">
+                    <button type="button" class="gallery-arrow next" aria-label="الصورة التالية" data-gallery-next>‹</button>
+                    <button type="button" class="gallery-arrow prev" aria-label="الصورة السابقة" data-gallery-prev>›</button>
+                    <div class="gallery-progress"><span data-gallery-progress></span></div>
+                </div>
+                {% endif %}
+            </div>
+            {% if product.image_urls|length > 1 %}
+            <div class="product-gallery-strip" aria-label="صور المنتج">
+                {% for image_url in product.image_urls %}
+                <button type="button" class="product-gallery-thumb {% if loop.first %}is-primary{% endif %}" data-gallery-thumb data-image-url="{{ image_url }}" data-image-alt="{{ product.name }} {{ loop.index }}" aria-label="عرض الصورة {{ loop.index }}">
+                    <img src="{{ image_url }}" alt="{{ product.name }} {{ loop.index }}" class="product-image" loading="lazy">
+                </button>
+                {% endfor %}
+            </div>
+            <div class="gallery-dots" aria-label="مؤشرات الصور">
+                {% for image_url in product.image_urls %}
+                <button type="button" class="gallery-dot {% if loop.first %}is-active{% endif %}" data-gallery-dot data-image-url="{{ image_url }}" data-image-alt="{{ product.name }} {{ loop.index }}" aria-label="الانتقال إلى الصورة {{ loop.index }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="product-visual-caption">
+                <span>{{ product.category }}</span>
+                <span>{{ product.stock }}</span>
+                <span>التقييم {{ product.rating }}</span>
+                <span>{{ product.gallery_count }} صورة</span>
+            </div>
+        </div>
+        <div class="product-copy">
+            <span class="product-badge large">{{ product.badge }}</span>
+            {% if department_info %}
+            <div class="product-breadcrumbs">
+                <a href="{{ url_for('department_page', department_slug=department_info.slug) }}">{{ department_info.name }}</a>
+                <span>/</span>
+                <a href="{{ url_for('subcategory_page', department_slug=department_info.slug, subcategory_slug=subcategory_slug) }}">{{ product.subcategory or product.category }}</a>
+            </div>
+            {% endif %}
+            <h1>{{ product.name }}</h1>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-highlights">
+                <span>{{ department_info.name if department_info else product.category }}</span>
+                <span>{{ product.subcategory or product.category }}</span>
+                <span>{{ product.stock }}</span>
+                <span>التقييم {{ product.rating }}</span>
+            </div>
+        </div>
+        <aside class="purchase-card">
+            <div class="price-row">
+                <strong>{{ product.price }} {{ store.currency }}</strong>
+                <span>{{ product.old_price }} {{ store.currency }}</span>
+            </div>
+            <p>يمكنك إضافة المنتج مباشرة إلى السلة ثم إتمام الطلب من داخل الموقع.</p>
+            <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="post" class="purchase-form">
+                <label class="field-label" for="quantity">الكمية</label>
+                <input class="text-input" type="number" min="1" value="1" id="quantity" name="quantity">
+                <button class="btn btn-primary wide" type="submit">أضف إلى السلة</button>
+            </form>
+        </aside>
+    </div>
+
+    <section class="detail-block">
+        {% if product.image_urls|length > 1 %}
+        <div class="section-heading small">
+            <span>معرض الصور</span>
+            <h2>سلايدر الصور التلقائي</h2>
+        </div>
+        <div class="product-gallery-grid gallery-showcase-grid">
+            {% for image_url in product.image_urls %}
+            <figure class="gallery-card {% if loop.first %}gallery-card-featured{% endif %}">
+                <img src="{{ image_url }}" alt="{{ product.name }} {{ loop.index }}" class="product-image" loading="lazy">
+            </figure>
+            {% endfor %}
+        </div>
+        <p class="muted-line slider-note">يتم تبديل الصور تلقائيًا، ويمكنك أيضًا التنقل يدويًا عبر الصور المصغرة أو الأسهم.</p>
+        {% endif %}
+    </section>
+
+    <section class="detail-block">
+        <h2>مزايا المنتج</h2>
+        <ul class="feature-list feature-list-dark two-columns">
+            {% for feature in product.features %}
+            <li>{{ feature }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="detail-block">
+        <div class="section-heading small">
+            <span>منتجات مشابهة</span>
+            <h2>قد يعجبك أيضًا</h2>
+        </div>
+        <div class="catalog-grid related-grid">
+            {% for item in related_products %}
+            <article class="product-card">
+                <a class="product-media {% if item.image_urls|length > 1 %}has-card-slider{% endif %}" href="{{ url_for('product_details', slug=item.slug) }}" {% if item.image_urls|length > 1 %}data-card-gallery data-interval="3200"{% endif %}>
+                    {% if item.image_urls|length > 1 %}
+                        {% for image_url in item.image_urls %}
+                        <img src="{{ image_url }}" alt="{{ item.name }} {{ loop.index }}" class="product-image card-gallery-image {% if loop.first %}is-active{% endif %}" loading="lazy" data-card-image>
+                        {% endfor %}
+                        <span class="card-gallery-badge">{{ item.gallery_count }} صور</span>
+                    {% else %}
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="product-image" loading="lazy">
+                    {% endif %}
+                </a>
+                <span class="product-badge">{{ item.badge }}</span>
+                <div class="product-meta">
+                    <span>{{ item.subcategory or item.category }}</span>
+                    <span>{{ item.stock }}</span>
+                </div>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.summary }}</p>
+                <div class="price-row compact">
+                    <strong>{{ item.price }} {{ store.currency }}</strong>
+                    <span>{{ item.old_price }} {{ store.currency }}</span>
+                </div>
+                <div class="card-actions">
+                    <a class="card-link" href="{{ url_for('product_details', slug=item.slug) }}">عرض المنتج</a>
+                    <form action="{{ url_for('add_to_cart', product_id=item.id) }}" method="post" class="inline-form">
+                        <button type="submit" class="btn btn-secondary">أضف للسلة</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if product.image_urls|length > 1 %}
+<script src="{{ url_for('static', filename='js/product-gallery.js') }}" defer></script>
+{% endif %}
+{% endblock %}

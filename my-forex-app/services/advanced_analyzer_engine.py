@@ -1,9 +1,35 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from time import monotonic
 
 import pandas as pd
 import yfinance as yf
+
+
+MARKET_DATA_CACHE_TTL_SECONDS = 180
+MARKET_DATA_CACHE_MAX_ITEMS = 128
+_MARKET_DATA_CACHE = {}
+
+
+def _get_cached_market_data(cache_key):
+	cached = _MARKET_DATA_CACHE.get(cache_key)
+	if not cached:
+		return None
+	fetched_at, data = cached
+	if monotonic() - fetched_at > MARKET_DATA_CACHE_TTL_SECONDS:
+		_MARKET_DATA_CACHE.pop(cache_key, None)
+		return None
+	return data.copy(deep=True)
+
+
+def _set_cached_market_data(cache_key, data):
+	if data is None or data.empty:
+		return
+	if len(_MARKET_DATA_CACHE) >= MARKET_DATA_CACHE_MAX_ITEMS:
+		oldest_key = min(_MARKET_DATA_CACHE, key=lambda key: _MARKET_DATA_CACHE[key][0])
+		_MARKET_DATA_CACHE.pop(oldest_key, None)
+	_MARKET_DATA_CACHE[cache_key] = (monotonic(), data.copy(deep=True))
 
 
 SUPPORTED_SYMBOLS = {
@@ -571,6 +597,11 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 	"""جلب بيانات السوق مع دعم مصادر متعددة (forex_analyzer → yfinance fallback)."""
+	cache_key = (symbol, interval)
+	cached_data = _get_cached_market_data(cache_key)
+	if cached_data is not None:
+		return cached_data
+
 	interval_info = SUPPORTED_INTERVALS[interval]
 	# المحاولة الأولى: forex_analyzer من GOLD PRO (مصادر متعددة + كاش)
 	try:
@@ -594,6 +625,7 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 				gp_data["Date"] = pd.to_datetime(gp_data["Date"], utc=True, errors="coerce")
 				gp_data = gp_data.set_index("Date")
 			if len(gp_data) >= 60:
+				_set_cached_market_data(cache_key, gp_data)
 				return gp_data
 	except Exception:
 		pass
@@ -607,6 +639,7 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		auto_adjust=False,
 		progress=False,
 		threads=False,
+		timeout=8,
 	)
 	if isinstance(data.columns, pd.MultiIndex):
 		data.columns = data.columns.get_level_values(0)
@@ -626,6 +659,7 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 				"Volume": "sum",
 			}
 		).dropna(subset=["Open", "High", "Low", "Close"])
+	_set_cached_market_data(cache_key, cleaned)
 	return cleaned
 
 

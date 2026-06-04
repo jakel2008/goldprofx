@@ -455,7 +455,7 @@ def _fetch_from_yfinance(symbol, interval, outputsize):
         raise DataFetchError("Yahoo Finance: unsupported interval")
 
     period = "60d" if yf_interval in ("1m", "5m", "15m", "30m", "60m", "1h") else "2y"
-    raw = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False, auto_adjust=False)
+    raw = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False, auto_adjust=False, timeout=8)
 
     if raw is None or raw.empty:
         raise DataFetchError("Yahoo Finance: empty data")

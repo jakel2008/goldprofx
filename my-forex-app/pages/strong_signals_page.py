@@ -1,6 +1,8 @@
 from pathlib import Path
 import sys
+from copy import deepcopy
 from datetime import datetime, timezone
+from time import monotonic
 
 if __package__ in (None, ""):
     project_root = Path(__file__).resolve().parents[1]
@@ -19,6 +21,33 @@ else:
 
 DEFAULT_SYMBOL = "ALL"
 DEFAULT_INTERVAL = "1h"
+STRONG_SIGNALS_CACHE_TTL_SECONDS = 120
+STRONG_SIGNALS_CACHE_MAX_ITEMS = 64
+_STRONG_SIGNALS_CACHE = {}
+
+
+def _get_cached_strong_signals(cache_key):
+    cached = _STRONG_SIGNALS_CACHE.get(cache_key)
+    if not cached:
+        return None
+    cached_at, payload = cached
+    if monotonic() - cached_at > STRONG_SIGNALS_CACHE_TTL_SECONDS:
+        _STRONG_SIGNALS_CACHE.pop(cache_key, None)
+        return None
+    result = deepcopy(payload)
+    result['cached'] = True
+    return result
+
+
+def _set_cached_strong_signals(cache_key, payload):
+    if not payload or not payload.get('success'):
+        return
+    if len(_STRONG_SIGNALS_CACHE) >= STRONG_SIGNALS_CACHE_MAX_ITEMS:
+        oldest_key = min(_STRONG_SIGNALS_CACHE, key=lambda key: _STRONG_SIGNALS_CACHE[key][0])
+        _STRONG_SIGNALS_CACHE.pop(oldest_key, None)
+    result = deepcopy(payload)
+    result['cached'] = False
+    _STRONG_SIGNALS_CACHE[cache_key] = (monotonic(), result)
 
 
 AR_TO_EN = {
@@ -237,14 +266,20 @@ def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL, lang='a
             'error': _translate_text('الرمز المطلوب غير مدعوم في صفحة الإشارات القوية.', lang),
         }
 
+    normalized_symbol = _normalize_symbol(symbol) or 'ALL'
+    cache_key = (normalized_symbol, interval, lang)
+    cached_result = _get_cached_strong_signals(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     scan_result = fetch_strong_signals(symbol, interval, lang=lang)
     target_label = 'All markets' if lang == 'en' and _normalize_symbol(symbol) in ('', 'ALL') else 'كل الأسواق' if _normalize_symbol(symbol) in ('', 'ALL') else SUPPORTED_SYMBOLS[symbol]['label']
     if lang == 'en' and target_label in SUPPORTED_SYMBOLS:
         target_label = SUPPORTED_SYMBOLS[symbol]['label']
 
-    return {
+    result = {
         'success': True,
-        'symbol': _normalize_symbol(symbol) or 'ALL',
+        'symbol': normalized_symbol,
         'interval': interval,
         'symbol_label': target_label,
         'signals': scan_result['signals'],
@@ -254,4 +289,7 @@ def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL, lang='a
         'scan_errors': scan_result['scan_errors'],
         'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'),
         'error': None,
+        'cached': False,
     }
+    _set_cached_strong_signals(cache_key, result)
+    return result

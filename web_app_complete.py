@@ -14,6 +14,7 @@ import time
 import shutil
 import xml.etree.ElementTree as ET
 import csv
+from copy import deepcopy
 from io import StringIO
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, Response, abort, send_from_directory
@@ -1046,6 +1047,10 @@ UPDATE_PRICES_LAST_PAYLOAD = {
     'updated_at_ts': 0.0
 }
 UPDATE_PRICES_CACHE_TTL_SECONDS = max(1, int(os.environ.get('UPDATE_PRICES_CACHE_TTL_SECONDS', '5')))
+UPDATE_PRICES_SIGNAL_LIMIT = max(10, int(os.environ.get('UPDATE_PRICES_SIGNAL_LIMIT', '50')))
+LOAD_SIGNALS_CACHE_TTL_SECONDS = max(1, int(os.environ.get('LOAD_SIGNALS_CACHE_TTL_SECONDS', '10')))
+LOAD_SIGNALS_CACHE = {}
+LOAD_SIGNALS_CACHE_LOCK = threading.Lock()
 
 CONTINUOUS_ANALYZER_SYMBOLS = [
     # Forex
@@ -5617,6 +5622,13 @@ def load_signals_snapshot(include_closed=False, limit=50):
 def load_signals(include_closed=False):
     """تحميل الإشارات من قاعدة البيانات مع الأسعار الحالية والنتائج"""
     import sqlite3
+    cache_key = bool(include_closed)
+    now_ts = time.time()
+    with LOAD_SIGNALS_CACHE_LOCK:
+        cached = LOAD_SIGNALS_CACHE.get(cache_key)
+        if cached and now_ts - cached.get('ts', 0) <= LOAD_SIGNALS_CACHE_TTL_SECONDS:
+            return deepcopy(cached.get('signals', []))
+
     signals = []
 
     # بروتوكول التنظيف قبل فتح اتصال القراءة لتجنب تعارض قفل قاعدة البيانات
@@ -5848,7 +5860,13 @@ def load_signals(include_closed=False):
             except Exception:
                 pass
 
-    return _deduplicate_signal_objects(signals)
+    deduped_signals = _deduplicate_signal_objects(signals)
+    with LOAD_SIGNALS_CACHE_LOCK:
+        LOAD_SIGNALS_CACHE[cache_key] = {
+            'ts': time.time(),
+            'signals': deepcopy(deduped_signals)
+        }
+    return deduped_signals
 
 
 def load_admin_recent_signals(limit=5):
@@ -5987,7 +6005,7 @@ def get_statistics():
     signals_count = len(list(SIGNALS_DIR.glob("*.json"))) if SIGNALS_DIR.exists() else 0
     
     # تحليل الإشارات
-    signals_data = load_signals()
+    signals_data = load_signals_snapshot(limit=50)
     buy_signals = sum(1 for s in signals_data if s.get('rec', '').upper() == 'BUY')
     sell_signals = sum(1 for s in signals_data if s.get('rec', '').upper() == 'SELL')
     
@@ -6044,7 +6062,7 @@ def get_statistics():
 
 def get_detailed_report():
     """تقرير تفصيلي للأداء"""
-    signals = load_signals()
+    signals = load_signals_snapshot(include_closed=True, limit=50)
     recommendations = load_recommendations()
     
     # تحليل الإشارات حسب الزوج
@@ -6987,7 +7005,7 @@ def home():
             is_logged_in=False,
             user=None
         )
-    signals = load_signals()
+    signals = load_signals_snapshot(limit=50)
     stats = get_statistics()
     template_name = 'home_mobile.html' if is_mobile_view_request() else 'home.html'
     return render_template(template_name,
@@ -7080,7 +7098,7 @@ def signals():
         return redirect(url_for('login'))
 
     try:
-        signals_data = load_signals()
+        signals_data = load_signals_snapshot(limit=50)
         filtered_signals = _filter_signals_for_user(signals_data, user_info)
         template_name = 'signals_mobile.html' if is_mobile_view_request() else 'signals_gold_card.html'
 
@@ -7631,7 +7649,7 @@ def plans():
 def api_signals():
     """API لجلب الإشارات"""
     try:
-        signals = load_signals()
+        signals = load_signals_snapshot(limit=50)
         user_info = get_current_user()
         filtered_signals = _filter_signals_for_user(signals, user_info)
         return jsonify(filtered_signals)
@@ -10394,6 +10412,17 @@ def api_stop_component():
 def api_update_prices():
     """API لتحديث الأسعار الحالية فقط"""
     import sqlite3
+
+    now_ts = time.time()
+    cached_ts = float(UPDATE_PRICES_LAST_PAYLOAD.get('updated_at_ts') or 0)
+    if UPDATE_PRICES_LAST_PAYLOAD.get('signals') and now_ts - cached_ts <= UPDATE_PRICES_CACHE_TTL_SECONDS:
+        return jsonify({
+            'success': True,
+            'signals': UPDATE_PRICES_LAST_PAYLOAD.get('signals') or [],
+            'cached_fallback': False,
+            'cache_used': True,
+            'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at')
+        })
     
     try:
         conn = sqlite3.connect('vip_signals.db', timeout=30)
@@ -10408,11 +10437,12 @@ def api_update_prices():
             FROM signals 
             WHERE DATE(created_at) >= ? AND status = 'active'
             ORDER BY created_at DESC
-            LIMIT 200
-        ''', (start_date,))
+            LIMIT ?
+        ''', (start_date, UPDATE_PRICES_SIGNAL_LIMIT))
         
         rows = c.fetchall()
         signals_data = []
+        price_details_by_symbol = {}
         
         for row in rows:
             symbol = row['symbol']
@@ -10421,7 +10451,10 @@ def api_update_prices():
             tp1 = row['take_profit_1']
             
             # استخدام الدالة المحسنة مع وقت آخر تحديث
-            price_details = get_live_price_detailed(symbol)
+            normalized_symbol = _normalize_symbol_key(symbol)
+            if normalized_symbol not in price_details_by_symbol:
+                price_details_by_symbol[normalized_symbol] = get_live_price_detailed(normalized_symbol)
+            price_details = price_details_by_symbol.get(normalized_symbol)
             current_price = price_details.get('price') if isinstance(price_details, dict) else None
             current_price_updated_at = price_details.get('updated_at') if isinstance(price_details, dict) else None
             
@@ -10454,11 +10487,13 @@ def api_update_prices():
 
         UPDATE_PRICES_LAST_PAYLOAD['signals'] = signals_data
         UPDATE_PRICES_LAST_PAYLOAD['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        UPDATE_PRICES_LAST_PAYLOAD['updated_at_ts'] = time.time()
 
         return jsonify({
             'success': True,
             'signals': signals_data,
             'cached_fallback': False,
+            'cache_used': False,
             'updated_at': UPDATE_PRICES_LAST_PAYLOAD.get('updated_at')
         })
         

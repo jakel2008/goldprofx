@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة تحكم المشرف - Admin Panel{% endblock %}
+{% block title %}{% if current_lang == 'en' %}Admin Control Panel - Admin Panel{% else %}لوحة تحكم المشرف - Admin Panel{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container" style="margin-top: 80px;">
@@ -10,35 +10,35 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1>🎛️ لوحة تحكم المشرف</h1>
-                    <p class="text-muted mb-0">إدارة وتوزيع الإشارات والتقارير عبر التليجرام</p>
+                    <h1>{% if current_lang == 'en' %}🎛️ Admin Control Panel{% else %}🎛️ لوحة تحكم المشرف{% endif %}</h1>
+                    <p class="text-muted mb-0">{% if current_lang == 'en' %}Manage and distribute signals and reports via Telegram{% else %}إدارة وتوزيع الإشارات والتقارير عبر التليجرام{% endif %}</p>
                 </div>
                 <div>
                     {% if user_info and user_info.get('is_admin') %}
                     <a href="/admin/import-backup" class="btn btn-secondary me-2" style="background:#fff3d8;border-color:#d4a72f;color:#8e6c0d;">
-                        <i class="fas fa-database"></i> استيراد نسخة احتياطية
+                        <i class="fas fa-database"></i> {% if current_lang == 'en' %}Import backup{% else %}استيراد نسخة احتياطية{% endif %}
                     </a>
                     <a href="/admin/customer-communications" class="btn btn-secondary me-2" style="background:#e8fff4;border-color:#2f855a;color:#1f5137;">
-                        <i class="fas fa-envelope-open-text"></i> مراسلات العملاء
+                        <i class="fas fa-envelope-open-text"></i> {% if current_lang == 'en' %}Customer communications{% else %}مراسلات العملاء{% endif %}
                     </a>
                     {% endif %}
                     <a href="/advanced_analyzer" class="btn btn-gradient-purple me-2" style="background: linear-gradient(135deg, #d4a72f, #b68a13); border: none; color: #1f2937;">
-                        <i class="fas fa-chart-area"></i> المحلل المتقدم
+                        <i class="fas fa-chart-area"></i> {% if current_lang == 'en' %}Advanced analyzer{% else %}المحلل المتقدم{% endif %}
                     </a>
                     <a href="/forex-analyzer" class="btn btn-info me-2" style="background:#1c2f4b;border-color:#1c2f4b;color:#f5e9c5;">
-                        <i class="fas fa-chart-line"></i> محلل الفوركس
+                        <i class="fas fa-chart-line"></i> {% if current_lang == 'en' %}Forex analyzer{% else %}محلل الفوركس{% endif %}
                     </a>
                     <a href="/subscriptions-management" class="btn btn-success me-2" style="background:#8e6c0d;border-color:#8e6c0d;color:#fff;">
-                        <i class="fas fa-users-cog"></i> إدارة الاشتراكات
+                        <i class="fas fa-users-cog"></i> {% if current_lang == 'en' %}Subscriptions management{% else %}إدارة الاشتراكات{% endif %}
                     </a>
                     <a href="/admin-management" class="btn btn-warning me-2" style="background:#fff3d8;border-color:#d4a72f;color:#8e6c0d;">
-                        <i class="fas fa-user-shield"></i> إدارة الأدمن
+                        <i class="fas fa-user-shield"></i> {% if current_lang == 'en' %}Admin management{% else %}إدارة الأدمن{% endif %}
                     </a>
                     <a href="/master-dashboard" class="btn btn-dark me-2" style="background:#111827;border-color:#111827;color:#f9fafb;">
-                        <i class="fas fa-sliders-h"></i> التحكم المركزي
+                        <i class="fas fa-sliders-h"></i> {% if current_lang == 'en' %}Central control{% else %}التحكم المركزي{% endif %}
                     </a>
                     <a href="/bot-management" class="btn btn-primary" style="background:#0f1a2d;border-color:#0f1a2d;">
-                        <i class="fas fa-robot"></i> إدارة البوتات
+                        <i class="fas fa-robot"></i> {% if current_lang == 'en' %}Bot management{% else %}إدارة البوتات{% endif %}
                     </a>
                 </div>
             </div>
@@ -51,28 +51,28 @@
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
                 <div class="stat-value">{{ stats.total_users }}</div>
-                <div class="stat-label">إجمالي المستخدمين</div>
+                <div class="stat-label">{% if current_lang == 'en' %}Total users{% else %}إجمالي المستخدمين{% endif %}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-value">{{ stats.active_users }}</div>
-                <div class="stat-label">المستخدمون النشطون</div>
+                <div class="stat-label">{% if current_lang == 'en' %}Active users{% else %}المستخدمون النشطون{% endif %}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon">📊</div>
                 <div class="stat-value">{{ stats.total_signals }}</div>
-                <div class="stat-label">إجمالي الإشارات</div>
+                <div class="stat-label">{% if current_lang == 'en' %}Total signals{% else %}إجمالي الإشارات{% endif %}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon">🎯</div>
                 <div class="stat-value">{{ stats.total_recommendations }}</div>
-                <div class="stat-label">إجمالي التوصيات</div>
+                <div class="stat-label">{% if current_lang == 'en' %}Total recommendations{% else %}إجمالي التوصيات{% endif %}</div>
             </div>
         </div>
     </div>
@@ -81,17 +81,17 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">⚡ اختصار Force Live</h5>
+                    <h5 class="mb-0">{% if current_lang == 'en' %}⚡ Force Live shortcut{% else %}⚡ اختصار Force Live{% endif %}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">تشغيل تحليل فوري مع خيار تجاوز الكاش، أو فحص مصدر البيانات الحي مباشرة.</p>
+                    <p class="text-muted mb-3">{% if current_lang == 'en' %}Run an instant analysis with cache bypass, or check the live data source directly.{% else %}تشغيل تحليل فوري مع خيار تجاوز الكاش، أو فحص مصدر البيانات الحي مباشرة.{% endif %}</p>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="form-check form-switch me-2">
                             <input class="form-check-input" type="checkbox" id="admin-force-live-toggle" checked>
-                            <label class="form-check-label" for="admin-force-live-toggle">تجاوز الكاش (Force Live)</label>
+                            <label class="form-check-label" for="admin-force-live-toggle">{% if current_lang == 'en' %}Bypass cache (Force Live){% else %}تجاوز الكاش (Force Live){% endif %}</label>
                         </div>
-                        <button class="btn btn-primary" id="admin-run-once-btn">▶️ تشغيل التحليل الآن</button>
-                        <button class="btn btn-outline-primary" id="admin-health-check-btn">🩺 فحص المصادر</button>
+                        <button class="btn btn-primary" id="admin-run-once-btn">▶️ {% if current_lang == 'en' %}Run analysis now{% else %}تشغيل التحليل الآن{% endif %}</button>
+                        <button class="btn btn-outline-primary" id="admin-health-check-btn">🩺 {% if current_lang == 'en' %}Check sources{% else %}فحص المصادر{% endif %}</button>
                     </div>
                     <div class="small text-muted mt-2" id="admin-force-live-meta">-</div>
                 </div>
@@ -103,27 +103,27 @@
     <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab" aria-selected="true" aria-controls="signals">
-                📊 إرسال الإشارات
+                {% if current_lang == 'en' %}📊 Signals{% else %}📊 إرسال الإشارات{% endif %}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab" aria-selected="false" aria-controls="recommendations">
-                🎯 إرسال التوصيات
+                {% if current_lang == 'en' %}🎯 Recommendations{% else %}🎯 إرسال التوصيات{% endif %}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-selected="false" aria-controls="reports">
-                📋 إرسال التقارير
+                {% if current_lang == 'en' %}📋 Reports{% else %}📋 إرسال التقارير{% endif %}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="broadcast-tab" data-bs-toggle="tab" data-bs-target="#broadcast" type="button" role="tab" aria-selected="false" aria-controls="broadcast">
-                📢 رسالة عامة
+                {% if current_lang == 'en' %}📢 Broadcast message{% else %}📢 رسالة عامة{% endif %}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-selected="false" aria-controls="settings">
-                ⚙️ الدفع والدعم
+                {% if current_lang == 'en' %}⚙️ Payment and support{% else %}⚙️ الدفع والدعم{% endif %}
             </button>
         </li>
     </ul>
@@ -135,10 +135,10 @@
         <div class="tab-pane fade show active" id="signals" role="tabpanel" aria-labelledby="signals-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
-                    <h5>📊 إرسال الإشارات إلى التليجرام</h5>
+                    <h5>{% if current_lang == 'en' %}📊 Send signals to Telegram{% else %}📊 إرسال الإشارات إلى التليجرام{% endif %}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">اختر إشارة لإرسالها إلى جميع المشتركين النشطين</p>
+                    <p class="text-muted">{% if current_lang == 'en' %}Choose a signal to send it to all active subscribers{% else %}اختر إشارة لإرسالها إلى جميع المشتركين النشطين{% endif %}</p>
                     
                     <div id="signals-list">
                         {% if recent_signals %}
@@ -163,7 +163,7 @@
                                     <div class="col-md-4 text-end">
                                         <button class="btn btn-primary btn-sm send-signal-btn" 
                                                 data-signal-id="{{ signal.get('signal_id', signal.get('file', '')) }}">
-                                            📤 إرسال
+                                            {% if current_lang == 'en' %}📤 Send{% else %}📤 إرسال{% endif %}
                                         </button>
                                     </div>
                                 </div>
@@ -171,7 +171,7 @@
                             {% endfor %}
                         {% else %}
                             <div class="alert alert-info">
-                                لا توجد إشارات متاحة حالياً
+                                {% if current_lang == 'en' %}No signals available right now{% else %}لا توجد إشارات متاحة حالياً{% endif %}
                             </div>
                         {% endif %}
                     </div>
@@ -183,10 +183,10 @@
         <div class="tab-pane fade" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
-                    <h5>🎯 إرسال التوصيات إلى التليجرام</h5>
+                    <h5>{% if current_lang == 'en' %}🎯 Send recommendations to Telegram{% else %}🎯 إرسال التوصيات إلى التليجرام{% endif %}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">اختر توصية لإرسالها إلى جميع المشتركين النشطين</p>
+                    <p class="text-muted">{% if current_lang == 'en' %}Choose a recommendation to send it to all active subscribers{% else %}اختر توصية لإرسالها إلى جميع المشتركين النشطين{% endif %}</p>
                     
                     <div id="recommendations-list">
                         {% if recent_recommendations %}
@@ -210,7 +210,7 @@
                                     <div class="col-md-4 text-end">
                                         <button class="btn btn-primary btn-sm send-recommendation-btn" 
                                                 data-rec-index="{{ loop.index0 }}">
-                                            📤 إرسال
+                                            {% if current_lang == 'en' %}📤 Send{% else %}📤 إرسال{% endif %}
                                         </button>
                                     </div>
                                 </div>
@@ -218,7 +218,7 @@
                             {% endfor %}
                         {% else %}
                             <div class="alert alert-info">
-                                لا توجد توصيات متاحة حالياً
+                                {% if current_lang == 'en' %}No recommendations available right now{% else %}لا توجد توصيات متاحة حالياً{% endif %}
                             </div>
                         {% endif %}
                     </div>
@@ -230,33 +230,39 @@
         <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
-                    <h5>📋 إرسال تقرير إلى التليجرام</h5>
+                    <h5>{% if current_lang == 'en' %}📋 Send report to Telegram{% else %}📋 إرسال تقرير إلى التليجرام{% endif %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="report-type" class="form-label">نوع التقرير</label>
+                        <label for="report-type" class="form-label">{% if current_lang == 'en' %}Report type{% else %}نوع التقرير{% endif %}</label>
                         <select class="form-select" id="report-type">
-                            <option value="custom">تقرير مخصص</option>
-                            <option value="daily">تقرير يومي</option>
-                            <option value="weekly">تقرير أسبوعي</option>
-                            <option value="performance">تقرير أداء</option>
+                            <option value="custom">{% if current_lang == 'en' %}Custom report{% else %}تقرير مخصص{% endif %}</option>
+                            <option value="daily">{% if current_lang == 'en' %}Daily report{% else %}تقرير يومي{% endif %}</option>
+                            <option value="weekly">{% if current_lang == 'en' %}Weekly report{% else %}تقرير أسبوعي{% endif %}</option>
+                            <option value="performance">{% if current_lang == 'en' %}Performance report{% else %}تقرير أداء{% endif %}</option>
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="report-text" class="form-label">محتوى التقرير</label>
+                        <label for="report-text" class="form-label">{% if current_lang == 'en' %}Report content{% else %}محتوى التقرير{% endif %}</label>
                         <textarea class="form-control" id="report-text" rows="8" 
-                                  placeholder="اكتب محتوى التقرير هنا...
+                                  placeholder="{% if current_lang == 'en' %}Write the report content here...
+
+Example:
+✅ Winning signals: 15
+❌ Losing signals: 3
+📈 Success rate: 83%
+💰 Total profit: +450 points{% else %}اكتب محتوى التقرير هنا...
 
 مثال:
 ✅ الإشارات الناجحة: 15
 ❌ الإشارات الخاسرة: 3
 📈 نسبة النجاح: 83%
-💰 الربح الإجمالي: +450 نقطة"></textarea>
+💰 الربح الإجمالي: +450 نقطة{% endif %}"></textarea>
                     </div>
                     
                     <button class="btn btn-success" id="send-report-btn">
-                        📤 إرسال التقرير
+                        {% if current_lang == 'en' %}📤 Send report{% else %}📤 إرسال التقرير{% endif %}
                     </button>
                 </div>
             </div>
@@ -266,17 +272,25 @@
         <div class="tab-pane fade" id="broadcast" role="tabpanel" aria-labelledby="broadcast-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
-                    <h5>📢 إرسال رسالة عامة</h5>
+                    <h5>{% if current_lang == 'en' %}📢 Send broadcast message{% else %}📢 إرسال رسالة عامة{% endif %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
-                        <strong>تنبيه:</strong> سيتم إرسال هذه الرسالة لجميع المشتركين النشطين ({{ stats.active_users }} مستخدم)
+                        <strong>{% if current_lang == 'en' %}Warning:{% else %}تنبيه:{% endif %}</strong> {% if current_lang == 'en' %}This message will be sent to all active subscribers ({{ stats.active_users }} users){% else %}سيتم إرسال هذه الرسالة لجميع المشتركين النشطين ({{ stats.active_users }} مستخدم){% endif %}
                     </div>
                     
                     <div class="mb-3">
-                        <label for="broadcast-message" class="form-label">نص الرسالة</label>
+                        <label for="broadcast-message" class="form-label">{% if current_lang == 'en' %}Message text{% else %}نص الرسالة{% endif %}</label>
                         <textarea class="form-control" id="broadcast-message" rows="6" 
-                                  placeholder="اكتب رسالتك هنا...
+                                  placeholder="{% if current_lang == 'en' %}Write your message here...
+
+Example:
+🎉 Limited-time special offer!
+
+Get 50% off all plans
+Use code: SPECIAL50
+
+⏰ Offer ends in 48 hours{% else %}اكتب رسالتك هنا...
 
 مثال:
 🎉 عرض خاص لفترة محدودة!
@@ -284,11 +298,11 @@
 احصل على خصم 50% على جميع الباقات
 استخدم كود: SPECIAL50
 
-⏰ العرض ينتهي بعد 48 ساعة"></textarea>
+⏰ العرض ينتهي بعد 48 ساعة{% endif %}"></textarea>
                     </div>
                     
                     <button class="btn btn-warning" id="send-broadcast-btn">
-                        📢 إرسال للجميع
+                        {% if current_lang == 'en' %}📢 Send to everyone{% else %}📢 إرسال للجميع{% endif %}
                     </button>
                 </div>
             </div>
@@ -297,113 +311,113 @@
         <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
-                    <h5>⚙️ إعدادات الدفع والدعم الظاهرة للمستخدم</h5>
+                    <h5>{% if current_lang == 'en' %}⚙️ Payment and support settings visible to users{% else %}⚙️ إعدادات الدفع والدعم الظاهرة للمستخدم{% endif %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3 settings-grid">
                         <div class="col-md-6">
-                            <label class="form-label" for="support_email">بريد الدعم</label>
+                            <label class="form-label" for="support_email">{% if current_lang == 'en' %}Support email{% else %}بريد الدعم{% endif %}</label>
                             <input id="support_email" class="form-control" type="email" placeholder="support@example.com">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="support_phone">رقم الاتصال</label>
+                            <label class="form-label" for="support_phone">{% if current_lang == 'en' %}Contact phone{% else %}رقم الاتصال{% endif %}</label>
                             <input id="support_phone" class="form-control" type="text" placeholder="00962...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="support_whatsapp">رقم واتساب</label>
+                            <label class="form-label" for="support_whatsapp">{% if current_lang == 'en' %}WhatsApp number{% else %}رقم واتساب{% endif %}</label>
                             <input id="support_whatsapp" class="form-control" type="text" placeholder="00962...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="payment_cliq_number">رقم CliQ</label>
+                            <label class="form-label" for="payment_cliq_number">{% if current_lang == 'en' %}CliQ number{% else %}رقم CliQ{% endif %}</label>
                             <input id="payment_cliq_number" class="form-control" type="text" placeholder="00962...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="payment_cliq_alias">اسم CliQ المستعار</label>
+                            <label class="form-label" for="payment_cliq_alias">{% if current_lang == 'en' %}CliQ alias{% else %}اسم CliQ المستعار{% endif %}</label>
                             <input id="payment_cliq_alias" class="form-control" type="text" placeholder="alias">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="payment_iban">رقم IBAN</label>
+                            <label class="form-label" for="payment_iban">{% if current_lang == 'en' %}IBAN number{% else %}رقم IBAN{% endif %}</label>
                             <input id="payment_iban" class="form-control" type="text" placeholder="JO...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="payment_account_name">اسم المستفيد</label>
-                            <input id="payment_account_name" class="form-control" type="text" placeholder="اسم المستفيد">
+                            <label class="form-label" for="payment_account_name">{% if current_lang == 'en' %}Beneficiary name{% else %}اسم المستفيد{% endif %}</label>
+                            <input id="payment_account_name" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}Beneficiary name{% else %}اسم المستفيد{% endif %}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="payment_bank_name">اسم البنك</label>
-                            <input id="payment_bank_name" class="form-control" type="text" placeholder="اسم البنك">
+                            <label class="form-label" for="payment_bank_name">{% if current_lang == 'en' %}Bank name{% else %}اسم البنك{% endif %}</label>
+                            <input id="payment_bank_name" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}Bank name{% else %}اسم البنك{% endif %}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="crypto_btc_address">عنوان Bitcoin (BTC)</label>
-                            <input id="crypto_btc_address" class="form-control" type="text" placeholder="bc1... أو 1...">
-                            <div class="form-text">مثال صحيح: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh أو 1BoatSLRHtKNngkdXEeobR76b53LETtpyT</div>
+                            <label class="form-label" for="crypto_btc_address">{% if current_lang == 'en' %}Bitcoin address (BTC){% else %}عنوان Bitcoin (BTC){% endif %}</label>
+                            <input id="crypto_btc_address" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}bc1... or 1...{% else %}bc1... أو 1...{% endif %}">
+                            <div class="form-text">{% if current_lang == 'en' %}Valid example: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh or 1BoatSLRHtKNngkdXEeobR76b53LETtpyT{% else %}مثال صحيح: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh أو 1BoatSLRHtKNngkdXEeobR76b53LETtpyT{% endif %}</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="crypto_eth_address">عنوان Ethereum (ETH)</label>
+                            <label class="form-label" for="crypto_eth_address">{% if current_lang == 'en' %}Ethereum address (ETH){% else %}عنوان Ethereum (ETH){% endif %}</label>
                             <input id="crypto_eth_address" class="form-control" type="text" placeholder="0x...">
-                            <div class="form-text">مثال صحيح: 0x1234567890abcdef1234567890abcdef12345678</div>
+                            <div class="form-text">{% if current_lang == 'en' %}Valid example: 0x1234567890abcdef1234567890abcdef12345678{% else %}مثال صحيح: 0x1234567890abcdef1234567890abcdef12345678{% endif %}</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="crypto_usdt_address">عنوان USDT</label>
+                            <label class="form-label" for="crypto_usdt_address">{% if current_lang == 'en' %}USDT address{% else %}عنوان USDT{% endif %}</label>
                             <input id="crypto_usdt_address" class="form-control" type="text" placeholder="TRC20 / ERC20 ...">
-                            <div class="form-text">TRC20 مثال: TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE — ERC20 مثال: 0x1234567890abcdef1234567890abcdef12345678</div>
+                            <div class="form-text">{% if current_lang == 'en' %}TRC20 example: TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE - ERC20 example: 0x1234567890abcdef1234567890abcdef12345678{% else %}TRC20 مثال: TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE — ERC20 مثال: 0x1234567890abcdef1234567890abcdef12345678{% endif %}</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="support_help_url">رابط مركز المساعدة</label>
-                            <input id="support_help_url" class="form-control" type="text" placeholder="/help أو رابط خارجي">
+                            <label class="form-label" for="support_help_url">{% if current_lang == 'en' %}Help center link{% else %}رابط مركز المساعدة{% endif %}</label>
+                            <input id="support_help_url" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}/help or external link{% else %}/help أو رابط خارجي{% endif %}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="support_bug_url">رابط الإبلاغ عن مشكلة</label>
+                            <label class="form-label" for="support_bug_url">{% if current_lang == 'en' %}Bug report link{% else %}رابط الإبلاغ عن مشكلة{% endif %}</label>
                             <input id="support_bug_url" class="form-control" type="text" placeholder="/support/bug">
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label" for="support_feature_url">رابط اقتراح ميزة</label>
+                            <label class="form-label" for="support_feature_url">{% if current_lang == 'en' %}Feature request link{% else %}رابط اقتراح ميزة{% endif %}</label>
                             <input id="support_feature_url" class="form-control" type="text" placeholder="/support/feature">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="news_ticker_mode">نمط شريط الأخبار</label>
+                            <label class="form-label" for="news_ticker_mode">{% if current_lang == 'en' %}News ticker mode{% else %}نمط شريط الأخبار{% endif %}</label>
                             <select id="news_ticker_mode" class="form-select">
-                                <option value="both">الاثنان (اقتصادي + أخبار المنصة)</option>
-                                <option value="economic">اقتصادي فقط</option>
-                                <option value="arabic">عربي فقط (اقتصادي)</option>
+                                <option value="both">{% if current_lang == 'en' %}Both (economic + platform news){% else %}الاثنان (اقتصادي + أخبار المنصة){% endif %}</option>
+                                <option value="economic">{% if current_lang == 'en' %}Economic only{% else %}اقتصادي فقط{% endif %}</option>
+                                <option value="arabic">{% if current_lang == 'en' %}Arabic only (economic){% else %}عربي فقط (اقتصادي){% endif %}</option>
                             </select>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label" for="recommendation_footer_message">رسالة أسفل التوصيات (منفصلة)</label>
-                            <input id="recommendation_footer_message" class="form-control" type="text" placeholder="مثال: للاستفسار السريع تواصل معنا عبر الروابط التالية">
+                            <label class="form-label" for="recommendation_footer_message">{% if current_lang == 'en' %}Footer message under recommendations (separate){% else %}رسالة أسفل التوصيات (منفصلة){% endif %}</label>
+                            <input id="recommendation_footer_message" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}Example: for quick inquiries contact us through the links below{% else %}مثال: للاستفسار السريع تواصل معنا عبر الروابط التالية{% endif %}">
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label" for="recommendation_footer_link">رابط أسفل التوصيات (منفصل)</label>
-                            <input id="recommendation_footer_link" class="form-control" type="text" placeholder="https://t.me/yourchannel أو https://wa.me/...">
+                            <label class="form-label" for="recommendation_footer_link">{% if current_lang == 'en' %}Footer link under recommendations (separate){% else %}رابط أسفل التوصيات (منفصل){% endif %}</label>
+                            <input id="recommendation_footer_link" class="form-control" type="text" placeholder="{% if current_lang == 'en' %}https://t.me/yourchannel or https://wa.me/...{% else %}https://t.me/yourchannel أو https://wa.me/...{% endif %}">
                         </div>
                         <div class="col-md-12">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" id="recommendation_footer_enabled" checked>
-                                <label class="form-check-label" for="recommendation_footer_enabled">تفعيل الرسالة/الرابط أسفل التوصيات</label>
+                                <label class="form-check-label" for="recommendation_footer_enabled">{% if current_lang == 'en' %}Enable footer message/link under recommendations{% else %}تفعيل الرسالة/الرابط أسفل التوصيات{% endif %}</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-3 d-flex gap-2">
-                        <button class="btn btn-primary" id="load-settings-btn">🔄 تحميل الإعدادات</button>
-                        <button class="btn btn-success" id="save-settings-btn">💾 حفظ الإعدادات</button>
+                        <button class="btn btn-primary" id="load-settings-btn">🔄 {% if current_lang == 'en' %}Load settings{% else %}تحميل الإعدادات{% endif %}</button>
+                        <button class="btn btn-success" id="save-settings-btn">💾 {% if current_lang == 'en' %}Save settings{% else %}حفظ الإعدادات{% endif %}</button>
                     </div>
 
                     <hr class="my-4">
 
-                    <h6 class="mb-2">📢 إدارة إعلانات الصفحة الرئيسية</h6>
-                    <p class="text-muted small mb-2">يمكنك إضافة/تعديل الإعلانات بصيغة مرئية دون الحاجة لكتابة JSON.</p>
+                    <h6 class="mb-2">{% if current_lang == 'en' %}📢 Home page ads management{% else %}📢 إدارة إعلانات الصفحة الرئيسية{% endif %}</h6>
+                    <p class="text-muted small mb-2">{% if current_lang == 'en' %}You can add/edit ads visually without writing JSON.{% else %}يمكنك إضافة/تعديل الإعلانات بصيغة مرئية دون الحاجة لكتابة JSON.{% endif %}</p>
                     <div id="public-ads-list" class="d-grid gap-3"></div>
                     <div class="mt-3 d-flex gap-2">
-                        <button class="btn btn-outline-secondary" id="add-ad-btn">➕ إضافة إعلان</button>
-                        <button class="btn btn-outline-primary" id="load-ads-btn">🔄 تحميل الإعلانات</button>
-                        <button class="btn btn-outline-success" id="save-ads-btn">💾 حفظ الإعلانات</button>
+                        <button class="btn btn-outline-secondary" id="add-ad-btn">➕ {% if current_lang == 'en' %}Add ad{% else %}إضافة إعلان{% endif %}</button>
+                        <button class="btn btn-outline-primary" id="load-ads-btn">🔄 {% if current_lang == 'en' %}Load ads{% else %}تحميل الإعلانات{% endif %}</button>
+                        <button class="btn btn-outline-success" id="save-ads-btn">💾 {% if current_lang == 'en' %}Save ads{% else %}حفظ الإعلانات{% endif %}</button>
                     </div>
 
                     <hr class="my-4">
 
-                    <h6 class="mb-2">🌍 مصادر الأخبار الاقتصادية</h6>
-                    <p class="text-muted small mb-2">تحكم في تفعيل المصادر وروابط RSS الخاصة بها للشريط المتحرك.</p>
+                    <h6 class="mb-2">{% if current_lang == 'en' %}🌍 Economic news sources{% else %}🌍 مصادر الأخبار الاقتصادية{% endif %}</h6>
+                    <p class="text-muted small mb-2">{% if current_lang == 'en' %}Control source activation and their RSS links for the ticker.{% else %}تحكم في تفعيل المصادر وروابط RSS الخاصة بها للشريط المتحرك.{% endif %}</p>
 
                     <div class="row g-3" id="news-sources-settings">
                         <div class="col-md-12 news-source-row" data-source-key="fxstreet">
@@ -412,10 +426,10 @@
                                     <div class="card-title mb-0">FXStreet</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_fxstreet_enabled" checked>
-                                        <label class="form-check-label" for="news_source_fxstreet_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_fxstreet_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_fxstreet_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_fxstreet_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_fxstreet_url" class="form-control news-source-url" type="text" placeholder="https://www.fxstreet.com/rss/news">
                             </div>
                         </div>
@@ -426,10 +440,10 @@
                                     <div class="card-title mb-0">DailyFX</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_dailyfx_enabled" checked>
-                                        <label class="form-check-label" for="news_source_dailyfx_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_dailyfx_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_dailyfx_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_dailyfx_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_dailyfx_url" class="form-control news-source-url" type="text" placeholder="https://www.dailyfx.com/feeds/market-news">
                             </div>
                         </div>
@@ -440,10 +454,10 @@
                                     <div class="card-title mb-0">Investing</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_investing_enabled" checked>
-                                        <label class="form-check-label" for="news_source_investing_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_investing_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_investing_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_investing_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_investing_url" class="form-control news-source-url" type="text" placeholder="https://www.investing.com/rss/news_25.rss">
                             </div>
                         </div>
@@ -451,13 +465,13 @@
                         <div class="col-md-12 news-source-row" data-source-key="argaamar">
                             <div class="ad-editor-card">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="card-title mb-0">Argaam عربي</div>
+                                    <div class="card-title mb-0">{% if current_lang == 'en' %}Argaam Arabic{% else %}Argaam عربي{% endif %}</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_argaamar_enabled" checked>
-                                        <label class="form-check-label" for="news_source_argaamar_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_argaamar_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_argaamar_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_argaamar_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_argaamar_url" class="form-control news-source-url" type="text" placeholder="https://www.argaam.com/ar/rss">
                             </div>
                         </div>
@@ -465,13 +479,13 @@
                         <div class="col-md-12 news-source-row" data-source-key="mubasherar">
                             <div class="ad-editor-card">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="card-title mb-0">Mubasher عربي</div>
+                                    <div class="card-title mb-0">{% if current_lang == 'en' %}Mubasher Arabic{% else %}Mubasher عربي{% endif %}</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_mubasherar_enabled" checked>
-                                        <label class="form-check-label" for="news_source_mubasherar_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_mubasherar_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_mubasherar_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_mubasherar_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_mubasherar_url" class="form-control news-source-url" type="text" placeholder="https://www.mubasher.info/rss/news">
                             </div>
                         </div>
@@ -479,32 +493,32 @@
                         <div class="col-md-12 news-source-row" data-source-key="skynewsarabiaeco">
                             <div class="ad-editor-card">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="card-title mb-0">SkyNews Arabia اقتصاد</div>
+                                    <div class="card-title mb-0">{% if current_lang == 'en' %}SkyNews Arabia Economy{% else %}SkyNews Arabia اقتصاد{% endif %}</div>
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input news-source-enabled" type="checkbox" id="news_source_skynewsarabiaeco_enabled" checked>
-                                        <label class="form-check-label" for="news_source_skynewsarabiaeco_enabled">مفعل</label>
+                                        <label class="form-check-label" for="news_source_skynewsarabiaeco_enabled">{% if current_lang == 'en' %}Enabled{% else %}مفعل{% endif %}</label>
                                     </div>
                                 </div>
-                                <label class="form-label" for="news_source_skynewsarabiaeco_url">رابط RSS</label>
+                                <label class="form-label" for="news_source_skynewsarabiaeco_url">{% if current_lang == 'en' %}RSS link{% else %}رابط RSS{% endif %}</label>
                                 <input id="news_source_skynewsarabiaeco_url" class="form-control news-source-url" type="text" placeholder="https://www.skynewsarabia.com/web/rss/7-1">
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-3 d-flex gap-2">
-                        <button class="btn btn-outline-primary" id="load-news-sources-btn">🔄 تحميل المصادر</button>
-                        <button class="btn btn-outline-success" id="save-news-sources-btn">💾 حفظ المصادر</button>
+                        <button class="btn btn-outline-primary" id="load-news-sources-btn">🔄 {% if current_lang == 'en' %}Load sources{% else %}تحميل المصادر{% endif %}</button>
+                        <button class="btn btn-outline-success" id="save-news-sources-btn">💾 {% if current_lang == 'en' %}Save sources{% else %}حفظ المصادر{% endif %}</button>
                     </div>
 
                     <hr class="my-4">
 
-                    <h6 class="mb-2">📡 أهداف البث (Telegram / WhatsApp)</h6>
-                    <p class="text-muted small mb-2">يمكنك إضافة صفحة/قناة تيليجرام أو جروب واتساب للبث، مع إمكانية الحذف أو إيقاف البث مؤقتاً.</p>
+                    <h6 class="mb-2">{% if current_lang == 'en' %}📡 Broadcast targets (Telegram / WhatsApp){% else %}📡 أهداف البث (Telegram / WhatsApp){% endif %}</h6>
+                    <p class="text-muted small mb-2">{% if current_lang == 'en' %}You can add a Telegram page/channel or a WhatsApp group for broadcasting, with delete and pause controls.{% else %}يمكنك إضافة صفحة/قناة تيليجرام أو جروب واتساب للبث، مع إمكانية الحذف أو إيقاف البث مؤقتاً.{% endif %}</p>
                     <div id="broadcast-targets-list" class="d-grid gap-3"></div>
                     <div class="mt-3 d-flex gap-2">
-                        <button class="btn btn-outline-secondary" id="add-broadcast-target-btn">➕ إضافة هدف بث</button>
-                        <button class="btn btn-outline-primary" id="load-broadcast-targets-btn">🔄 تحميل الأهداف</button>
-                        <button class="btn btn-outline-success" id="save-broadcast-targets-btn">💾 حفظ الأهداف</button>
+                        <button class="btn btn-outline-secondary" id="add-broadcast-target-btn">➕ {% if current_lang == 'en' %}Add broadcast target{% else %}إضافة هدف بث{% endif %}</button>
+                        <button class="btn btn-outline-primary" id="load-broadcast-targets-btn">🔄 {% if current_lang == 'en' %}Load targets{% else %}تحميل الأهداف{% endif %}</button>
+                        <button class="btn btn-outline-success" id="save-broadcast-targets-btn">💾 {% if current_lang == 'en' %}Save targets{% else %}حفظ الأهداف{% endif %}</button>
                     </div>
                 </div>
             </div>
@@ -634,6 +648,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
+    const current_lang = "{{ current_lang | default('ar') }}";
+
     const settingsFields = [
         'support_email',
         'support_phone',
@@ -708,13 +724,13 @@ document.addEventListener('DOMContentLoaded', function() {
         setFieldValidationState('crypto_usdt_address', !usdt || usdtTrc20Pattern.test(usdt) || usdtErc20Pattern.test(usdt));
 
         if (btc && !btcPattern.test(btc)) {
-            return { valid: false, message: '⚠️ عنوان BTC غير صالح. يجب أن يبدأ بـ bc1 أو 1 أو 3' };
+            return { valid: false, message: current_lang === 'en' ? '⚠️ Invalid BTC address. It must start with bc1, 1, or 3' : '⚠️ عنوان BTC غير صالح. يجب أن يبدأ بـ bc1 أو 1 أو 3' };
         }
         if (eth && !ethPattern.test(eth)) {
-            return { valid: false, message: '⚠️ عنوان ETH غير صالح. يجب أن يبدأ بـ 0x ويتكون من 40 خانة Hex' };
+            return { valid: false, message: current_lang === 'en' ? '⚠️ Invalid ETH address. It must start with 0x and contain 40 hex characters' : '⚠️ عنوان ETH غير صالح. يجب أن يبدأ بـ 0x ويتكون من 40 خانة Hex' };
         }
         if (usdt && !(usdtTrc20Pattern.test(usdt) || usdtErc20Pattern.test(usdt))) {
-            return { valid: false, message: '⚠️ عنوان USDT غير صالح. استخدم TRC20 (يبدأ بـ T) أو ERC20 (يبدأ بـ 0x)' };
+            return { valid: false, message: current_lang === 'en' ? '⚠️ Invalid USDT address. Use TRC20 (starts with T) or ERC20 (starts with 0x)' : '⚠️ عنوان USDT غير صالح. استخدم TRC20 (يبدأ بـ T) أو ERC20 (يبدأ بـ 0x)' };
         }
 
         return { valid: true, message: '' };
@@ -726,13 +742,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     applySettingsToForm(data.settings || {});
-                    showResult('success', '✅ تم تحميل إعدادات الدفع والدعم');
+                    showResult('success', current_lang === 'en' ? '✅ Payment and support settings loaded' : '✅ تم تحميل إعدادات الدفع والدعم');
                 } else {
-                    showResult('danger', '❌ فشل تحميل الإعدادات');
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to load settings' : '❌ فشل تحميل الإعدادات');
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء تحميل الإعدادات: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error loading settings: ' + error : '❌ خطأ أثناء تحميل الإعدادات: ' + error);
             });
     }
 
@@ -742,13 +758,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     setAdsEditorRows(data.ads || []);
-                    showResult('success', '✅ تم تحميل إعلانات الصفحة الرئيسية');
+                    showResult('success', current_lang === 'en' ? '✅ Home page ads loaded' : '✅ تم تحميل إعلانات الصفحة الرئيسية');
                 } else {
-                    showResult('danger', '❌ فشل تحميل الإعلانات');
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to load ads' : '❌ فشل تحميل الإعلانات');
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء تحميل الإعلانات: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error loading ads: ' + error : '❌ خطأ أثناء تحميل الإعلانات: ' + error);
             });
     }
 
@@ -760,12 +776,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const adsPayload = collectAdsFromEditor();
         if (!adsPayload.length) {
-            showResult('warning', '⚠️ يجب إضافة إعلان واحد على الأقل مع عنوان ونص');
+            showResult('warning', current_lang === 'en' ? '⚠️ Add at least one ad with a title and text' : '⚠️ يجب إضافة إعلان واحد على الأقل مع عنوان ونص');
             return;
         }
 
         saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ جاري حفظ الإعلانات...';
+        saveBtn.textContent = current_lang === 'en' ? '⏳ Saving ads...' : '⏳ جاري حفظ الإعلانات...';
 
         fetch('/api/admin/public-ads', {
             method: 'POST',
@@ -778,17 +794,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     setAdsEditorRows(data.ads || []);
-                    showResult('success', '✅ تم حفظ إعلانات الصفحة الرئيسية بنجاح');
+                    showResult('success', current_lang === 'en' ? '✅ Home page ads saved successfully' : '✅ تم حفظ إعلانات الصفحة الرئيسية بنجاح');
                 } else {
-                    showResult('danger', '❌ فشل حفظ الإعلانات: ' + (data.error || 'خطأ غير معروف'));
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to save ads: ' + (data.error || 'Unknown error') : '❌ فشل حفظ الإعلانات: ' + (data.error || 'خطأ غير معروف'));
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء حفظ الإعلانات: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error saving ads: ' + error : '❌ خطأ أثناء حفظ الإعلانات: ' + error);
             })
             .finally(() => {
                 saveBtn.disabled = false;
-                saveBtn.textContent = '💾 حفظ الإعلانات';
+                saveBtn.textContent = current_lang === 'en' ? '💾 Save ads' : '💾 حفظ الإعلانات';
             });
     }
 
@@ -851,13 +867,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     applyNewsSourcesToForm(data.sources || []);
-                    showResult('success', '✅ تم تحميل مصادر الأخبار الاقتصادية');
+                    showResult('success', current_lang === 'en' ? '✅ Economic news sources loaded' : '✅ تم تحميل مصادر الأخبار الاقتصادية');
                 } else {
-                    showResult('danger', '❌ فشل تحميل مصادر الأخبار');
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to load news sources' : '❌ فشل تحميل مصادر الأخبار');
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء تحميل مصادر الأخبار: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error loading news sources: ' + error : '❌ خطأ أثناء تحميل مصادر الأخبار: ' + error);
             });
     }
 
@@ -869,12 +885,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const sourcesPayload = collectNewsSourcesFromForm();
         if (!sourcesPayload.length) {
-            showResult('warning', '⚠️ لا توجد مصادر لحفظها');
+            showResult('warning', current_lang === 'en' ? '⚠️ No sources to save' : '⚠️ لا توجد مصادر لحفظها');
             return;
         }
 
         saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ جاري حفظ المصادر...';
+        saveBtn.textContent = current_lang === 'en' ? '⏳ Saving sources...' : '⏳ جاري حفظ المصادر...';
 
         fetch('/api/admin/news-sources', {
             method: 'POST',
@@ -887,17 +903,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     applyNewsSourcesToForm(data.sources || []);
-                    showResult('success', '✅ تم حفظ مصادر الأخبار الاقتصادية بنجاح');
+                    showResult('success', current_lang === 'en' ? '✅ Economic news sources saved successfully' : '✅ تم حفظ مصادر الأخبار الاقتصادية بنجاح');
                 } else {
-                    showResult('danger', '❌ فشل حفظ المصادر: ' + (data.error || 'خطأ غير معروف'));
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to save sources: ' + (data.error || 'Unknown error') : '❌ فشل حفظ المصادر: ' + (data.error || 'خطأ غير معروف'));
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء حفظ المصادر: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error saving sources: ' + error : '❌ خطأ أثناء حفظ المصادر: ' + error);
             })
             .finally(() => {
                 saveBtn.disabled = false;
-                saveBtn.textContent = '💾 حفظ المصادر';
+                saveBtn.textContent = current_lang === 'en' ? '💾 Save sources' : '💾 حفظ المصادر';
             });
     }
 
@@ -906,28 +922,28 @@ document.addEventListener('DOMContentLoaded', function() {
         wrapper.className = 'ad-editor-card';
         wrapper.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="card-title mb-0">إعلان #${index}</div>
-                <button type="button" class="btn btn-sm btn-outline-danger remove-ad-btn">🗑️ حذف</button>
+                <div class="card-title mb-0">${current_lang === 'en' ? 'Ad #' : 'إعلان #'}${index}</div>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-ad-btn">🗑️ ${current_lang === 'en' ? 'Remove' : 'حذف'}</button>
             </div>
             <div class="row g-2 ad-editor-row">
                 <div class="col-md-3">
-                    <label class="form-label">Badge</label>
-                    <input type="text" class="form-control ad-badge" value="${(ad.badge || '').replace(/"/g, '&quot;')}" placeholder="جديد">
+                    <label class="form-label">${current_lang === 'en' ? 'Badge' : 'Badge'}</label>
+                    <input type="text" class="form-control ad-badge" value="${(ad.badge || '').replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? 'New' : 'جديد'}">
                 </div>
                 <div class="col-md-9">
-                    <label class="form-label">العنوان</label>
-                    <input type="text" class="form-control ad-title" value="${(ad.title || '').replace(/"/g, '&quot;')}" placeholder="عنوان الإعلان">
+                    <label class="form-label">${current_lang === 'en' ? 'Title' : 'العنوان'}</label>
+                    <input type="text" class="form-control ad-title" value="${(ad.title || '').replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? 'Ad title' : 'عنوان الإعلان'}">
                 </div>
                 <div class="col-md-12">
-                    <label class="form-label">النص</label>
-                    <textarea class="form-control ad-text" rows="2" placeholder="وصف الإعلان">${ad.text || ''}</textarea>
+                    <label class="form-label">${current_lang === 'en' ? 'Text' : 'النص'}</label>
+                    <textarea class="form-control ad-text" rows="2" placeholder="${current_lang === 'en' ? 'Ad description' : 'وصف الإعلان'}">${ad.text || ''}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">نص الزر</label>
-                    <input type="text" class="form-control ad-cta-text" value="${(ad.cta_text || '').replace(/"/g, '&quot;')}" placeholder="عرض التفاصيل">
+                    <label class="form-label">${current_lang === 'en' ? 'Button text' : 'نص الزر'}</label>
+                    <input type="text" class="form-control ad-cta-text" value="${(ad.cta_text || '').replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? 'View details' : 'عرض التفاصيل'}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">الرابط</label>
+                    <label class="form-label">${current_lang === 'en' ? 'Link' : 'الرابط'}</label>
                     <input type="text" class="form-control ad-cta-url" value="${(ad.cta_url || '').replace(/"/g, '&quot;')}" placeholder="/plans">
                 </div>
             </div>
@@ -949,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
         list.querySelectorAll('.ad-editor-card').forEach((row, idx) => {
             const title = row.querySelector('.card-title');
             if (title) {
-                title.textContent = `إعلان #${idx + 1}`;
+                title.textContent = current_lang === 'en' ? `Ad #${idx + 1}` : `إعلان #${idx + 1}`;
             }
         });
     }
@@ -975,10 +991,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const ads = [];
         list.querySelectorAll('.ad-editor-card').forEach((row) => {
-            const badge = row.querySelector('.ad-badge')?.value?.trim() || 'إعلان';
+            const badge = row.querySelector('.ad-badge')?.value?.trim() || (current_lang === 'en' ? 'Ad' : 'إعلان');
             const title = row.querySelector('.ad-title')?.value?.trim() || '';
             const text = row.querySelector('.ad-text')?.value?.trim() || '';
-            const ctaText = row.querySelector('.ad-cta-text')?.value?.trim() || 'عرض التفاصيل';
+            const ctaText = row.querySelector('.ad-cta-text')?.value?.trim() || (current_lang === 'en' ? 'View details' : 'عرض التفاصيل');
             const ctaUrl = row.querySelector('.ad-cta-url')?.value?.trim() || '/plans';
 
             if (!title || !text) {
@@ -1007,16 +1023,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         wrapper.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="card-title mb-0">هدف بث #${index}</div>
-                <button type="button" class="btn btn-sm btn-outline-danger remove-broadcast-target-btn">🗑️ حذف</button>
+                <div class="card-title mb-0">${current_lang === 'en' ? 'Broadcast target #' : 'هدف بث #'}${index}</div>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-broadcast-target-btn">🗑️ ${current_lang === 'en' ? 'Remove' : 'حذف'}</button>
             </div>
             <div class="row g-2 broadcast-target-row">
                 <div class="col-md-4">
-                    <label class="form-label">الاسم</label>
-                    <input type="text" class="form-control target-name" value="${String(name).replace(/"/g, '&quot;')}" placeholder="اسم الهدف">
+                    <label class="form-label">${current_lang === 'en' ? 'Name' : 'الاسم'}</label>
+                    <input type="text" class="form-control target-name" value="${String(name).replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? 'Target name' : 'اسم الهدف'}">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">المنصة</label>
+                    <label class="form-label">${current_lang === 'en' ? 'Platform' : 'المنصة'}</label>
                     <select class="form-select target-platform">
                         <option value="telegram" ${platform === 'telegram' ? 'selected' : ''}>Telegram</option>
                         <option value="telegram_channel" ${platform === 'telegram_channel' ? 'selected' : ''}>Telegram Channel</option>
@@ -1027,16 +1043,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="form-check form-switch m-0">
                         <input class="form-check-input target-enabled" type="checkbox" ${enabled ? 'checked' : ''}>
-                        <label class="form-check-label">تفعيل البث</label>
+                        <label class="form-check-label">${current_lang === 'en' ? 'Enable broadcasting' : 'تفعيل البث'}</label>
                     </div>
                 </div>
 
                 <div class="col-md-6 target-telegram-fields">
                     <label class="form-label">Telegram Chat ID / @channel</label>
-                    <input type="text" class="form-control target-chat-id" value="${String(target.chat_id || '').replace(/"/g, '&quot;')}" placeholder="@channel أو -100xxxxxxxxxx">
+                    <input type="text" class="form-control target-chat-id" value="${String(target.chat_id || '').replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? '@channel or -100xxxxxxxxxx' : '@channel أو -100xxxxxxxxxx'}">
                 </div>
                 <div class="col-md-6 target-telegram-fields">
-                    <label class="form-label">وضع البوت</label>
+                    <label class="form-label">${current_lang === 'en' ? 'Bot mode' : 'وضع البوت'}</label>
                     <select class="form-select target-bot-mode">
                         <option value="all_active" ${(target.bot_mode || 'all_active') === 'all_active' ? 'selected' : ''}>all_active</option>
                         <option value="single" ${(target.bot_mode || '') === 'single' ? 'selected' : ''}>single</option>
@@ -1053,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="col-md-3 target-whatsapp-fields" style="display:none;">
                     <label class="form-label">Auth Token</label>
-                    <input type="text" class="form-control target-auth-token" value="${String(target.auth_token || '').replace(/"/g, '&quot;')}" placeholder="اختياري">
+                    <input type="text" class="form-control target-auth-token" value="${String(target.auth_token || '').replace(/"/g, '&quot;')}" placeholder="${current_lang === 'en' ? 'Optional' : 'اختياري'}">
                 </div>
             </div>
         `;
@@ -1087,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         list.querySelectorAll('.ad-editor-card').forEach((row, idx) => {
             const title = row.querySelector('.card-title');
             if (title) {
-                title.textContent = `هدف بث #${idx + 1}`;
+                title.textContent = current_lang === 'en' ? `Broadcast target #${idx + 1}` : `هدف بث #${idx + 1}`;
             }
         });
     }
@@ -1148,13 +1164,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     setBroadcastTargetRows(data.targets || []);
-                    showResult('success', '✅ تم تحميل أهداف البث');
+                    showResult('success', current_lang === 'en' ? '✅ Broadcast targets loaded' : '✅ تم تحميل أهداف البث');
                 } else {
-                    showResult('danger', '❌ فشل تحميل أهداف البث: ' + (data.error || 'خطأ غير معروف'));
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to load broadcast targets: ' + (data.error || 'Unknown error') : '❌ فشل تحميل أهداف البث: ' + (data.error || 'خطأ غير معروف'));
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء تحميل أهداف البث: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error loading broadcast targets: ' + error : '❌ خطأ أثناء تحميل أهداف البث: ' + error);
             });
     }
 
@@ -1166,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const payload = { targets: collectBroadcastTargetsFromEditor() };
         saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ جاري حفظ الأهداف...';
+        saveBtn.textContent = current_lang === 'en' ? '⏳ Saving targets...' : '⏳ جاري حفظ الأهداف...';
 
         fetch('/api/admin/broadcast-targets', {
             method: 'POST',
@@ -1179,17 +1195,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     setBroadcastTargetRows(data.targets || []);
-                    showResult('success', '✅ تم حفظ أهداف البث بنجاح');
+                    showResult('success', current_lang === 'en' ? '✅ Broadcast targets saved successfully' : '✅ تم حفظ أهداف البث بنجاح');
                 } else {
-                    showResult('danger', '❌ فشل حفظ أهداف البث: ' + (data.error || 'خطأ غير معروف'));
+                    showResult('danger', current_lang === 'en' ? '❌ Failed to save broadcast targets: ' + (data.error || 'Unknown error') : '❌ فشل حفظ أهداف البث: ' + (data.error || 'خطأ غير معروف'));
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء حفظ أهداف البث: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error saving broadcast targets: ' + error : '❌ خطأ أثناء حفظ أهداف البث: ' + error);
             })
             .finally(() => {
                 saveBtn.disabled = false;
-                saveBtn.textContent = '💾 حفظ الأهداف';
+                saveBtn.textContent = current_lang === 'en' ? '💾 Save targets' : '💾 حفظ الأهداف';
             });
     }
 
@@ -1248,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const metaEl = document.getElementById('admin-force-live-meta');
 
         btn.disabled = true;
-        btn.textContent = '⏳ جاري التحليل...';
+        btn.textContent = current_lang === 'en' ? '⏳ Running analysis...' : '⏳ جاري التحليل...';
 
         fetch('/api/admin/continuous-analyzer/run-once', {
             method: 'POST',
@@ -1260,17 +1276,23 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const msg = `✅ تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`;
+                const msg = current_lang === 'en'
+                    ? `✅ Analysis: ${data.analyzed_count || 0} | New signals: ${data.generated_count || 0} | Broadcast: ${data.broadcast_count || 0}`
+                    : `✅ تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`;
                 if (metaEl) metaEl.textContent = msg;
                 showResult('success', msg);
             } else {
-                const err = '❌ فشل تشغيل التحليل: ' + (data.error || 'خطأ غير معروف');
+                const err = current_lang === 'en'
+                    ? '❌ Analysis failed: ' + (data.error || 'Unknown error')
+                    : '❌ فشل تشغيل التحليل: ' + (data.error || 'خطأ غير معروف');
                 if (metaEl) metaEl.textContent = err;
                 showResult('danger', err);
             }
         })
         .catch(error => {
-            const err = '❌ خطأ أثناء التحليل: ' + error;
+            const err = current_lang === 'en'
+                ? '❌ Analysis error: ' + error
+                : '❌ خطأ أثناء التحليل: ' + error;
             if (metaEl) metaEl.textContent = err;
             showResult('danger', err);
         })
@@ -1287,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const metaEl = document.getElementById('admin-force-live-meta');
 
         btn.disabled = true;
-        btn.textContent = '⏳ جاري الفحص...';
+        btn.textContent = current_lang === 'en' ? '⏳ Checking sources...' : '⏳ جاري الفحص...';
 
         fetch(`/api/admin/data-source-health?interval=1h&outputsize=120&force_live=${forceLive ? '1' : '0'}`)
         .then(response => response.json())
@@ -1295,17 +1317,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 const report = Array.isArray(data.report) ? data.report : [];
                 const sources = [...new Set(report.map(item => item.source).filter(Boolean))];
-                const msg = `✅ المصادر: ${sources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`;
+                const msg = current_lang === 'en'
+                    ? `✅ Sources: ${sources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`
+                    : `✅ المصادر: ${sources.join(', ') || '-'} | OK: ${data.ok || 0} | Failed: ${data.failed || 0}`;
                 if (metaEl) metaEl.textContent = msg;
                 showResult('success', msg);
             } else {
-                const err = '❌ فشل فحص المصادر: ' + (data.error || 'خطأ غير معروف');
+                const err = current_lang === 'en'
+                    ? '❌ Source check failed: ' + (data.error || 'Unknown error')
+                    : '❌ فشل فحص المصادر: ' + (data.error || 'خطأ غير معروف');
                 if (metaEl) metaEl.textContent = err;
                 showResult('danger', err);
             }
         })
         .catch(error => {
-            const err = '❌ خطأ أثناء فحص المصادر: ' + error;
+            const err = current_lang === 'en'
+                ? '❌ Source check error: ' + error
+                : '❌ خطأ أثناء فحص المصادر: ' + error;
             if (metaEl) metaEl.textContent = err;
             showResult('danger', err);
         })
@@ -1325,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         this.disabled = true;
-        this.textContent = '⏳ جاري الحفظ...';
+        this.textContent = current_lang === 'en' ? '⏳ Saving...' : '⏳ جاري الحفظ...';
 
         fetch('/api/admin/site-settings', {
             method: 'POST',
@@ -1338,17 +1366,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((data) => {
                 if (data.success) {
                     applySettingsToForm(data.settings || {});
-                    showResult('success', '✅ تم حفظ الإعدادات بنجاح');
+                    showResult('success', current_lang === 'en' ? '✅ Settings saved successfully' : '✅ تم حفظ الإعدادات بنجاح');
                 } else {
-                    showResult('danger', '❌ فشل الحفظ: ' + (data.error || 'خطأ غير معروف'));
+                    showResult('danger', current_lang === 'en' ? '❌ Save failed: ' + (data.error || 'Unknown error') : '❌ فشل الحفظ: ' + (data.error || 'خطأ غير معروف'));
                 }
             })
             .catch((error) => {
-                showResult('danger', '❌ خطأ أثناء الحفظ: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Save error: ' + error : '❌ خطأ أثناء الحفظ: ' + error);
             })
             .finally(() => {
                 this.disabled = false;
-                this.textContent = '💾 حفظ الإعدادات';
+                this.textContent = current_lang === 'en' ? '💾 Save settings' : '💾 حفظ الإعدادات';
             });
     });
 
@@ -1386,12 +1414,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const signalId = this.getAttribute('data-signal-id');
             const originalText = this.textContent;
             
-            if (!confirm('هل أنت متأكد من إرسال هذه الإشارة لجميع المشتركين؟')) {
+            if (!confirm(current_lang === 'en' ? 'Are you sure you want to send this signal to all subscribers?' : 'هل أنت متأكد من إرسال هذه الإشارة لجميع المشتركين؟')) {
                 return;
             }
             
             this.disabled = true;
-            this.textContent = '⏳ جاري الإرسال...';
+            this.textContent = current_lang === 'en' ? '⏳ Sending...' : '⏳ جاري الإرسال...';
             
             fetch('/api/admin/send-signal', {
                 method: 'POST',
@@ -1403,21 +1431,26 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showResult('success', `✅ تم الإرسال بنجاح!
+                    showResult('success', current_lang === 'en'
+                        ? `✅ Sent successfully!
+                        📊 Sent: ${data.sent_count}
+                        ❌ Failed: ${data.failed_count}
+                        👥 Total: ${data.total_subscribers}`
+                        : `✅ تم الإرسال بنجاح!
                         📊 تم الإرسال: ${data.sent_count}
                         ❌ فشل: ${data.failed_count}
                         👥 إجمالي: ${data.total_subscribers}`);
-                    this.textContent = '✅ تم الإرسال';
+                    this.textContent = current_lang === 'en' ? '✅ Sent' : '✅ تم الإرسال';
                     this.classList.remove('btn-primary');
                     this.classList.add('btn-success');
                 } else {
-                    showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                    showResult('danger', current_lang === 'en' ? '❌ Send failed: ' + data.error : '❌ فشل الإرسال: ' + data.error);
                     this.disabled = false;
                     this.textContent = originalText;
                 }
             })
             .catch(error => {
-                showResult('danger', '❌ خطأ: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error: ' + error : '❌ خطأ: ' + error);
                 this.disabled = false;
                 this.textContent = originalText;
             });
@@ -1430,12 +1463,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const recIndex = this.getAttribute('data-rec-index');
             const originalText = this.textContent;
             
-            if (!confirm('هل أنت متأكد من إرسال هذه التوصية لجميع المشتركين؟')) {
+            if (!confirm(current_lang === 'en' ? 'Are you sure you want to send this recommendation to all subscribers?' : 'هل أنت متأكد من إرسال هذه التوصية لجميع المشتركين؟')) {
                 return;
             }
             
             this.disabled = true;
-            this.textContent = '⏳ جاري الإرسال...';
+            this.textContent = current_lang === 'en' ? '⏳ Sending...' : '⏳ جاري الإرسال...';
             
             fetch('/api/admin/send-recommendation', {
                 method: 'POST',
@@ -1447,21 +1480,26 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showResult('success', `✅ تم الإرسال بنجاح!
+                    showResult('success', current_lang === 'en'
+                        ? `✅ Sent successfully!
+                        📊 Sent: ${data.sent_count}
+                        ❌ Failed: ${data.failed_count}
+                        👥 Total: ${data.total_subscribers}`
+                        : `✅ تم الإرسال بنجاح!
                         📊 تم الإرسال: ${data.sent_count}
                         ❌ فشل: ${data.failed_count}
                         👥 إجمالي: ${data.total_subscribers}`);
-                    this.textContent = '✅ تم الإرسال';
+                    this.textContent = current_lang === 'en' ? '✅ Sent' : '✅ تم الإرسال';
                     this.classList.remove('btn-primary');
                     this.classList.add('btn-success');
                 } else {
-                    showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                    showResult('danger', current_lang === 'en' ? '❌ Send failed: ' + data.error : '❌ فشل الإرسال: ' + data.error);
                     this.disabled = false;
                     this.textContent = originalText;
                 }
             })
             .catch(error => {
-                showResult('danger', '❌ خطأ: ' + error);
+                showResult('danger', current_lang === 'en' ? '❌ Error: ' + error : '❌ خطأ: ' + error);
                 this.disabled = false;
                 this.textContent = originalText;
             });
@@ -1474,16 +1512,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const reportType = document.getElementById('report-type').value;
         
         if (!reportText) {
-            showResult('warning', '⚠️ يرجى كتابة محتوى التقرير');
+            showResult('warning', current_lang === 'en' ? '⚠️ Please write report content' : '⚠️ يرجى كتابة محتوى التقرير');
             return;
         }
         
-        if (!confirm('هل أنت متأكد من إرسال هذا التقرير لجميع المشتركين؟')) {
+        if (!confirm(current_lang === 'en' ? 'Are you sure you want to send this report to all subscribers?' : 'هل أنت متأكد من إرسال هذا التقرير لجميع المشتركين؟')) {
             return;
         }
         
         this.disabled = true;
-        this.textContent = '⏳ جاري الإرسال...';
+        this.textContent = current_lang === 'en' ? '⏳ Sending...' : '⏳ جاري الإرسال...';
         
         fetch('/api/admin/send-report', {
             method: 'POST',
@@ -1498,23 +1536,28 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showResult('success', `✅ تم إرسال التقرير بنجاح!
+                showResult('success', current_lang === 'en'
+                    ? `✅ Report sent successfully!
+                    📊 Sent: ${data.sent_count}
+                    ❌ Failed: ${data.failed_count}
+                    👥 Total: ${data.total_subscribers}`
+                    : `✅ تم إرسال التقرير بنجاح!
                     📊 تم الإرسال: ${data.sent_count}
                     ❌ فشل: ${data.failed_count}
                     👥 إجمالي: ${data.total_subscribers}`);
                 document.getElementById('report-text').value = '';
                 this.disabled = false;
-                this.textContent = '📤 إرسال التقرير';
+                this.textContent = current_lang === 'en' ? '📤 Send report' : '📤 إرسال التقرير';
             } else {
-                showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                showResult('danger', current_lang === 'en' ? '❌ Send failed: ' + data.error : '❌ فشل الإرسال: ' + data.error);
                 this.disabled = false;
-                this.textContent = '📤 إرسال التقرير';
+                this.textContent = current_lang === 'en' ? '📤 Send report' : '📤 إرسال التقرير';
             }
         })
         .catch(error => {
-            showResult('danger', '❌ خطأ: ' + error);
+            showResult('danger', current_lang === 'en' ? '❌ Error: ' + error : '❌ خطأ: ' + error);
             this.disabled = false;
-            this.textContent = '📤 إرسال التقرير';
+            this.textContent = current_lang === 'en' ? '📤 Send report' : '📤 إرسال التقرير';
         });
     });
     
@@ -1523,16 +1566,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = document.getElementById('broadcast-message').value.trim();
         
         if (!message) {
-            showResult('warning', '⚠️ يرجى كتابة الرسالة');
+            showResult('warning', current_lang === 'en' ? '⚠️ Please write the message' : '⚠️ يرجى كتابة الرسالة');
             return;
         }
         
-        if (!confirm('⚠️ سيتم إرسال هذه الرسالة لجميع المشتركين النشطين. هل أنت متأكد؟')) {
+        if (!confirm(current_lang === 'en' ? '⚠️ This message will be sent to all active subscribers. Are you sure?' : '⚠️ سيتم إرسال هذه الرسالة لجميع المشتركين النشطين. هل أنت متأكد؟')) {
             return;
         }
         
         this.disabled = true;
-        this.textContent = '⏳ جاري الإرسال...';
+        this.textContent = current_lang === 'en' ? '⏳ Sending...' : '⏳ جاري الإرسال...';
         
         fetch('/api/admin/broadcast-message', {
             method: 'POST',
@@ -1544,23 +1587,28 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showResult('success', `✅ تم إرسال الرسالة بنجاح!
+                showResult('success', current_lang === 'en'
+                    ? `✅ Message sent successfully!
+                    📊 Sent: ${data.sent_count}
+                    ❌ Failed: ${data.failed_count}
+                    👥 Total: ${data.total_subscribers}`
+                    : `✅ تم إرسال الرسالة بنجاح!
                     📊 تم الإرسال: ${data.sent_count}
                     ❌ فشل: ${data.failed_count}
                     👥 إجمالي: ${data.total_subscribers}`);
                 document.getElementById('broadcast-message').value = '';
                 this.disabled = false;
-                this.textContent = '📢 إرسال للجميع';
+                this.textContent = current_lang === 'en' ? '📢 Send to everyone' : '📢 إرسال للجميع';
             } else {
-                showResult('danger', '❌ فشل الإرسال: ' + data.error);
+                showResult('danger', current_lang === 'en' ? '❌ Send failed: ' + data.error : '❌ فشل الإرسال: ' + data.error);
                 this.disabled = false;
-                this.textContent = '📢 إرسال للجميع';
+                this.textContent = current_lang === 'en' ? '📢 Send to everyone' : '📢 إرسال للجميع';
             }
         })
         .catch(error => {
-            showResult('danger', '❌ خطأ: ' + error);
+            showResult('danger', current_lang === 'en' ? '❌ Error: ' + error : '❌ خطأ: ' + error);
             this.disabled = false;
-            this.textContent = '📢 إرسال للجميع';
+            this.textContent = current_lang === 'en' ? '📢 Send to everyone' : '📢 إرسال للجميع';
         });
     });
     
@@ -1582,5 +1630,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-{% endblock %}

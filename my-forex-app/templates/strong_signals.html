@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="{{ current_lang | default('ar') }}" dir="{{ current_dir | default('rtl') }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>الإشارات القوية</title>
+    <title>{% if current_lang == 'en' %}Strong Signals{% else %}الإشارات القوية{% endif %}</title>
     <style>
         :root {
             --bg: #0b0907;
@@ -485,24 +485,24 @@
 <body>
     <div class="shell">
         <div class="header">
-            <a href="{{ main_site_url }}" style="font-weight:800;">⭐ العودة للرئيسية</a>
-            <a href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">المحلل</a>
-            <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">التحليل الكامل</a>
+            <a href="{{ main_site_url }}" style="font-weight:800;">⭐ {% if current_lang == 'en' %}Back to home{% else %}العودة للرئيسية{% endif %}</a>
+            <a href="{{ forex_base_path }}/analyst?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">{% if current_lang == 'en' %}Analyst{% else %}المحلل{% endif %}</a>
+            <a href="{{ forex_base_path }}/signals?symbol={{ selected_symbol }}&interval={{ selected_interval }}&return_to={{ return_to_param }}">{% if current_lang == 'en' %}Full analysis{% else %}التحليل الكامل{% endif %}</a>
         </div>
 
         <section class="hero">
-            <div class="eyebrow">ماسح الإشارات القوية</div>
+            <div class="eyebrow">{% if current_lang == 'en' %}Strong signal scanner{% else %}ماسح الإشارات القوية{% endif %}</div>
             <h1>{{ strong_signals.symbol_label if strong_signals.success else selected_symbol }} · {{ selected_interval }}</h1>
-            <p class="muted">هذه الصفحة تفحص السوق أو الرمز المحدد وتعرض فقط الإشارات التي خرجت من نظام البحث بتوصية شراء قوي أو بيع قوي. عند اختيار كل الأسواق، يتم التحديث الآلي بشكل دوري.</p>
+            <p class="muted">{% if current_lang == 'en' %}This page scans the selected market or symbol and shows only signals that reached a strong buy or strong sell recommendation. When All Markets is selected, it refreshes automatically on a schedule.{% else %}هذه الصفحة تفحص السوق أو الرمز المحدد وتعرض فقط الإشارات التي خرجت من نظام البحث بتوصية شراء قوي أو بيع قوي. عند اختيار كل الأسواق، يتم التحديث الآلي بشكل دوري.{% endif %}</p>
 
             <form class="selector-form" action="{{ forex_base_path }}/strong-signals" method="get">
                 <input type="hidden" name="return_to" value="{{ main_site_url }}">
                 <div class="field">
-                    <label for="symbol-search">بحث داخل الرموز</label>
-                    <input id="symbol-search" type="text" placeholder="مثال: XAU أو BTC أو US500">
+                    <label for="symbol-search">{% if current_lang == 'en' %}Search symbols{% else %}بحث داخل الرموز{% endif %}</label>
+                    <input id="symbol-search" type="text" placeholder="{% if current_lang == 'en' %}Example: XAU, BTC, or US500{% else %}مثال: XAU أو BTC أو US500{% endif %}">
                 </div>
                 <div class="field">
-                    <label for="symbol">الرمز</label>
+                    <label for="symbol">{% if current_lang == 'en' %}Symbol{% else %}الرمز{% endif %}</label>
                     <select id="symbol" name="symbol" required>
                         {% for group in grouped_symbol_options %}
                         <optgroup label="{{ group.label }}">
@@ -514,70 +514,70 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label for="interval">الإطار الزمني</label>
+                    <label for="interval">{% if current_lang == 'en' %}Timeframe{% else %}الإطار الزمني{% endif %}</label>
                     <select id="interval" name="interval" required>
                         {% for option in interval_options %}
                         <option value="{{ option }}" {% if option == selected_interval %}selected{% endif %}>{{ option }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <button class="button button-secondary" type="button" id="clear-search">مسح البحث</button>
-                <button class="button button-primary" type="submit">تشغيل البحث</button>
+                <button class="button button-secondary" type="button" id="clear-search">{% if current_lang == 'en' %}Clear search{% else %}مسح البحث{% endif %}</button>
+                <button class="button button-primary" type="submit">{% if current_lang == 'en' %}Run search{% else %}تشغيل البحث{% endif %}</button>
             </form>
         </section>
 
         {% if not strong_signals.success %}
         <div class="error">
-            <strong>تعذر جلب الإشارات القوية</strong>
+            <strong>{% if current_lang == 'en' %}Unable to load strong signals{% else %}تعذر جلب الإشارات القوية{% endif %}</strong>
             <p>{{ strong_signals.error }}</p>
         </div>
         {% else %}
         <div class="live-alert" id="live-alert">
             <div>
-                <strong id="live-alert-title">تم رصد إشارة جديدة</strong>
-                <div class="muted" id="live-alert-message">سيتم عرض تفاصيل الإشارة الجديدة هنا.</div>
+                <strong id="live-alert-title">{% if current_lang == 'en' %}A new signal was detected{% else %}تم رصد إشارة جديدة{% endif %}</strong>
+                <div class="muted" id="live-alert-message">{% if current_lang == 'en' %}The new signal details will appear here.{% else %}سيتم عرض تفاصيل الإشارة الجديدة هنا.{% endif %}</div>
             </div>
-            <button class="filter-chip" type="button" id="dismiss-live-alert">إخفاء</button>
+            <button class="filter-chip" type="button" id="dismiss-live-alert">{% if current_lang == 'en' %}Hide{% else %}إخفاء{% endif %}</button>
         </div>
 
         <section class="summary-grid">
             <div class="summary-card">
-                <h2>ملخص الفحص</h2>
-                <div class="pill" id="matched-signals-pill">تم العثور على {{ strong_signals.matched_signals }} إشارة قوية</div>
+                <h2>{% if current_lang == 'en' %}Scan summary{% else %}ملخص الفحص{% endif %}</h2>
+                <div class="pill" id="matched-signals-pill">{% if current_lang == 'en' %}Found {{ strong_signals.matched_signals }} strong signals{% else %}تم العثور على {{ strong_signals.matched_signals }} إشارة قوية{% endif %}</div>
                 <div class="kv">
-                    <div><strong>نطاق البحث:</strong> <span id="scan-target-label">{{ strong_signals.symbol_label }}</span></div>
-                    <div><strong>عدد الرموز المفحوصة:</strong> <span id="scanned-symbols-count">{{ strong_signals.scanned_symbols }}</span></div>
-                    <div><strong>الإطار الزمني:</strong> <span id="scan-interval-label">{{ strong_signals.interval }}</span></div>
+                    <div><strong>{% if current_lang == 'en' %}Search scope:{% else %}نطاق البحث:{% endif %}</strong> <span id="scan-target-label">{{ strong_signals.symbol_label }}</span></div>
+                    <div><strong>{% if current_lang == 'en' %}Number of scanned symbols:{% else %}عدد الرموز المفحوصة:{% endif %}</strong> <span id="scanned-symbols-count">{{ strong_signals.scanned_symbols }}</span></div>
+                    <div><strong>{% if current_lang == 'en' %}Timeframe:{% else %}الإطار الزمني:{% endif %}</strong> <span id="scan-interval-label">{{ strong_signals.interval }}</span></div>
                 </div>
             </div>
 
             <div class="summary-card">
-                <h2>حالة نظام البحث</h2>
+                <h2>{% if current_lang == 'en' %}Scan status{% else %}حالة نظام البحث{% endif %}</h2>
                 <div class="kv">
-                    <div>تعرض الصفحة فقط النتائج التي بلغت مستوى قوة كافٍ داخل المحرك.</div>
-                    <div>الرموز التي لم تنتج شراء قوي أو بيع قوي لا تظهر في هذه الصفحة.</div>
-                    <div><strong>أخطاء الفحص:</strong> <span id="scan-errors-count">{{ strong_signals.scan_errors|length }}</span></div>
+                    <div>{% if current_lang == 'en' %}This page only shows results that reached a sufficient strength level in the engine.{% else %}تعرض الصفحة فقط النتائج التي بلغت مستوى قوة كافٍ داخل المحرك.{% endif %}</div>
+                    <div>{% if current_lang == 'en' %}Symbols that did not produce a strong buy or strong sell do not appear on this page.{% else %}الرموز التي لم تنتج شراء قوي أو بيع قوي لا تظهر في هذه الصفحة.{% endif %}</div>
+                    <div><strong>{% if current_lang == 'en' %}Scan errors:{% else %}أخطاء الفحص:{% endif %}</strong> <span id="scan-errors-count">{{ strong_signals.scan_errors|length }}</span></div>
                 </div>
             </div>
         </section>
 
         <div class="auto-toolbar">
             <div class="auto-status">
-                <div class="auto-chip"><strong>آخر فحص:</strong> <span id="generated-at-label">{{ strong_signals.generated_at }}</span></div>
-                <div class="auto-chip"><strong>الوضع الحالي:</strong> <span id="scan-mode-label">{% if strong_signals.symbol == 'ALL' %}فحص تلقائي لجميع الأزواج{% else %}فحص مخصص لرمز واحد{% endif %}</span></div>
-                <div class="auto-chip"><strong>التحديث التالي:</strong> <span id="auto-refresh-countdown">--</span></div>
+                <div class="auto-chip"><strong>{% if current_lang == 'en' %}Last scan:{% else %}آخر فحص:{% endif %}</strong> <span id="generated-at-label">{{ strong_signals.generated_at }}</span></div>
+                <div class="auto-chip"><strong>{% if current_lang == 'en' %}Current mode:{% else %}الوضع الحالي:{% endif %}</strong> <span id="scan-mode-label">{% if strong_signals.symbol == 'ALL' %}{% if current_lang == 'en' %}Automatic scan for all pairs{% else %}فحص تلقائي لجميع الأزواج{% endif %}{% else %}{% if current_lang == 'en' %}Custom scan for a single symbol{% else %}فحص مخصص لرمز واحد{% endif %}{% endif %}</span></div>
+                <div class="auto-chip"><strong>{% if current_lang == 'en' %}Next refresh:{% else %}التحديث التالي:{% endif %}</strong> <span id="auto-refresh-countdown">--</span></div>
             </div>
             <div class="auto-actions">
-                <div class="auto-chip"><strong>إشعارات المتصفح:</strong> <span id="notification-status">غير معروفة</span></div>
-                <button class="filter-chip" type="button" id="request-notification-permission">تفعيل الإشعارات</button>
-                <button class="filter-chip" type="button" id="toggle-auto-refresh">إيقاف التحديث الآلي</button>
+                <div class="auto-chip"><strong>{% if current_lang == 'en' %}Browser notifications:{% else %}إشعارات المتصفح:{% endif %}</strong> <span id="notification-status">{% if current_lang == 'en' %}Unknown{% else %}غير معروفة{% endif %}</span></div>
+                <button class="filter-chip" type="button" id="request-notification-permission">{% if current_lang == 'en' %}Enable notifications{% else %}تفعيل الإشعارات{% endif %}</button>
+                <button class="filter-chip" type="button" id="toggle-auto-refresh">{% if current_lang == 'en' %}Stop auto-refresh{% else %}إيقاف التحديث الآلي{% endif %}</button>
             </div>
         </div>
 
         <div class="filter-row" id="category-filters">
-            <button class="filter-chip active" type="button" data-category-filter="ALL">كل الفئات</button>
+            <button class="filter-chip active" type="button" data-category-filter="ALL">{% if current_lang == 'en' %}All categories{% else %}كل الفئات{% endif %}</button>
             {% for category in strong_signals.categories %}
-            <button class="filter-chip" type="button" data-category-filter="{{ category }}">{{ category }}</button>
+            <button class="filter-chip" type="button" data-category-filter="{{ category }}">{% if current_lang == 'en' %}{% if category == 'الأزواج الرئيسية' %}Major pairs{% elif category == 'الأزواج التقاطعية' %}Cross pairs{% elif category == 'المؤشرات الأمريكية' %}US indices{% elif category == 'العملات المشفرة' %}Cryptocurrencies{% elif category == 'المعادن' %}Metals{% else %}{{ category }}{% endif %}{% else %}{{ category }}{% endif %}</button>
             {% endfor %}
         </div>
 
@@ -591,37 +591,37 @@
                         <div class="pill">{{ signal.category }}</div>
                     </div>
                     {% if loop.first %}
-                    <div class="spotlight-badge">الأفضل الآن</div>
+                    <div class="spotlight-badge">{% if current_lang == 'en' %}Top pick now{% else %}الأفضل الآن{% endif %}</div>
                     {% endif %}
                 </div>
-                <h3 class="{% if 'شراء' in signal.recommendation %}buy{% else %}sell{% endif %}">{{ signal.recommendation }}</h3>
+                <h3 class="{% if 'شراء' in signal.recommendation %}buy{% else %}sell{% endif %}">{% if current_lang == 'en' %}{% if signal.recommendation == 'شراء قوي' %}Strong buy{% elif signal.recommendation == 'شراء' %}Buy{% elif signal.recommendation == 'بيع قوي' %}Strong sell{% elif signal.recommendation == 'بيع' %}Sell{% else %}{{ signal.recommendation }}{% endif %}{% else %}{{ signal.recommendation }}{% endif %}</h3>
                 <div class="kv">
-                    <div><strong>الترتيب:</strong> #{{ loop.index }}</div>
-                    <div><strong>قوة الشراء:</strong> {{ signal.buy_score }}</div>
-                    <div><strong>قوة البيع:</strong> {{ signal.sell_score }}</div>
-                    <div><strong>فارق القوة:</strong> {{ signal.score_gap }}</div>
-                    <div><strong>التغير الأخير:</strong> {{ signal.price_change_pct }}%</div>
-                    <div><strong>الدخول:</strong> {{ signal.entry_price }}</div>
-                    <div><strong>TP1:</strong> {{ signal.take_profit1 }}</div>
-                    <div><strong>TP2:</strong> {{ signal.take_profit2 }}</div>
-                    <div><strong>TP3:</strong> {{ signal.take_profit3 }}</div>
-                    <div><strong>وقف الخسارة:</strong> {{ signal.stop_loss }}</div>
-                    <div><strong>الثقة:</strong> {{ signal.confidence }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Rank:{% else %}الترتيب:{% endif %}</strong> #{{ loop.index }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Buy strength:{% else %}قوة الشراء:{% endif %}</strong> {{ signal.buy_score }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Sell strength:{% else %}قوة البيع:{% endif %}</strong> {{ signal.sell_score }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Strength gap:{% else %}فارق القوة:{% endif %}</strong> {{ signal.score_gap }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Recent change:{% else %}التغير الأخير:{% endif %}</strong> {{ signal.price_change_pct }}%</div>
+                    <div><strong>{% if current_lang == 'en' %}Entry:{% else %}الدخول:{% endif %}</strong> {{ signal.entry_price }}</div>
+                    <div><strong>{% if current_lang == 'en' %}TP1:{% else %}TP1:{% endif %}</strong> {{ signal.take_profit1 }}</div>
+                    <div><strong>{% if current_lang == 'en' %}TP2:{% else %}TP2:{% endif %}</strong> {{ signal.take_profit2 }}</div>
+                    <div><strong>{% if current_lang == 'en' %}TP3:{% else %}TP3:{% endif %}</strong> {{ signal.take_profit3 }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Stop loss:{% else %}وقف الخسارة:{% endif %}</strong> {{ signal.stop_loss }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Confidence:{% else %}الثقة:{% endif %}</strong> {{ signal.confidence }}</div>
                 </div>
                 {% if signal.scenario %}
                 <div class="kv">
-                    <div><strong>السيناريو:</strong> {{ signal.scenario.primary.title }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Scenario:{% else %}السيناريو:{% endif %}</strong> {{ signal.scenario.primary.title }}</div>
                     <div>{{ signal.scenario.primary.trigger }}</div>
                     <div>{{ signal.scenario.primary.invalidation }}</div>
                 </div>
                 {% endif %}
                 {% if signal.executive_summary %}
                 <div class="kv">
-                    <div><strong>خلاصة سريعة:</strong> {{ signal.executive_summary.overview }}</div>
+                    <div><strong>{% if current_lang == 'en' %}Quick summary:{% else %}خلاصة سريعة:{% endif %}</strong> {{ signal.executive_summary.overview }}</div>
                 </div>
                 {% endif %}
                 <div class="kv">
-                    <a href="{{ forex_base_path }}/trade-simulator?symbol={{ signal.symbol }}&interval={{ strong_signals.interval }}&return_to={{ return_to_param }}" style="color:#f0c96c; font-weight:700; text-decoration:none;">فتح المحاكاة على هذه الإشارة</a>
+                    <a href="{{ forex_base_path }}/trade-simulator?symbol={{ signal.symbol }}&interval={{ strong_signals.interval }}&return_to={{ return_to_param }}" style="color:#f0c96c; font-weight:700; text-decoration:none;">{% if current_lang == 'en' %}Open simulator on this signal{% else %}فتح المحاكاة على هذه الإشارة{% endif %}</a>
                 </div>
             </article>
             {% endfor %}
@@ -629,12 +629,12 @@
         </section>
 
         <div class="empty {% if strong_signals.signals %}hidden-card{% endif %}" id="empty-state">
-            <h2>لا توجد إشارة قوية حالياً</h2>
-            <p class="muted">نظام البحث فحص النطاق المطلوب، لكنه لم يجد حالياً أي أصل وصل إلى شراء قوي أو بيع قوي على هذا الإطار الزمني.</p>
+            <h2>{% if current_lang == 'en' %}{% if strong_signals.deferred_scan %}All-markets scan is ready{% else %}No strong signal right now{% endif %}{% else %}{% if strong_signals.deferred_scan %}فحص كل الأسواق جاهز{% else %}لا توجد إشارة قوية حالياً{% endif %}{% endif %}</h2>
+            <p class="muted">{% if current_lang == 'en' %}{% if strong_signals.deferred_scan %}Choose a specific symbol for an instant result, or use the background refresh to scan all markets without freezing the page.{% else %}The scanner checked the requested range, but it did not find any asset that reached a strong buy or strong sell on this timeframe.{% endif %}{% else %}{% if strong_signals.deferred_scan %}اختر رمزاً محدداً لنتيجة فورية، أو استخدم التحديث الخلفي لفحص كل الأسواق دون تعليق الصفحة.{% else %}نظام البحث فحص النطاق المطلوب، لكنه لم يجد حالياً أي أصل وصل إلى شراء قوي أو بيع قوي على هذا الإطار الزمني.{% endif %}{% endif %}</p>
         </div>
 
         <section class="block {% if not strong_signals.scan_errors %}hidden-card{% endif %}" id="scan-errors-block">
-            <h2>أخطاء أثناء الفحص</h2>
+            <h2>{% if current_lang == 'en' %}Scan errors{% else %}أخطاء أثناء الفحص{% endif %}</h2>
             <div class="horizons" id="scan-errors-container">
                 {% if strong_signals.scan_errors %}
                 {% for item in strong_signals.scan_errors %}
@@ -650,7 +650,7 @@
         </section>
 
         <section class="block" id="signal-history-block">
-            <h2>آخر إشارة لكل زوج</h2>
+            <h2>{% if current_lang == 'en' %}Latest signal per pair{% else %}آخر إشارة لكل زوج{% endif %}</h2>
             <div class="history-list" id="signal-history-list"></div>
         </section>
         {% endif %}
@@ -696,6 +696,72 @@
         let countdownTimer = null;
         let activeCategory = 'ALL';
         let currentScanData = initialStrongSignalsData;
+        const pageLang = (window.GOLDPRO_I18N && window.GOLDPRO_I18N.lang) || '{{ current_lang | default("ar") }}';
+        const isEnglish = pageLang === 'en';
+        const strongTextTranslations = [
+            ['الأفضل الآن', 'Top pick now'],
+            ['خلاصة سريعة:', 'Quick summary:'],
+            ['السيناريو:', 'Scenario:'],
+            ['الترتيب:', 'Rank:'],
+            ['قوة الشراء:', 'Buy strength:'],
+            ['قوة البيع:', 'Sell strength:'],
+            ['فارق القوة:', 'Strength gap:'],
+            ['التغير الأخير:', 'Recent change:'],
+            ['الدخول:', 'Entry:'],
+            ['وقف الخسارة:', 'Stop loss:'],
+            ['الثقة:', 'Confidence:'],
+            ['شراء قوي', 'Strong buy'],
+            ['شراء', 'Buy'],
+            ['بيع قوي', 'Strong sell'],
+            ['بيع', 'Sell'],
+            ['انتظار', 'Wait'],
+            ['الأزواج الرئيسية', 'Major pairs'],
+            ['الأزواج التقاطعية', 'Cross pairs'],
+            ['المؤشرات الأمريكية', 'US indices'],
+            ['العملات المشفرة', 'Cryptocurrencies'],
+            ['المعادن', 'Metals'],
+            ['مرتفعة', 'High'],
+            ['جيدة', 'Good'],
+            ['متوسطة', 'Medium'],
+            ['سيناريو الشراء المفضل', 'Preferred buy scenario'],
+            ['سيناريو البيع المفضل', 'Preferred selling scenario'],
+            ['سيناريو الBuy المفضل', 'Preferred buy scenario'],
+            ['سيناريو الSell المفضل', 'Preferred selling scenario'],
+            ['سيناريو buy المفضل', 'Preferred buy scenario'],
+            ['سيناريو sell المفضل', 'Preferred selling scenario'],
+            ['يفعل إذا', 'It does if'],
+            ['حافظ السعر على التداول أعلى', 'the price keeps trading above'],
+            ['بقي السعر دون', 'the price stays below'],
+            ['مع ثبات فوق', 'with stability above'],
+            ['واستمر التداول أسفل', 'and trading continues below'],
+            ['إغلاق واضح أسفل', 'A clear close below'],
+            ['إغلاق واضح أعلى', 'A clear close above'],
+            ['يلغي الفكرة الصاعدة قصيرة الأجل.', 'cancels out the short-term bullish idea.'],
+            ['يلغي الفكرة الهابطة قصيرة الأجل.', 'cancels out the short-term bearish notion.'],
+            ['البنية الفنية تدعم متابعة الموجة الصاعدة ما دام السعر يحافظ على التداول أعلى المحور والدعم القريب.', 'The technical structure supports following the bullish wave as long as the price maintains trading above the pivot and nearby support.'],
+            ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي.', 'The technical structure favors continued selling pressure as long as the price remains below resistance and the operational pivot.'],
+            ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي', 'The technical structure favors continued selling pressure as long as the price remains below resistance and the operational pivot.'],
+            ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور.', 'The technical structure favors continued selling pressure as long as the price remains below resistance and the pivot.'],
+            ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور', 'The technical structure favors continued selling pressure as long as the price remains below resistance and the pivot.'],
+            ['الهيكل الفني يفضل استمرار الضغط', 'The technical structure favors continued pressure'],
+            ['طالما بقي السعر دون المقاومة والمحور التشغيلي', 'as long as the price remains below resistance and the operational pivot'],
+            ['طالما بقي السعر دون المقاومة والمحور', 'as long as the price remains below resistance and the pivot'],
+        ];
+
+        function translateStrongText(value) {
+            let translated = String(value ?? '');
+            if (!isEnglish) {
+                return translated;
+            }
+            for (const [source, target] of [...strongTextTranslations].sort((left, right) => right[0].length - left[0].length)) {
+                translated = translated.split(source).join(target);
+            }
+            return translated
+                .replaceAll('الBuy', 'buy')
+                .replaceAll('الSell', 'sell')
+                .replaceAll('buyي', 'buy')
+                .replaceAll('sellي', 'sell');
+        }
 
         function rebuildOptions(filterText) {
             const query = (filterText || '').trim().toLowerCase();
@@ -883,13 +949,15 @@
         }
 
         function buildSignalCard(signal, index) {
-            const spotlight = index === 0 ? '<div class="spotlight-badge">الأفضل الآن</div>' : '';
-            const overview = signal.executive_summary ? `<div class="kv"><div><strong>خلاصة سريعة:</strong> ${escapeHtml(signal.executive_summary.overview)}</div></div>` : '';
+            const recommendationText = translateStrongText(signal.recommendation);
+            const recommendationClass = String(signal.recommendation || recommendationText).toLowerCase().includes('شراء') || recommendationText.toLowerCase().includes('buy') ? 'buy' : 'sell';
+            const spotlight = index === 0 ? `<div class="spotlight-badge">${isEnglish ? 'Top pick now' : 'الأفضل الآن'}</div>` : '';
+            const overview = signal.executive_summary ? `<div class="kv"><div><strong>${isEnglish ? 'Quick summary:' : 'خلاصة سريعة:'}</strong> ${escapeHtml(translateStrongText(signal.executive_summary.overview))}</div></div>` : '';
             const scenario = signal.scenario ? `
                 <div class="kv">
-                    <div><strong>السيناريو:</strong> ${escapeHtml(signal.scenario.primary.title)}</div>
-                    <div>${escapeHtml(signal.scenario.primary.trigger)}</div>
-                    <div>${escapeHtml(signal.scenario.primary.invalidation)}</div>
+                    <div><strong>${isEnglish ? 'Scenario:' : 'السيناريو:'}</strong> ${escapeHtml(translateStrongText(signal.scenario.primary.title))}</div>
+                    <div>${escapeHtml(translateStrongText(signal.scenario.primary.trigger))}</div>
+                    <div>${escapeHtml(translateStrongText(signal.scenario.primary.invalidation))}</div>
                 </div>` : '';
 
             return `
@@ -897,23 +965,23 @@
                     <div class="signal-header">
                         <div class="signal-tags">
                             <div class="pill">${escapeHtml(signal.symbol_label)} · ${escapeHtml(signal.symbol)}</div>
-                            <div class="pill">${escapeHtml(signal.category)}</div>
+                            <div class="pill">${escapeHtml(translateStrongText(signal.category))}</div>
                         </div>
                         ${spotlight}
                     </div>
-                    <h3 class="${signal.recommendation.includes('شراء') ? 'buy' : 'sell'}">${escapeHtml(signal.recommendation)}</h3>
+                    <h3 class="${recommendationClass}">${escapeHtml(recommendationText)}</h3>
                     <div class="kv">
-                        <div><strong>الترتيب:</strong> #${index + 1}</div>
-                        <div><strong>قوة الشراء:</strong> ${escapeHtml(signal.buy_score)}</div>
-                        <div><strong>قوة البيع:</strong> ${escapeHtml(signal.sell_score)}</div>
-                        <div><strong>فارق القوة:</strong> ${escapeHtml(signal.score_gap)}</div>
-                        <div><strong>التغير الأخير:</strong> ${escapeHtml(signal.price_change_pct)}%</div>
-                        <div><strong>الدخول:</strong> ${escapeHtml(signal.entry_price)}</div>
+                        <div><strong>${isEnglish ? 'Rank:' : 'الترتيب:'}</strong> #${index + 1}</div>
+                        <div><strong>${isEnglish ? 'Buy strength:' : 'قوة الشراء:'}</strong> ${escapeHtml(signal.buy_score)}</div>
+                        <div><strong>${isEnglish ? 'Sell strength:' : 'قوة البيع:'}</strong> ${escapeHtml(signal.sell_score)}</div>
+                        <div><strong>${isEnglish ? 'Strength gap:' : 'فارق القوة:'}</strong> ${escapeHtml(signal.score_gap)}</div>
+                        <div><strong>${isEnglish ? 'Recent change:' : 'التغير الأخير:'}</strong> ${escapeHtml(signal.price_change_pct)}%</div>
+                        <div><strong>${isEnglish ? 'Entry:' : 'الدخول:'}</strong> ${escapeHtml(signal.entry_price)}</div>
                         <div><strong>TP1:</strong> ${escapeHtml(signal.take_profit1)}</div>
                         <div><strong>TP2:</strong> ${escapeHtml(signal.take_profit2)}</div>
                         <div><strong>TP3:</strong> ${escapeHtml(signal.take_profit3)}</div>
-                        <div><strong>وقف الخسارة:</strong> ${escapeHtml(signal.stop_loss)}</div>
-                        <div><strong>الثقة:</strong> ${escapeHtml(signal.confidence)}</div>
+                        <div><strong>${isEnglish ? 'Stop loss:' : 'وقف الخسارة:'}</strong> ${escapeHtml(signal.stop_loss)}</div>
+                        <div><strong>${isEnglish ? 'Confidence:' : 'الثقة:'}</strong> ${escapeHtml(translateStrongText(signal.confidence))}</div>
                     </div>
                     ${scenario}
                     ${overview}
@@ -1065,7 +1133,8 @@
         async function refreshStrongSignalsInBackground() {
             const symbol = select?.value || currentValue;
             const interval = intervalSelect?.value || '{{ selected_interval }}';
-            const response = await fetch(`/api/strong-signals?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}`, {
+            const currentLang = (window.GOLDPRO_I18N && window.GOLDPRO_I18N.lang) || '{{ current_lang | default("ar") }}';
+            const response = await fetch(`/api/strong-signals?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&lang=${encodeURIComponent(currentLang)}`, {
                 headers: { 'X-Requested-With': 'fetch' },
             });
             const data = await response.json();
@@ -1196,5 +1265,168 @@
 
         restartAutoRefreshLoop();
     </script>
+    <script>
+        window.GOLDPRO_I18N = Object.assign({}, window.GOLDPRO_I18N || {}, {
+            lang: "{{ current_lang | default('ar') }}",
+            dir: "{{ current_dir | default('rtl') }}",
+            supported: ["ar", "en"]
+        });
+    </script>
+    <script src="/static/js/site_i18n.js"></script>
+    {% if current_lang == 'en' %}
+    <script>
+        (() => {
+            const translations = [
+                ['⭐ العودة للرئيسية', '⭐ Back to home'],
+                ['العودة للرئيسية', 'Back to home'],
+                ['المحلل', 'Analyst'],
+                ['التحليل الكامل', 'Full analysis'],
+                ['ماسح الإشارات القوية', 'Strong signal scanner'],
+                ['هذه الصفحة تفحص السوق أو الرمز المحدد وتعرض فقط الإشارات التي خرجت من نظام البحث بتوصية شراء قوي أو بيع قوي. عند اختيار كل الأسواق، يتم التحديث الآلي بشكل دوري.', 'This page scans the selected market or symbol and shows only signals that reached a strong buy or strong sell recommendation. When All Markets is selected, it refreshes automatically on a schedule.'],
+                ['بحث داخل الرموز', 'Search symbols'],
+                ['الرمز', 'Symbol'],
+                ['الإطار الزمني', 'Timeframe'],
+                ['مسح البحث', 'Clear search'],
+                ['تشغيل البحث', 'Run search'],
+                ['الأزواج الرئيسية', 'Major pairs'],
+                ['الأزواج التقاطعية', 'Cross pairs'],
+                ['المؤشرات الأمريكية', 'US indices'],
+                ['العملات المشفرة', 'Cryptocurrencies'],
+                ['المعادن', 'Metals'],
+                ['ملخص الفحص', 'Scan summary'],
+                ['تم العثور على', 'Found'],
+                ['إشارة قوية', 'strong signal'],
+                ['نطاق البحث:', 'Search scope:'],
+                ['عدد الرموز المفحوصة:', 'Number of scanned symbols:'],
+                ['حالة نظام البحث', 'Scan status'],
+                ['تعرض الصفحة فقط النتائج التي بلغت مستوى قوة كافٍ داخل المحرك.', 'This page only shows results that reached a sufficient strength level in the engine.'],
+                ['الرموز التي لم تنتج شراء قوي أو بيع قوي لا تظهر في هذه الصفحة.', 'Symbols that did not produce a strong buy or strong sell do not appear on this page.'],
+                ['أخطاء الفحص:', 'Scan errors:'],
+                ['آخر فحص:', 'Last scan:'],
+                ['الوضع الحالي:', 'Current mode:'],
+                ['فحص تلقائي لجميع الأزواج', 'Automatic scan for all pairs'],
+                ['فحص مخصص لرمز واحد', 'Custom scan for a single symbol'],
+                ['التحديث التالي:', 'Next refresh:'],
+                ['إشعارات المتصفح:', 'Browser notifications:'],
+                ['غير معروفة', 'Unknown'],
+                ['مفعلة', 'Enabled'],
+                ['ثانية', 'seconds'],
+                ['تفعيل الإشعارات', 'Enable notifications'],
+                ['إيقاف التحديث الآلي', 'Stop auto-refresh'],
+                ['كل الفئات', 'All categories'],
+                ['الأفضل الآن', 'Top pick now'],
+                ['الترتيب:', 'Rank:'],
+                ['قوة الشراء:', 'Buy strength:'],
+                ['قوة البيع:', 'Sell strength:'],
+                ['فارق القوة:', 'Strength gap:'],
+                ['التغير الأخير:', 'Recent change:'],
+                ['الدخول:', 'Entry:'],
+                ['وقف الخسارة:', 'Stop loss:'],
+                ['الثقة:', 'Confidence:'],
+                ['السيناريو:', 'Scenario:'],
+                ['خلاصة سريعة:', 'Quick summary:'],
+                ['فتح المحاكاة على هذه الإشارة', 'Open simulator on this signal'],
+                ['لا توجد إشارة قوية حالياً', 'No strong signal right now'],
+                ['لا توجد إشارات محفوظة بعد لهذا النطاق.', 'No saved signals yet for this scope.'],
+                ['أخطاء أثناء الفحص', 'Scan errors'],
+                ['آخر إشارة لكل زوج', 'Latest signal per pair'],
+                ['تم رصد إشارة قوية جديدة', 'A new strong signal was detected'],
+                ['تم رصد إشارة جديدة', 'A new signal was detected'],
+                ['سيتم عرض تفاصيل الإشارة الجديدة هنا.', 'The new signal details will appear here.'],
+                ['تم تفعيل إشعارات المتصفح', 'Browser notifications enabled'],
+                ['سيصلك إشعار حقيقي عند ظهور إشارة قوية جديدة.', 'You\'ll receive a real notification when a new strong signal appears.'],
+                ['إشارة قوية جديدة', 'New strong signal'],
+                ['غير مدعومة', 'Not supported'],
+                ['مرفوضة', 'Denied'],
+                ['بانتظار الإذن', 'Awaiting permission'],
+                ['متاح عند اختيار كل الأسواق', 'Available when All Markets is selected'],
+                ['متوقف', 'Stopped'],
+                ['تعذر تحديث نتائج الإشارات القوية.', 'Unable to refresh strong signal results.'],
+                ['تعذر تحديث الفحص', 'Unable to refresh scan'],
+                ['حدث خطأ أثناء جلب النتائج الجديدة.', 'An error occurred while fetching new results.'],
+                ['التوصية الحالية:', 'Current recommendation:'],
+                ['أهداف جني الأرباح:', 'Take profit targets:'],
+                ['سعر الدخول:', 'Entry price:'],
+                ['وقف الخسارة:', 'Stop loss:'],
+                ['مستوى الثقة:', 'Confidence:'],
+                ['مرتفعة', 'High'],
+                ['جيدة', 'Good'],
+                ['متوسطة', 'Medium'],
+                ['سيناريو الشراء المفضل', 'Preferred buy scenario'],
+                ['سيناريو البيع المفضل', 'Preferred selling scenario'],
+                ['شراء قوي', 'Strong buy'],
+                ['شراء', 'Buy'],
+                ['بيع قوي', 'Strong sell'],
+                ['بيع', 'Sell'],
+                ['انتظار', 'Wait'],
+                ['سيناريو الBuy المفضل', 'Preferred buy scenario'],
+                ['سيناريو الSell المفضل', 'Preferred sell scenario'],
+                ['يفعل إذا', 'Triggers if'],
+                ['إغلاق واضح أسفل', 'A clear close below'],
+                ['إغلاق واضح أعلى', 'A clear close above'],
+                ['يلغي الفكرة الصاعدة قصيرة الأجل.', 'invalidates the short-term bullish idea.'],
+                ['يلغي الفكرة الهابطة قصيرة الأجل.', 'invalidates the short-term bearish idea.'],
+                ['البنية الفنية تدعم متابعة الموجة الصاعدة ما دام السعر يحافظ على التداول أعلى المحور والدعم القريب.', 'The technical structure supports continuation of the bullish move as long as price stays above the pivot and nearby support.'],
+                ['الهيكل الفني يفضل استمرار الضغط الSellي طالما بقي السعر دون المقاومة والمحور.', 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.'],
+                ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي.', 'The technical structure favors continued bearish pressure as long as price stays below resistance and the operational pivot.'],
+                ['الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي', 'The technical structure favors continued bearish pressure as long as price stays below resistance and the operational pivot.'],
+                ['حافظ السعر على التداول أعلى', 'Price remains trading above'],
+                ['بقي السعر دون', 'Price remains below'],
+                ['واستمر التداول أسفل', 'and continued trading below'],
+                ['الهيكل الفني يفضل استمرار الضغط', 'The technical structure favors continued pressure'],
+                ['طالما بقي السعر دون المقاومة والمحور.', 'as long as price stays below resistance and the pivot.'],
+            ];
+
+            const replaceInNode = (node) => {
+                if (!node || !node.nodeValue) {
+                    return;
+                }
+                let text = node.nodeValue;
+                for (const [source, target] of translations) {
+                    if (text.includes(source)) {
+                        text = text.split(source).join(target);
+                    }
+                }
+                node.nodeValue = text;
+            };
+
+            const walk = () => {
+                const treeWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                    acceptNode(node) {
+                        const parent = node.parentElement;
+                        if (!parent) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        if (['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName)) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    },
+                });
+
+                const nodes = [];
+                while (treeWalker.nextNode()) {
+                    nodes.push(treeWalker.currentNode);
+                }
+                for (const node of nodes) {
+                    replaceInNode(node);
+                }
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', walk, { once: true });
+            } else {
+                walk();
+            }
+
+            const observer = new MutationObserver(() => walk());
+            observer.observe(document.body, {
+                subtree: true,
+                childList: true,
+                characterData: true,
+            });
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

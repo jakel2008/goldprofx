@@ -139,6 +139,65 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-to-random-string'
 app.permanent_session_lifetime = timedelta(days=30)
 
+SUPPORTED_UI_LANGUAGES = ('ar', 'en')
+DEFAULT_UI_LANGUAGE = 'ar'
+UI_TRANSLATION_CACHE = {
+    'ar_to_en': {},
+    'en_to_ar': {}
+}
+UI_TRANSLATION_CACHE_LOCK = threading.Lock()
+
+
+def normalize_ui_language(lang_value):
+    """Normalize requested UI language to one of the supported values."""
+    lang = str(lang_value or '').strip().lower()
+    return lang if lang in SUPPORTED_UI_LANGUAGES else DEFAULT_UI_LANGUAGE
+
+
+def get_ui_language():
+    """Return the current UI language from session (or default)."""
+    return normalize_ui_language(session.get('ui_language', DEFAULT_UI_LANGUAGE))
+
+
+def set_ui_language(lang_value):
+    """Persist UI language in session."""
+    lang = normalize_ui_language(lang_value)
+    session['ui_language'] = lang
+    return lang
+
+
+def _translate_text_google(text, source_lang, target_lang):
+    """Translate a single UI string using Google public endpoint with safe fallback."""
+    value = str(text or '').strip()
+    if not value:
+        return ''
+
+    try:
+        response = requests.get(
+            'https://translate.googleapis.com/translate_a/single',
+            params={
+                'client': 'gtx',
+                'sl': source_lang,
+                'tl': target_lang,
+                'dt': 't',
+                'q': value,
+            },
+            timeout=8,
+            headers={'User-Agent': 'Mozilla/5.0 GOLD-PRO-I18N/1.0'}
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+        chunks = payload[0] if isinstance(payload, list) and payload else []
+        translated = ''.join(
+            str(chunk[0] or '')
+            for chunk in chunks
+            if isinstance(chunk, list) and chunk
+        ).strip()
+        return translated or value
+    except Exception:
+        return value
+
 MOBILE_DOWNLOADS_DIR = Path(__file__).parent / 'static' / 'downloads'
 ANDROID_APK_FILENAME = os.environ.get('ANDROID_APK_FILENAME', 'goldprofx-android.apk').strip() or 'goldprofx-android.apk'
 IOS_APP_URL = os.environ.get('IOS_APP_URL', '').strip()
@@ -196,14 +255,15 @@ def load_my_forex_module():
     return module
 
 
-def build_my_forex_context(selected_symbol='EURUSD', selected_interval='1h', include_all_option=False):
+def build_my_forex_context(selected_symbol='EURUSD', selected_interval='1h', include_all_option=False, lang=None):
     module = load_my_forex_module()
+    ui_lang = normalize_ui_language(lang or request.args.get('lang') or get_ui_language())
     return {
         'symbol_options': [
             {'value': symbol, 'label': info['label']}
             for symbol, info in module.SUPPORTED_SYMBOLS.items()
         ],
-        'grouped_symbol_options': module.build_grouped_symbol_options(include_all_option=include_all_option),
+        'grouped_symbol_options': module.build_grouped_symbol_options(include_all_option=include_all_option, lang=ui_lang),
         'interval_options': list(module.SUPPORTED_INTERVALS.keys()),
         'selected_symbol': selected_symbol,
         'selected_interval': selected_interval,
@@ -841,32 +901,38 @@ ECONOMIC_NEWS_SOURCES = [
     {
         'name': 'FXStreet',
         'url': 'https://www.fxstreet.com/rss/news',
-        'enabled': True
+        'enabled': True,
+        'language': 'en'
     },
     {
         'name': 'DailyFX',
         'url': 'https://www.dailyfx.com/feeds/market-news',
-        'enabled': True
+        'enabled': True,
+        'language': 'en'
     },
     {
         'name': 'Investing',
         'url': 'https://www.investing.com/rss/news_25.rss',
-        'enabled': True
+        'enabled': True,
+        'language': 'en'
     },
     {
         'name': 'ArgaamAR',
         'url': 'https://www.argaam.com/ar/rss',
-        'enabled': True
+        'enabled': True,
+        'language': 'ar'
     },
     {
         'name': 'MubasherAR',
         'url': 'https://www.mubasher.info/rss/news',
-        'enabled': True
+        'enabled': True,
+        'language': 'ar'
     },
     {
         'name': 'SkyNewsArabiaEco',
         'url': 'https://www.skynewsarabia.com/web/rss/7-1',
-        'enabled': True
+        'enabled': True,
+        'language': 'ar'
     }
 ]
 
@@ -3760,12 +3826,16 @@ def validate_crypto_addresses(settings_payload):
 def inject_user_and_links():
     """إضافة معلومات المستخدم وجميع الروابط لجميع القوالب"""
     user_info = get_current_user()
+    current_lang = get_ui_language()
     return {
         'is_logged_in': user_info['success'],
         'user': user_info if user_info['success'] else None,
         'site_links': site_links.links,
         'site_settings': get_site_settings(),
-        'is_mobile_view': is_mobile_view_request()
+        'is_mobile_view': is_mobile_view_request(),
+        'current_lang': current_lang,
+        'current_dir': 'rtl' if current_lang == 'ar' else 'ltr',
+        'supported_ui_languages': SUPPORTED_UI_LANGUAGES
     }
 
 
@@ -3779,6 +3849,16 @@ def add_no_cache_headers(response):
 
 
 @app.before_request
+def ensure_ui_language_in_session():
+    """Keep UI language consistent and allow quick switching via ?lang=ar|en."""
+    forced_lang = request.args.get('lang')
+    if forced_lang:
+        set_ui_language(forced_lang)
+    elif 'ui_language' not in session:
+        set_ui_language(DEFAULT_UI_LANGUAGE)
+
+
+@app.before_request
 def ensure_background_services_running():
     """ضمان تشغيل خدمات الخلفية عند العمل عبر WSGI (مثل Render/Gunicorn)."""
     if request.path == '/healthz':
@@ -3788,6 +3868,72 @@ def ensure_background_services_running():
         return
 
     _schedule_background_services_bootstrap()
+
+
+@app.route('/set-language', methods=['POST'])
+def set_language():
+    """Update preferred UI language in session."""
+    payload = request.get_json(silent=True) or {}
+    requested_lang = payload.get('lang')
+    lang = set_ui_language(requested_lang)
+    return jsonify({
+        'success': True,
+        'lang': lang,
+        'dir': 'rtl' if lang == 'ar' else 'ltr'
+    })
+
+
+@app.route('/api/translate-ui', methods=['POST'])
+def api_translate_ui():
+    """Translate UI phrases in batch for dynamic i18n fallback."""
+    payload = request.get_json(silent=True) or {}
+    texts = payload.get('texts') if isinstance(payload, dict) else []
+    source = str(payload.get('source') or '').strip().lower()
+    target = str(payload.get('target') or '').strip().lower()
+
+    if source not in SUPPORTED_UI_LANGUAGES or target not in SUPPORTED_UI_LANGUAGES or source == target:
+        return jsonify({'success': False, 'error': 'invalid language pair'}), 400
+
+    if not isinstance(texts, list):
+        return jsonify({'success': False, 'error': 'texts must be a list'}), 400
+
+    normalized = []
+    seen = set()
+    for item in texts[:120]:
+        value = str(item or '').strip()
+        if not value:
+            continue
+        if len(value) > 1200:
+            continue
+        if value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+
+    cache_key = 'ar_to_en' if source == 'ar' and target == 'en' else 'en_to_ar'
+
+    translations = {}
+    to_translate = []
+    with UI_TRANSLATION_CACHE_LOCK:
+        cache = UI_TRANSLATION_CACHE.get(cache_key, {})
+        for value in normalized:
+            cached = cache.get(value)
+            if cached:
+                translations[value] = cached
+            else:
+                to_translate.append(value)
+
+    if to_translate:
+        produced = {}
+        for value in to_translate:
+            produced[value] = _translate_text_google(value, source, target)
+
+        with UI_TRANSLATION_CACHE_LOCK:
+            cache = UI_TRANSLATION_CACHE.setdefault(cache_key, {})
+            cache.update(produced)
+            translations.update(produced)
+
+    return jsonify({'success': True, 'translations': translations, 'count': len(translations)})
 
 # Decorator لصلاحيات الأدمن
 def admin_required(f):
@@ -6467,6 +6613,37 @@ def get_recent_closed_trade_news(limit=8):
     return items
 
 
+def _to_english_site_news_item(message):
+    """Convert common Arabic site-news ticker messages to concise English."""
+    text = str(message or '').strip()
+    if not text:
+        return text
+
+    # Closed trade message pattern: "✅ إغلاق EURUSD صفقة رابحة (0.2%)"
+    m = re.match(r'^(✅|❌)\s+إغلاق\s+([A-Z0-9_\-/.]+)\s+صفقة\s+(رابحة|خاسرة)(.*)$', text)
+    if m:
+        icon, symbol, result_ar, tail = m.groups()
+        result_en = 'winning' if result_ar == 'رابحة' else 'losing'
+        return f"{icon} Closed {symbol} {result_en} trade{tail}"
+
+    # Welcome message pattern: "🎉 ترحيب: أهلاً بالمستخدم الجديد NAME"
+    m = re.match(r'^🎉\s+ترحيب:\s+أهلاً\s+بالمستخدم\s+الجديد\s+(.+)$', text)
+    if m:
+        return f"🎉 Welcome: Hello to new user {m.group(1).strip()}"
+
+    replacements = {
+        'ترحيب': 'Welcome',
+        'أهلاً بالمستخدم الجديد': 'Hello to new user',
+        'إغلاق': 'Closed',
+        'صفقة': 'trade',
+        'رابحة': 'winning',
+        'خاسرة': 'losing',
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
 def load_cached_economic_news(max_age_minutes=45):
     """قراءة كاش الأخبار الاقتصادية إذا كان لا يزال صالحًا."""
     try:
@@ -6611,6 +6788,8 @@ def fetch_economic_news(limit=12, language_mode='all'):
         source_language = str(source.get('language') or 'en').strip().lower()
         if language_mode == 'ar' and source_language != 'ar':
             continue
+        if language_mode == 'en' and source_language != 'en':
+            continue
 
         url = source.get('url')
         source_name = source.get('name', 'News')
@@ -6669,7 +6848,7 @@ def build_economic_news_items(language_mode='all'):
     return news_items[:30]
 
 
-def build_site_news_items():
+def build_site_news_items(language_mode='ar'):
     """بناء عناصر أخبار المنصة (مستقلة عن الأخبار الاقتصادية)."""
     news_items = []
     news_items.extend(get_recent_closed_trade_news(limit=10))
@@ -6682,6 +6861,12 @@ def build_site_news_items():
 
     if not news_items:
         news_items = ['⚡ أخبار المنصة: تابع آخر الإشارات والتوصيات مباشرة من GOLD PRO']
+
+    if str(language_mode or 'ar').strip().lower() == 'en':
+        translated = []
+        for item in news_items:
+            translated.append(_to_english_site_news_item(item))
+        news_items = translated
 
     return news_items[:30]
 
@@ -6698,7 +6883,12 @@ def build_breaking_news_items():
 def api_news_ticker():
     """API الأخبار الاقتصادية للشريط المتحرك."""
     lang_param = str(request.args.get('lang') or '').strip().lower()
-    language_mode = 'ar' if lang_param in ('ar', 'arabic') else 'all'
+    if lang_param in ('ar', 'arabic'):
+        language_mode = 'ar'
+    elif lang_param in ('en', 'english'):
+        language_mode = 'en'
+    else:
+        language_mode = 'all'
     return jsonify({
         'success': True,
         'type': 'economic',
@@ -6711,10 +6901,18 @@ def api_news_ticker():
 @app.route('/api/site-news-ticker')
 def api_site_news_ticker():
     """API أخبار الموقع (منفصل عن الأخبار الاقتصادية)."""
+    lang_param = str(request.args.get('lang') or '').strip().lower()
+    if lang_param in ('en', 'english'):
+        language_mode = 'en'
+    elif lang_param in ('ar', 'arabic'):
+        language_mode = 'ar'
+    else:
+        language_mode = get_ui_language()
     return jsonify({
         'success': True,
         'type': 'site',
-        'items': build_site_news_items(),
+        'language_mode': language_mode,
+        'items': build_site_news_items(language_mode=language_mode),
         'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -8747,7 +8945,8 @@ def api_strong_signals():
     module = load_my_forex_module()
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
-    result = module.get_strong_signals(symbol, interval)
+    lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
+    result = module.get_strong_signals(symbol, interval, lang=lang)
     status_code = 200 if result.get('success') else 400
     return jsonify(result), status_code
 
@@ -8818,9 +9017,27 @@ def my_forex_analyst_page():
 def my_forex_strong_signals_page():
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
+    lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
     try:
         module = load_my_forex_module()
-        strong_signals_data = module.get_strong_signals(symbol, interval)
+        normalized_symbol = (symbol or 'ALL').strip().upper()
+        if normalized_symbol in ('', 'ALL') and request.args.get('scan') != '1':
+            strong_signals_data = {
+                'success': True,
+                'symbol': 'ALL',
+                'interval': interval,
+                'symbol_label': 'All markets' if lang == 'en' else 'كل الأسواق',
+                'signals': [],
+                'categories': list(getattr(module, 'SYMBOL_GROUPS', {}).keys()),
+                'scanned_symbols': 0,
+                'matched_signals': 0,
+                'scan_errors': [],
+                'generated_at': '',
+                'error': None,
+                'deferred_scan': True,
+            }
+        else:
+            strong_signals_data = module.get_strong_signals(symbol, interval, lang=lang)
     except Exception as e:
         import traceback
         strong_signals_data = {
@@ -8835,9 +9052,10 @@ def my_forex_strong_signals_page():
             'matched_signals': 0,
             'scan_errors': [f'{type(e).__name__}: {e}'],
             'categories': [],
+            'deferred_scan': False,
         }
     try:
-        ctx = build_my_forex_context(symbol, interval, include_all_option=True)
+        ctx = build_my_forex_context(symbol, interval, include_all_option=True, lang=lang)
     except Exception:
         ctx = {
             'symbol_options': [], 'grouped_symbol_options': [],

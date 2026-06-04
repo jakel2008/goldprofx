@@ -35,12 +35,12 @@ SYMBOL_GROUPS = {
 }
 
 
-def build_grouped_symbol_options(include_all_option=False):
+def build_grouped_symbol_options(include_all_option=False, lang='ar'):
     grouped_options = []
     if include_all_option:
         grouped_options.append({
-            'label': 'نطاق البحث',
-            'options': [{'value': 'ALL', 'label': 'كل الأسواق'}],
+            'label': 'Search scope' if lang == 'en' else 'نطاق البحث',
+            'options': [{'value': 'ALL', 'label': 'All markets' if lang == 'en' else 'كل الأسواق'}],
         })
     for group_label, symbols in SYMBOL_GROUPS.items():
         options = []
@@ -50,7 +50,14 @@ def build_grouped_symbol_options(include_all_option=False):
                 continue
             options.append({'value': symbol, 'label': info['label']})
         if options:
-            grouped_options.append({'label': group_label, 'options': options})
+            english_group_labels = {
+                'الأزواج الرئيسية': 'Major pairs',
+                'الأزواج التقاطعية': 'Cross pairs',
+                'المؤشرات الأمريكية': 'US indices',
+                'العملات المشفرة': 'Cryptocurrencies',
+                'المعادن': 'Metals',
+            }
+            grouped_options.append({'label': english_group_labels.get(group_label, group_label) if lang == 'en' else group_label, 'options': options})
     return grouped_options
 
 
@@ -58,14 +65,15 @@ def resolve_main_site_url():
     return MAIN_SITE_URL
 
 
-def build_selector_context(selected_symbol='EURUSD', selected_interval='1h', include_all_option=False):
+def build_selector_context(selected_symbol='EURUSD', selected_interval='1h', include_all_option=False, lang='ar'):
     main_site_url = resolve_main_site_url()
+    current_dir = 'rtl' if lang == 'ar' else 'ltr'
     return {
         'symbol_options': [
             {'value': symbol, 'label': info['label']}
             for symbol, info in SUPPORTED_SYMBOLS.items()
         ],
-        'grouped_symbol_options': build_grouped_symbol_options(include_all_option=include_all_option),
+        'grouped_symbol_options': build_grouped_symbol_options(include_all_option=include_all_option, lang=lang),
         'interval_options': list(SUPPORTED_INTERVALS.keys()),
         'selected_symbol': selected_symbol,
         'selected_interval': selected_interval,
@@ -73,6 +81,8 @@ def build_selector_context(selected_symbol='EURUSD', selected_interval='1h', inc
         'interval_count': len(SUPPORTED_INTERVALS),
         'main_site_url': main_site_url,
         'return_to_param': quote(main_site_url, safe=''),
+        'current_lang': lang,
+        'current_dir': current_dir,
     }
 
 
@@ -177,15 +187,17 @@ def trade_simulator_api():
 def strong_signals():
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
-    strong_signals_data = get_strong_signals(symbol, interval)
-    return render_template('strong_signals.html', strong_signals=strong_signals_data, **build_selector_context(symbol, interval, include_all_option=True))
+    lang = request.args.get('lang', 'ar')
+    strong_signals_data = get_strong_signals(symbol, interval, lang=lang)
+    return render_template('strong_signals.html', strong_signals=strong_signals_data, **build_selector_context(symbol, interval, include_all_option=True, lang=lang))
 
 
 @app.route('/api/strong-signals')
 def strong_signals_api():
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
-    strong_signals_data = get_strong_signals(symbol, interval)
+    lang = request.args.get('lang', 'ar')
+    strong_signals_data = get_strong_signals(symbol, interval, lang=lang)
     status_code = 200 if strong_signals_data.get('success') else 400
     return jsonify(strong_signals_data), status_code
 

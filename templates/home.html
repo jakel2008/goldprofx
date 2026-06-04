@@ -158,6 +158,14 @@ document.addEventListener('DOMContentLoaded', function () {
     let streamMode = 'both';
     let economicLangParam = '';
 
+    function getCurrentUiLang() {
+        const fromConfig = (window.GOLDPRO_I18N && window.GOLDPRO_I18N.currentLang) || '';
+        const fromStorage = (window.localStorage && localStorage.getItem('goldpro_ui_lang')) || '';
+        const fromHtml = document.documentElement.getAttribute('lang') || '';
+        const lang = String(fromConfig || fromStorage || fromHtml || 'ar').toLowerCase();
+        return lang === 'en' ? 'en' : 'ar';
+    }
+
     function applyModeToView() {
         if (economicSection) {
             economicSection.style.display = '';
@@ -211,7 +219,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refreshSiteTicker() {
-        fetch('/api/site-news-ticker')
+        const siteLangParam = getCurrentUiLang() === 'en' ? '?lang=en' : '?lang=ar';
+        fetch('/api/site-news-ticker' + siteLangParam)
             .then((response) => response.json())
             .then((data) => {
                 if (!data.success || !Array.isArray(data.items) || data.items.length === 0) {

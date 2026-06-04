@@ -20,6 +20,78 @@ else:
 DEFAULT_SYMBOL = "ALL"
 DEFAULT_INTERVAL = "1h"
 
+
+AR_TO_EN = {
+    'كل الأسواق': 'All markets',
+    'الأزواج الرئيسية': 'Major pairs',
+    'الأزواج التقاطعية': 'Cross pairs',
+    'المؤشرات الأمريكية': 'US indices',
+    'العملات المشفرة': 'Cryptocurrencies',
+    'المعادن': 'Metals',
+    'شراء قوي': 'Strong buy',
+    'شراء': 'Buy',
+    'بيع قوي': 'Strong sell',
+    'بيع': 'Sell',
+    'انتظار': 'Wait',
+    'الرمز المطلوب غير مدعوم في صفحة الإشارات القوية.': 'The requested symbol is not supported on the strong signals page.',
+    'غير مصنف': 'Uncategorized',
+    'سيناريو الشراء المفضل': 'Preferred buy scenario',
+    'سيناريو البيع المفضل': 'Preferred sell scenario',
+    'سيناريو الBuy المفضل': 'Preferred buy scenario',
+    'سيناريو الSell المفضل': 'Preferred sell scenario',
+    'سيناريو buy المفضل': 'Preferred buy scenario',
+    'سيناريو sell المفضل': 'Preferred sell scenario',
+    'يفعل إذا': 'Triggers if',
+    'حافظ السعر على التداول أعلى': 'price remains trading above',
+    'بقي السعر دون': 'price remains below',
+    'مع ثبات فوق': 'with a hold above',
+    'واستمر التداول أسفل': 'and continued trading below',
+    'إغلاق واضح أسفل': 'A clear close below',
+    'إغلاق واضح أعلى': 'A clear close above',
+    'يلغي الفكرة الصاعدة قصيرة الأجل.': 'invalidates the short-term bullish idea.',
+    'يلغي الفكرة الهابطة قصيرة الأجل.': 'invalidates the short-term bearish idea.',
+    'البنية الفنية تدعم متابعة الموجة الصاعدة ما دام السعر يحافظ على التداول أعلى المحور والدعم القريب.': 'The technical structure supports continuation of the bullish move as long as price stays above the pivot and nearby support.',
+    'الهيكل الفني يفضل استمرار الضغط الSellي طالما بقي السعر دون المقاومة والمحور.': 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.',
+    'الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور.': 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.',
+    'الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي.': 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.',
+    'الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور التشغيلي': 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.',
+    'الهيكل الفني يفضل استمرار الضغط البيعي طالما بقي السعر دون المقاومة والمحور': 'The technical structure favors continued bearish pressure as long as price stays below resistance and the pivot.',
+    'التشغيلي': 'operational',
+    'الهيكل الفني يفضل استمرار الضغط': 'The technical structure favors continued pressure',
+    'طالما بقي السعر دون المقاومة والمحور': 'as long as price stays below resistance and the pivot',
+    'طالما بقي السعر أعلى المحور والدعم القريب': 'as long as price stays above the pivot and nearby support',
+    'الموجة الصاعدة': 'the bullish move',
+    'الموجة الهابطة': 'the bearish move',
+    'المحور والدعم القريب': 'the pivot and nearby support',
+    'المقاومة والمحور': 'resistance and the pivot',
+    'طالما': 'as long as',
+    'مرتفعة': 'High',
+    'جيدة': 'Good',
+    'متوسطة': 'Medium',
+}
+
+
+def _translate_text(value, lang):
+    if lang != 'en' or not isinstance(value, str):
+        return value
+    translated = value
+    for source, target in sorted(AR_TO_EN.items(), key=lambda item: len(item[0]), reverse=True):
+        translated = translated.replace(source, target)
+    translated = translated.replace('الBuy', 'buy').replace('الSell', 'sell')
+    translated = translated.replace('الشراء', 'buy').replace('البيع', 'sell')
+    translated = translated.replace('buyي', 'buy').replace('sellي', 'sell')
+    translated = translated.replace('سيناريو buy المفضل', 'Preferred buy scenario')
+    translated = translated.replace('سيناريو sell المفضل', 'Preferred sell scenario')
+    return translated
+
+
+def _localize_payload(value, lang):
+    if isinstance(value, dict):
+        return {key: _localize_payload(item, lang) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_localize_payload(item, lang) for item in value]
+    return _translate_text(value, lang)
+
 SYMBOL_CATEGORY_GROUPS = {
     'الأزواج الرئيسية': [
         'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
@@ -60,7 +132,7 @@ def _symbol_category(symbol):
     return SYMBOL_CATEGORY_MAP.get(symbol, 'غير مصنف')
 
 
-def fetch_strong_signals(symbol, interval):
+def fetch_strong_signals(symbol, interval, lang='ar'):
     """Scan symbols and return only strong buy/sell signals."""
     if perform_full_analysis is None:
         return {
@@ -78,7 +150,7 @@ def fetch_strong_signals(symbol, interval):
         if not analysis_result.get('success'):
             scan_errors.append({
                 'symbol': current_symbol,
-                'error': analysis_result.get('error', 'Unknown scan error'),
+                'error': _translate_text(analysis_result.get('error', 'Unknown scan error'), lang),
             })
             continue
 
@@ -87,7 +159,7 @@ def fetch_strong_signals(symbol, interval):
             continue
 
         score_gap = abs(analysis_result['buy_score'] - analysis_result['sell_score'])
-        strong_signals.append({
+        strong_signals.append(_localize_payload({
             'symbol': current_symbol,
             'symbol_label': analysis_result.get('symbol_label', current_symbol),
             'category': _symbol_category(current_symbol),
@@ -104,7 +176,7 @@ def fetch_strong_signals(symbol, interval):
             'executive_summary': analysis_result.get('executive_summary'),
             'price_change_pct': analysis_result.get('price_change_pct'),
             'score_gap': score_gap,
-        })
+        }, lang))
 
     strong_signals.sort(key=lambda item: (item['score_gap'], item['buy_score'], item['sell_score']), reverse=True)
     return {
@@ -114,30 +186,37 @@ def fetch_strong_signals(symbol, interval):
     }
 
 
-def render_strong_signals(strong_signals):
+def render_strong_signals(strong_signals, lang='ar'):
     """Render the strong signals in the user interface."""
     if not strong_signals:
-        return "لا توجد إشارات قوية حالياً."
+        return "No strong signals right now." if lang == 'en' else "لا توجد إشارات قوية حالياً."
 
     output = []
     for signal in strong_signals:
-        output.append(f"توصية: {signal['recommendation']}")
-        output.append(f"سعر الدخول: {signal['entry_price']}")
-        output.append(f"أهداف جني الأرباح: TP1: {signal['take_profit1']}, TP2: {signal['take_profit2']}, TP3: {signal['take_profit3']}")
-        output.append(f"وقف الخسارة: {signal['stop_loss']}")
-        output.append(f"مستوى الثقة: {signal['confidence']}")
+        if lang == 'en':
+            output.append(f"Recommendation: {signal['recommendation']}")
+            output.append(f"Entry price: {signal['entry_price']}")
+            output.append(f"Take profit targets: TP1: {signal['take_profit1']}, TP2: {signal['take_profit2']}, TP3: {signal['take_profit3']}")
+            output.append(f"Stop loss: {signal['stop_loss']}")
+            output.append(f"Confidence: {signal['confidence']}")
+        else:
+            output.append(f"توصية: {signal['recommendation']}")
+            output.append(f"سعر الدخول: {signal['entry_price']}")
+            output.append(f"أهداف جني الأرباح: TP1: {signal['take_profit1']}, TP2: {signal['take_profit2']}, TP3: {signal['take_profit3']}")
+            output.append(f"وقف الخسارة: {signal['stop_loss']}")
+            output.append(f"مستوى الثقة: {signal['confidence']}")
         output.append("=" * 50)
 
     return "\n".join(output)
 
 
-def display_strong_signals(symbol, interval):
+def display_strong_signals(symbol, interval, lang='ar'):
     """Display strong trading signals for the specified symbol and interval."""
-    scan_result = fetch_strong_signals(symbol, interval)
-    return render_strong_signals(scan_result['signals'])
+    scan_result = fetch_strong_signals(symbol, interval, lang=lang)
+    return render_strong_signals(scan_result['signals'], lang=lang)
 
 
-def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL):
+def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL, lang='ar'):
     """Return strong-signal scan results for all symbols or a selected symbol."""
     if perform_full_analysis is None:
         return {
@@ -145,7 +224,7 @@ def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL):
             'symbol': symbol,
             'interval': interval,
             'signals': [],
-            'error': ANALYZER_IMPORT_ERROR,
+            'error': _translate_text(ANALYZER_IMPORT_ERROR, lang),
         }
 
     symbols_to_scan = _symbols_to_scan(symbol)
@@ -155,11 +234,13 @@ def get_strong_signals(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL):
             'symbol': symbol,
             'interval': interval,
             'signals': [],
-            'error': 'الرمز المطلوب غير مدعوم في صفحة الإشارات القوية.',
+            'error': _translate_text('الرمز المطلوب غير مدعوم في صفحة الإشارات القوية.', lang),
         }
 
-    scan_result = fetch_strong_signals(symbol, interval)
-    target_label = 'كل الأسواق' if _normalize_symbol(symbol) in ('', 'ALL') else SUPPORTED_SYMBOLS[symbol]['label']
+    scan_result = fetch_strong_signals(symbol, interval, lang=lang)
+    target_label = 'All markets' if lang == 'en' and _normalize_symbol(symbol) in ('', 'ALL') else 'كل الأسواق' if _normalize_symbol(symbol) in ('', 'ALL') else SUPPORTED_SYMBOLS[symbol]['label']
+    if lang == 'en' and target_label in SUPPORTED_SYMBOLS:
+        target_label = SUPPORTED_SYMBOLS[symbol]['label']
 
     return {
         'success': True,

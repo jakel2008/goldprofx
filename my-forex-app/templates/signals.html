@@ -668,5 +668,13 @@
             });
         }
     </script>
+    <script>
+        window.GOLDPRO_I18N = Object.assign({}, window.GOLDPRO_I18N || {}, {
+            lang: "{{ current_lang | default('ar') }}",
+            dir: "{{ current_dir | default('rtl') }}",
+            supported: ["ar", "en"]
+        });
+    </script>
+    <script src="/static/js/site_i18n.js"></script>
 </body>
 </html>

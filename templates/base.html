@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head %}{% endblock %}
     <title>{% block title %}GOLD PRO{% endblock %}</title>
+    {% if current_lang|default('ar') == 'ar' %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    {% else %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    {% endif %}
     <style>
         :root {
             --gold: #f5c542;
@@ -20,7 +24,36 @@
         body {
             background: var(--light);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
+            direction: {{ current_dir|default('rtl') }};
+        }
+
+        .lang-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-inline-start: 0.75rem;
+        }
+
+        .lang-switch-label {
+            color: #f8fafc;
+            font-size: 0.82rem;
+            opacity: 0.9;
+            white-space: nowrap;
+        }
+
+        .lang-switch-select {
+            background: rgba(245, 197, 66, 0.12);
+            color: #f8fafc;
+            border: 1px solid rgba(245, 197, 66, 0.35);
+            border-radius: 8px;
+            padding: 0.22rem 0.55rem;
+            font-size: 0.82rem;
+            min-width: 84px;
+        }
+
+        .lang-switch-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(245, 197, 66, 0.22);
         }
         
         .navbar-brand {
@@ -385,6 +418,13 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="تبديل القائمة" aria-label="تبديل القائمة">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <div class="lang-switch" aria-label="Language switcher">
+                <span class="lang-switch-label" data-i18n="اللغة">اللغة</span>
+                <select id="globalLanguageSelect" class="lang-switch-select" title="اختيار اللغة" aria-label="اختيار اللغة">
+                    <option value="ar" {% if current_lang == 'ar' %}selected{% endif %}>العربية</option>
+                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto d-flex flex-lg-row flex-wrap">{%- for link in site_links -%}{%- if not ((link.admin and (not user or not user.is_admin)) or (link.guest and is_logged_in) or (link.auth and not is_logged_in)) -%}{%- set is_active = (request.path == link.url) or (link.url != '/' and request.path.startswith(link.url)) -%}<a class="nav-link{% if is_active %} active{% endif %}{% if link.admin %} admin-link{% endif %}" href="{{ link.url }}">{{ link.icon }} {{ link.name }}</a>{%- endif -%}{%- endfor -%}</div>
             </div>
@@ -473,6 +513,13 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.GOLDPRO_I18N = {
+            lang: '{{ current_lang|default("ar") }}',
+            supported: {{ supported_ui_languages|default(('ar', 'en'))|tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/site_i18n.js') }}"></script>
     <script>
         (function () {
             const fab = document.getElementById('supportFab');

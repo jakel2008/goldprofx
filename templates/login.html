@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}تسجيل الدخول - GOLD PRO{% endblock %}
+{% block title %}{% if current_lang == 'en' %}Login - GOLD PRO{% else %}تسجيل الدخول - GOLD PRO{% endif %}{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
         <div class="alert alert-info" style="margin-bottom: 1rem; font-size:1.1em;">
-            ✅ التسجيل الذاتي متاح. بعد إنشاء الحساب يجب تفعيله من الرابط المرسل إلى البريد الإلكتروني.
+            {% if current_lang == 'en' %}✅ Self-registration is available. After creating your account, activate it from the link sent to your email.{% else %}✅ التسجيل الذاتي متاح. بعد إنشاء الحساب يجب تفعيله من الرابط المرسل إلى البريد الإلكتروني.{% endif %}
         </div>
-        <h2>🔐 تسجيل الدخول</h2>
-        <p class="auth-subtitle">أدخل بيانات دخولك</p>
+        <h2>{% if current_lang == 'en' %}🔐 Login{% else %}🔐 تسجيل الدخول{% endif %}</h2>
+        <p class="auth-subtitle">{% if current_lang == 'en' %}Enter your login details{% else %}أدخل بيانات دخولك{% endif %}</p>
         
         {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
@@ -17,12 +17,12 @@
         
         <form method="POST" class="auth-form">
             <div class="form-group">
-                <label for="username">اسم المستخدم أو البريد الإلكتروني</label>
+                <label for="username">{% if current_lang == 'en' %}Username or email{% else %}اسم المستخدم أو البريد الإلكتروني{% endif %}</label>
                 <input 
                     type="text" 
                     id="username" 
                     name="username" 
-                    placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
+                    placeholder="{% if current_lang == 'en' %}Enter username or email{% else %}أدخل اسم المستخدم أو البريد الإلكتروني{% endif %}"
                     required
                     autofocus
                 >
@@ -30,12 +30,12 @@
             </div>
             
             <div class="form-group">
-                <label for="password">كلمة المرور</label>
+                <label for="password">{% if current_lang == 'en' %}Password{% else %}كلمة المرور{% endif %}</label>
                 <input 
                     type="password" 
                     id="password" 
                     name="password" 
-                    placeholder="أدخل كلمة المرور"
+                    placeholder="{% if current_lang == 'en' %}Enter password{% else %}أدخل كلمة المرور{% endif %}"
                     required
                 >
                 <span class="form-icon">🔒</span>
@@ -43,33 +43,33 @@
             
             <div class="form-group checkbox">
                 <input type="checkbox" id="remember" name="remember">
-                <label for="remember">تذكرني</label>
+                <label for="remember">{% if current_lang == 'en' %}Remember me{% else %}تذكرني{% endif %}</label>
             </div>
             
             <button type="submit" class="btn-submit">
-                دخول <span>→</span>
+                {% if current_lang == 'en' %}Login{% else %}دخول{% endif %} <span>→</span>
             </button>
         </form>
         
         <div class="auth-footer">
-                        ليس لديك حساب؟ <a href="/register?first=1">سجل الآن</a>
+                        {% if current_lang == 'en' %}Don't have an account?{% else %}ليس لديك حساب؟{% endif %} <a href="/register?first=1">{% if current_lang == 'en' %}Sign up now{% else %}سجل الآن{% endif %}</a>
         </div>
         <div class="auth-links">
-          <a href="/forgot-password">نسيت كلمة المرور؟</a>
+          <a href="/forgot-password">{% if current_lang == 'en' %}Forgot password?{% else %}نسيت كلمة المرور؟{% endif %}</a>
         </div>
                 <div class="auth-links">
-                    <a href="/resend-activation">إعادة إرسال رابط التفعيل</a>
+                    <a href="/resend-activation">{% if current_lang == 'en' %}Resend activation link{% else %}إعادة إرسال رابط التفعيل{% endif %}</a>
                 </div>
     </div>
     
     <div class="auth-info">
-        <h3>🎯 مزايا الحساب</h3>
+        <h3>{% if current_lang == 'en' %}🎯 Account benefits{% else %}🎯 مزايا الحساب{% endif %}</h3>
         <ul>
-            <li>✅ تتبع الإشارات والصفقات</li>
-            <li>✅ الوصول إلى الخطط المميزة</li>
-            <li>✅ لوحة تحكم شخصية</li>
-            <li>✅ إشعارات فورية</li>
-            <li>✅ دعم العملاء 24/7</li>
+            <li>{% if current_lang == 'en' %}✅ Track signals and trades{% else %}✅ تتبع الإشارات والصفقات{% endif %}</li>
+            <li>{% if current_lang == 'en' %}✅ Access premium plans{% else %}✅ الوصول إلى الخطط المميزة{% endif %}</li>
+            <li>{% if current_lang == 'en' %}✅ Personal dashboard{% else %}✅ لوحة تحكم شخصية{% endif %}</li>
+            <li>{% if current_lang == 'en' %}✅ Instant notifications{% else %}✅ إشعارات فورية{% endif %}</li>
+            <li>{% if current_lang == 'en' %}✅ 24/7 customer support{% else %}✅ دعم العملاء 24/7{% endif %}</li>
         </ul>
     </div>
 </div>

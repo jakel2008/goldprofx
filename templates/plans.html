@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}الخطط والأسعار - GOLD PRO{% endblock %}
+{% block title %}{% if current_lang == 'en' %}Plans and Pricing - GOLD PRO{% else %}الخطط والأسعار - GOLD PRO{% endif %}{% endblock %}
 
 {% block content %}
 <div class="pricing-page">
     <section class="pricing-hero">
         <h1>GOLD PRO FX</h1>
-        <p>خطط الاشتراك المرنة - كلما طالت المدة زاد التوفير</p>
+        <p>{% if current_lang == 'en' %}Flexible subscription plans - longer terms save more{% else %}خطط الاشتراك المرنة - كلما طالت المدة زاد التوفير{% endif %}</p>
     </section>
 
     <section class="pricing-panel">
         <div class="duration-picker-wrap">
-            <label for="global-duration" class="duration-label">اختر مدة الاشتراك</label>
-            <select id="global-duration" class="duration-picker" aria-label="مدة الاشتراك">
-                <option value="monthly">شهر واحد</option>
-                <option value="quarterly">3 أشهر</option>
-                <option value="semiannual">6 أشهر</option>
-                <option value="annual">12 شهر (سنة)</option>
+            <label for="global-duration" class="duration-label">{% if current_lang == 'en' %}Choose subscription duration{% else %}اختر مدة الاشتراك{% endif %}</label>
+            <select id="global-duration" class="duration-picker" aria-label="{% if current_lang == 'en' %}Subscription duration{% else %}مدة الاشتراك{% endif %}">
+                <option value="monthly">{% if current_lang == 'en' %}One month{% else %}شهر واحد{% endif %}</option>
+                <option value="quarterly">{% if current_lang == 'en' %}3 months{% else %}3 أشهر{% endif %}</option>
+                <option value="semiannual">{% if current_lang == 'en' %}6 months{% else %}6 أشهر{% endif %}</option>
+                <option value="annual">{% if current_lang == 'en' %}12 months (one year){% else %}12 شهر (سنة){% endif %}</option>
             </select>
         </div>
 
@@ -24,37 +24,37 @@
             <table class="pricing-matrix">
                 <thead>
                     <tr>
-                        <th>الخطة</th>
-                        <th>شهر واحد</th>
-                        <th>3 أشهر</th>
-                        <th>6 أشهر</th>
-                        <th>12 شهر (سنة)</th>
+                        <th>{% if current_lang == 'en' %}Plan{% else %}الخطة{% endif %}</th>
+                        <th>{% if current_lang == 'en' %}One month{% else %}شهر واحد{% endif %}</th>
+                        <th>{% if current_lang == 'en' %}3 months{% else %}3 أشهر{% endif %}</th>
+                        <th>{% if current_lang == 'en' %}6 months{% else %}6 أشهر{% endif %}</th>
+                        <th>{% if current_lang == 'en' %}12 months (one year){% else %}12 شهر (سنة){% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Bronze / برونزي</td>
+                        <td>{% if current_lang == 'en' %}Bronze{% else %}Bronze / برونزي{% endif %}</td>
                         <td>$25</td>
                         <td>$68</td>
                         <td>$128</td>
                         <td>$240</td>
                     </tr>
                     <tr>
-                        <td>Silver / فضي</td>
+                        <td>{% if current_lang == 'en' %}Silver{% else %}Silver / فضي{% endif %}</td>
                         <td>$50</td>
                         <td>$135</td>
                         <td>$255</td>
                         <td>$480</td>
                     </tr>
                     <tr>
-                        <td>Gold VIP / ذهبي</td>
+                        <td>{% if current_lang == 'en' %}Gold VIP{% else %}Gold VIP / ذهبي{% endif %}</td>
                         <td>$100</td>
                         <td>$270</td>
                         <td>$510</td>
                         <td>$960</td>
                     </tr>
                     <tr class="platinum-row">
-                        <td>Platinum / بلاتينيوم</td>
+                        <td>{% if current_lang == 'en' %}Platinum{% else %}Platinum / بلاتينيوم{% endif %}</td>
                         <td>$250</td>
                         <td>$675</td>
                         <td>$1275</td>
@@ -66,64 +66,64 @@
 
         <div class="plan-cards">
             <article class="plan-card" data-plan="bronze">
-                <h3>برونزي</h3>
+                <h3>{% if current_lang == 'en' %}Bronze{% else %}برونزي{% endif %}</h3>
                 <p class="plan-subtitle">Bronze</p>
                 <div class="plan-price" data-plan-price="bronze">$25</div>
-                <p class="plan-duration" data-plan-duration="bronze">لمدة شهر واحد</p>
+                <p class="plan-duration" data-plan-duration="bronze">{% if current_lang == 'en' %}For one month{% else %}لمدة شهر واحد{% endif %}</p>
                 <ul>
-                    <li>3 إشارات يوميا</li>
-                    <li>جودة عالية ومتوسطة</li>
-                    <li>أزواج فوركس رئيسية</li>
+                    <li>{% if current_lang == 'en' %}3 signals daily{% else %}3 إشارات يوميا{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}High and medium quality{% else %}جودة عالية ومتوسطة{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}Major forex pairs{% else %}أزواج فوركس رئيسية{% endif %}</li>
                 </ul>
-                <button class="plan-btn" type="button">اشترك الآن</button>
+                <button class="plan-btn" type="button">{% if current_lang == 'en' %}Subscribe now{% else %}اشترك الآن{% endif %}</button>
             </article>
 
             <article class="plan-card" data-plan="silver">
-                <h3>فضي</h3>
+                <h3>{% if current_lang == 'en' %}Silver{% else %}فضي{% endif %}</h3>
                 <p class="plan-subtitle">Silver</p>
                 <div class="plan-price" data-plan-price="silver">$50</div>
-                <p class="plan-duration" data-plan-duration="silver">لمدة شهر واحد</p>
+                <p class="plan-duration" data-plan-duration="silver">{% if current_lang == 'en' %}For one month{% else %}لمدة شهر واحد{% endif %}</p>
                 <ul>
-                    <li>5 إشارات يوميا</li>
-                    <li>تغطية أوسع للأسواق</li>
-                    <li>دعم أولوية</li>
+                    <li>{% if current_lang == 'en' %}5 signals daily{% else %}5 إشارات يوميا{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}Wider market coverage{% else %}تغطية أوسع للأسواق{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}Priority support{% else %}دعم أولوية{% endif %}</li>
                 </ul>
-                <button class="plan-btn" type="button">اشترك الآن</button>
+                <button class="plan-btn" type="button">{% if current_lang == 'en' %}Subscribe now{% else %}اشترك الآن{% endif %}</button>
             </article>
 
             <article class="plan-card featured" data-plan="gold">
-                <span class="card-badge">الأكثر طلبا</span>
-                <h3>ذهبي VIP</h3>
+                <span class="card-badge">{% if current_lang == 'en' %}Most requested{% else %}الأكثر طلبا{% endif %}</span>
+                <h3>{% if current_lang == 'en' %}Gold VIP{% else %}ذهبي VIP{% endif %}</h3>
                 <p class="plan-subtitle">Gold VIP</p>
                 <div class="plan-price" data-plan-price="gold">$100</div>
-                <p class="plan-duration" data-plan-duration="gold">لمدة شهر واحد</p>
+                <p class="plan-duration" data-plan-duration="gold">{% if current_lang == 'en' %}For one month{% else %}لمدة شهر واحد{% endif %}</p>
                 <ul>
-                    <li>7 إشارات يوميا</li>
-                    <li>دخول VIP للتحليلات</li>
-                    <li>أولوية عالية في التنبيهات</li>
+                    <li>{% if current_lang == 'en' %}7 signals daily{% else %}7 إشارات يوميا{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}VIP access to analysis{% else %}دخول VIP للتحليلات{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}High-priority alerts{% else %}أولوية عالية في التنبيهات{% endif %}</li>
                 </ul>
-                <button class="plan-btn" type="button">اشترك الآن</button>
+                <button class="plan-btn" type="button">{% if current_lang == 'en' %}Subscribe now{% else %}اشترك الآن{% endif %}</button>
             </article>
 
             <article class="plan-card platinum" data-plan="platinum">
-                <span class="card-badge">أفضل قيمة</span>
-                <h3>بلاتينيوم</h3>
+                <span class="card-badge">{% if current_lang == 'en' %}Best value{% else %}أفضل قيمة{% endif %}</span>
+                <h3>{% if current_lang == 'en' %}Platinum{% else %}بلاتينيوم{% endif %}</h3>
                 <p class="plan-subtitle">Platinum</p>
                 <div class="plan-price" data-plan-price="platinum">$250</div>
-                <p class="plan-duration" data-plan-duration="platinum">لمدة شهر واحد</p>
+                <p class="plan-duration" data-plan-duration="platinum">{% if current_lang == 'en' %}For one month{% else %}لمدة شهر واحد{% endif %}</p>
                 <ul>
-                    <li>10 إشارات يوميا</li>
-                    <li>دعم VIP مباشر</li>
-                    <li>أولوية قصوى لكل التنبيهات</li>
+                    <li>{% if current_lang == 'en' %}10 signals daily{% else %}10 إشارات يوميا{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}Direct VIP support{% else %}دعم VIP مباشر{% endif %}</li>
+                    <li>{% if current_lang == 'en' %}Maximum priority for every alert{% else %}أولوية قصوى لكل التنبيهات{% endif %}</li>
                 </ul>
-                <button class="plan-btn" type="button">اشترك الآن</button>
+                <button class="plan-btn" type="button">{% if current_lang == 'en' %}Subscribe now{% else %}اشترك الآن{% endif %}</button>
             </article>
         </div>
 
         <div class="free-note">
-            <strong>خطة مجانية:</strong>
-            5 إشارات يومية للتجربة.
-            <span>للترقية اختر أي باقة مدفوعة من الأعلى.</span>
+            <strong>{% if current_lang == 'en' %}Free plan:{% else %}خطة مجانية:{% endif %}</strong>
+            {% if current_lang == 'en' %}5 daily signals for trial.{% else %}5 إشارات يومية للتجربة.{% endif %}
+            <span>{% if current_lang == 'en' %}To upgrade, choose any paid package above.{% else %}للترقية اختر أي باقة مدفوعة من الأعلى.{% endif %}</span>
         </div>
     </div>
 </div>
@@ -363,10 +363,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const durationLabels = {
-        monthly: 'لمدة شهر واحد',
-        quarterly: 'لمدة 3 أشهر',
-        semiannual: 'لمدة 6 أشهر',
-        annual: 'لمدة سنة كاملة'
+        monthly: {{ ('For one month' if current_lang == 'en' else 'لمدة شهر واحد')|tojson }},
+        quarterly: {{ ('For 3 months' if current_lang == 'en' else 'لمدة 3 أشهر')|tojson }},
+        semiannual: {{ ('For 6 months' if current_lang == 'en' else 'لمدة 6 أشهر')|tojson }},
+        annual: {{ ('For a full year' if current_lang == 'en' else 'لمدة سنة كاملة')|tojson }}
     };
 
     const buttons = document.querySelectorAll('.plan-btn');
@@ -405,13 +405,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!plan) return;
 
             if (!currentUser || !currentUser.success) {
-                alert('يجب تسجيل الدخول بحسابك الحالي لإتمام الترقية.');
+                alert({{ ('You must log in with your current account to complete the upgrade.' if current_lang == 'en' else 'يجب تسجيل الدخول بحسابك الحالي لإتمام الترقية.')|tojson }});
                 window.location.href = '/login?first=1';
                 return;
             }
 
             if (currentUser.plan && currentUser.plan.toLowerCase() === plan.toLowerCase()) {
-                alert('أنت بالفعل على هذه الخطة.');
+                alert({{ ('You are already on this plan.' if current_lang == 'en' else 'أنت بالفعل على هذه الخطة.')|tojson }});
                 return;
             }
 

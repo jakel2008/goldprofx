@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}إعادة إرسال التفعيل - GOLD PRO{% endblock %}
+{% block title %}{% if current_lang == 'en' %}Resend activation - GOLD PRO{% else %}إعادة إرسال التفعيل - GOLD PRO{% endif %}{% endblock %}
 
 {% block content %}
 <div class="auth-wrap">
     <div class="auth-card">
-        <h2>🔁 إعادة إرسال رابط التفعيل</h2>
-        <p class="auth-subtitle">أدخل البريد الإلكتروني أو اسم المستخدم وسنرسل رابط تفعيل جديد إذا كان الحساب غير مفعل.</p>
+        <h2>{% if current_lang == 'en' %}🔁 Resend activation link{% else %}🔁 إعادة إرسال رابط التفعيل{% endif %}</h2>
+        <p class="auth-subtitle">{% if current_lang == 'en' %}Enter your email or username and we will send a new activation link if the account is not activated.{% else %}أدخل البريد الإلكتروني أو اسم المستخدم وسنرسل رابط تفعيل جديد إذا كان الحساب غير مفعل.{% endif %}</p>
 
         {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
@@ -18,14 +18,14 @@
 
         <form method="POST" class="auth-form">
             <div class="form-group">
-                <label for="identifier">البريد الإلكتروني أو اسم المستخدم</label>
+                <label for="identifier">{% if current_lang == 'en' %}Email or username{% else %}البريد الإلكتروني أو اسم المستخدم{% endif %}</label>
                 <input type="text" id="identifier" name="identifier" value="{{ email or '' }}" required>
             </div>
-            <button type="submit" class="btn-submit">إرسال رابط جديد</button>
+            <button type="submit" class="btn-submit">{% if current_lang == 'en' %}Send new link{% else %}إرسال رابط جديد{% endif %}</button>
         </form>
 
         <div class="auth-links">
-            <a href="/login?first=1">العودة إلى تسجيل الدخول</a>
+            <a href="/login?first=1">{% if current_lang == 'en' %}Back to login{% else %}العودة إلى تسجيل الدخول{% endif %}</a>
         </div>
     </div>
 </div>

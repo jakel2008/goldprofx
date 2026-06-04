@@ -1,41 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}GOLD PRO - الصفحة الرئيسية{% endblock %}
+{% block title %}{% if current_lang == 'en' %}GOLD PRO - Home{% else %}GOLD PRO - الصفحة الرئيسية{% endif %}{% endblock %}
 
 {% block content %}
 <div class="landing-wrap">
-    <section class="breaking-news" id="economic-news-section-public" aria-label="الأخبار العاجلة">
-        <div class="breaking-label">🌍 اقتصاد مباشر</div>
+    <section class="breaking-news" id="economic-news-section-public" aria-label="{% if current_lang == 'en' %}Breaking news{% else %}الأخبار العاجلة{% endif %}">
+        <div class="breaking-label">🌍 {% if current_lang == 'en' %}Live economy{% else %}اقتصاد مباشر{% endif %}</div>
         <div class="breaking-track-wrap">
-            <div class="breaking-track breaking-track-economic" id="breaking-news-track-public">جاري تحميل الأخبار العاجلة...</div>
+            <div class="breaking-track breaking-track-economic" id="breaking-news-track-public">{% if current_lang == 'en' %}Loading breaking news...{% else %}جاري تحميل الأخبار العاجلة...{% endif %}</div>
         </div>
     </section>
 
-    <section class="breaking-news" id="site-news-section-public" aria-label="أخبار المنصة">
-        <div class="breaking-label">🏛️ أخبار المنصة</div>
+    <section class="breaking-news" id="site-news-section-public" aria-label="{% if current_lang == 'en' %}Platform news{% else %}أخبار المنصة{% endif %}">
+        <div class="breaking-label">🏛️ {% if current_lang == 'en' %}Platform news{% else %}أخبار المنصة{% endif %}</div>
         <div class="breaking-track-wrap">
-            <div class="breaking-track" id="site-news-track-public">جاري تحميل أخبار المنصة...</div>
+            <div class="breaking-track" id="site-news-track-public">{% if current_lang == 'en' %}Loading platform news...{% else %}جاري تحميل أخبار المنصة...{% endif %}</div>
         </div>
     </section>
 
     <section class="hero-card">
-        <h1>منصة GOLD PRO</h1>
-        <p class="hero-sub">منصة تداول وإشارات احترافية قبل تسجيل الدخول يمكنك تصفح الإعلانات والعروض، ثم الدخول أو إنشاء حساب لأول مرة.</p>
+        <h1>{% if current_lang == 'en' %}GOLD PRO Platform{% else %}منصة GOLD PRO{% endif %}</h1>
+        <p class="hero-sub">{% if current_lang == 'en' %}A professional trading and signals platform. Before logging in, you can browse ads and offers, then log in or create your first account.{% else %}منصة تداول وإشارات احترافية قبل تسجيل الدخول يمكنك تصفح الإعلانات والعروض، ثم الدخول أو إنشاء حساب لأول مرة.{% endif %}</p>
         <div class="hero-actions">
-            <a href="/login?first=1" class="btn btn-primary">تسجيل الدخول</a>
-            <a href="/register?first=1" class="btn btn-outline-dark">تسجيل لأول مرة</a>
+            <a href="/login?first=1" class="btn btn-primary">{% if current_lang == 'en' %}Login{% else %}تسجيل الدخول{% endif %}</a>
+            <a href="/register?first=1" class="btn btn-outline-dark">{% if current_lang == 'en' %}Register for the first time{% else %}تسجيل لأول مرة{% endif %}</a>
         </div>
     </section>
 
     <section class="ads-section">
-        <h2>الإعلانات والعروض</h2>
+        <h2>{% if current_lang == 'en' %}Ads and offers{% else %}الإعلانات والعروض{% endif %}</h2>
         <div class="ads-grid">
             {% for ad in ads %}
             <article class="ad-card">
-                <div class="ad-badge">{{ ad.badge or 'إعلان' }}</div>
-                <h3>{{ ad.title }}</h3>
-                <p>{{ ad.text }}</p>
-                <a class="ad-link" href="{{ ad.cta_url or '/plans' }}">{{ ad.cta_text or 'عرض التفاصيل' }}</a>
+                <div class="ad-badge">{% if current_lang == 'en' %}{{ ad.badge_en or ad.badge or 'Ad' }}{% else %}{{ ad.badge or 'إعلان' }}{% endif %}</div>
+                <h3>{% if current_lang == 'en' %}{{ ad.title_en or ad.title }}{% else %}{{ ad.title }}{% endif %}</h3>
+                <p>{% if current_lang == 'en' %}{{ ad.text_en or ad.text }}{% else %}{{ ad.text }}{% endif %}</p>
+                <a class="ad-link" href="{{ ad.cta_url or '/plans' }}">{% if current_lang == 'en' %}{{ ad.cta_text_en or ad.cta_text or 'View details' }}{% else %}{{ ad.cta_text or 'عرض التفاصيل' }}{% endif %}</a>
             </article>
             {% endfor %}
         </div>
@@ -43,9 +43,9 @@
 
     <section class="quick-section">
         <div class="quick-card">
-            <h3>جاهز للبدء؟</h3>
-            <p>أنشئ حسابك الآن وابدأ متابعة الإشارات والتقارير.</p>
-            <a href="/register?first=1" class="btn btn-primary">إنشاء حساب</a>
+            <h3>{% if current_lang == 'en' %}Ready to start?{% else %}جاهز للبدء؟{% endif %}</h3>
+            <p>{% if current_lang == 'en' %}Create your account now and start following signals and reports.{% else %}أنشئ حسابك الآن وابدأ متابعة الإشارات والتقارير.{% endif %}</p>
+            <a href="/register?first=1" class="btn btn-primary">{% if current_lang == 'en' %}Create account{% else %}إنشاء حساب{% endif %}</a>
         </div>
     </section>
 </div>
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (streamMode === 'arabic' && economicTrack) {
-            economicTrack.textContent = 'جاري تحميل الأخبار الاقتصادية العربية...';
+            economicTrack.textContent = {{ ('Loading Arabic economic news...' if current_lang == 'en' else 'جاري تحميل الأخبار الاقتصادية العربية...')|tojson }};
         }
     }
 

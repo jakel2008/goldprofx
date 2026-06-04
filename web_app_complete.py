@@ -947,26 +947,67 @@ ECONOMIC_KEYWORDS = [
 DEFAULT_PUBLIC_ADS = [
     {
         'badge': 'إعلان مميز',
+        'badge_en': 'Featured ad',
         'title': 'خصم 30% على باقة Silver',
+        'title_en': '30% discount on the Silver package',
         'text': 'لفترة محدودة، احصل على مزايا التحليل المتقدم مع سعر خاص.',
+        'text_en': 'For a limited time, get advanced analysis benefits at a special price.',
         'cta_text': 'عرض الخطط',
+        'cta_text_en': 'View plans',
         'cta_url': '/plans'
     },
     {
         'badge': 'جديد',
+        'badge_en': 'New',
         'title': 'إشارات يومية محدثة',
+        'title_en': 'Updated daily signals',
         'text': 'تابع توصيات السوق بشكل يومي مع تحديثات مستمرة وجودة عالية.',
+        'text_en': 'Follow daily market recommendations with continuous updates and high quality.',
         'cta_text': 'تسجيل لأول مرة',
+        'cta_text_en': 'Register for the first time',
         'cta_url': '/register?first=1'
     },
     {
         'badge': 'دعم',
+        'badge_en': 'Support',
         'title': 'دعم مباشر للمشتركين',
+        'title_en': 'Direct support for subscribers',
         'text': 'فريق الدعم متاح للرد على الاستفسارات ومتابعة طلبات الاشتراك.',
+        'text_en': 'The support team is available to answer questions and follow up subscription requests.',
         'cta_text': 'تسجيل الدخول',
+        'cta_text_en': 'Login',
         'cta_url': '/login?first=1'
     }
 ]
+
+PUBLIC_AD_TRANSLATIONS = {
+    'إعلان': 'Ad',
+    'إعلان مميز': 'Featured ad',
+    'عرض خاص': 'Special offer',
+    'جديد': 'New',
+    'دعم': 'Support',
+    'تنبيه': 'Alert',
+    'عرض عاجل محدث من الأدمن': 'Updated urgent offer from admin',
+    'لفترة محدودة، اشترك الآن بخطة Silver واستفد من تحليل متقدم وإشارات يومية.': 'For a limited time, subscribe to the Silver plan and benefit from advanced analysis and daily signals.',
+    'اشترك الآن': 'Subscribe now',
+    'جلسة تعريف مجانية للمستخدمين الجدد': 'Free introduction session for new users',
+    'تعرف على آلية العمل، إدارة المخاطر، وكيفية الاستفادة من التقارير والإشارات.': 'Learn how the system works, how to manage risk, and how to benefit from reports and signals.',
+    'تسجيل الدخول': 'Login',
+    'تحديثات يومية على الأزواج الرئيسية': 'Daily updates on major pairs',
+    'تحليلات محدثة على أزواج الفوركس الرئيسية مع توصيات قابلة للمتابعة.': 'Updated analysis on major forex pairs with actionable recommendations.',
+    'عرض الخطط': 'View plans',
+    'متابعة الأداء الأسبوعي': 'Weekly performance tracking',
+    'اطلع على التقارير والإحصائيات الدورية لتحسين قراراتك في التداول.': 'Review periodic reports and statistics to improve your trading decisions.',
+    'ابدأ الآن': 'Start now',
+    'عرض التفاصيل': 'View details'
+}
+
+
+def _public_ad_en_value(item, key, value):
+    explicit = str(item.get(f'{key}_en') or '').strip()
+    if explicit:
+        return explicit
+    return PUBLIC_AD_TRANSLATIONS.get(value, value)
 
 # خريطة رموز Yahoo Finance
 YF_SYMBOLS = {
@@ -6431,9 +6472,13 @@ def get_public_ads():
                 continue
             normalized.append({
                 'badge': str(item.get('badge') or 'إعلان').strip() or 'إعلان',
+                'badge_en': _public_ad_en_value(item, 'badge', str(item.get('badge') or 'إعلان').strip() or 'إعلان'),
                 'title': title,
+                'title_en': _public_ad_en_value(item, 'title', title),
                 'text': text,
+                'text_en': _public_ad_en_value(item, 'text', text),
                 'cta_text': str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل',
+                'cta_text_en': _public_ad_en_value(item, 'cta_text', str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل'),
                 'cta_url': str(item.get('cta_url') or '/plans').strip() or '/plans'
             })
         return normalized[:12]
@@ -6466,9 +6511,13 @@ def save_public_ads(new_ads):
             continue
         normalized.append({
             'badge': str(item.get('badge') or 'إعلان').strip() or 'إعلان',
+            'badge_en': _public_ad_en_value(item, 'badge', str(item.get('badge') or 'إعلان').strip() or 'إعلان'),
             'title': title,
+            'title_en': _public_ad_en_value(item, 'title', title),
             'text': text,
+            'text_en': _public_ad_en_value(item, 'text', text),
             'cta_text': str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل',
+            'cta_text_en': _public_ad_en_value(item, 'cta_text', str(item.get('cta_text') or 'عرض التفاصيل').strip() or 'عرض التفاصيل'),
             'cta_url': str(item.get('cta_url') or '/plans').strip() or '/plans'
         })
 

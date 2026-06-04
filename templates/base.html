@@ -419,14 +419,14 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="lang-switch" aria-label="Language switcher">
-                <span class="lang-switch-label" data-i18n="اللغة">اللغة</span>
-                <select id="globalLanguageSelect" class="lang-switch-select" title="اختيار اللغة" aria-label="اختيار اللغة">
-                    <option value="ar" {% if current_lang == 'ar' %}selected{% endif %}>العربية</option>
+                <span class="lang-switch-label" data-i18n="اللغة">{% if current_lang == 'en' %}Language{% else %}اللغة{% endif %}</span>
+                <select id="globalLanguageSelect" class="lang-switch-select" title="{% if current_lang == 'en' %}Choose language{% else %}اختيار اللغة{% endif %}" aria-label="{% if current_lang == 'en' %}Choose language{% else %}اختيار اللغة{% endif %}">
+                    <option value="ar" {% if current_lang == 'ar' %}selected{% endif %}>{% if current_lang == 'en' %}Arabic{% else %}العربية{% endif %}</option>
                     <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
                 </select>
             </div>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto d-flex flex-lg-row flex-wrap">{%- for link in site_links -%}{%- if not ((link.admin and (not user or not user.is_admin)) or (link.guest and is_logged_in) or (link.auth and not is_logged_in)) -%}{%- set is_active = (request.path == link.url) or (link.url != '/' and request.path.startswith(link.url)) -%}<a class="nav-link{% if is_active %} active{% endif %}{% if link.admin %} admin-link{% endif %}" href="{{ link.url }}">{{ link.icon }} {{ link.name }}</a>{%- endif -%}{%- endfor -%}</div>
+                <div class="navbar-nav ms-auto d-flex flex-lg-row flex-wrap">{%- for link in site_links -%}{%- if not ((link.admin and (not user or not user.is_admin)) or (link.guest and is_logged_in) or (link.auth and not is_logged_in)) -%}{%- set is_active = (request.path == link.url) or (link.url != '/' and request.path.startswith(link.url)) -%}<a class="nav-link{% if is_active %} active{% endif %}{% if link.admin %} admin-link{% endif %}" href="{{ link.url }}">{{ link.icon }} {% if current_lang == 'en' %}{{ link.name_en|default(link.name) }}{% else %}{{ link.name }}{% endif %}</a>{%- endif -%}{%- endfor -%}</div>
             </div>
         </div>
     </nav>
@@ -439,7 +439,7 @@
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
                         {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" title="إغلاق التنبيه" aria-label="إغلاق"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" title="{% if current_lang == 'en' %}Close alert{% else %}إغلاق التنبيه{% endif %}" aria-label="{% if current_lang == 'en' %}Close{% else %}إغلاق{% endif %}"></button>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -470,46 +470,46 @@
     {% endif %}
 
     <div class="support-fab" id="supportFab">
-        <button type="button" class="support-fab-btn" id="supportFabBtn" aria-label="فتح الدعم والمساعدة" title="الدعم والمساعدة">
+        <button type="button" class="support-fab-btn" id="supportFabBtn" aria-label="{% if current_lang == 'en' %}Open help and support{% else %}فتح الدعم والمساعدة{% endif %}" title="{% if current_lang == 'en' %}Help and support{% else %}الدعم والمساعدة{% endif %}">
             <span>💬</span>
-            <span>الدعم والمساعدة</span>
+            <span>{% if current_lang == 'en' %}Help and support{% else %}الدعم والمساعدة{% endif %}</span>
         </button>
         <aside class="support-panel" id="supportPanel" aria-live="polite">
-            <h3 class="support-title">كيف نساعدك؟</h3>
-            <p class="support-subtitle">اختر الطريقة المناسبة للتواصل معنا أو الوصول السريع لأهم الصفحات.</p>
+            <h3 class="support-title">{% if current_lang == 'en' %}How can we help?{% else %}كيف نساعدك؟{% endif %}</h3>
+            <p class="support-subtitle">{% if current_lang == 'en' %}Choose your preferred way to contact us or quickly access key pages.{% else %}اختر الطريقة المناسبة للتواصل معنا أو الوصول السريع لأهم الصفحات.{% endif %}</p>
             <div class="support-grid">
                 <a class="support-item" href="{{ support_hub }}" target="_blank" rel="noopener noreferrer">
-                    <span>🌐 مركز الدعم الرسمي</span>
+                    <span>🌐 {% if current_lang == 'en' %}Official support hub{% else %}مركز الدعم الرسمي{% endif %}</span>
                     <span>↗</span>
                 </a>
                 <a class="support-item" href="{{ wa_link }}" target="_blank" rel="noopener noreferrer">
-                    <span>📱 واتساب الدعم</span>
+                    <span>📱 {% if current_lang == 'en' %}WhatsApp support{% else %}واتساب الدعم{% endif %}</span>
                     <span>↗</span>
                 </a>
                 <a class="support-item" href="{{ tg_link }}" target="_blank" rel="noopener noreferrer">
-                    <span>📨 تليجرام الدعم</span>
+                    <span>📨 {% if current_lang == 'en' %}Telegram support{% else %}تليجرام الدعم{% endif %}</span>
                     <span>↗</span>
                 </a>
                 <a class="support-item" href="mailto:{{ support_email }}?subject=GOLD%20PRO%20Support%20Request">
-                    <span>✉️ البريد الإلكتروني</span>
+                    <span>✉️ {% if current_lang == 'en' %}Email{% else %}البريد الإلكتروني{% endif %}</span>
                     <span>↗</span>
                 </a>
                 <a class="support-item" href="/plans">
-                    <span>💳 صفحة الخطط والأسعار</span>
+                    <span>💳 {% if current_lang == 'en' %}Plans and pricing{% else %}صفحة الخطط والأسعار{% endif %}</span>
                     <span>↗</span>
                 </a>
                 <a class="support-item" href="/profile">
-                    <span>👤 إدارة الحساب</span>
+                    <span>👤 {% if current_lang == 'en' %}Account management{% else %}إدارة الحساب{% endif %}</span>
                     <span>↗</span>
                 </a>
             </div>
-            <div class="support-note">متوفرون يوميا للرد على استفسارات الاشتراك والتفعيل والدفع.</div>
+            <div class="support-note">{% if current_lang == 'en' %}We are available daily for subscription, activation, and payment questions.{% else %}متوفرون يوميا للرد على استفسارات الاشتراك والتفعيل والدفع.{% endif %}</div>
         </aside>
     </div>
     
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2026 GOLD PRO - جميع الحقوق محفوظة</p>
+        <p>&copy; 2026 GOLD PRO - {% if current_lang == 'en' %}All rights reserved{% else %}جميع الحقوق محفوظة{% endif %}</p>
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

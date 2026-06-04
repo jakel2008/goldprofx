@@ -103,44 +103,44 @@
 {% endblock %}
 
 {% block content %}
-<section class="breaking-news" id="economic-news-section-home" aria-label="الأخبار العاجلة">
-    <div class="breaking-label">🌍 اقتصاد مباشر</div>
+<section class="breaking-news" id="economic-news-section-home" aria-label="{% if current_lang == 'en' %}Breaking news{% else %}الأخبار العاجلة{% endif %}">
+    <div class="breaking-label">🌍 {% if current_lang == 'en' %}Live economy{% else %}اقتصاد مباشر{% endif %}</div>
     <div class="breaking-track-wrap">
-        <div class="breaking-track breaking-track-economic" id="breaking-news-track-home">جاري تحميل الأخبار العاجلة...</div>
+        <div class="breaking-track breaking-track-economic" id="breaking-news-track-home">{% if current_lang == 'en' %}Loading breaking news...{% else %}جاري تحميل الأخبار العاجلة...{% endif %}</div>
     </div>
 </section>
 
-<section class="breaking-news" id="site-news-section-home" aria-label="أخبار المنصة">
-    <div class="breaking-label">🏛️ أخبار المنصة</div>
+<section class="breaking-news" id="site-news-section-home" aria-label="{% if current_lang == 'en' %}Platform news{% else %}أخبار المنصة{% endif %}">
+    <div class="breaking-label">🏛️ {% if current_lang == 'en' %}Platform news{% else %}أخبار المنصة{% endif %}</div>
     <div class="breaking-track-wrap">
-        <div class="breaking-track" id="site-news-track-home">جاري تحميل أخبار المنصة...</div>
+        <div class="breaking-track" id="site-news-track-home">{% if current_lang == 'en' %}Loading platform news...{% else %}جاري تحميل أخبار المنصة...{% endif %}</div>
     </div>
 </section>
 
 <section class="home-hero">
     <div class="hero-title">⭐ GOLD PRO</div>
-    <div class="hero-subtitle">منصة إشارات وتحليلات بواجهة موحّدة وهوية ذهبية احترافية.</div>
+    <div class="hero-subtitle">{% if current_lang == 'en' %}Signals and analysis platform with a unified interface and a professional gold identity.{% else %}منصة إشارات وتحليلات بواجهة موحّدة وهوية ذهبية احترافية.{% endif %}</div>
     <div class="home-actions">
-        <a href="/signals" class="btn btn-primary">الإشارات المباشرة</a>
-        <a href="/plans" class="btn btn-outline-light">الخطط والاشتراكات</a>
+        <a href="/signals" class="btn btn-primary">{% if current_lang == 'en' %}Live signals{% else %}الإشارات المباشرة{% endif %}</a>
+        <a href="/plans" class="btn btn-outline-light">{% if current_lang == 'en' %}Plans and subscriptions{% else %}الخطط والاشتراكات{% endif %}</a>
     </div>
 </section>
 
 <section class="stats-grid">
     <div class="stat-card">
-        <div class="label">إجمالي الإشارات</div>
+        <div class="label">{% if current_lang == 'en' %}Total signals{% else %}إجمالي الإشارات{% endif %}</div>
         <div class="value">{{ stats.get('total_signals', 0) }}</div>
     </div>
     <div class="stat-card">
-        <div class="label">إجمالي التوصيات</div>
+        <div class="label">{% if current_lang == 'en' %}Total recommendations{% else %}إجمالي التوصيات{% endif %}</div>
         <div class="value">{{ stats.get('total_recommendations', 0) }}</div>
     </div>
     <div class="stat-card">
-        <div class="label">حالة الجلسة</div>
-        <div class="value" style="font-size:1.2rem;">{{ 'نشطة' if is_logged_in else 'غير مسجل' }}</div>
+        <div class="label">{% if current_lang == 'en' %}Session status{% else %}حالة الجلسة{% endif %}</div>
+        <div class="value" style="font-size:1.2rem;">{% if current_lang == 'en' %}{{ 'Active' if is_logged_in else 'Guest' }}{% else %}{{ 'نشطة' if is_logged_in else 'غير مسجل' }}{% endif %}</div>
     </div>
     <div class="stat-card">
-        <div class="label">المستخدم الحالي</div>
+        <div class="label">{% if current_lang == 'en' %}Current user{% else %}المستخدم الحالي{% endif %}</div>
         <div class="value" style="font-size:1.2rem;">{{ user.get('username', '-') if user else '-' }}</div>
     </div>
 </section>
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (streamMode === 'arabic' && economicTrack) {
-            economicTrack.textContent = 'جاري تحميل الأخبار الاقتصادية العربية...';
+            economicTrack.textContent = {{ ('Loading Arabic economic news...' if current_lang == 'en' else 'جاري تحميل الأخبار الاقتصادية العربية...')|tojson }};
         }
     }
 

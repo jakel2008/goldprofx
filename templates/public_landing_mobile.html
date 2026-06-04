@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}GOLD PRO - نسخة الموبايل{% endblock %}
+{% block title %}{% if current_lang == 'en' %}GOLD PRO - Mobile Version{% else %}GOLD PRO - نسخة الموبايل{% endif %}{% endblock %}
 
 {% block content %}
 <div class="mobile-landing">
     <div class="mobile-hero">
         <h1>GOLD PRO</h1>
-        <p>واجهة موبايل سريعة لنفس النظام ونفس الحساب.</p>
+        <p>{% if current_lang == 'en' %}A fast mobile interface for the same system and the same account.{% else %}واجهة موبايل سريعة لنفس النظام ونفس الحساب.{% endif %}</p>
         <div class="hero-actions">
-            <a href="/login?first=1" class="btn btn-primary w-100">تسجيل الدخول</a>
-            <a href="/register?first=1" class="btn btn-outline-dark w-100">تسجيل جديد</a>
+            <a href="/login?first=1" class="btn btn-primary w-100">{% if current_lang == 'en' %}Login{% else %}تسجيل الدخول{% endif %}</a>
+            <a href="/register?first=1" class="btn btn-outline-dark w-100">{% if current_lang == 'en' %}Register{% else %}تسجيل جديد{% endif %}</a>
         </div>
     </div>
 
-    <div class="mobile-section-title">العروض الحالية</div>
+    <div class="mobile-section-title">{% if current_lang == 'en' %}Current offers{% else %}العروض الحالية{% endif %}</div>
     <div class="mobile-ads">
         {% for ad in ads %}
         <article class="mobile-ad-card">
-            <div class="mobile-ad-badge">{{ ad.badge or 'إعلان' }}</div>
-            <h3>{{ ad.title }}</h3>
-            <p>{{ ad.text }}</p>
-            <a href="{{ ad.cta_url or '/plans' }}" class="mobile-ad-link">{{ ad.cta_text or 'عرض التفاصيل' }}</a>
+            <div class="mobile-ad-badge">{% if current_lang == 'en' %}{{ ad.badge_en or ad.badge or 'Ad' }}{% else %}{{ ad.badge or 'إعلان' }}{% endif %}</div>
+            <h3>{% if current_lang == 'en' %}{{ ad.title_en or ad.title }}{% else %}{{ ad.title }}{% endif %}</h3>
+            <p>{% if current_lang == 'en' %}{{ ad.text_en or ad.text }}{% else %}{{ ad.text }}{% endif %}</p>
+            <a href="{{ ad.cta_url or '/plans' }}" class="mobile-ad-link">{% if current_lang == 'en' %}{{ ad.cta_text_en or ad.cta_text or 'View details' }}{% else %}{{ ad.cta_text or 'عرض التفاصيل' }}{% endif %}</a>
         </article>
         {% endfor %}
     </div>

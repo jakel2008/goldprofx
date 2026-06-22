@@ -9402,6 +9402,16 @@ def api_admin_mt5_status():
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
     status = bridge.status()
+
+    # On Linux/Render the MT5 bridge is status-only; execution happens on a Windows machine.
+    if status.get('platform') != 'Windows':
+        return jsonify({
+            'success': True,
+            'mode': 'status_only',
+            'note': status.get('windows_only_note') or 'MT5 execution is Windows-only.',
+            'status': status,
+        })
+
     if (
         not status.get('connected')
         and status.get('module_available')
@@ -9423,6 +9433,15 @@ def api_admin_mt5_connect():
         _save_mt5_wallet_config(data)
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
+
+    if bridge.status().get('platform') != 'Windows':
+        return jsonify({
+            'success': False,
+            'mode': 'status_only',
+            'error': 'MT5 execution is available only on Windows. Run continuous_auto_trader.py on your local Windows machine.',
+            'status': bridge.status(),
+        }), 400
+
     result = bridge.connect()
     return jsonify(result), (200 if result.get('success') else 500)
 
@@ -9441,6 +9460,16 @@ def api_admin_mt5_terminals():
     bridge = _load_mt5_bridge_instance()
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
+
+    if bridge.status().get('platform') != 'Windows':
+        return jsonify({
+            'success': True,
+            'count': 0,
+            'configured_path': cfg.get('path'),
+            'terminals': [],
+            'note': 'Windows-only: terminal inspection is not available on this Linux server.',
+        })
+
     result = bridge.inspect_terminals()
     return jsonify(result), (200 if result.get('success') else 500)
 

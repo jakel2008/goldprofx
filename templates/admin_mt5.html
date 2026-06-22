@@ -1,0 +1,1074 @@
+{% extends "base.html" %}
+
+{% block title %}{% if current_lang == 'en' %}MT5 Bridge Control{% else %}لوحة ربط MT5{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 80px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h2 class="mb-1">{% if current_lang == 'en' %}MT5 Bridge Control{% else %}لوحة ربط MT5{% endif %}</h2>
+            <p class="text-muted mb-0">{% if current_lang == 'en' %}Connect, monitor live data, and test/execute trading actions{% else %}اتصال، مراقبة البيانات الحية، واختبار/تنفيذ أوامر التداول{% endif %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-secondary" href="/admin-panel">{% if current_lang == 'en' %}Back to Admin Panel{% else %}العودة للوحة الأدمن{% endif %}</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% if current_lang == 'en' %}Professional Wallet Setup{% else %}إدخال بيانات المحفظة بشكل احترافي{% endif %}</h5>
+            <p class="text-muted small mb-3">{% if current_lang == 'en' %}Set account credentials and trading defaults, then connect directly to MT5.{% else %}قم بإدخال بيانات الحساب وإعدادات التنفيذ ثم الاتصال مباشرة بـ MT5.{% endif %}</p>
+            <div class="row g-2">
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Account Login{% else %}رقم الحساب{% endif %}</label>
+                <input id="cfgLogin" class="form-control" type="number" placeholder="12345678" title="MT5 login" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Password{% else %}كلمة المرور{% endif %}</label>
+                <input id="cfgPassword" class="form-control" type="password" placeholder="••••••••" title="MT5 password" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Server{% else %}السيرفر{% endif %}</label>
+                <input id="cfgServer" class="form-control" type="text" placeholder="Broker-Server" title="MT5 server" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Terminal Path{% else %}مسار برنامج MT5{% endif %}</label>
+                <input id="cfgPath" class="form-control" type="text" placeholder="C:/Program Files/.../terminal64.exe" title="MT5 terminal path" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Magic</label>
+                <input id="cfgMagic" class="form-control" type="number" value="88001" title="Magic number" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Deviation</label>
+                <input id="cfgDeviation" class="form-control" type="number" value="20" title="Deviation" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">{% if current_lang == 'en' %}Default Volume{% else %}الحجم الافتراضي{% endif %}</label>
+                <input id="cfgDefaultVolume" class="form-control" type="number" step="0.01" value="0.01" title="Default volume" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check me-3">
+                  <input class="form-check-input" type="checkbox" id="cfgEnabled">
+                  <label class="form-check-label" for="cfgEnabled">MT5 Enabled</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="cfgAllowTrading">
+                  <label class="form-check-label" for="cfgAllowTrading">Allow Trading</label>
+                </div>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="cfgAllowSiteSignals">
+                  <label class="form-check-label" for="cfgAllowSiteSignals">{% if current_lang == 'en' %}Allow Site Signals{% else %}السماح لإشارات الموقع{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="cfgAutoExecutionEnabled">
+                  <label class="form-check-label" for="cfgAutoExecutionEnabled">{% if current_lang == 'en' %}Auto Execute Signals{% else %}تنفيذ تلقائي للإشارات{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{% if current_lang == 'en' %}Auto Symbol Group{% else %}مجموعة رموز التنفيذ التلقائي{% endif %}</label>
+                <input id="cfgAutoExecutionSymbols" class="form-control" type="text" placeholder="BTCUSD,ETHUSD,EURUSD" title="Auto execution symbols" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end gap-2">
+                <button class="btn btn-outline-primary" id="btnLoadWalletConfig">{% if current_lang == 'en' %}Load Config{% else %}تحميل الإعدادات{% endif %}</button>
+                <button class="btn btn-outline-success" id="btnSaveWalletConfig">{% if current_lang == 'en' %}Save Config{% else %}حفظ الإعدادات{% endif %}</button>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="d-flex gap-2 mb-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btnInspectTerminals">{% if current_lang == 'en' %}Inspect MT5 terminals{% else %}فحص مسارات MT5{% endif %}</button>
+                <button class="btn btn-sm btn-outline-primary" id="btnUseFirstWorkingTerminal">{% if current_lang == 'en' %}Use first working path{% else %}استخدم أول مسار صالح{% endif %}</button>
+              </div>
+              <pre id="terminalsOutput" class="bg-light p-2 rounded small" style="max-height: 170px; overflow:auto;">-</pre>
+            </div>
+            <div class="small text-muted mt-2" id="walletConfigHint">-</div>
+          </div>
+        </div>
+      </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">{% if current_lang == 'en' %}Connection{% else %}الاتصال{% endif %}</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary" id="btnMt5Status">{% if current_lang == 'en' %}Refresh Status{% else %}تحديث الحالة{% endif %}</button>
+                        <button class="btn btn-success" id="btnMt5Connect">{% if current_lang == 'en' %}Connect{% else %}اتصال{% endif %}</button>
+                        <button class="btn btn-outline-danger" id="btnMt5Disconnect">{% if current_lang == 'en' %}Disconnect{% else %}فصل{% endif %}</button>
+                    </div>
+                    <pre id="mt5StatusOutput" class="mt-3 bg-light p-3 rounded small" style="max-height: 280px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{% if current_lang == 'en' %}Quick Inputs{% else %}مدخلات سريعة{% endif %}</h5>
+                  <label class="form-label">{% if current_lang == 'en' %}Symbol Presets{% else %}قوائم رموز جاهزة{% endif %}</label>
+                  <select id="symbolsPreset" class="form-select mb-2" title="Symbols preset">
+                    <option value="">{% if current_lang == 'en' %}Manual{% else %}يدوي{% endif %}</option>
+                    <option value="XAUUSD,XAGUSD,USOIL,UKOIL">Commodities</option>
+                    <option value="EURUSD,GBPUSD,USDJPY,USDCHF,AUDUSD,USDCAD,NZDUSD">Majors Forex</option>
+                    <option value="BTCUSD,ETHUSD,BNBUSD">Crypto Majors</option>
+                    <option value="US30,NAS100,SPX500">Indices</option>
+                  </select>
+                    <label class="form-label">{% if current_lang == 'en' %}Symbols (comma separated){% else %}الرموز (مفصولة بفاصلة){% endif %}</label>
+                    <input id="symbolsInput" class="form-control mb-2" value="XAUUSD,BTCUSD,EURUSD" title="Symbols" placeholder="XAUUSD,BTCUSD,EURUSD" />
+                    <label class="form-label">{% if current_lang == 'en' %}Timeframe{% else %}الفريم{% endif %}</label>
+                    <select id="tfInput" class="form-select mb-2" title="Timeframe">
+                        <option>M1</option>
+                        <option>M5</option>
+                        <option>M15</option>
+                        <option>M30</option>
+                        <option selected>H1</option>
+                        <option>H4</option>
+                        <option>D1</option>
+                    </select>
+                    <label class="form-label">{% if current_lang == 'en' %}Bars Count{% else %}عدد الشموع{% endif %}</label>
+                    <input id="barsCountInput" class="form-control mb-2" type="number" min="20" max="2000" value="200" title="Bars count" placeholder="200" />
+                    <label class="form-label">{% if current_lang == 'en' %}Rates Scope{% else %}نطاق تحميل الشموع{% endif %}</label>
+                    <select id="ratesScopeInput" class="form-select mb-2" title="Rates scope">
+                      <option value="first" selected>{% if current_lang == 'en' %}First symbol only{% else %}أول رمز فقط{% endif %}</option>
+                      <option value="all">{% if current_lang == 'en' %}All entered symbols{% else %}كل الرموز المدخلة{% endif %}</option>
+                    </select>
+                    <label class="form-label">{% if current_lang == 'en' %}History Hours{% else %}ساعات السجل{% endif %}</label>
+                    <input id="historyHoursInput" class="form-control" type="number" min="1" max="720" value="24" title="History hours" placeholder="24" />
+                    <hr>
+                    <label class="form-label">{% if current_lang == 'en' %}Discover Broker Symbols{% else %}اكتشاف رموز الوسيط{% endif %}</label>
+                    <div class="input-group mb-2">
+                      <input id="symbolSearchInput" class="form-control" value="USD" placeholder="USD / XAU / BTC" title="Symbol search" />
+                      <button class="btn btn-outline-secondary" id="btnSearchSymbols" type="button">{% if current_lang == 'en' %}Search{% else %}بحث{% endif %}</button>
+                    </div>
+                    <div class="d-flex gap-2 mb-2">
+                      <button class="btn btn-sm btn-outline-secondary" id="btnLoadTopSymbols" type="button">{% if current_lang == 'en' %}Load top 50{% else %}تحميل 50 رمز{% endif %}</button>
+                      <button class="btn btn-sm btn-outline-primary" id="btnUseFoundSymbols" type="button">{% if current_lang == 'en' %}Use found symbols{% else %}استخدم الرموز المكتشفة{% endif %}</button>
+                    </div>
+                    <pre id="symbolsSearchOutput" class="bg-light p-2 rounded small" style="max-height: 170px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% if current_lang == 'en' %}Live & Snapshot{% else %}البيانات الحية واللقطة{% endif %}</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button class="btn btn-outline-primary" id="btnMt5Live">{% if current_lang == 'en' %}Live Ticks{% else %}أسعار لحظية{% endif %}</button>
+                        <button class="btn btn-outline-dark" id="btnMt5Snapshot">{% if current_lang == 'en' %}Full Snapshot{% else %}لقطة كاملة{% endif %}</button>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="autoRefreshEnabled">
+                        <label class="form-check-label" for="autoRefreshEnabled">{% if current_lang == 'en' %}Auto refresh{% else %}تحديث تلقائي{% endif %}</label>
+                      </div>
+                      <select id="autoRefreshSeconds" class="form-select form-select-sm" style="max-width: 120px;" title="Auto refresh interval">
+                        <option value="5">5s</option>
+                        <option value="10" selected>10s</option>
+                        <option value="15">15s</option>
+                        <option value="30">30s</option>
+                        <option value="60">60s</option>
+                      </select>
+                      <button class="btn btn-sm btn-outline-success" id="btnApplyAutoRefresh">{% if current_lang == 'en' %}Apply{% else %}تطبيق{% endif %}</button>
+                    </div>
+                    <pre id="mt5LiveOutput" class="bg-light p-3 rounded small" style="max-height: 300px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% if current_lang == 'en' %}Rates & History{% else %}الشموع والسجل{% endif %}</h5>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button class="btn btn-outline-secondary" id="btnMt5Rates">{% if current_lang == 'en' %}Load Rates{% else %}تحميل الشموع{% endif %}</button>
+                        <button class="btn btn-outline-secondary" id="btnMt5History">{% if current_lang == 'en' %}Load History (24h){% else %}تحميل سجل 24 ساعة{% endif %}</button>
+                    </div>
+                    <pre id="mt5RatesOutput" class="bg-light p-3 rounded small" style="max-height: 300px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% if current_lang == 'en' %}Manual Order{% else %}أمر يدوي{% endif %}</h5>
+                    <div class="row g-2">
+                        <div class="col-4"><input id="orderSymbol" class="form-control" value="XAUUSD" placeholder="Symbol" title="Order symbol" /></div>
+                        <div class="col-4">
+                          <select id="orderSide" class="form-select" title="Order side">
+                                <option value="buy">buy</option>
+                                <option value="sell">sell</option>
+                            </select>
+                        </div>
+                        <div class="col-4"><input id="orderVolume" class="form-control" type="number" step="0.01" value="0.01" title="Order volume" placeholder="0.01" /></div>
+                        <div class="col-6"><input id="orderSl" class="form-control" type="number" step="0.00001" placeholder="SL" title="Stop loss" /></div>
+                        <div class="col-6"><input id="orderTp" class="form-control" type="number" step="0.00001" placeholder="TP" title="Take profit" /></div>
+                        <div class="col-12"><input id="orderComment" class="form-control" value="GOLD_PRO_ORDER" placeholder="Comment" title="Order comment" maxlength="32" /></div>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="orderDryRun" checked>
+                        <label class="form-check-label" for="orderDryRun">Dry Run</label>
+                    </div>
+                    <button class="btn btn-primary mt-2" id="btnMt5Order">{% if current_lang == 'en' %}Send Order{% else %}إرسال الأمر{% endif %}</button>
+                    <pre id="mt5OrderOutput" class="mt-2 bg-light p-3 rounded small" style="max-height: 240px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% if current_lang == 'en' %}Execute Signal Payload{% else %}تنفيذ إشارة بصيغة Payload{% endif %}</h5>
+                  <div class="row g-2 mb-2">
+                    <div class="col-4"><input id="sigSymbol" class="form-control" value="BTCUSD" title="Signal symbol" placeholder="Symbol" /></div>
+                    <div class="col-4">
+                      <select id="sigSide" class="form-select" title="Signal side">
+                        <option value="buy">buy</option>
+                        <option value="sell">sell</option>
+                      </select>
+                    </div>
+                    <div class="col-4"><input id="sigVolume" class="form-control" type="number" step="0.01" value="0.03" title="Signal volume" placeholder="0.03" /></div>
+                    <div class="col-4"><input id="sigSl" class="form-control" type="number" step="0.00001" value="61500" title="Signal SL" placeholder="SL" /></div>
+                    <div class="col-4"><input id="sigTp1" class="form-control" type="number" step="0.00001" value="62800" title="Signal TP1" placeholder="TP1" /></div>
+                    <div class="col-4"><input id="sigTp2" class="form-control" type="number" step="0.00001" value="63200" title="Signal TP2" placeholder="TP2" /></div>
+                    <div class="col-4"><input id="sigTp3" class="form-control" type="number" step="0.00001" value="63800" title="Signal TP3" placeholder="TP3" /></div>
+                    <div class="col-4 d-flex align-items-center">
+                      <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="sigSplitTp" checked>
+                        <label class="form-check-label" for="sigSplitTp">Split TP</label>
+                      </div>
+                    </div>
+                    <div class="col-4 d-flex align-items-center">
+                      <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="sigDryRun" checked>
+                        <label class="form-check-label" for="sigDryRun">Dry Run</label>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-outline-secondary mb-2" id="btnBuildSignalPayload">{% if current_lang == 'en' %}Build Payload From Fields{% else %}بناء Payload من الحقول{% endif %}</button>
+                    <textarea id="signalPayload" class="form-control" rows="8" title="Signal payload" placeholder="{...}">{
+  "symbol": "BTCUSD",
+  "signal_type": "buy",
+  "stop_loss": 61500,
+  "take_profit_1": 62800,
+  "take_profit_2": 63200,
+  "take_profit_3": 63800,
+  "volume": 0.03,
+  "split_tp": true,
+                      "dry_run": true,
+                      "manual_confirm": true,
+                      "execution_source": "mt5_admin_panel"
+}</textarea>
+                    <button class="btn btn-primary mt-2" id="btnMt5ExecuteSignal">{% if current_lang == 'en' %}Execute Signal{% else %}تنفيذ الإشارة{% endif %}</button>
+                    <pre id="mt5SignalOutput" class="mt-2 bg-light p-3 rounded small" style="max-height: 240px; overflow:auto;">-</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% if current_lang == 'en' %}Manual Signal Picker{% else %}اختيار الإشارة يدويًا{% endif %}</h5>
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-outline-secondary" id="btnLoadSignalCandidates">{% if current_lang == 'en' %}Load Signals{% else %}تحميل الإشارات{% endif %}</button>
+              <button class="btn btn-outline-primary" id="btnExecuteSelectedSignal">{% if current_lang == 'en' %}Execute Selected{% else %}تنفيذ المحدد{% endif %}</button>
+            </div>
+            <select id="signalCandidatesSelect" class="form-select mb-2" title="Signal candidates"></select>
+            <pre id="signalCandidatesOutput" class="bg-light p-3 rounded small" style="max-height: 210px; overflow:auto;">-</pre>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% if current_lang == 'en' %}Auto Cycle{% else %}دورة التنفيذ التلقائي{% endif %}</h5>
+            <p class="text-muted small mb-2">{% if current_lang == 'en' %}Runs a single auto-execution cycle for enabled symbol group.{% else %}تشغيل دورة واحدة للتنفيذ التلقائي على مجموعة الرموز المفعلة.{% endif %}</p>
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-outline-success" id="btnRunAutoCycle">{% if current_lang == 'en' %}Run Auto Cycle{% else %}تشغيل دورة تلقائية{% endif %}</button>
+            </div>
+            <pre id="autoCycleOutput" class="bg-light p-3 rounded small" style="max-height: 240px; overflow:auto;">-</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% if current_lang == 'en' %}Continuous Auto Trader{% else %}المتداول الآلي المستمر{% endif %}</h5>
+            <p class="text-muted small mb-2">{% if current_lang == 'en' %}Bind wallet + symbols + intervals and control the continuous scanner from this page.{% else %}ربط إعدادات المحفظة والأزواج والفريمات والتحكم بالفاحص المستمر من نفس الصفحة.{% endif %}</p>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-4">
+                <label class="form-label">{% if current_lang == 'en' %}Symbols (comma separated){% else %}الأزواج (مفصولة بفاصلة){% endif %}</label>
+                <input id="autoTraderSymbols" class="form-control" type="text" placeholder="EURUSD,GBPUSD,USDJPY,XAUUSD" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Intervals{% else %}الفريمات{% endif %}</label>
+                <input id="autoTraderIntervals" class="form-control" type="text" placeholder="1h,4h" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">{% if current_lang == 'en' %}Risk %{% else %}نسبة المخاطرة{% endif %}</label>
+                <input id="autoTraderRiskPercent" class="form-control" type="number" step="0.1" min="0.1" value="0.5" title="Risk percent" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{% if current_lang == 'en' %}Scan Every (sec){% else %}كل كم ثانية{% endif %}</label>
+                <input id="autoTraderScanSec" class="form-control" type="number" min="15" value="60" title="Scan interval seconds" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">{% if current_lang == 'en' %}Min Score Gap{% else %}الحد الأدنى للفجوة{% endif %}</label>
+                <input id="autoTraderMinGap" class="form-control" type="number" min="0" value="40" title="Minimum score gap" />
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="autoTraderStrongOnly" checked>
+                  <label class="form-check-label" for="autoTraderStrongOnly">{% if current_lang == 'en' %}Strong only{% else %}إشارات قوية فقط{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="autoTraderPendingEntry" checked>
+                  <label class="form-check-label" for="autoTraderPendingEntry">{% if current_lang == 'en' %}Pending entry{% else %}دخول معلق{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="autoTraderMarketInvalidation" checked>
+                  <label class="form-check-label" for="autoTraderMarketInvalidation">{% if current_lang == 'en' %}Cancel on market invalidation{% else %}إلغاء عند تغير السوق{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="autoTraderDryRun">
+                  <label class="form-check-label" for="autoTraderDryRun">Dry Run</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <button class="btn btn-outline-primary" id="btnAutoTraderLoadConfig">{% if current_lang == 'en' %}Load Trader Config{% else %}تحميل إعدادات المتداول{% endif %}</button>
+              <button class="btn btn-outline-success" id="btnAutoTraderSaveConfig">{% if current_lang == 'en' %}Save Trader Config{% else %}حفظ إعدادات المتداول{% endif %}</button>
+              <button class="btn btn-outline-dark" id="btnAutoTraderRunOnce">{% if current_lang == 'en' %}Run Once{% else %}تشغيل مرة واحدة{% endif %}</button>
+              <button class="btn btn-success" id="btnAutoTraderStart">{% if current_lang == 'en' %}Start Continuous{% else %}تشغيل مستمر{% endif %}</button>
+              <button class="btn btn-outline-danger" id="btnAutoTraderStop">{% if current_lang == 'en' %}Stop{% else %}إيقاف{% endif %}</button>
+              <button class="btn btn-outline-secondary" id="btnAutoTraderStatus">{% if current_lang == 'en' %}Status{% else %}الحالة{% endif %}</button>
+            </div>
+
+            <pre id="autoTraderOutput" class="bg-light p-3 rounded small" style="max-height: 260px; overflow:auto;">-</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if enable_full_sweep %}
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% if current_lang == 'en' %}Full Market Sweep (Top Signals){% else %}فحص السوق الشامل (أفضل الإشارات){% endif %}</h5>
+            <p class="text-muted small mb-2">{% if current_lang == 'en' %}Scans MT5 source symbols across all configured timeframes and ranks the best signals.{% else %}يفحص رموز MT5 عبر جميع الفريمات المفعلة ويرتب أفضل الإشارات.{% endif %}</p>
+            <div class="row g-2 mb-2">
+              <div class="col-md-2">
+                <label class="form-label">Top N</label>
+                <input id="sweepTopN" class="form-control" type="number" min="1" max="200" value="20" title="Top N" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">{% if current_lang == 'en' %}Max Symbols{% else %}أقصى الرموز{% endif %}</label>
+                <input id="sweepMaxSymbols" class="form-control" type="number" min="5" max="2000" value="80" title="Max symbols" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check me-3">
+                  <input class="form-check-input" type="checkbox" id="sweepForceLive" checked>
+                  <label class="form-check-label" for="sweepForceLive">{% if current_lang == 'en' %}Force Live{% else %}فرض بيانات حية{% endif %}</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="sweepPersistGenerated">
+                  <label class="form-check-label" for="sweepPersistGenerated">{% if current_lang == 'en' %}Persist Signals{% else %}حفظ الإشارات{% endif %}</label>
+                </div>
+              </div>
+              <div class="col-md-5 d-flex align-items-end gap-2">
+                <button class="btn btn-outline-dark" id="btnRunFullSweep">{% if current_lang == 'en' %}Run Full Sweep{% else %}تشغيل الفحص الشامل{% endif %}</button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle" id="fullSweepTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{% if current_lang == 'en' %}Symbol{% else %}الرمز{% endif %}</th>
+                    <th>{% if current_lang == 'en' %}Interval{% else %}الفريم{% endif %}</th>
+                    <th>{% if current_lang == 'en' %}Signal{% else %}الإشارة{% endif %}</th>
+                    <th>{% if current_lang == 'en' %}Quality{% else %}الجودة{% endif %}</th>
+                    <th>RR</th>
+                    <th>{% if current_lang == 'en' %}Source{% else %}المصدر{% endif %}</th>
+                  </tr>
+                </thead>
+                <tbody id="fullSweepTableBody"></tbody>
+              </table>
+            </div>
+
+            <pre id="fullSweepOutput" class="bg-light p-3 rounded small" style="max-height: 240px; overflow:auto;">-</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let autoRefreshTimer = null;
+  let lastFoundSymbols = [];
+  let lastTerminalChecks = [];
+  let lastSignalCandidates = [];
+
+  function toPretty(data) {
+    try { return JSON.stringify(data, null, 2); } catch (e) { return String(data); }
+  }
+
+  async function apiCall(url, options) {
+    const resp = await fetch(url, options || {});
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = { raw: text, status: resp.status }; }
+
+    if (!resp.ok) {
+      const errCode = data && data.code ? String(data.code) : '';
+      if (resp.status === 401 || resp.status === 403 || errCode === 'ADMIN_REQUIRED') {
+        const ar = 'انتهت الجلسة أو لا تملك صلاحية الأدمن. سيتم تحويلك لتسجيل الدخول.';
+        const en = 'Session expired or admin access required. Redirecting to login.';
+        const msg = (document.documentElement.lang || 'ar').toLowerCase().startsWith('en') ? en : ar;
+
+        const hintTargets = ['walletConfigHint', 'terminalsOutput', 'mt5StatusOutput'];
+        hintTargets.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (id === 'walletConfigHint') {
+              el.textContent = msg;
+            } else {
+              el.textContent = JSON.stringify({ success: false, error: msg, status: resp.status, code: errCode || undefined }, null, 2);
+            }
+          }
+        });
+
+        setTimeout(() => {
+          window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+        }, 900);
+      }
+    }
+
+    return { ok: resp.ok, status: resp.status, data };
+  }
+
+  function symbolsValue() {
+    return String($('symbolsInput').value || '').trim();
+  }
+
+  function symbolsArray() {
+    return symbolsValue().split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+  }
+
+  function intervalToLegacyTf(interval) {
+    const v = String(interval || '').trim().toLowerCase();
+    const map = {
+      '1m': 'M1',
+      '5m': 'M5',
+      '15m': 'M15',
+      '30m': 'M30',
+      '1h': 'H1',
+      '4h': 'H4',
+      '1d': 'D1'
+    };
+    return map[v] || 'H1';
+  }
+
+  function walletConfigPayload(includePassword) {
+    const payload = {
+      enabled: Boolean($('cfgEnabled').checked),
+      allow_trading: Boolean($('cfgAllowTrading').checked),
+      allow_site_signals: Boolean($('cfgAllowSiteSignals').checked),
+      auto_execution_enabled: Boolean($('cfgAutoExecutionEnabled').checked),
+      auto_execution_symbols: String($('cfgAutoExecutionSymbols').value || '').trim().split(',').map((s) => s.trim().toUpperCase()).filter(Boolean),
+      login: $('cfgLogin').value ? Number($('cfgLogin').value) : 0,
+      server: String($('cfgServer').value || '').trim(),
+      path: String($('cfgPath').value || '').trim(),
+      magic: $('cfgMagic').value ? Number($('cfgMagic').value) : 88001,
+      deviation: $('cfgDeviation').value ? Number($('cfgDeviation').value) : 20,
+      default_volume: $('cfgDefaultVolume').value ? Number($('cfgDefaultVolume').value) : 0.01
+    };
+    if (includePassword) {
+      const passwordValue = String($('cfgPassword').value || '').trim();
+      if (passwordValue) {
+        payload.password = passwordValue;
+      }
+    }
+    return payload;
+  }
+
+  function fillWalletConfig(config) {
+    const cfg = config || {};
+    $('cfgEnabled').checked = Boolean(cfg.enabled);
+    $('cfgAllowTrading').checked = Boolean(cfg.allow_trading);
+    $('cfgAllowSiteSignals').checked = Boolean(cfg.allow_site_signals);
+    $('cfgAutoExecutionEnabled').checked = Boolean(cfg.auto_execution_enabled);
+    $('cfgAutoExecutionSymbols').value = Array.isArray(cfg.auto_execution_symbols) ? cfg.auto_execution_symbols.join(',') : '';
+    $('cfgLogin').value = cfg.login || '';
+    $('cfgServer').value = cfg.server || '';
+    $('cfgPath').value = cfg.path || '';
+    $('cfgMagic').value = cfg.magic || 88001;
+    $('cfgDeviation').value = cfg.deviation || 20;
+    $('cfgDefaultVolume').value = cfg.default_volume || 0.01;
+    $('walletConfigHint').textContent = cfg.password_set
+      ? 'Password is already configured on server.'
+      : 'Password is not set yet.';
+  }
+
+  async function loadWalletConfig() {
+    const result = await apiCall('/api/admin/mt5/config');
+    if (result.ok && result.data && result.data.config) {
+      fillWalletConfig(result.data.config);
+      return;
+    }
+    const code = result && result.data && result.data.code ? String(result.data.code) : '';
+    if (result.status === 401 || result.status === 403 || code === 'ADMIN_REQUIRED') {
+      $('walletConfigHint').textContent = 'Admin session required';
+      return;
+    }
+    $('walletConfigHint').textContent = 'Failed to load config';
+  }
+
+  async function saveWalletConfig() {
+    const payload = walletConfigPayload(true);
+    const result = await apiCall('/api/admin/mt5/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (result.ok) {
+      $('walletConfigHint').textContent = 'Config saved successfully';
+      if (result.data && result.data.status) {
+        $('mt5StatusOutput').textContent = toPretty(result.data.status);
+      }
+    } else {
+      $('walletConfigHint').textContent = 'Failed to save config';
+    }
+  }
+
+  async function loadSignalCandidates() {
+    const out = $('signalCandidatesOutput');
+    const sel = $('signalCandidatesSelect');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/signals?limit=40');
+    lastSignalCandidates = (result.data && Array.isArray(result.data.signals)) ? result.data.signals : [];
+
+    sel.innerHTML = '';
+    if (!lastSignalCandidates.length) {
+      out.textContent = toPretty({
+        success: false,
+        error: 'No signals found in signals directory.',
+        details: result.data
+      });
+      return;
+    }
+
+    lastSignalCandidates.forEach((item) => {
+      const opt = document.createElement('option');
+      opt.value = String(item.id || '');
+      opt.textContent = `${item.id} | ${item.symbol || '-'} | ${item.signal_type || '-'}`;
+      sel.appendChild(opt);
+    });
+    sel.selectedIndex = 0;
+    out.textContent = toPretty(lastSignalCandidates[0]);
+    sel.onchange = () => {
+      const found = lastSignalCandidates.find((x) => String(x.id) === String(sel.value));
+      out.textContent = toPretty(found || {});
+    };
+  }
+
+  async function executeSelectedSignal() {
+    const out = $('signalCandidatesOutput');
+    const sel = $('signalCandidatesSelect');
+    let signalId = String(sel.value || '').trim();
+    if (!signalId && lastSignalCandidates.length) {
+      signalId = String((lastSignalCandidates[0] || {}).id || '').trim();
+    }
+    if (!signalId) {
+      out.textContent = toPretty({ success: false, error: 'No signal selected. Click Load Signals first.' });
+      return;
+    }
+
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/execute-selected', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ signal_id: signalId, dry_run: Boolean($('sigDryRun').checked), split_tp: Boolean($('sigSplitTp').checked), volume: Number($('sigVolume').value || '0.01') })
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  async function runAutoCycle() {
+    const out = $('autoCycleOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-execute-cycle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 5, dry_run: Boolean($('sigDryRun').checked) })
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  function autoTraderPayload() {
+    return {
+      symbols: String($('autoTraderSymbols').value || '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean),
+      intervals: String($('autoTraderIntervals').value || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+      risk_percent: Number($('autoTraderRiskPercent').value || '0.5'),
+      scan_every_sec: Number($('autoTraderScanSec').value || '60'),
+      min_score_gap: Number($('autoTraderMinGap').value || '40'),
+      strong_pending_only: Boolean($('autoTraderStrongOnly').checked),
+      allow_normal_signals: !Boolean($('autoTraderStrongOnly').checked),
+      allow_strong_signals: true,
+      pending_entry: Boolean($('autoTraderPendingEntry').checked),
+      cancel_on_market_invalidation: Boolean($('autoTraderMarketInvalidation').checked),
+      dry_run: Boolean($('autoTraderDryRun').checked)
+    };
+  }
+
+  function fillAutoTraderConfig(cfg) {
+    const config = cfg || {};
+    $('autoTraderSymbols').value = Array.isArray(config.symbols) ? config.symbols.join(',') : '';
+    $('autoTraderIntervals').value = Array.isArray(config.intervals) ? config.intervals.join(',') : '';
+    $('autoTraderRiskPercent').value = Number(config.risk_percent || 0.5);
+    $('autoTraderScanSec').value = Number(config.scan_every_sec || 60);
+    $('autoTraderMinGap').value = Number(config.min_score_gap || 40);
+    $('autoTraderStrongOnly').checked = Boolean(config.strong_pending_only);
+    $('autoTraderPendingEntry').checked = Boolean(config.pending_entry);
+    $('autoTraderMarketInvalidation').checked = Boolean(config.cancel_on_market_invalidation);
+    $('autoTraderDryRun').checked = Boolean(config.dry_run);
+
+    if (Array.isArray(config.symbols) && config.symbols.length) {
+      $('symbolsInput').value = config.symbols.join(',');
+    }
+    if (Array.isArray(config.intervals) && config.intervals.length) {
+      $('tfInput').value = intervalToLegacyTf(config.intervals[0]);
+    }
+  }
+
+  async function loadAutoTraderConfig() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-trader/config');
+    if (result.ok && result.data && result.data.config) {
+      fillAutoTraderConfig(result.data.config);
+    }
+    out.textContent = toPretty(result.data);
+  }
+
+  async function saveAutoTraderConfig() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-trader/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(autoTraderPayload())
+    });
+    if (result.ok && result.data && result.data.config) {
+      fillAutoTraderConfig(result.data.config);
+    }
+    out.textContent = toPretty(result.data);
+  }
+
+  async function loadAutoTraderStatus() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-trader/status');
+    out.textContent = toPretty(result.data);
+  }
+
+  async function startAutoTrader() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    await saveAutoTraderConfig();
+    const result = await apiCall('/api/admin/mt5/auto-trader/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  async function stopAutoTrader() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-trader/stop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  async function runAutoTraderOnce() {
+    const out = $('autoTraderOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/auto-trader/run-once', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(autoTraderPayload())
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  function renderFullSweepTable(rows) {
+    const body = $('fullSweepTableBody');
+    if (!body) {
+      return;
+    }
+    body.innerHTML = '';
+    const list = Array.isArray(rows) ? rows : [];
+    list.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      const cols = [
+        String(idx + 1),
+        String(row.symbol || '-'),
+        String(row.interval || '-'),
+        String(row.recommendation || '-'),
+        String(row.quality_score ?? '-'),
+        String(row.rr_tp1 ?? '-'),
+        String(row.data_source || '-')
+      ];
+      cols.forEach((val) => {
+        const td = document.createElement('td');
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  async function runFullSweep() {
+    const out = $('fullSweepOutput');
+    out.textContent = '...';
+
+    const payload = {
+      top_n: Math.max(1, Math.min(200, Number($('sweepTopN').value || '20'))),
+      max_symbols: Math.max(5, Math.min(2000, Number($('sweepMaxSymbols').value || '200'))),
+      force_live: Boolean($('sweepForceLive').checked),
+      persist_generated: Boolean($('sweepPersistGenerated').checked)
+    };
+
+    const result = await apiCall('/api/admin/mt5/full-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    renderFullSweepTable(result.data && result.data.top_signals ? result.data.top_signals : []);
+    out.textContent = toPretty(result.data);
+  }
+
+  async function inspectTerminals() {
+    const out = $('terminalsOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/terminals');
+    if (result.data && Array.isArray(result.data.terminals)) {
+      lastTerminalChecks = result.data.terminals;
+    } else {
+      lastTerminalChecks = [];
+    }
+    out.textContent = toPretty(result.data);
+  }
+
+  function useFirstWorkingTerminal() {
+    const found = (lastTerminalChecks || []).find((x) => x && x.initialize_ok && x.path);
+    if (!found) {
+      $('walletConfigHint').textContent = 'No working terminal path found yet. Run inspect first.';
+      return;
+    }
+    $('cfgPath').value = String(found.path || '');
+    $('walletConfigHint').textContent = 'Selected terminal path: ' + found.path;
+  }
+
+  async function loadStatus() {
+    const out = $('mt5StatusOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/status');
+    out.textContent = toPretty(result.data);
+  }
+
+  async function connectMt5() {
+    const out = $('mt5StatusOutput');
+    out.textContent = '...';
+    const payload = walletConfigPayload(true);
+    const result = await apiCall('/api/admin/mt5/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  async function disconnectMt5() {
+    const out = $('mt5StatusOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/disconnect', { method: 'POST' });
+    out.textContent = toPretty(result.data);
+  }
+
+  async function loadLive() {
+    const out = $('mt5LiveOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/live?symbols=' + encodeURIComponent(symbolsValue()));
+    out.textContent = toPretty(result.data);
+  }
+
+  async function loadSnapshot() {
+    const out = $('mt5LiveOutput');
+    out.textContent = '...';
+    const result = await apiCall('/api/admin/mt5/snapshot?symbols=' + encodeURIComponent(symbolsValue()));
+    out.textContent = toPretty(result.data);
+  }
+
+  async function loadRates() {
+    const out = $('mt5RatesOutput');
+    out.textContent = '...';
+    const tf = String($('tfInput').value || 'H1').trim();
+    const count = Math.max(20, Math.min(2000, Number($('barsCountInput').value || '200')));
+    const scope = String($('ratesScopeInput').value || 'first').trim();
+    const symbols = symbolsArray();
+
+    if (!symbols.length) {
+      out.textContent = toPretty({ success: false, error: 'No symbols provided' });
+      return;
+    }
+
+    if (scope === 'all') {
+      const results = {};
+      for (const sym of symbols) {
+        const query = '/api/admin/mt5/rates?symbol=' + encodeURIComponent(sym) + '&timeframe=' + encodeURIComponent(tf) + '&count=' + encodeURIComponent(count);
+        const result = await apiCall(query);
+        results[sym] = result.data;
+      }
+      out.textContent = toPretty({ success: true, timeframe: tf, count, symbols: symbols, results });
+      return;
+    }
+
+    const query = '/api/admin/mt5/rates?symbol=' + encodeURIComponent(symbols[0]) + '&timeframe=' + encodeURIComponent(tf) + '&count=' + encodeURIComponent(count);
+    const result = await apiCall(query);
+    out.textContent = toPretty(result.data);
+  }
+
+  async function loadHistory() {
+    const out = $('mt5RatesOutput');
+    out.textContent = '...';
+    const hours = Math.max(1, Math.min(720, Number($('historyHoursInput').value || '24')));
+    const result = await apiCall('/api/admin/mt5/history?hours=' + encodeURIComponent(hours));
+    out.textContent = toPretty(result.data);
+  }
+
+  async function searchSymbols(limitOverride) {
+    const out = $('symbolsSearchOutput');
+    out.textContent = '...';
+    const query = String($('symbolSearchInput').value || '').trim();
+    const limit = Number(limitOverride || 50);
+    const url = '/api/admin/mt5/symbols?query=' + encodeURIComponent(query) + '&limit=' + encodeURIComponent(limit);
+    const result = await apiCall(url);
+    if (result.data && Array.isArray(result.data.symbols)) {
+      lastFoundSymbols = result.data.symbols.map((x) => x.name).filter(Boolean);
+    } else {
+      lastFoundSymbols = [];
+    }
+    out.textContent = toPretty(result.data);
+  }
+
+  function useFoundSymbols() {
+    if (!lastFoundSymbols.length) {
+      return;
+    }
+    $('symbolsInput').value = lastFoundSymbols.slice(0, 12).join(',');
+  }
+
+  async function sendOrder() {
+    const out = $('mt5OrderOutput');
+    out.textContent = '...';
+    const payload = {
+      symbol: String($('orderSymbol').value || '').trim().toUpperCase(),
+      side: String($('orderSide').value || 'buy').trim().toLowerCase(),
+      volume: Number($('orderVolume').value || '0.01'),
+      sl: $('orderSl').value ? Number($('orderSl').value) : null,
+      tp: $('orderTp').value ? Number($('orderTp').value) : null,
+      dry_run: Boolean($('orderDryRun').checked),
+      comment: String($('orderComment').value || 'GOLD_PRO_ORDER').trim() || 'GOLD_PRO_ORDER'
+    };
+    const result = await apiCall('/api/admin/mt5/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  function parseSignalPayload(rawText) {
+    const raw = String(rawText || '{}').trim();
+    if (!raw) {
+      return { ok: true, payload: {} };
+    }
+
+    try {
+      return { ok: true, payload: JSON.parse(raw), normalized: false };
+    } catch (_err) {
+      let text = raw;
+      text = text.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+      text = text.replace(/\u060C/g, ',').replace(/\u061B/g, ';');
+      text = text.replace(/\bصحيح\b/g, 'true').replace(/\bخطأ\b/g, 'false');
+
+      const keyMap = {
+        'الرمز': 'symbol',
+        'زوج': 'pair',
+        'نوع_الإشارة': 'signal_type',
+        'نوع الاشارة': 'signal_type',
+        'نوع_الصفقة': 'trade_type',
+        'وقف_الخسارة': 'stop_loss',
+        'وقف الخسارة': 'stop_loss',
+        'جني_الربح_1': 'take_profit_1',
+        'جني_الربح_2': 'take_profit_2',
+        'جني_الربح_3': 'take_profit_3',
+        'الحجم': 'volume',
+        'تقسيم_الأهداف': 'split_tp',
+        'تشغيل_تجريبي': 'dry_run'
+      };
+
+      Object.keys(keyMap).forEach((arKey) => {
+        const enKey = keyMap[arKey];
+        const escaped = arKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        text = text.replace(new RegExp('"' + escaped + '"\\s*:', 'g'), '"' + enKey + '":');
+      });
+
+      text = text.replace(/:\s*"شراء"/g, ': "buy"');
+      text = text.replace(/:\s*"يشتري"/g, ': "buy"');
+      text = text.replace(/:\s*"بيع"/g, ': "sell"');
+      text = text.replace(/:\s*"يبيع"/g, ': "sell"');
+
+      try {
+        return { ok: true, payload: JSON.parse(text), normalized: true };
+      } catch (e2) {
+        return { ok: false, error: e2 };
+      }
+    }
+  }
+
+  async function executeSignal() {
+    const out = $('mt5SignalOutput');
+    out.textContent = '...';
+    const parsed = parseSignalPayload($('signalPayload').value || '{}');
+    if (!parsed.ok) {
+      out.textContent = 'JSON parse error: ' + parsed.error + '\nTip: click "Build Payload From Fields" then try again.';
+      return;
+    }
+
+    const payload = parsed.payload;
+    if (parsed.normalized) {
+      $('signalPayload').value = toPretty(payload);
+    }
+
+    const result = await apiCall('/api/admin/mt5/execute-signal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    out.textContent = toPretty(result.data);
+  }
+
+  function buildSignalPayloadFromFields() {
+    const payload = {
+      symbol: String($('sigSymbol').value || '').trim().toUpperCase(),
+      signal_type: String($('sigSide').value || 'buy').trim().toLowerCase(),
+      stop_loss: $('sigSl').value ? Number($('sigSl').value) : null,
+      take_profit_1: $('sigTp1').value ? Number($('sigTp1').value) : null,
+      take_profit_2: $('sigTp2').value ? Number($('sigTp2').value) : null,
+      take_profit_3: $('sigTp3').value ? Number($('sigTp3').value) : null,
+      volume: Number($('sigVolume').value || '0.01'),
+      split_tp: Boolean($('sigSplitTp').checked),
+      dry_run: Boolean($('sigDryRun').checked),
+      manual_confirm: true,
+      execution_source: 'mt5_admin_panel'
+    };
+    $('signalPayload').value = toPretty(payload);
+  }
+
+  function applySymbolsPreset() {
+    const preset = String($('symbolsPreset').value || '').trim();
+    if (!preset) {
+      return;
+    }
+    $('symbolsInput').value = preset;
+  }
+
+  function setAutoRefresh() {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+    const enabled = Boolean($('autoRefreshEnabled').checked);
+    if (!enabled) {
+      return;
+    }
+    const seconds = Math.max(5, Number($('autoRefreshSeconds').value || '10'));
+    autoRefreshTimer = setInterval(() => {
+      loadLive();
+      loadStatus();
+    }, seconds * 1000);
+  }
+
+  $('btnMt5Status').addEventListener('click', loadStatus);
+  $('btnMt5Connect').addEventListener('click', connectMt5);
+  $('btnMt5Disconnect').addEventListener('click', disconnectMt5);
+  $('btnLoadWalletConfig').addEventListener('click', loadWalletConfig);
+  $('btnSaveWalletConfig').addEventListener('click', saveWalletConfig);
+  $('btnInspectTerminals').addEventListener('click', inspectTerminals);
+  $('btnUseFirstWorkingTerminal').addEventListener('click', useFirstWorkingTerminal);
+  $('btnMt5Live').addEventListener('click', loadLive);
+  $('btnMt5Snapshot').addEventListener('click', loadSnapshot);
+  $('btnMt5Rates').addEventListener('click', loadRates);
+  $('btnMt5History').addEventListener('click', loadHistory);
+  $('btnMt5Order').addEventListener('click', sendOrder);
+  $('btnMt5ExecuteSignal').addEventListener('click', executeSignal);
+  $('btnBuildSignalPayload').addEventListener('click', buildSignalPayloadFromFields);
+  $('symbolsPreset').addEventListener('change', applySymbolsPreset);
+  $('btnApplyAutoRefresh').addEventListener('click', setAutoRefresh);
+  $('autoRefreshEnabled').addEventListener('change', setAutoRefresh);
+  $('btnSearchSymbols').addEventListener('click', function () { searchSymbols(120); });
+  $('btnLoadTopSymbols').addEventListener('click', function () { searchSymbols(50); });
+  $('btnUseFoundSymbols').addEventListener('click', useFoundSymbols);
+  $('btnLoadSignalCandidates').addEventListener('click', loadSignalCandidates);
+  $('btnExecuteSelectedSignal').addEventListener('click', executeSelectedSignal);
+  $('btnRunAutoCycle').addEventListener('click', runAutoCycle);
+  $('btnAutoTraderLoadConfig').addEventListener('click', loadAutoTraderConfig);
+  $('btnAutoTraderSaveConfig').addEventListener('click', saveAutoTraderConfig);
+  $('btnAutoTraderRunOnce').addEventListener('click', runAutoTraderOnce);
+  $('btnAutoTraderStart').addEventListener('click', startAutoTrader);
+  $('btnAutoTraderStop').addEventListener('click', stopAutoTrader);
+  $('btnAutoTraderStatus').addEventListener('click', loadAutoTraderStatus);
+  if ($('btnRunFullSweep')) {
+    $('btnRunFullSweep').addEventListener('click', runFullSweep);
+  }
+
+  loadStatus();
+  loadWalletConfig();
+  loadSignalCandidates();
+  loadAutoTraderConfig();
+  loadAutoTraderStatus();
+})();
+</script>
+{% endblock %}

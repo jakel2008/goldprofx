@@ -1,0 +1,219 @@
+{
+  "generated_at": "2026-06-05 11:10:04 UTC",
+  "lookback_days": 7,
+  "agreement_alert_threshold_pct": 25.0,
+  "run_count": 19,
+  "avg_agreement_rate_pct": 0.0,
+  "avg_direction_delta": -17.08,
+  "decision_counts": {
+    "buy": 0,
+    "sell": 0,
+    "wait": 50
+  },
+  "top_symbol_stability": [
+    {
+      "symbol": "XAUUSD",
+      "samples": 19,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": -26.126,
+      "official_mix": {
+        "buy": 15,
+        "sell": 4,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 19
+      }
+    },
+    {
+      "symbol": "EURUSD",
+      "samples": 19,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": -15.041,
+      "official_mix": {
+        "buy": 15,
+        "sell": 4,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 19
+      }
+    },
+    {
+      "symbol": "GBPUSD",
+      "samples": 6,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": -32.954,
+      "official_mix": {
+        "buy": 6,
+        "sell": 0,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 6
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "samples": 6,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": 35.574,
+      "official_mix": {
+        "buy": 0,
+        "sell": 6,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 6
+      }
+    }
+  ],
+  "daily_trend": [
+    {
+      "date": "2026-06-05",
+      "runs": 19,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -17.08
+    }
+  ],
+  "daily_interval_classification": [
+    {
+      "date": "2026-06-05",
+      "best_interval": {
+        "interval": "5m",
+        "runs": 1,
+        "avg_agreement_rate_pct": 0.0,
+        "avg_direction_delta": -10.741
+      },
+      "worst_interval": {
+        "interval": "1d",
+        "runs": 4,
+        "avg_agreement_rate_pct": 0.0,
+        "avg_direction_delta": 76.482
+      },
+      "interval_stats": [
+        {
+          "interval": "5m",
+          "runs": 1,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": -10.741
+        },
+        {
+          "interval": "15m",
+          "runs": 1,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": -15.841
+        },
+        {
+          "interval": "30m",
+          "runs": 1,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": -20.591
+        },
+        {
+          "interval": "1h",
+          "runs": 6,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": -48.607
+        },
+        {
+          "interval": "4h",
+          "runs": 6,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": -48.607
+        },
+        {
+          "interval": "1d",
+          "runs": 4,
+          "avg_agreement_rate_pct": 0.0,
+          "avg_direction_delta": 76.482
+        }
+      ]
+    }
+  ],
+  "top_intervals": [
+    {
+      "interval": "5m",
+      "runs": 1,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -10.741
+    },
+    {
+      "interval": "15m",
+      "runs": 1,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -15.841
+    },
+    {
+      "interval": "30m",
+      "runs": 1,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -20.591
+    }
+  ],
+  "bottom_intervals": [
+    {
+      "interval": "1d",
+      "runs": 4,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": 76.482
+    },
+    {
+      "interval": "4h",
+      "runs": 6,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -48.607
+    },
+    {
+      "interval": "1h",
+      "runs": 6,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -48.607
+    }
+  ],
+  "alerts": [
+    {
+      "type": "overall_low_agreement",
+      "message": "Weekly average agreement 0.0% is below threshold 25.0%.",
+      "value": 0.0,
+      "threshold": 25.0
+    },
+    {
+      "type": "interval_low_agreement_grouped",
+      "intervals_count": 6,
+      "intervals": [
+        "15m",
+        "1d",
+        "1h",
+        "30m",
+        "4h",
+        "5m"
+      ],
+      "threshold": 25.0,
+      "value": 0.0,
+      "message": "Low-agreement interval alert repeated across 6 interval(s): 15m, 1d, 1h, 30m, 4h, 5m (min=0.0%, threshold=25.0%)."
+    },
+    {
+      "type": "daily_low_agreement_grouped",
+      "days_count": 1,
+      "start_date": "2026-06-05",
+      "end_date": "2026-06-05",
+      "dates": [
+        "2026-06-05"
+      ],
+      "threshold": 25.0,
+      "value": 0.0,
+      "message": "Daily low-agreement alert repeated across 1 day(s) from 2026-06-05 to 2026-06-05 (min=0.0%, threshold=25.0%)."
+    }
+  ],
+  "alerts_raw_count": 8,
+  "alerts_compacted_count": 3
+}

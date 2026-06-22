@@ -45,6 +45,11 @@ def get_analyst_view(symbol=DEFAULT_SYMBOL, interval=DEFAULT_INTERVAL):
         'recommendation': result.get('recommendation'),
         'buy_score': result.get('buy_score'),
         'sell_score': result.get('sell_score'),
+        'risk_reward_ratio': result.get('risk_reward_ratio'),
+        'market_regime': result.get('market_regime'),
+        'quality_notes': result.get('quality_notes'),
+        'analysis_steps': result.get('analysis_steps'),
+        'market_data_source': result.get('market_data_source'),
         'fetched_at': result.get('fetched_at'),
         'error': None,
     }

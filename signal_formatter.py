@@ -3,7 +3,17 @@
 دالة مساعدة لتنسيق الإشارات بالشكل الجديد
 """
 
-def format_signal_message(symbol, signal_type, entry, stop_loss, take_profits, quality_score=85):
+def format_signal_message(
+    symbol,
+    signal_type,
+    entry,
+    stop_loss,
+    take_profits,
+    quality_score=85,
+    signal_status=None,
+    signal_status_reason=None,
+    expires_at=None,
+):
     """
     تنسيق رسالة إشارة بالشكل الجديد المحسن
     
@@ -44,6 +54,12 @@ def format_signal_message(symbol, signal_type, entry, stop_loss, take_profits, q
     # إضافة الجودة والوقت
     from datetime import datetime
     message += f"\n⭐ الجودة: *{quality_score}/100*"
+    if signal_status:
+        message += f"\n📌 الحالة: *{signal_status}*"
+    if signal_status_reason:
+        message += f"\n📝 السبب: {signal_status_reason}"
+    if expires_at:
+        message += f"\n⏳ ينتهي عند: {expires_at}"
     message += f"\n⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
     
     return message

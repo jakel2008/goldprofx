@@ -306,6 +306,29 @@
             flex-wrap: wrap;
         }
 
+        .signal-actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mini-control {
+            width: 110px;
+            padding: 9px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(232, 191, 96, 0.22);
+            background: rgba(17, 12, 8, 0.84);
+            color: var(--text);
+        }
+
+        .execution-result {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
         .signal-tags {
             display: flex;
             align-items: center;
@@ -985,7 +1008,102 @@
                     </div>
                     ${scenario}
                     ${overview}
+
+                    <div class="signal-actions">
+                        <input class="mini-control signal-volume" type="number" step="0.01" min="0.01" value="0.01" title="volume" placeholder="Volume">
+                        <button class="button button-primary activate-signal-btn"
+                            data-symbol="${escapeHtml(signal.symbol)}"
+                            data-recommendation="${escapeHtml(signal.recommendation)}"
+                            data-entry="${escapeHtml(signal.entry_price)}"
+                            data-sl="${escapeHtml(signal.stop_loss)}"
+                            data-tp1="${escapeHtml(signal.take_profit1)}"
+                            data-tp2="${escapeHtml(signal.take_profit2)}"
+                            data-tp3="${escapeHtml(signal.take_profit3)}"
+                            type="button">${isEnglish ? 'Activate on MT5' : 'فعل الإشارة على MT5'}</button>
+                        <label class="pill" style="margin:0;">
+                            <input class="signal-dry-run" type="checkbox" style="margin-inline-start:8px;" checked>
+                            ${isEnglish ? 'Dry Run' : 'تشغيل تجريبي'}
+                        </label>
+                    </div>
+                    <div class="execution-result" data-role="execution-result"></div>
                 </article>`;
+        }
+
+        async function activateSignalOnMt5(button) {
+            const card = button.closest('.signal-card');
+            const resultEl = card ? card.querySelector('[data-role="execution-result"]') : null;
+            const volumeEl = card ? card.querySelector('.signal-volume') : null;
+            const dryRunEl = card ? card.querySelector('.signal-dry-run') : null;
+            const volume = volumeEl ? Number(volumeEl.value || '0.01') : 0.01;
+            const dryRun = dryRunEl ? Boolean(dryRunEl.checked) : true;
+
+            const payload = {
+                symbol: button.dataset.symbol,
+                recommendation: button.dataset.recommendation,
+                interval: (intervalSelect && intervalSelect.value) ? intervalSelect.value : (currentScanData && currentScanData.interval ? currentScanData.interval : '1h'),
+                entry_price: Number(button.dataset.entry),
+                stop_loss: Number(button.dataset.sl),
+                take_profit1: Number(button.dataset.tp1),
+                take_profit2: Number(button.dataset.tp2),
+                take_profit3: Number(button.dataset.tp3),
+                volume: Number.isFinite(volume) && volume > 0 ? volume : 0.01,
+                split_tp: true,
+                dry_run: dryRun,
+            };
+
+            if (resultEl) {
+                resultEl.textContent = isEnglish ? 'Sending to MT5...' : 'جاري إرسال الإشارة إلى MT5...';
+            }
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/api/shadow/mt5/activate-signal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const rawText = await response.text();
+                    const cleanText = rawText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    throw new Error(cleanText || `Unexpected non-JSON response (${response.status})`);
+                }
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    const orderErrors = Array.isArray(data?.result?.orders)
+                        ? data.result.orders
+                            .filter((item) => item && item.success === false && item.error)
+                            .map((item) => item.error)
+                        : [];
+                    throw new Error(
+                        (data && (data.error || (data.result && data.result.error)))
+                        || orderErrors[0]
+                        || 'activation failed'
+                    );
+                }
+                if (resultEl) {
+                    if (data?.payload?.dry_run === true) {
+                        resultEl.textContent = isEnglish
+                            ? 'Dry Run only: no real order was sent to MT5.'
+                            : 'تشغيل تجريبي فقط: لم يتم إرسال أي أمر حقيقي إلى MT5.';
+                    } else if (data?.mt5_visibility && data.mt5_visibility.all_visible === false) {
+                        resultEl.textContent = isEnglish
+                            ? 'Order accepted but not visible in MT5 open orders. Verify MT5 account/login.'
+                            : 'تم قبول الأمر لكن غير ظاهر في أوامر MT5 المفتوحة. تحقق من حساب MT5 (رقم الدخول).';
+                    } else {
+                        const login = data?.mt5_context?.login;
+                        resultEl.textContent = isEnglish
+                            ? `Activated on MT5 successfully${login ? ` (login: ${login})` : ''}.`
+                            : `تم تفعيل الإشارة على MT5 بنجاح${login ? ` (رقم الدخول: ${login})` : ''}.`;
+                    }
+                }
+            } catch (error) {
+                if (resultEl) {
+                    resultEl.textContent = (isEnglish ? 'Activation failed: ' : 'فشل التفعيل: ') + (error.message || error);
+                }
+            } finally {
+                button.disabled = false;
+            }
         }
 
         function buildScanErrorCard(item) {
@@ -1030,6 +1148,9 @@
             }
             const signals = data.signals || [];
             signalsContainer.innerHTML = signals.map((signal, index) => buildSignalCard(signal, index)).join('');
+            signalsContainer.querySelectorAll('.activate-signal-btn').forEach((button) => {
+                button.addEventListener('click', () => activateSignalOnMt5(button));
+            });
             emptyState.classList.toggle('hidden-card', signals.length > 0);
             applyCategoryFilter(activeCategory);
         }

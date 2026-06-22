@@ -1119,7 +1119,7 @@ def detect_comprehensive_signals(df, symbol, interval):
 def perform_full_analysis(symbol, interval, force_live=False):
     """التحليل الكامل المتكامل"""
     try:
-        from forex_analyzer import fetch_data, DataFetchError
+        from forex_analyzer import fetch_data, DataFetchError, get_last_fetch_metadata
     except ImportError:
         return {
             'success': False,
@@ -1167,6 +1167,12 @@ def perform_full_analysis(symbol, interval, force_live=False):
         # Create detailed analysis text
         analysis_text = "\n".join(signals)
 
+        fetch_meta = {}
+        try:
+            fetch_meta = get_last_fetch_metadata() or {}
+        except Exception:
+            fetch_meta = {}
+
         warnings = []
         if not TA_AVAILABLE:
             warnings.append('ta package unavailable: indicator set reduced')
@@ -1198,6 +1204,9 @@ def perform_full_analysis(symbol, interval, force_live=False):
             'atr': levels.get('ATR', 0)
             , 'analysis_schools': levels.get('Analysis Schools', {})
             , 'warnings': warnings
+            , 'data_source': fetch_meta.get('source')
+            , 'data_cache_used': bool(fetch_meta.get('cache_used'))
+            , 'data_stale_cache_used': bool(fetch_meta.get('stale_cache_used'))
         }
         
     except DataFetchError as e:

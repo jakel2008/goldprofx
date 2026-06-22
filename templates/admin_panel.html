@@ -37,6 +37,9 @@
                     <a href="/master-dashboard" class="btn btn-dark me-2" style="background:#111827;border-color:#111827;color:#f9fafb;">
                         <i class="fas fa-sliders-h"></i> {% if current_lang == 'en' %}Central control{% else %}التحكم المركزي{% endif %}
                     </a>
+                    <a href="/mt5-control" class="btn btn-secondary me-2" style="background:#e9f5ff;border-color:#1e4f7a;color:#11324d;">
+                        <i class="fas fa-plug"></i> {% if current_lang == 'en' %}MT5 Bridge{% else %}ربط MT5{% endif %}
+                    </a>
                     <a href="/bot-management" class="btn btn-primary" style="background:#0f1a2d;border-color:#0f1a2d;">
                         <i class="fas fa-robot"></i> {% if current_lang == 'en' %}Bot management{% else %}إدارة البوتات{% endif %}
                     </a>
@@ -1630,3 +1633,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endblock %}

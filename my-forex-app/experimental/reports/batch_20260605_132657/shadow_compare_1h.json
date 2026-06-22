@@ -1,0 +1,3338 @@
+{
+  "generated_at": "2026-06-05 13:27:59 UTC",
+  "total_symbols": 45,
+  "success_symbols": 44,
+  "failed_symbols": 1,
+  "agreement_count": 1,
+  "agreement_rate_pct": 2.27,
+  "avg_direction_delta": 0.853,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 121,
+    "calendar_errors": [
+      "forexfactory: 403 Client Error: Forbidden for url: https://www.forexfactory.com/"
+    ]
+  },
+  "results": [
+    {
+      "success": true,
+      "symbol": "ADAUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 40.0,
+        "sell_score": 50.0,
+        "score_gap": -10.0,
+        "confidence": "متوسطة",
+        "entry_point": 0.1641,
+        "stop_loss": 0.17255,
+        "take_profit_1": 0.15706,
+        "take_profit_2": 0.15143,
+        "take_profit_3": 0.1458,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -21.531,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 0.1642,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.599,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -1.751,
+          "news": -1.215,
+          "raw": -20.316,
+          "total": -21.531
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -11.531,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "ASX200",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 62.0,
+        "score_gap": -34.0,
+        "confidence": "جيدة",
+        "entry_point": 8625.09961,
+        "stop_loss": 8667.25302,
+        "take_profit_1": 8589.97177,
+        "take_profit_2": 8561.8695,
+        "take_profit_3": 8533.76723,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData (attempt 1): 429 Client Error: Too Many Requests for url: https://api.twelvedata.com/time_series?symbol=ASX200&interval=1H&outputsize=300&apikey=079cdb64bbc8415abcf8f7be7e389349 | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.156,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 8625.09961,
+        "component_scores": {
+          "indicators": -33.056,
+          "candles": -30.0,
+          "channel": -13.248,
+          "breakout": 0.0,
+          "fibonacci": -3.802,
+          "sessions": -2.877,
+          "news": -1.215,
+          "raw": -17.941,
+          "total": -19.156
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 14.844,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 90.0,
+        "score_gap": -90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 113.71,
+        "stop_loss": 113.99581,
+        "take_profit_1": 113.47182,
+        "take_profit_2": 113.28128,
+        "take_profit_3": 113.09074,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured",
+          "oanda: OANDA_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.649,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 113.714,
+        "component_scores": {
+          "indicators": -34.8,
+          "candles": -30.0,
+          "channel": -7.017,
+          "breakout": 0.0,
+          "fibonacci": -4.546,
+          "sessions": -1.871,
+          "news": -1.215,
+          "raw": -17.433,
+          "total": -18.649
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 71.351,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 62.0,
+        "sell_score": 18.0,
+        "score_gap": 44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.71418,
+        "stop_loss": 0.71289,
+        "take_profit_1": 0.71525,
+        "take_profit_2": 0.71611,
+        "take_profit_3": 0.71697,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.535,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 0.71068,
+        "component_scores": {
+          "indicators": -28.704,
+          "candles": -30.0,
+          "channel": -14.244,
+          "breakout": 0.815,
+          "fibonacci": -0.0,
+          "sessions": -3.799,
+          "news": -1.215,
+          "raw": -16.319,
+          "total": -17.535
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -61.535,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BNBUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 30.0,
+        "sell_score": 60.0,
+        "score_gap": -30.0,
+        "confidence": "جيدة",
+        "entry_point": 592.34,
+        "stop_loss": 607.17,
+        "take_profit_1": 579.98,
+        "take_profit_2": 570.09,
+        "take_profit_3": 560.21,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -20.655,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 592.34,
+        "component_scores": {
+          "indicators": -39.101,
+          "candles": -30.0,
+          "channel": -11.005,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 0.649,
+          "news": -1.215,
+          "raw": -19.439,
+          "total": -20.655
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 9.345,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BRENTUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 100.0,
+        "score_gap": -100.0,
+        "confidence": "مرتفعة",
+        "entry_point": 94.21,
+        "stop_loss": 95.23069,
+        "take_profit_1": 93.35943,
+        "take_profit_2": 92.67897,
+        "take_profit_3": 91.99851,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.303,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 94.21,
+        "component_scores": {
+          "indicators": -34.307,
+          "candles": -30.0,
+          "channel": -8.924,
+          "breakout": 0.0,
+          "fibonacci": -7.44,
+          "sessions": -2.063,
+          "news": -1.215,
+          "raw": -18.087,
+          "total": -19.303
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 80.697,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BTCUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 16.0,
+        "sell_score": 64.0,
+        "score_gap": -48.0,
+        "confidence": "مرتفعة",
+        "entry_point": 62311.47,
+        "stop_loss": 63548.11,
+        "take_profit_1": 61280.93,
+        "take_profit_2": 60456.51,
+        "take_profit_3": 59632.08,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -21.474,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 62304.87,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.622,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -0.989,
+          "news": -1.215,
+          "raw": -20.259,
+          "total": -21.474
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 26.526,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "CAC40",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 8281.13965,
+        "stop_loss": 8237.74627,
+        "take_profit_1": 8317.3008,
+        "take_profit_2": 8346.22971,
+        "take_profit_3": 8375.15863,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.448,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 8281.13965,
+        "component_scores": {
+          "indicators": 31.691,
+          "candles": 30.0,
+          "channel": 11.926,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 1.991,
+          "news": -1.215,
+          "raw": 16.664,
+          "total": 15.448
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -74.552,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "DAX",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 58.0,
+        "sell_score": 18.0,
+        "score_gap": 40.0,
+        "confidence": "مرتفعة",
+        "entry_point": 24950.53906,
+        "stop_loss": 24817.76299,
+        "take_profit_1": 25061.18578,
+        "take_profit_2": 25149.70316,
+        "take_profit_3": 25238.22054,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -15.904,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 24949.39062,
+        "component_scores": {
+          "indicators": -23.906,
+          "candles": -30.0,
+          "channel": -2.222,
+          "breakout": 0.0,
+          "fibonacci": -12.428,
+          "sessions": 1.101,
+          "news": -1.215,
+          "raw": -14.689,
+          "total": -15.904
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -55.904,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "DOW30",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 14.0,
+        "score_gap": 52.0,
+        "confidence": "مرتفعة",
+        "entry_point": 51561.93,
+        "stop_loss": 51314.59,
+        "take_profit_1": 51768.05,
+        "take_profit_2": 51932.94,
+        "take_profit_3": 52097.83,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 17.541,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 51561.93,
+        "component_scores": {
+          "indicators": 37.877,
+          "candles": 30.0,
+          "channel": 14.024,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.857,
+          "news": -1.215,
+          "raw": 18.756,
+          "total": 17.541
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -34.459,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "ETHUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 80.0,
+        "score_gap": -80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1675.71,
+        "stop_loss": 1715.75,
+        "take_profit_1": 1642.35,
+        "take_profit_2": 1615.66,
+        "take_profit_3": 1588.96,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -21.533,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 1672.7,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.556,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -1.861,
+          "news": -1.215,
+          "raw": -20.318,
+          "total": -21.533
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 58.467,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURAUD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.6321,
+        "stop_loss": 1.62872,
+        "take_profit_1": 1.63491,
+        "take_profit_2": 1.63717,
+        "take_profit_3": 1.63942,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured",
+          "oanda: OANDA_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.062,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.6321,
+        "component_scores": {
+          "indicators": 30.075,
+          "candles": 30.0,
+          "channel": 11.437,
+          "breakout": 0.0,
+          "fibonacci": 1.208,
+          "sessions": 1.343,
+          "news": -1.215,
+          "raw": 16.278,
+          "total": 15.062
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -74.938,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURCHF",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 62.0,
+        "sell_score": 28.0,
+        "score_gap": 34.0,
+        "confidence": "جيدة",
+        "entry_point": 0.9187,
+        "stop_loss": 0.917,
+        "take_profit_1": 0.92012,
+        "take_profit_2": 0.92126,
+        "take_profit_3": 0.92239,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured",
+          "oanda: OANDA_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 9.07,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 0.9187,
+        "component_scores": {
+          "indicators": 26.58,
+          "candles": 4.389,
+          "channel": 11.952,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 3.187,
+          "news": -1.215,
+          "raw": 10.285,
+          "total": 9.07
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -24.93,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURGBP",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.86388,
+        "stop_loss": 0.86543,
+        "take_profit_1": 0.86258,
+        "take_profit_2": 0.86155,
+        "take_profit_3": 0.86051,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.682,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 0.86388,
+        "component_scores": {
+          "indicators": -25.631,
+          "candles": -30.0,
+          "channel": -9.858,
+          "breakout": 0.0,
+          "fibonacci": -10.712,
+          "sessions": -2.546,
+          "news": -1.215,
+          "raw": -16.466,
+          "total": -17.682
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 26.318,
+        "same_interval": true,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 80.0,
+        "sell_score": 0.0,
+        "score_gap": 80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 186.088,
+        "stop_loss": 185.75304,
+        "take_profit_1": 186.36713,
+        "take_profit_2": 186.59044,
+        "take_profit_3": 186.81374,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.329,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 185.58701,
+        "component_scores": {
+          "indicators": -34.486,
+          "candles": -30.0,
+          "channel": -3.951,
+          "breakout": 0.0,
+          "fibonacci": -12.905,
+          "sessions": -1.053,
+          "news": -1.215,
+          "raw": -18.114,
+          "total": -19.329
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -99.329,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.16442,
+        "stop_loss": 1.16232,
+        "take_profit_1": 1.16617,
+        "take_profit_2": 1.16756,
+        "take_profit_3": 1.16896,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.286,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 1.15982,
+        "component_scores": {
+          "indicators": -29.878,
+          "candles": -30.0,
+          "channel": -10.733,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.862,
+          "news": -1.215,
+          "raw": -16.07,
+          "total": -17.286
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -74.286,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "FTSE",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 72.0,
+        "sell_score": 18.0,
+        "score_gap": 54.0,
+        "confidence": "مرتفعة",
+        "entry_point": 10413.13965,
+        "stop_loss": 10362.15085,
+        "take_profit_1": 10455.63032,
+        "take_profit_2": 10489.62285,
+        "take_profit_3": 10523.61538,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 14.394,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 10413.13965,
+        "component_scores": {
+          "indicators": 18.008,
+          "candles": 30.0,
+          "channel": 14.626,
+          "breakout": 3.642,
+          "fibonacci": 10.17,
+          "sessions": 3.79,
+          "news": -1.215,
+          "raw": 15.609,
+          "total": 14.394
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -39.606,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GASOLINE",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 16.0,
+        "sell_score": 84.0,
+        "score_gap": -68.0,
+        "confidence": "مرتفعة",
+        "entry_point": 2.9795,
+        "stop_loss": 3.01842,
+        "take_profit_1": 2.94706,
+        "take_profit_2": 2.92112,
+        "take_profit_3": 2.89517,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.968,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 2.9795,
+        "component_scores": {
+          "indicators": -35.328,
+          "candles": -30.0,
+          "channel": -12.028,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.897,
+          "news": -1.215,
+          "raw": -17.753,
+          "total": -18.968
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 49.032,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPAUD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.88827,
+        "stop_loss": 1.88467,
+        "take_profit_1": 1.89127,
+        "take_profit_2": 1.89367,
+        "take_profit_3": 1.89607,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured",
+          "oanda: OANDA_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.456,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.88821,
+        "component_scores": {
+          "indicators": 30.404,
+          "candles": 30.0,
+          "channel": 14.199,
+          "breakout": -1.348,
+          "fibonacci": 0.0,
+          "sessions": 3.393,
+          "news": -1.215,
+          "raw": 16.672,
+          "total": 15.456
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -74.544,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPCAD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 62.0,
+        "score_gap": -34.0,
+        "confidence": "جيدة",
+        "entry_point": 1.86227,
+        "stop_loss": 1.86562,
+        "take_profit_1": 1.85948,
+        "take_profit_2": 1.85724,
+        "take_profit_3": 1.85501,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured",
+          "oanda: OANDA_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -11.127,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.86227,
+        "component_scores": {
+          "indicators": -14.111,
+          "candles": -26.161,
+          "channel": -13.088,
+          "breakout": 14.307,
+          "fibonacci": -0.0,
+          "sessions": -3.49,
+          "news": -1.215,
+          "raw": -9.911,
+          "total": -11.127
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 22.873,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 215.392,
+        "stop_loss": 215.00429,
+        "take_profit_1": 215.71509,
+        "take_profit_2": 215.97356,
+        "take_profit_3": 216.23203,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.793,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 215.392,
+        "component_scores": {
+          "indicators": 34.348,
+          "candles": 30.0,
+          "channel": 9.394,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.317,
+          "news": -1.215,
+          "raw": 17.009,
+          "total": 15.793
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -41.207,
+        "same_interval": true,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.34722,
+        "stop_loss": 1.3448,
+        "take_profit_1": 1.34924,
+        "take_profit_2": 1.35086,
+        "take_profit_3": 1.35247,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 14.498,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.34722,
+        "component_scores": {
+          "indicators": 28.835,
+          "candles": 30.0,
+          "channel": 10.376,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.676,
+          "news": -1.215,
+          "raw": 15.713,
+          "total": 14.498
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -42.502,
+        "same_interval": true,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "HANGSENG",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 76.0,
+        "score_gap": -76.0,
+        "confidence": "مرتفعة",
+        "entry_point": 24961.94922,
+        "stop_loss": 25111.23717,
+        "take_profit_1": 24837.54259,
+        "take_profit_2": 24738.01729,
+        "take_profit_3": 24638.49199,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -14.099,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 24961.94922,
+        "component_scores": {
+          "indicators": -34.729,
+          "candles": -4.729,
+          "channel": -14.092,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -3.061,
+          "news": -1.215,
+          "raw": -12.884,
+          "total": -14.099
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 61.901,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "HEATING",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 16.0,
+        "sell_score": 84.0,
+        "score_gap": -68.0,
+        "confidence": "مرتفعة",
+        "entry_point": 3.6462,
+        "stop_loss": 3.68785,
+        "take_profit_1": 3.61149,
+        "take_profit_2": 3.58372,
+        "take_profit_3": 3.55595,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -16.955,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 3.6462,
+        "component_scores": {
+          "indicators": -32.33,
+          "candles": -26.041,
+          "channel": -8.116,
+          "breakout": 0.0,
+          "fibonacci": -1.797,
+          "sessions": -2.164,
+          "news": -1.215,
+          "raw": -15.74,
+          "total": -16.955
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 51.045,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "IBEX",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 18470.69922,
+        "stop_loss": 18366.95944,
+        "take_profit_1": 18557.14904,
+        "take_profit_2": 18626.30889,
+        "take_profit_3": 18695.46875,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.542,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 18470.69922,
+        "component_scores": {
+          "indicators": 31.511,
+          "candles": 30.0,
+          "channel": 12.27,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.858,
+          "news": -1.215,
+          "raw": 16.757,
+          "total": 15.542
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -74.458,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "KOSPI",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 32.0,
+        "sell_score": 58.0,
+        "score_gap": -26.0,
+        "confidence": "جيدة",
+        "entry_point": 8181.85986,
+        "stop_loss": 8431.25909,
+        "take_profit_1": 7974.02717,
+        "take_profit_2": 7807.76101,
+        "take_profit_3": 7641.49486,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -20.004,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 8181.85986,
+        "component_scores": {
+          "indicators": -33.921,
+          "candles": -30.0,
+          "channel": -9.699,
+          "breakout": 0.0,
+          "fibonacci": -8.397,
+          "sessions": -0.657,
+          "news": -1.215,
+          "raw": -18.788,
+          "total": -20.004
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 5.996,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NASDAQ",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 32.0,
+        "sell_score": 48.0,
+        "score_gap": -16.0,
+        "confidence": "متوسطة",
+        "entry_point": 26830.96,
+        "stop_loss": 26987.78,
+        "take_profit_1": 26700.28,
+        "take_profit_2": 26595.73,
+        "take_profit_3": 26491.18,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -15.678,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 26830.96,
+        "component_scores": {
+          "indicators": -20.6,
+          "candles": -30.0,
+          "channel": -15.0,
+          "breakout": -8.0,
+          "fibonacci": -3.85,
+          "sessions": 9.959,
+          "news": -1.215,
+          "raw": -14.462,
+          "total": -15.678
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 0.322,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NATURALGAS",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 82.0,
+        "score_gap": -64.0,
+        "confidence": "مرتفعة",
+        "entry_point": 3.286,
+        "stop_loss": 3.31776,
+        "take_profit_1": 3.25954,
+        "take_profit_2": 3.23836,
+        "take_profit_3": 3.21719,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -16.331,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 3.286,
+        "component_scores": {
+          "indicators": -21.925,
+          "candles": -30.0,
+          "channel": -8.235,
+          "breakout": 0.0,
+          "fibonacci": -10.364,
+          "sessions": -2.196,
+          "news": -1.215,
+          "raw": -15.115,
+          "total": -16.331
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 47.669,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NIKKEI",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "انتظار",
+        "normalized_recommendation": "wait",
+        "buy_score": 42.0,
+        "sell_score": 48.0,
+        "score_gap": -6.0,
+        "confidence": "متوسطة",
+        "entry_point": 66611.74219,
+        "stop_loss": 65897.51813,
+        "take_profit_1": 67206.92891,
+        "take_profit_2": 67683.07828,
+        "take_profit_3": 68159.22766,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 16.215,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 66588.11719,
+        "component_scores": {
+          "indicators": 33.392,
+          "candles": 30.0,
+          "channel": 8.512,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 0.635,
+          "news": -1.215,
+          "raw": 17.43,
+          "total": 16.215
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": true,
+        "direction_delta": 22.215,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NZDUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 62.0,
+        "sell_score": 18.0,
+        "score_gap": 44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.58803,
+        "stop_loss": 0.58697,
+        "take_profit_1": 0.58891,
+        "take_profit_2": 0.58962,
+        "take_profit_3": 0.59032,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.177,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 0.58476,
+        "component_scores": {
+          "indicators": -28.07,
+          "candles": -30.0,
+          "channel": -12.765,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -3.404,
+          "news": -1.215,
+          "raw": -15.962,
+          "total": -17.177
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -61.177,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "RUSSELL",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 62.0,
+        "score_gap": -34.0,
+        "confidence": "جيدة",
+        "entry_point": 2912.0,
+        "stop_loss": 2923.4,
+        "take_profit_1": 2902.5,
+        "take_profit_2": 2894.9,
+        "take_profit_3": 2887.3,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -13.859,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 2912.0,
+        "component_scores": {
+          "indicators": -31.168,
+          "candles": -10.349,
+          "channel": -11.461,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -3.25,
+          "news": -1.215,
+          "raw": -12.644,
+          "total": -13.859
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 20.141,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "SHANGHAI",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 90.0,
+        "score_gap": -90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4026.40942,
+        "stop_loss": 4057.63934,
+        "take_profit_1": 4000.38448,
+        "take_profit_2": 3979.56453,
+        "take_profit_3": 3958.74458,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.671,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 4026.40942,
+        "component_scores": {
+          "indicators": -35.741,
+          "candles": -30.0,
+          "channel": -9.67,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.579,
+          "news": -1.215,
+          "raw": -17.455,
+          "total": -18.671
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 71.329,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "SOLUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 14.0,
+        "sell_score": 76.0,
+        "score_gap": -62.0,
+        "confidence": "مرتفعة",
+        "entry_point": 66.27,
+        "stop_loss": 68.375,
+        "take_profit_1": 64.516,
+        "take_profit_2": 63.113,
+        "take_profit_3": 61.709,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -21.308,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 66.27,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -12.915,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -0.329,
+          "news": -1.215,
+          "raw": -20.093,
+          "total": -21.308
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 40.692,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "SPX500",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 72.0,
+        "score_gap": -54.0,
+        "confidence": "مرتفعة",
+        "entry_point": 7547.5,
+        "stop_loss": 7567.22,
+        "take_profit_1": 7531.06,
+        "take_profit_2": 7517.92,
+        "take_profit_3": 7504.77,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.113,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 7547.5,
+        "component_scores": {
+          "indicators": -32.868,
+          "candles": -30.0,
+          "channel": -10.714,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -3.092,
+          "news": -1.215,
+          "raw": -16.898,
+          "total": -18.113
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 35.887,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "STOXX50",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 6097.70996,
+        "stop_loss": 6065.18511,
+        "take_profit_1": 6124.814,
+        "take_profit_2": 6146.49723,
+        "take_profit_3": 6168.18046,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 13.331,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 6097.70996,
+        "component_scores": {
+          "indicators": 24.36,
+          "candles": 30.0,
+          "channel": 7.996,
+          "breakout": 0.0,
+          "fibonacci": 3.465,
+          "sessions": 1.352,
+          "news": -1.215,
+          "raw": 14.546,
+          "total": 13.331
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -76.669,
+        "same_interval": true,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCAD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.38817,
+        "stop_loss": 1.39067,
+        "take_profit_1": 1.38609,
+        "take_profit_2": 1.38442,
+        "take_profit_3": 1.38276,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -13.465,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.38763,
+        "component_scores": {
+          "indicators": -11.642,
+          "candles": -29.48,
+          "channel": -8.575,
+          "breakout": 0.0,
+          "fibonacci": -10.344,
+          "sessions": -1.833,
+          "news": -1.215,
+          "raw": -12.25,
+          "total": -13.465
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 30.535,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCHF",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 80.0,
+        "score_gap": -80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.7877,
+        "stop_loss": 0.78912,
+        "take_profit_1": 0.78652,
+        "take_profit_2": 0.78557,
+        "take_profit_3": 0.78463,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 14.766,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 0.79241,
+        "component_scores": {
+          "indicators": 29.861,
+          "candles": 30.0,
+          "channel": 10.281,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.742,
+          "news": -1.215,
+          "raw": 15.981,
+          "total": 14.766
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 94.766,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 159.91,
+        "stop_loss": 160.19784,
+        "take_profit_1": 159.67013,
+        "take_profit_2": 159.47824,
+        "take_profit_3": 159.28635,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.692,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 160.078,
+        "component_scores": {
+          "indicators": 30.919,
+          "candles": 30.0,
+          "channel": 4.965,
+          "breakout": 0.0,
+          "fibonacci": 10.201,
+          "sessions": 1.324,
+          "news": -1.215,
+          "raw": 16.907,
+          "total": 15.692
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 59.692,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "VIX",
+      "error": "Official engine failed: Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD, XPTUSD, XPDUSD, WTIUSD, BRENTUSD, NATURALGAS, HEATING, GASOLINE, DAX, FTSE, CAC40, IBEX, STOXX50, NIKKEI, HANGSENG, SHANGHAI, KOSPI, ASX200, ADAUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD, XPTUSD, XPDUSD, WTIUSD, BRENTUSD, NATURALGAS, HEATING, GASOLINE, DAX, FTSE, CAC40, IBEX, STOXX50, NIKKEI, HANGSENG, SHANGHAI, KOSPI, ASX200, ADAUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'.",
+        "supported_symbols": [
+          "ADAUSD",
+          "ASX200",
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BRENTUSD",
+          "BTCUSD",
+          "CAC40",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "DAX",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "FTSE",
+          "GASOLINE",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "HANGSENG",
+          "HEATING",
+          "IBEX",
+          "KOSPI",
+          "NAS100",
+          "NATURALGAS",
+          "NIKKEI",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SHANGHAI",
+          "SOLUSD",
+          "STOXX50",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "WTIUSD",
+          "XAGUSD",
+          "XAUUSD",
+          "XPDUSD",
+          "XPTUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "WTIUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 100.0,
+        "score_gap": -100.0,
+        "confidence": "مرتفعة",
+        "entry_point": 91.81,
+        "stop_loss": 92.94657,
+        "take_profit_1": 90.86286,
+        "take_profit_2": 90.10514,
+        "take_profit_3": 89.34743,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.849,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 91.81,
+        "component_scores": {
+          "indicators": -35.665,
+          "candles": -30.0,
+          "channel": -10.755,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.836,
+          "news": -1.215,
+          "raw": -17.634,
+          "total": -18.849
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 81.151,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAGUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 14.0,
+        "sell_score": 66.0,
+        "score_gap": -52.0,
+        "confidence": "مرتفعة",
+        "entry_point": 72.86,
+        "stop_loss": 73.617,
+        "take_profit_1": 72.229,
+        "take_profit_2": 71.724,
+        "take_profit_3": 71.219,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.622,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 71.47,
+        "component_scores": {
+          "indicators": -36.028,
+          "candles": -30.0,
+          "channel": -8.893,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.557,
+          "news": -1.215,
+          "raw": -17.406,
+          "total": -18.622
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 33.378,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAUUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 80.0,
+        "sell_score": 0.0,
+        "score_gap": 80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4494.6,
+        "stop_loss": 4473.83,
+        "take_profit_1": 4511.91,
+        "take_profit_2": 4525.76,
+        "take_profit_3": 4539.6,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.688,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 4444.7,
+        "component_scores": {
+          "indicators": -36.52,
+          "candles": -30.0,
+          "channel": -7.461,
+          "breakout": 0.0,
+          "fibonacci": -1.371,
+          "sessions": -1.99,
+          "news": -1.215,
+          "raw": -17.473,
+          "total": -18.688
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -98.688,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XPDUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 82.0,
+        "sell_score": 18.0,
+        "score_gap": 64.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1328.0,
+        "stop_loss": 1309.83714,
+        "take_profit_1": 1343.13571,
+        "take_profit_2": 1355.24429,
+        "take_profit_3": 1367.35286,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -16.476,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1328.0,
+        "component_scores": {
+          "indicators": -29.727,
+          "candles": -30.0,
+          "channel": -8.59,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 1.405,
+          "news": -1.215,
+          "raw": -15.26,
+          "total": -16.476
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -80.476,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XPTUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 100.0,
+        "score_gap": -100.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1870.59998,
+        "stop_loss": 1890.20028,
+        "take_profit_1": 1854.26639,
+        "take_profit_2": 1841.19953,
+        "take_profit_3": 1828.13266,
+        "market_data_source": "YFINANCE",
+        "market_data_errors": [
+          "forex_analyzer: All data sources failed: TwelveData: skipped (cooldown active (quota exceeded)) | YahooChart (attempt 1): YahooChart: unsupported symbol",
+          "eodhd: EODHD_API_TOKEN is not configured"
+        ]
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.58,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 1870.59998,
+        "component_scores": {
+          "indicators": -35.059,
+          "candles": -30.0,
+          "channel": -10.172,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.713,
+          "news": -1.215,
+          "raw": -17.365,
+          "total": -18.58
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 81.42,
+        "same_interval": false,
+        "market_data_source": "YFINANCE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XRPUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 14.0,
+        "sell_score": 76.0,
+        "score_gap": -62.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.126,
+        "stop_loss": 1.157,
+        "take_profit_1": 1.1001,
+        "take_profit_2": 1.0795,
+        "take_profit_3": 1.0588,
+        "market_data_source": "FOREX_ANALYZER",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -21.289,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 1.126,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -12.65,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -0.616,
+          "news": -1.215,
+          "raw": -20.073,
+          "total": -21.289
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": 33,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": -0.03751465416178198
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "مؤشر ISM لأسعار التصنيع",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T14:00:00+00:00",
+          "actual": "82.1",
+          "forecast": "85.3",
+          "previous": "84.6",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 40.711,
+        "same_interval": false,
+        "market_data_source": "FOREX_ANALYZER"
+      }
+    }
+  ]
+}

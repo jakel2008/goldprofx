@@ -1,0 +1,2 @@
+cd "D:\GOLD PRO"
+.\.venv-1\Scripts\python.exe web_app_complete.py

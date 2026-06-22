@@ -137,3 +137,10 @@ goldprofx/
 auto_broadcast_registry.json
 telegram_command_bot_state.json
 cache/market_data/*.csv
+
+# MT5 Trading Config (حساسة جداً - بيانات اعتماد وإعدادات خاصة)
+mt5_wallet_config.json
+**/mt5_wallet_config.json
+auto_trading_user_config.json
+auto_trading_runtime_state.json
+mt5_trade_guardian.py

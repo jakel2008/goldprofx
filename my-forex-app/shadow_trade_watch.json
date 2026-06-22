@@ -1,0 +1,442 @@
+{
+  "groups": [
+    {
+      "group_id": "BTCUSD_1780705304",
+      "symbol": "BTCUSD",
+      "side": "sell",
+      "interval": "5m",
+      "created_at": 1780705304,
+      "updated_at": 1780719494,
+      "status": "closed",
+      "had_position": true,
+      "pending_tickets": [],
+      "entry_price": 61322.54,
+      "stop_loss": 61566.78,
+      "take_profit_1": 61119.01,
+      "take_profit_2": 60956.19,
+      "take_profit_3": 60793.36,
+      "sl_stage": 1,
+      "sl_actions": [
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        }
+      ],
+      "analysis_note": "analysis_unavailable_keep_active",
+      "closed_reason": "completed_no_pending"
+    },
+    {
+      "group_id": "BTCUSD_1780705479",
+      "symbol": "BTCUSD",
+      "side": "sell",
+      "interval": "5m",
+      "created_at": 1780705479,
+      "updated_at": 1780719494,
+      "status": "closed",
+      "had_position": true,
+      "pending_tickets": [],
+      "entry_price": 61322.54,
+      "stop_loss": 61566.78,
+      "take_profit_1": 61119.01,
+      "take_profit_2": 60956.19,
+      "take_profit_3": 60793.36,
+      "sl_stage": 0,
+      "sl_actions": [
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61322.54
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 61119.01
+        }
+      ],
+      "analysis_note": "analysis_unavailable_keep_active",
+      "closed_reason": "completed_no_pending"
+    },
+    {
+      "group_id": "BTCUSD_1780705485",
+      "symbol": "BTCUSD",
+      "side": "sell",
+      "interval": "5m",
+      "created_at": 1780705485,
+      "updated_at": 1780719494,
+      "status": "closed",
+      "had_position": true,
+      "pending_tickets": [],
+      "entry_price": 61181.99,
+      "stop_loss": 61402.97,
+      "take_profit_1": 60997.84,
+      "take_profit_2": 60850.51,
+      "take_profit_3": 60703.19,
+      "sl_stage": 0,
+      "sl_actions": [
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        },
+        {
+          "stage": "after_tp1_to_entry",
+          "status": "no_change_needed",
+          "target_sl": 61181.99
+        },
+        {
+          "stage": "after_tp2_to_tp1",
+          "status": "no_change_needed",
+          "target_sl": 60997.84
+        }
+      ],
+      "analysis_note": "analysis_unavailable_keep_active",
+      "closed_reason": "completed_no_pending"
+    }
+  ]
+}+

@@ -25,6 +25,8 @@ TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "yahoo_first") or "yahoo_first").strip().lower()
 MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
 ENABLE_YFINANCE_FALLBACK = str(os.environ.get("ENABLE_YFINANCE_FALLBACK", "0") or "0").strip().lower() in ("1", "true", "yes", "on")
+ENABLE_MT5_MARKET_DATA = str(os.environ.get("ENABLE_MT5_MARKET_DATA", "1") or "1").strip().lower() in ("1", "true", "yes", "on")
+MT5_MARKET_DATA_MODE = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower()
 
 logger = logging.getLogger("forex_analyzer")
 if not logger.handlers:
@@ -129,6 +131,17 @@ INTERVAL_MAP_BINANCE = {
     "4H": "4h",
     "1DAY": "1d",
     "1D": "1d"
+}
+
+INTERVAL_MAP_MT5 = {
+    "1MIN": "M1",
+    "5MIN": "M5",
+    "15MIN": "M15",
+    "30MIN": "M30",
+    "1H": "H1",
+    "4H": "H4",
+    "1DAY": "D1",
+    "1D": "D1"
 }
 
 class DataFetchError(Exception):
@@ -576,6 +589,56 @@ def _fetch_from_yahoo_chart(symbol, interval, outputsize):
 
     return _to_standard_ohlc(df)
 
+
+def _fetch_from_mt5(symbol, interval, outputsize):
+    interval_key = _normalize_interval(interval)
+    mt5_timeframe = INTERVAL_MAP_MT5.get(interval_key)
+    if not mt5_timeframe:
+        raise DataFetchError("MT5: unsupported interval")
+
+    try:
+        from mt5_bridge import mt5_bridge  # type: ignore
+    except Exception as exc:
+        raise DataFetchError(f"MT5 import error: {exc}")
+
+    previous_enabled = bool(getattr(mt5_bridge, "enabled", False))
+    if not previous_enabled:
+        mt5_bridge.enabled = True
+
+    result = mt5_bridge.get_rates(
+        symbol=str(symbol or "").strip().upper(),
+        timeframe=mt5_timeframe,
+        count=max(50, min(int(outputsize or 100), 2000)),
+    )
+    if not result.get("success"):
+        raise DataFetchError(f"MT5: {result.get('error') or 'rates unavailable'}")
+
+    rows = []
+    for bar in result.get("bars") or []:
+        rows.append({
+            "Date": datetime.utcfromtimestamp(int(bar.get("time") or 0)),
+            "Open": bar.get("open"),
+            "High": bar.get("high"),
+            "Low": bar.get("low"),
+            "Close": bar.get("close"),
+        })
+
+    if not rows:
+        raise DataFetchError("MT5: empty rates response")
+
+    return _to_standard_ohlc(pd.DataFrame(rows))
+
+
+def _with_mt5_source(sources):
+    if not ENABLE_MT5_MARKET_DATA or MT5_MARKET_DATA_MODE in {"0", "false", "off", "disabled", "none"}:
+        return sources
+
+    without_mt5 = [(name, fn) for name, fn in sources if name != "MT5"]
+    mt5_source = [("MT5", _fetch_from_mt5)]
+    if MT5_MARKET_DATA_MODE in {"fallback", "last"}:
+        return without_mt5 + mt5_source
+    return mt5_source + without_mt5
+
 def fetch_data(symbol, interval, outputsize=100, force_live=False):
     """Fetch historical data from multiple trusted sources with automatic fallback."""
     normalized_symbol = _normalize_symbol(symbol)
@@ -585,9 +648,11 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
 
     logger.info("[DATA_FETCH] start symbol=%s interval=%s outputsize=%s", normalized_symbol, normalized_interval, outputsize)
 
-    # محاولة قراءة كاش حديث أولاً لتقليل الضغط على الـ APIs وتسريع الاستجابة
-    # ويمكن تجاوزها عند طلب force_live للتحقق من المصدر الحي.
-    if not force_live:
+    mt5_first = ENABLE_MT5_MARKET_DATA and MT5_MARKET_DATA_MODE not in {"fallback", "last", "0", "false", "off", "disabled", "none"}
+
+    # محاولة قراءة كاش حديث أولاً لتقليل الضغط على الـ APIs وتسريع الاستجابة.
+    # عند تفعيل MT5 كمصدر أساسي نتجاوز الكاش الحديث حتى تكون الشموع من المنصة مباشرة.
+    if not force_live and not mt5_first:
         fresh_cache = _load_from_cache(normalized_symbol, normalized_interval, allow_stale=False)
         if fresh_cache is not None:
             _update_fetch_metadata(
@@ -624,6 +689,8 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
             sources = [("TwelveData", _fetch_from_twelve_data), ("YahooChart", _fetch_from_yahoo_chart)]
             if ENABLE_YFINANCE_FALLBACK:
                 sources.append(("YahooFinance", _fetch_from_yfinance))
+
+    sources = _with_mt5_source(sources)
 
     for source_name, source_fn in sources:
         if source_name == "TwelveData" and _is_twelvedata_in_cooldown():

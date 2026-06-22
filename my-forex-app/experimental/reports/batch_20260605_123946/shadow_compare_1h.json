@@ -1,0 +1,226 @@
+{
+  "generated_at": "2026-06-05 12:39:48 UTC",
+  "total_symbols": 3,
+  "success_symbols": 3,
+  "failed_symbols": 0,
+  "agreement_count": 0,
+  "agreement_rate_pct": 0.0,
+  "avg_direction_delta": -24.727,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 121,
+    "calendar_errors": []
+  },
+  "results": [
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.16442,
+        "stop_loss": 1.16232,
+        "take_profit_1": 1.16617,
+        "take_profit_2": 1.16756,
+        "take_profit_3": 1.16896
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.0,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 1.16401,
+        "component_scores": {
+          "indicators": -0.224,
+          "candles": 30.0,
+          "channel": -6.432,
+          "breakout": 91.956,
+          "fibonacci": -1.657,
+          "sessions": 2.396,
+          "news": 0.0,
+          "raw": 15.0,
+          "total": 15.0
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -10,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "معدل البطالة",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "4.3%",
+          "forecast": "4.3%",
+          "previous": "4.3%",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -42.0,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 159.91,
+        "stop_loss": 160.19784,
+        "take_profit_1": 159.67013,
+        "take_profit_2": 159.47824,
+        "take_profit_3": 159.28635
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -9.23,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 159.91,
+        "component_scores": {
+          "indicators": -10.058,
+          "candles": -30.0,
+          "channel": 1.579,
+          "breakout": 0.0,
+          "fibonacci": -3.251,
+          "sessions": -2.466,
+          "news": 0.0,
+          "raw": -9.23,
+          "total": -9.23
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -10,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "معدل البطالة",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "4.3%",
+          "forecast": "4.3%",
+          "previous": "4.3%",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 34.77,
+        "same_interval": true
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAUUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 80.0,
+        "sell_score": 0.0,
+        "score_gap": 80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4494.6,
+        "stop_loss": 4473.83,
+        "take_profit_1": 4511.91,
+        "take_profit_2": 4525.76,
+        "take_profit_3": 4539.6
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 13.05,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 4494.8,
+        "component_scores": {
+          "indicators": 24.137,
+          "candles": 30.0,
+          "channel": 1.667,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.667,
+          "news": 0.0,
+          "raw": 13.05,
+          "total": 13.05
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -10,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "معدل البطالة",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "4.3%",
+          "forecast": "4.3%",
+          "previous": "4.3%",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -66.95,
+        "same_interval": false
+      }
+    }
+  ]
+}

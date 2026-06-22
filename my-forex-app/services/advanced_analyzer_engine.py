@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import os
 from time import monotonic
 
 import pandas as pd
@@ -141,6 +142,106 @@ def _confidence_label(score_gap: int) -> str:
 	if score_gap >= 18:
 		return "جيدة"
 	return "متوسطة"
+
+
+def _downgrade_recommendation(recommendation: str) -> str:
+	if recommendation == "شراء قوي":
+		return "شراء"
+	if recommendation == "بيع قوي":
+		return "بيع"
+	return recommendation
+
+
+def _market_regime(price_change_pct: float, atr_value: float, entry_point: float, trend_pct: float) -> str:
+	atr_pct = (atr_value / entry_point) * 100 if entry_point else 0
+	if abs(trend_pct) < 0.08 and atr_pct < 0.35:
+		return "هادئ / نطاقي"
+	if atr_pct >= 1.20:
+		return "تقلب مرتفع"
+	if price_change_pct >= 0.35 and trend_pct > 0:
+		return "اتجاه صاعد"
+	if price_change_pct <= -0.35 and trend_pct < 0:
+		return "اتجاه هابط"
+	return "مختلط"
+
+
+def _professional_quality_gate(
+	recommendation: str,
+	confidence: str,
+	score_gap: int,
+	trend_pct: float,
+	risk_reward_ratio: float,
+	market_regime: str,
+) -> tuple[str, str, list[str]]:
+	notes = []
+	new_recommendation = recommendation
+	new_confidence = confidence
+
+	if score_gap < 10:
+		new_recommendation = "انتظار"
+		new_confidence = "متوسطة"
+		notes.append("فرق نقاط الشراء/البيع أقل من 10، الأفضل تجنب الدخول المباشر.")
+
+	if new_recommendation in {"شراء قوي", "بيع قوي"} and risk_reward_ratio < 1.6:
+		new_recommendation = _downgrade_recommendation(new_recommendation)
+		notes.append("تم تخفيض التوصية القوية لأن العائد إلى المخاطرة أقل من 1.6.")
+
+	if new_recommendation in {"شراء", "شراء قوي"} and trend_pct < -0.20:
+		new_recommendation = "انتظار"
+		notes.append("انحياز شراء ضد اتجاه متوسط 20 شمعة، تم التحول إلى انتظار.")
+
+	if new_recommendation in {"بيع", "بيع قوي"} and trend_pct > 0.20:
+		new_recommendation = "انتظار"
+		notes.append("انحياز بيع ضد اتجاه متوسط 20 شمعة، تم التحول إلى انتظار.")
+
+	if market_regime == "تقلب مرتفع" and new_confidence == "مرتفعة":
+		new_confidence = "جيدة"
+		notes.append("تم خفض الثقة درجة واحدة بسبب ارتفاع التقلب.")
+
+	return new_recommendation, new_confidence, notes
+
+
+def _analysis_steps_snapshot(
+	buy_score: int,
+	sell_score: int,
+	recommendation: str,
+	risk_reward_ratio: float,
+	market_regime: str,
+	confidence: str,
+	notes: list[str],
+) -> list[dict]:
+	return [
+		{
+			"step": "تقييم اتجاه وزخم السوق",
+			"status": "مكتمل",
+			"result": f"Buy={buy_score} | Sell={sell_score}",
+		},
+		{
+			"step": "استخراج التوصية الأولية",
+			"status": "مكتمل",
+			"result": recommendation,
+		},
+		{
+			"step": "فحص جودة العائد/المخاطرة",
+			"status": "مكتمل",
+			"result": f"R:R={risk_reward_ratio}",
+		},
+		{
+			"step": "تصنيف حالة السوق",
+			"status": "مكتمل",
+			"result": market_regime,
+		},
+		{
+			"step": "اعتماد الخطة النهائية",
+			"status": "مكتمل",
+			"result": f"{recommendation} | ثقة {confidence}",
+		},
+		{
+			"step": "ملاحظات الجودة",
+			"status": "مكتمل",
+			"result": " | ".join(notes) if notes else "لا توجد ملاحظات تمنع التنفيذ",
+		},
+	]
 
 
 def _recommendation_from_gap(score_gap: int) -> str:
@@ -598,8 +699,10 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 	"""جلب بيانات السوق مع دعم مصادر متعددة (forex_analyzer → yfinance fallback)."""
 	cache_key = (symbol, interval)
-	cached_data = _get_cached_market_data(cache_key)
+	mt5_primary = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower() not in {"fallback", "last", "0", "false", "off", "disabled", "none"}
+	cached_data = None if mt5_primary else _get_cached_market_data(cache_key)
 	if cached_data is not None:
+		cached_data.attrs["market_data_source"] = cached_data.attrs.get("market_data_source") or "CACHE_FRESH"
 		return cached_data
 
 	interval_info = SUPPORTED_INTERVALS[interval]
@@ -610,11 +713,12 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		gold_pro_dir = Path(__file__).resolve().parent.parent.parent
 		if str(gold_pro_dir) not in sys.path:
 			sys.path.insert(0, str(gold_pro_dir))
-		from forex_analyzer import fetch_data as gp_fetch  # type: ignore
+		from forex_analyzer import fetch_data as gp_fetch, get_last_fetch_metadata  # type: ignore
 		interval_map = {"5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
 		gp_interval = interval_map.get(interval, "1H")
-		gp_data = gp_fetch(symbol, gp_interval, outputsize=240)
+		gp_data = gp_fetch(symbol, gp_interval, outputsize=240, force_live=mt5_primary)
 		if gp_data is not None and len(gp_data) >= 60:
+			fetch_meta = get_last_fetch_metadata()
 			# تحويل الأعمدة إلى الشكل المطلوب
 			for col in ("Open", "High", "Low", "Close"):
 				gp_data[col] = pd.to_numeric(gp_data[col], errors="coerce")
@@ -625,6 +729,8 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 				gp_data["Date"] = pd.to_datetime(gp_data["Date"], utc=True, errors="coerce")
 				gp_data = gp_data.set_index("Date")
 			if len(gp_data) >= 60:
+				gp_data.attrs["market_data_source"] = fetch_meta.get("source") or "FOREX_ANALYZER"
+				gp_data.attrs["market_data_errors"] = fetch_meta.get("errors") or []
 				_set_cached_market_data(cache_key, gp_data)
 				return gp_data
 	except Exception:
@@ -659,6 +765,8 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 				"Volume": "sum",
 			}
 		).dropna(subset=["Open", "High", "Low", "Close"])
+	cleaned.attrs["market_data_source"] = "YFINANCE"
+	cleaned.attrs["market_data_errors"] = []
 	_set_cached_market_data(cache_key, cleaned)
 	return cleaned
 
@@ -715,7 +823,27 @@ def perform_full_analysis(symbol: str, interval: str) -> dict:
 		normalized_interval,
 	)
 
+	risk_distance = abs(entry_point - stop_loss)
+	reward_distance = abs(take_profit2 - entry_point)
+	risk_reward_ratio = round((reward_distance / risk_distance), 2) if risk_distance else 0.0
+	market_regime = _market_regime(
+		price_change_pct,
+		details["atr14"],
+		entry_point,
+		details["trend_pct_from_sma20"],
+	)
+	recommendation, confidence, quality_notes = _professional_quality_gate(
+		recommendation,
+		confidence,
+		abs(score_gap),
+		details["trend_pct_from_sma20"],
+		risk_reward_ratio,
+		market_regime,
+	)
+
 	fetched_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+	market_data_source = str(market_data.attrs.get("market_data_source") or "YFINANCE")
+	market_data_errors = list(market_data.attrs.get("market_data_errors") or [])
 	scenario = _build_professional_scenario(
 		normalized_symbol,
 		recommendation,
@@ -789,8 +917,22 @@ def perform_full_analysis(symbol: str, interval: str) -> dict:
 		"stop_loss": stop_loss,
 		"confidence": confidence,
 		"price_change_pct": round(price_change_pct, 3),
-		"data_source": "Yahoo Finance",
+		"data_source": market_data_source,
+		"market_data_source": market_data_source,
+		"market_data_errors": market_data_errors,
 		"fetched_at": fetched_at,
+		"risk_reward_ratio": risk_reward_ratio,
+		"market_regime": market_regime,
+		"quality_notes": quality_notes,
+		"analysis_steps": _analysis_steps_snapshot(
+			buy_score,
+			sell_score,
+			recommendation,
+			risk_reward_ratio,
+			market_regime,
+			confidence,
+			quality_notes,
+		),
 		"signals": _build_signals(recommendation, buy_score, sell_score, details, price_change_pct),
 		"executive_summary": executive_summary,
 		"analyst_report": analyst_report,

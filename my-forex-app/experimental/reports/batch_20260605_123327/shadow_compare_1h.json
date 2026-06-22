@@ -1,0 +1,211 @@
+{
+  "generated_at": "2026-06-05 12:34:04 UTC",
+  "total_symbols": 3,
+  "success_symbols": 2,
+  "failed_symbols": 1,
+  "agreement_count": 0,
+  "agreement_rate_pct": 0.0,
+  "avg_direction_delta": 9.986,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 95,
+    "calendar_errors": []
+  },
+  "results": [
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.16442,
+        "stop_loss": 1.16232,
+        "take_profit_1": 1.16617,
+        "take_profit_2": 1.16756,
+        "take_profit_3": 1.16896
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 21.3,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 1.16401,
+        "component_scores": {
+          "indicators": -0.224,
+          "candles": 30.0,
+          "channel": -6.432,
+          "breakout": 91.956,
+          "fibonacci": -1.657,
+          "sessions": 2.396,
+          "news": 6.3,
+          "raw": 15.0,
+          "total": 21.3
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "medium",
+          "minutes_to_event": -4,
+          "dynamic_pre_lock_minutes": 18,
+          "dynamic_post_lock_minutes": 24,
+          "surprise_ratio": 0.4999999999999999
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "0.3%",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "0.3%",
+          "forecast": "0.2%",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -35.7,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDJPY",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 159.91,
+        "stop_loss": 160.19784,
+        "take_profit_1": 159.67013,
+        "take_profit_2": 159.47824,
+        "take_profit_3": 159.28635
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 11.672,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 159.99699,
+        "component_scores": {
+          "indicators": 20.184,
+          "candles": 30.0,
+          "channel": 8.187,
+          "breakout": -71.483,
+          "fibonacci": 1.608,
+          "sessions": 2.183,
+          "news": 6.3,
+          "raw": 5.372,
+          "total": 11.672
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "medium",
+          "minutes_to_event": -4,
+          "dynamic_pre_lock_minutes": 18,
+          "dynamic_post_lock_minutes": 24,
+          "surprise_ratio": 0.4999999999999999
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "0.3%",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "0.3%",
+          "forecast": "0.2%",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 55.672,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "GOLD",
+      "error": "Official engine failed: Unsupported symbol 'GOLD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'GOLD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'GOLD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    }
+  ]
+}

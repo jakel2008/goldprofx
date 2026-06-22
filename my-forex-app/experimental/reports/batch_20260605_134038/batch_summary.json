@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-06-05 13:40:39 UTC",
+  "run_id": "20260605_134038",
+  "run_dir": "experimental\\reports\\batch_20260605_134038",
+  "history_path": "experimental\\reports\\shadow_history.jsonl",
+  "policy": {
+    "policy_id": "dynamic-signal-policy-v1",
+    "status": "adopted_full",
+    "adopted_at": "2026-06-05",
+    "mode": "collect_only",
+    "core_principles": {
+      "dynamic_preferences_and_metrics": true,
+      "no_hard_fixed_thresholds_except_min_safety": true,
+      "market_adaptation_axes": [
+        "symbol_profile",
+        "daily_range",
+        "volume_liquidity",
+        "intraday_market_behavior"
+      ]
+    },
+    "decision_framework": {
+      "numeric_chart_only": true,
+      "multi_timeframe_analysis": true,
+      "best_timeframe_selection_per_symbol": true,
+      "integrated_modules": [
+        "indicators",
+        "price_structure",
+        "breakout_detection",
+        "trend_model",
+        "support_resistance",
+        "retest_rebound_logic",
+        "directional_fibonacci",
+        "daily_high_low",
+        "session_high_low"
+      ],
+      "sessions_model": {
+        "enabled": true,
+        "sessions": [
+          "sydney",
+          "asia",
+          "london",
+          "new_york"
+        ],
+        "relation_logic": [
+          "full_behavior",
+          "session_weight",
+          "momentum",
+          "liquidity"
+        ],
+        "dynamic_weights_enabled": true
+      }
+    },
+    "adaptive_controls": {
+      "adaptive_weights_enabled": true,
+      "adaptive_thresholds_enabled": true,
+      "adaptation_speed": "per_cycle",
+      "anti_overfitting_guard": {
+        "enabled": true,
+        "method": "smooth_weight_shift",
+        "max_weight_step_per_cycle": 0.15
+      }
+    },
+    "economic_calendar": {
+      "enabled": true,
+      "primary_source": "https://www.arabictrader.com/ar/economic-calendar",
+      "secondary_sources": [
+        "https://www.forexfactory.com/"
+      ],
+      "integration_mode": "auto_symbol_relevance",
+      "focus": "high_and_medium_impact_first"
+    },
+    "safety_minimums": {
+      "min_rr": 1.2,
+      "max_volatility_pct": 6.0,
+      "hard_floor_enabled": true
+    },
+    "goal": "maximize signal safety and precision under dynamic market conditions",
+    "source": "experimental\\dynamic_signal_policy.json",
+    "loaded": true
+  },
+  "symbols": [
+    "BTCUSD",
+    "BNBUSD"
+  ],
+  "intervals": [
+    "1h"
+  ],
+  "interval_reports": [
+    {
+      "interval": "1h",
+      "report_json": "experimental\\reports\\batch_20260605_134038\\shadow_compare_1h.json",
+      "report_markdown": "experimental\\reports\\batch_20260605_134038\\shadow_compare_1h.md",
+      "summary": {
+        "total_symbols": 2,
+        "success_symbols": 2,
+        "failed_symbols": 0,
+        "agreement_rate_pct": 0.0,
+        "avg_direction_delta": 17.936
+      }
+    }
+  ],
+  "weekly_summary_json": "experimental\\reports\\batch_20260605_134038\\shadow_weekly_summary.json",
+  "weekly_summary_markdown": "experimental\\reports\\batch_20260605_134038\\shadow_weekly_summary.md"
+}

@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-06-05 11:10:54 UTC",
+  "total_symbols": 2,
+  "success_symbols": 2,
+  "failed_symbols": 0,
+  "agreement_count": 0,
+  "agreement_rate_pct": 0.0,
+  "avg_direction_delta": -52.41,
+  "results": [
+    {
+      "success": true,
+      "symbol": "XAUUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 80.0,
+        "sell_score": 0.0,
+        "score_gap": 80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4494.6,
+        "stop_loss": 4473.83,
+        "take_profit_1": 4511.91,
+        "take_profit_2": 4525.76,
+        "take_profit_3": 4539.6
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 18.716,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 4494.6,
+        "component_scores": {
+          "indicators": 30.502,
+          "candles": 30.0,
+          "channel": 13.565,
+          "breakout": 0.0,
+          "fibonacci": 12.225,
+          "sessions": 3.545,
+          "news": 0.0,
+          "raw": 18.716,
+          "total": 18.716
+        }
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -61.284,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "1h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 9.0,
+        "score_gap": 57.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.16442,
+        "stop_loss": 1.16232,
+        "take_profit_1": 1.16617,
+        "take_profit_2": 1.16756,
+        "take_profit_3": 1.16896
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 13.464,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.16442,
+        "component_scores": {
+          "indicators": 26.633,
+          "candles": 30.0,
+          "channel": 12.344,
+          "breakout": -22.991,
+          "fibonacci": 3.072,
+          "sessions": 3.358,
+          "news": 0.0,
+          "raw": 13.464,
+          "total": 13.464
+        }
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -43.536,
+        "same_interval": true
+      }
+    }
+  ]
+}

@@ -15,7 +15,7 @@ import time
 import sqlite3
 import requests
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # إعدادات البوت
@@ -25,6 +25,14 @@ DEFAULT_CHAT_ID = os.environ.get("MM_TELEGRAM_CHAT_ID", "7657829546")
 # مسارات الملفات
 SIGNALS_DIR = Path(__file__).parent / "signals"
 SENT_SIGNALS_FILE = Path(__file__).parent / "sent_signals.json"
+SIGNAL_FILE_PREFIX = os.environ.get("SIGNAL_FILE_PREFIX", "").strip()
+
+
+def _signal_files():
+    files = list(SIGNALS_DIR.glob("*.json"))
+    if not SIGNAL_FILE_PREFIX:
+        return files
+    return [path for path in files if path.name.startswith(SIGNAL_FILE_PREFIX)]
 
 
 def load_sent_signals():
@@ -125,6 +133,37 @@ def calculate_signal_quality(signal_data):
         return 65
 
 
+def _parse_signal_time(value):
+    if not value:
+        return None
+    text = str(value).strip().replace(" UTC", "")
+    try:
+        return datetime.fromisoformat(text)
+    except Exception:
+        return None
+
+
+def _resolve_signal_status(signal_data):
+    status = str(signal_data.get('signal_status') or signal_data.get('status') or 'مستمرة').strip()
+    reason = str(signal_data.get('signal_status_reason') or signal_data.get('status_reason') or '').strip()
+    expires_at = _parse_signal_time(signal_data.get('expires_at'))
+    now = datetime.now(timezone.utc)
+
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at and now > expires_at:
+        return 'منتهية', reason or 'انتهت مدة صلاحية الإشارة', expires_at
+
+    if status in {'متوقفة', 'موقوفة', 'stopped', 'paused'}:
+        return 'متوقفة', reason or 'تم إيقاف الإشارة', expires_at
+
+    if status in {'منتهية', 'expired', 'ended'}:
+        return 'منتهية', reason or 'انتهت الإشارة', expires_at
+
+    return 'مستمرة', reason or 'جاهزة للبث', expires_at
+
+
 def send_with_retry(user_id, message, max_attempts=3):
     """إرسال رسالة مع إعادة المحاولة"""
     for attempt in range(1, max_attempts + 1):
@@ -192,7 +231,10 @@ def send_signal_to_users(signal_data, quality_score):
         entry=entry,
         stop_loss=sl,
         take_profits=tp,
-        quality_score=quality_score
+        quality_score=quality_score,
+        signal_status=signal_data.get('signal_status'),
+        signal_status_reason=signal_data.get('signal_status_reason'),
+        expires_at=signal_data.get('expires_at'),
     )
     
     # إرسال للمستخدمين المؤهلين
@@ -249,7 +291,7 @@ def read_and_broadcast_signals():
             sent_ids.add(s.get('signature') or s.get('signal_id'))
     
     # قراءة جميع ملفات الإشارات
-    signal_files = list(SIGNALS_DIR.glob("*.json"))
+    signal_files = _signal_files()
     now = datetime.now()
     new_signals_count = 0
     expired_files = []
@@ -291,6 +333,16 @@ def read_and_broadcast_signals():
                     valid_signals.append(signal)
 
             for signal in valid_signals:
+                resolved_status, resolved_reason, expires_at = _resolve_signal_status(signal)
+                signal['signal_status'] = resolved_status
+                signal['signal_status_reason'] = resolved_reason
+                if expires_at is not None:
+                    signal['expires_at'] = expires_at.isoformat()
+
+                if resolved_status != 'مستمرة':
+                    print(f"⏭️ تجاهل إشارة {signal.get('symbol') or signal.get('pair')} - {resolved_status} ({resolved_reason})")
+                    continue
+
                 signal_id = get_signal_id(signal)
                 # تحقق إذا لم ترسل من قبل
                 if signal_id not in sent_ids:
@@ -332,6 +384,8 @@ def start_auto_broadcaster(check_interval=60):
     print("🤖 نظام بث الإشارات التلقائي")
     print("=" * 60)
     print(f"📁 مجلد الإشارات: {SIGNALS_DIR}")
+    if SIGNAL_FILE_PREFIX:
+        print(f"🏷️ بادئة الملفات: {SIGNAL_FILE_PREFIX}")
     print(f"⏰ التحقق كل: {check_interval} ثانية")
     print(f"🚀 بدء المراقبة: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)

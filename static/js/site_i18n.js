@@ -525,7 +525,7 @@
             return true;
         }
         const tag = (node.parentElement.tagName || "").toLowerCase();
-        return ["script", "style", "noscript", "code", "pre"].includes(tag);
+        return ["script", "style", "noscript", "code", "pre", "textarea"].includes(tag);
     }
 
     function applyLanguage(targetLang) {

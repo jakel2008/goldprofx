@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-06-05 11:30:17 UTC",
+  "run_id": "20260605_113016",
+  "run_dir": "experimental\\reports\\batch_20260605_113016",
+  "history_path": "experimental\\reports\\shadow_history.jsonl",
+  "symbols": [
+    "XAUUSD",
+    "EURUSD"
+  ],
+  "intervals": [
+    "1h",
+    "4h"
+  ],
+  "interval_reports": [
+    {
+      "interval": "1h",
+      "report_json": "experimental\\reports\\batch_20260605_113016\\shadow_compare_1h.json",
+      "report_markdown": "experimental\\reports\\batch_20260605_113016\\shadow_compare_1h.md",
+      "summary": {
+        "total_symbols": 2,
+        "success_symbols": 2,
+        "failed_symbols": 0,
+        "agreement_rate_pct": 0.0,
+        "avg_direction_delta": -52.41
+      }
+    },
+    {
+      "interval": "4h",
+      "report_json": "experimental\\reports\\batch_20260605_113016\\shadow_compare_4h.json",
+      "report_markdown": "experimental\\reports\\batch_20260605_113016\\shadow_compare_4h.md",
+      "summary": {
+        "total_symbols": 2,
+        "success_symbols": 2,
+        "failed_symbols": 0,
+        "agreement_rate_pct": 0.0,
+        "avg_direction_delta": -52.41
+      }
+    }
+  ],
+  "weekly_summary_json": "experimental\\reports\\batch_20260605_113016\\shadow_weekly_summary.json",
+  "weekly_summary_markdown": "experimental\\reports\\batch_20260605_113016\\shadow_weekly_summary.md"
+}

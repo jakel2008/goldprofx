@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-06-05 11:01:41 UTC",
+  "lookback_days": 7,
+  "run_count": 2,
+  "avg_agreement_rate_pct": 0.0,
+  "avg_direction_delta": -52.41,
+  "decision_counts": {
+    "buy": 0,
+    "sell": 0,
+    "wait": 4
+  },
+  "top_symbol_stability": [
+    {
+      "symbol": "XAUUSD",
+      "samples": 2,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": -61.284,
+      "official_mix": {
+        "buy": 2,
+        "sell": 0,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 2
+      }
+    },
+    {
+      "symbol": "EURUSD",
+      "samples": 2,
+      "agreement_rate_pct": 0.0,
+      "avg_direction_delta": -43.536,
+      "official_mix": {
+        "buy": 2,
+        "sell": 0,
+        "wait": 0
+      },
+      "experimental_mix": {
+        "buy": 0,
+        "sell": 0,
+        "wait": 2
+      }
+    }
+  ],
+  "daily_trend": [
+    {
+      "date": "2026-06-05",
+      "runs": 2,
+      "avg_agreement_rate_pct": 0.0,
+      "avg_direction_delta": -52.41
+    }
+  ]
+}

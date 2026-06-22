@@ -1,0 +1,307 @@
+{
+  "generated_at": "2026-06-07 17:15:01 UTC",
+  "total_symbols": 4,
+  "success_symbols": 4,
+  "failed_symbols": 0,
+  "agreement_count": 0,
+  "agreement_rate_pct": 0.0,
+  "avg_direction_delta": -22.792,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 80,
+    "calendar_errors": []
+  },
+  "results": [
+    {
+      "success": true,
+      "symbol": "BTCUSD",
+      "interval_requested": "30m",
+      "official": {
+        "recommendation": "شراء",
+        "normalized_recommendation": "buy",
+        "buy_score": 56.0,
+        "sell_score": 34.0,
+        "score_gap": 22.0,
+        "confidence": "جيدة",
+        "entry_point": 62169.19,
+        "stop_loss": 61686.61,
+        "take_profit_1": 62571.34,
+        "take_profit_2": 62893.07,
+        "take_profit_3": 63214.79,
+        "market_data_source": "CACHE",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.871,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 61588.24,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -11.776,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 0.162,
+          "news": 0.0,
+          "raw": -19.871,
+          "total": -19.871
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -300,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف الأسبوعي ADP",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-07T12:15:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "35.8K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -41.871,
+        "same_interval": false,
+        "market_data_source": "CACHE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BNBUSD",
+      "interval_requested": "30m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 32.0,
+        "sell_score": 58.0,
+        "score_gap": -26.0,
+        "confidence": "جيدة",
+        "entry_point": 586.25,
+        "stop_loss": 591.15,
+        "take_profit_1": 582.17,
+        "take_profit_2": 578.91,
+        "take_profit_3": 575.64,
+        "market_data_source": "CACHE",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.203,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 586.25,
+        "component_scores": {
+          "indicators": -39.466,
+          "candles": -30.0,
+          "channel": -10.064,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 0.592,
+          "news": 0.0,
+          "raw": -18.203,
+          "total": -18.203
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -210,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 7.797,
+        "same_interval": false,
+        "market_data_source": "CACHE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "ETHUSD",
+      "interval_requested": "30m",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 74.0,
+        "sell_score": 16.0,
+        "score_gap": 58.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1630.45,
+        "stop_loss": 1614.22,
+        "take_profit_1": 1643.97,
+        "take_profit_2": 1654.79,
+        "take_profit_3": 1665.61,
+        "market_data_source": "CACHE",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -20.229,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1596.66,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -12.929,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.01,
+          "news": 0.0,
+          "raw": -20.229,
+          "total": -20.229
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -300,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف الأسبوعي ADP",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-07T12:15:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "35.8K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -78.229,
+        "same_interval": false,
+        "market_data_source": "CACHE"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "30m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 23.0,
+        "sell_score": 62.0,
+        "score_gap": -39.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.15221,
+        "stop_loss": 1.15428,
+        "take_profit_1": 1.15048,
+        "take_profit_2": 1.1491,
+        "take_profit_3": 1.14772,
+        "market_data_source": "CACHE",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.866,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1.15221,
+        "component_scores": {
+          "indicators": -31.801,
+          "candles": -30.0,
+          "channel": -14.411,
+          "breakout": 0.0,
+          "fibonacci": -3.805,
+          "sessions": -3.655,
+          "news": 0.0,
+          "raw": -17.866,
+          "total": -17.866
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -210,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 21.134,
+        "same_interval": false,
+        "market_data_source": "CACHE"
+      }
+    }
+  ]
+}

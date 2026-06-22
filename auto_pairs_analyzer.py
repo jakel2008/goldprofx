@@ -34,6 +34,10 @@ ACTIVE_TRADES_FILE = "active_trades.json"
 # ملف أرشفة الصفقات المنتهية
 CLOSED_TRADES_FILE = "closed_trades.json"
 
+# حمايات إدارة المخاطر لمنع تكديس الصفقات المتكررة
+MAX_ACTIVE_TRADES_PER_SYMBOL = int(os.environ.get("MM_MAX_ACTIVE_TRADES_PER_SYMBOL", "1") or "1")
+MIN_REENTRY_MINUTES_PER_SYMBOL = int(os.environ.get("MM_MIN_REENTRY_MINUTES_PER_SYMBOL", "30") or "30")
+
 # مجلد حفظ الإشارات للبث
 SIGNALS_DIR = "signals"
 if not os.path.exists(SIGNALS_DIR):
@@ -645,6 +649,51 @@ def save_closed_trades(trades):
         print(f"خطأ في حفظ الأرشيف: {e}")
 
 
+def _parse_iso_datetime(value):
+    """تحويل وقت ISO إلى datetime بشكل آمن."""
+    try:
+        if not value:
+            return None
+        return datetime.fromisoformat(str(value))
+    except Exception:
+        return None
+
+
+def _has_active_trade_for_symbol(trades, symbol):
+    """التحقق من وجود صفقة نشطة لنفس الأصل."""
+    count = 0
+    for trade in trades.values():
+        if str(trade.get('symbol', '')).upper() != symbol.upper():
+            continue
+        if trade.get('status') == 'active':
+            count += 1
+            if count >= max(1, MAX_ACTIVE_TRADES_PER_SYMBOL):
+                return True
+    return False
+
+
+def _in_reentry_cooldown(trades, symbol, direction):
+    """منع إعادة الدخول السريع على نفس الأصل/الاتجاه."""
+    cooldown_minutes = max(0, MIN_REENTRY_MINUTES_PER_SYMBOL)
+    if cooldown_minutes <= 0:
+        return False
+
+    now = datetime.now()
+    for trade in trades.values():
+        if str(trade.get('symbol', '')).upper() != symbol.upper():
+            continue
+        if str(trade.get('direction', '')).lower() != direction.lower():
+            continue
+        opened = _parse_iso_datetime(trade.get('open_time'))
+        if opened is None:
+            continue
+        minutes_diff = (now - opened).total_seconds() / 60.0
+        if minutes_diff < cooldown_minutes:
+            return True
+
+    return False
+
+
 def save_signal_for_broadcast(symbol, recommendation, entry, stop_loss, take_profit, take_profit_2=None, take_profit_3=None, timeframe='5m', quality_score=None, rr_ratio=None):
     """حفظ الإشارة باستخدام النظام الموحد (ويب + بوت)"""
     if recommendation == 'حياد' or not entry:
@@ -728,19 +777,29 @@ def save_trade(symbol, recommendation, entry, stop_loss, take_profit, take_profi
     )
     
     trades = load_active_trades()
-    trade_id = f"{symbol}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    
     direction = 'buy' if 'شراء' in recommendation else 'sell'
+
+    if _has_active_trade_for_symbol(trades, symbol):
+        print(f"⛔ تم تخطي {symbol}: يوجد صفقة نشطة بالفعل (حد أقصى {MAX_ACTIVE_TRADES_PER_SYMBOL})")
+        return None
+
+    if _in_reentry_cooldown(trades, symbol, direction):
+        print(f"⛔ تم تخطي {symbol} {direction}: ضمن فترة التهدئة {MIN_REENTRY_MINUTES_PER_SYMBOL} دقيقة")
+        return None
+
+    trade_id = f"{symbol}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     
     trades[trade_id] = {
         'symbol': symbol,
         'direction': direction,
+        'signal_type': direction,
         'recommendation': recommendation,
         'entry': entry,
         'stop_loss': stop_loss,
         'take_profit': take_profit,
         'take_profit_2': take_profit_2,
         'take_profit_3': take_profit_3,
+        'timeframe': '5m',
         'status': 'active',
         'open_time': datetime.now().isoformat(),
         'close_time': None,

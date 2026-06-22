@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-06-05 11:34:27 UTC",
+  "run_id": "20260605_113213",
+  "run_dir": "my-forex-app\\experimental\\reports\\batch_20260605_113213",
+  "history_path": "my-forex-app\\experimental\\reports\\shadow_history.jsonl",
+  "symbols": [
+    "ADAUSD",
+    "ASX200",
+    "AUDJPY",
+    "AUDUSD",
+    "BNBUSD",
+    "BRENTUSD",
+    "BTCUSD",
+    "CAC40",
+    "DAX",
+    "DOW30",
+    "ETHUSD",
+    "EURAUD",
+    "EURCHF",
+    "EURGBP",
+    "EURJPY",
+    "EURUSD",
+    "FTSE",
+    "GASOLINE",
+    "GBPAUD",
+    "GBPCAD",
+    "GBPJPY",
+    "GBPUSD",
+    "HANGSENG",
+    "HEATING",
+    "IBEX",
+    "KOSPI",
+    "NASDAQ",
+    "NATURALGAS",
+    "NIKKEI",
+    "NZDUSD",
+    "RUSSELL",
+    "SHANGHAI",
+    "SOLUSD",
+    "SPX500",
+    "STOXX50",
+    "USDCAD",
+    "USDCHF",
+    "USDJPY",
+    "VIX",
+    "WTIUSD",
+    "XAGUSD",
+    "XAUUSD",
+    "XPDUSD",
+    "XPTUSD",
+    "XRPUSD"
+  ],
+  "intervals": [
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "4h",
+    "1d"
+  ],
+  "interval_reports": [
+    {
+      "interval": "5m",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_5m.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_5m.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 9.09,
+        "avg_direction_delta": 8.649
+      }
+    },
+    {
+      "interval": "15m",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_15m.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_15m.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 13.64,
+        "avg_direction_delta": -6.129
+      }
+    },
+    {
+      "interval": "30m",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_30m.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_30m.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 4.55,
+        "avg_direction_delta": -2.272
+      }
+    },
+    {
+      "interval": "1h",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_1h.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_1h.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 9.09,
+        "avg_direction_delta": -6.35
+      }
+    },
+    {
+      "interval": "4h",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_4h.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_4h.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 4.55,
+        "avg_direction_delta": -3.184
+      }
+    },
+    {
+      "interval": "1d",
+      "report_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_1d.json",
+      "report_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_compare_1d.md",
+      "summary": {
+        "total_symbols": 45,
+        "success_symbols": 22,
+        "failed_symbols": 23,
+        "agreement_rate_pct": 0.0,
+        "avg_direction_delta": -2.145
+      }
+    }
+  ],
+  "weekly_summary_json": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_weekly_summary.json",
+  "weekly_summary_markdown": "my-forex-app\\experimental\\reports\\batch_20260605_113213\\shadow_weekly_summary.md"
+}

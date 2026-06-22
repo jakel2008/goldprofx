@@ -1,0 +1,1866 @@
+
+<!doctype html>
+<html lang='en' dir='ltr'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>Shadow Signals Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #15202b;
+      --muted: #52606d;
+      --line: #d9e2ec;
+      --buy: #0f9d58;
+      --sell: #d93025;
+      --wait: #f9ab00;
+      --accent: #0b57d0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Tahoma, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, #f7f9fc 60%, #ffffff 100%);
+      color: var(--ink);
+    }
+    .container { max-width: 1240px; margin: 0 auto; padding: 20px; }
+    .header { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .tab-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .interval-panel { display: none; margin-top: 12px; }
+    .interval-panel.active { display: block; }
+    .badge { display: inline-block; min-width: 56px; text-align: center; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
+    .badge.buy { background: var(--buy); }
+    .badge.sell { background: var(--sell); }
+    .badge.wait { background: var(--wait); color: #202124; }
+    .status-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
+    .status-pill.active { background: #1f7a1f; }
+    .status-pill.stopped { background: #b42318; }
+    .status-pill.expired { background: #7a4f01; }
+    .signal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+    .signal-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+    }
+    .signal-card.failed { border-color: #f4b4b1; background: #fff6f6; }
+    .signal-card.empty { color: var(--muted); text-align: center; padding: 18px 10px; }
+    .signal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .signal-head h4 { margin: 0; font-size: 16px; }
+    .head-badges { display: flex; gap: 6px; align-items: center; }
+    .signal-pair { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+    .signal-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin-top: 8px; color: var(--muted); }
+    .signal-levels { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+    .signal-levels h5 { margin: 0 0 6px; font-size: 12px; color: #334155; letter-spacing: 0.3px; text-transform: uppercase; }
+    .levels-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 4px;
+      column-gap: 8px;
+      font-size: 12px;
+      color: #334155;
+    }
+    .levels-grid strong { color: #0f172a; font-weight: 700; }
+    .news-box {
+      margin-top: 10px;
+      border: 1px solid #dbe7ff;
+      background: #f7fbff;
+      border-radius: 10px;
+      padding: 8px;
+    }
+    .news-box.empty { color: var(--muted); text-align: center; background: #f8fafc; border-color: #e5e7eb; }
+    .news-box.imminent { border-color: #ef4444; background: #fff1f2; box-shadow: 0 0 0 1px #fecdd3 inset; }
+    .news-box h5 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .news-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin: 2px 0; }
+    .news-grid {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 3px;
+      column-gap: 8px;
+      font-size: 12px;
+    }
+    .impact-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #fff;
+    }
+    .impact-pill.impact-high { background: #b42318; }
+    .impact-pill.impact-medium { background: #b26a00; }
+    .impact-pill.impact-low { background: #475467; }
+    .news-source { margin: 7px 0 0; font-size: 11px; color: #475467; }
+    .agreement { font-size: 12px; border-radius: 999px; padding: 2px 8px; }
+    .agreement.ok { background: #e9f7ee; color: #0f9d58; }
+    .agreement.no { background: #fdecec; color: #d93025; }
+    .strength { font-size: 12px; border-radius: 999px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .strength.weak { background: #eef2f6; color: #3b4a5a; }
+    .strength.medium { background: #fff4e5; color: #b26a00; }
+    .strength.strong { background: #fdecec; color: #b42318; }
+    .error { margin: 6px 0 0; color: #b42318; font-size: 13px; }
+    .delta-pos { background: #f1fbf4; }
+    .delta-neg { background: #fff5f5; }
+    .delta-zero { background: #fffdf2; }
+    ul { margin: 8px 0 0 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-run-id='20260607_171447'>
+  <div class='container'>
+    <section class='header'>
+      <h1>Shadow Signals Dashboard</h1>
+      <p class='meta'>Run: 20260607_171447 | Generated: 2026-06-07 17:15:01 UTC</p>
+      <p class='meta'>Symbols: BTCUSD, BNBUSD, ETHUSD, EURUSD | Intervals: 5m, 15m, 30m, 1h, 4h, 1d</p>
+      <div class='cards'>
+        
+            <div class='card'>
+              <h3>5m</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 0.00%</p>
+              <p>Avg Delta: -50.542</p>
+            </div>
+            
+
+            <div class='card'>
+              <h3>15m</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 25.00%</p>
+              <p>Avg Delta: -30.042</p>
+            </div>
+            
+
+            <div class='card'>
+              <h3>30m</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 0.00%</p>
+              <p>Avg Delta: -22.792</p>
+            </div>
+            
+
+            <div class='card'>
+              <h3>1h</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 0.00%</p>
+              <p>Avg Delta: -42.787</p>
+            </div>
+            
+
+            <div class='card'>
+              <h3>4h</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 25.00%</p>
+              <p>Avg Delta: -16.792</p>
+            </div>
+            
+
+            <div class='card'>
+              <h3>1d</h3>
+              <p>Success: 4</p>
+              <p>Agreement: 0.00%</p>
+              <p>Avg Delta: 41.958</p>
+            </div>
+            
+      </div>
+    </section>
+
+    <section class='grid'>
+      <article class='panel'>
+        <h3>Top Intervals</h3>
+        <ul><li>15m: agreement=11.36% delta=-0.286</li><li>5m: agreement=6.06% delta=9.862</li><li>30m: agreement=4.55% delta=-1.022</li></ul>
+      </article>
+      <article class='panel'>
+        <h3>Bottom Intervals</h3>
+        <ul><li>1h: agreement=1.86% delta=-25.623</li><li>1d: agreement=2.65% delta=30.552</li><li>4h: agreement=3.41% delta=-32.585</li></ul>
+      </article>
+      <article class='panel'>
+        <h3>Weekly Summary</h3>
+        <ul>
+          <li>Run count: 94</li>
+          <li>Avg agreement: 3.89%</li>
+          <li>Avg Delta: -11.902</li>
+          <li>Alerts: 3</li>
+        </ul>
+      </article>
+      <article class='panel'>
+        <h3>Alerts</h3>
+        <ul><li>Weekly average agreement 3.89% is below threshold 25.0%.</li><li>Low-agreement interval alert repeated across 6 interval(s): 15m, 1d, 1h, 30m, 4h, 5m (min=1.86%, threshold=25.0%).</li><li>Daily low-agreement alert repeated across 2 day(s) from 2026-06-05 to 2026-06-07 (min=3.59%, threshold=25.0%).</li></ul>
+      </article>
+    </section>
+
+    <section class='panel'>
+      <h2>Signals Detail</h2>
+      <div class='tab-nav'>
+        <button class='tab-btn active' data-target='panel-5m'>5m</button>
+<button class='tab-btn ' data-target='panel-15m'>15m</button>
+<button class='tab-btn ' data-target='panel-30m'>30m</button>
+<button class='tab-btn ' data-target='panel-1h'>1h</button>
+<button class='tab-btn ' data-target='panel-4h'>4h</button>
+<button class='tab-btn ' data-target='panel-1d'>1d</button>
+      </div>
+      
+            <section id='panel-5m' class='interval-panel active'>
+              <h3>Interval: 5m</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-109.871</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>FOREX_ANALYZER</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>62257.88000</strong>
+                      <span>Stop Loss</span><strong>62113.67000</strong>
+                      <span>TP1</span><strong>62378.05000</strong>
+                      <span>TP2</span><strong>62474.19000</strong>
+                      <span>TP3</span><strong>62570.33000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>11.797</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>FOREX_ANALYZER</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>587.80000</strong>
+                      <span>TP1</span><strong>584.96000</strong>
+                      <span>TP2</span><strong>583.92000</strong>
+                      <span>TP3</span><strong>582.89000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-110.229</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>FOREX_ANALYZER</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1634.17000</strong>
+                      <span>Stop Loss</span><strong>1629.72000</strong>
+                      <span>TP1</span><strong>1637.88000</strong>
+                      <span>TP2</span><strong>1640.84000</strong>
+                      <span>TP3</span><strong>1643.80000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>6.134</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>FOREX_ANALYZER</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.15428</strong>
+                      <span>TP1</span><strong>1.15048</strong>
+                      <span>TP2</span><strong>1.14910</strong>
+                      <span>TP3</span><strong>1.14772</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+
+            <section id='panel-15m' class='interval-panel '>
+              <h3>Interval: 15m</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-73.871</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>62169.19000</strong>
+                      <span>Stop Loss</span><strong>61888.10000</strong>
+                      <span>TP1</span><strong>62403.43000</strong>
+                      <span>TP2</span><strong>62590.82000</strong>
+                      <span>TP3</span><strong>62778.22000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement ok'>Agree</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-12.203</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>No clear directional edge</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>583.06000</strong>
+                      <span>TP1</span><strong>588.91000</strong>
+                      <span>TP2</span><strong>591.03000</strong>
+                      <span>TP3</span><strong>593.16000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-74.229</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1567.04000</strong>
+                      <span>Stop Loss</span><strong>1559.93000</strong>
+                      <span>TP1</span><strong>1572.97000</strong>
+                      <span>TP2</span><strong>1577.71000</strong>
+                      <span>TP3</span><strong>1582.45000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>40.134</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.15428</strong>
+                      <span>TP1</span><strong>1.15048</strong>
+                      <span>TP2</span><strong>1.14910</strong>
+                      <span>TP3</span><strong>1.14772</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+
+            <section id='panel-30m' class='interval-panel '>
+              <h3>Interval: 30m</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-41.871</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>62169.19000</strong>
+                      <span>Stop Loss</span><strong>61686.61000</strong>
+                      <span>TP1</span><strong>62571.34000</strong>
+                      <span>TP2</span><strong>62893.07000</strong>
+                      <span>TP3</span><strong>63214.79000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>7.797</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>591.15000</strong>
+                      <span>TP1</span><strong>582.17000</strong>
+                      <span>TP2</span><strong>578.91000</strong>
+                      <span>TP3</span><strong>575.64000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-78.229</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1630.45000</strong>
+                      <span>Stop Loss</span><strong>1614.22000</strong>
+                      <span>TP1</span><strong>1643.97000</strong>
+                      <span>TP2</span><strong>1654.79000</strong>
+                      <span>TP3</span><strong>1665.61000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>21.134</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.15428</strong>
+                      <span>TP1</span><strong>1.15048</strong>
+                      <span>TP2</span><strong>1.14910</strong>
+                      <span>TP3</span><strong>1.14772</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+
+            <section id='panel-1h' class='interval-panel '>
+              <h3>Interval: 1h</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-49.871</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>62169.19000</strong>
+                      <span>Stop Loss</span><strong>61356.32000</strong>
+                      <span>TP1</span><strong>62846.58000</strong>
+                      <span>TP2</span><strong>63388.50000</strong>
+                      <span>TP3</span><strong>63930.41000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-60.203</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>578.45000</strong>
+                      <span>TP1</span><strong>592.75000</strong>
+                      <span>TP2</span><strong>597.95000</strong>
+                      <span>TP3</span><strong>603.15000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-110.229</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1630.28000</strong>
+                      <span>Stop Loss</span><strong>1603.71000</strong>
+                      <span>TP1</span><strong>1652.42000</strong>
+                      <span>TP2</span><strong>1670.13000</strong>
+                      <span>TP3</span><strong>1687.84000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>49.156</strong></span>
+                    <span>Chosen: <strong>1h</strong></span>
+                    <span>Horizon: <strong>swing</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.15491</strong>
+                      <span>TP1</span><strong>1.14996</strong>
+                      <span>TP2</span><strong>1.14816</strong>
+                      <span>TP3</span><strong>1.14635</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+
+            <section id='panel-4h' class='interval-panel '>
+              <h3>Interval: 4h</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-45.871</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>62169.19000</strong>
+                      <span>Stop Loss</span><strong>59510.78000</strong>
+                      <span>TP1</span><strong>64384.53000</strong>
+                      <span>TP2</span><strong>66156.81000</strong>
+                      <span>TP3</span><strong>67929.09000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement ok'>Agree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-24.203</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>No clear directional edge</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>558.80000</strong>
+                      <span>TP1</span><strong>609.13000</strong>
+                      <span>TP2</span><strong>627.43000</strong>
+                      <span>TP3</span><strong>645.73000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>-46.229</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1630.28000</strong>
+                      <span>Stop Loss</span><strong>1529.54000</strong>
+                      <span>TP1</span><strong>1714.23000</strong>
+                      <span>TP2</span><strong>1781.39000</strong>
+                      <span>TP3</span><strong>1848.55000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>49.134</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.15718</strong>
+                      <span>TP1</span><strong>1.14807</strong>
+                      <span>TP2</span><strong>1.14476</strong>
+                      <span>TP3</span><strong>1.14144</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+
+            <section id='panel-1d' class='interval-panel '>
+              <h3>Interval: 1d</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-pos' data-live-symbol='BTCUSD'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>47.129</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>61588.24000</strong>
+                      <span>Stop Loss</span><strong>69025.32000</strong>
+                      <span>TP1</span><strong>55390.68000</strong>
+                      <span>TP2</span><strong>50432.62000</strong>
+                      <span>TP3</span><strong>45474.57000</strong>
+                      <span>Exp Entry</span><strong>61588.24000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='BNBUSD'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>15.797</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>586.25000</strong>
+                      <span>Stop Loss</span><strong>688.34000</strong>
+                      <span>TP1</span><strong>501.18000</strong>
+                      <span>TP2</span><strong>433.12000</strong>
+                      <span>TP3</span><strong>365.06000</strong>
+                      <span>Exp Entry</span><strong>586.25000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='ETHUSD'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>46.771</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1596.66000</strong>
+                      <span>Stop Loss</span><strong>1871.52000</strong>
+                      <span>TP1</span><strong>1367.61000</strong>
+                      <span>TP2</span><strong>1184.37000</strong>
+                      <span>TP3</span><strong>1001.13000</strong>
+                      <span>Exp Entry</span><strong>1596.66000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-300' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='التغير في التوظيف الأسبوعي ADP' data-news-time-utc='2026-06-07T12:15:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>التغير في التوظيف الأسبوعي ADP</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>USD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>300m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T12:15:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>35.8K</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos' data-live-symbol='EURUSD'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>Disagree</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Official</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>Experimental</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>Delta: <strong>58.134</strong></span>
+                    <span>Chosen: <strong>1d</strong></span>
+                    <span>Horizon: <strong>long_term</strong></span>
+                    <span>Data Source: <strong>CACHE</strong></span>
+                    <span>Current Price: <strong class='current-price-value'>-</strong></span>
+                    <span>Price Updated: <strong class='current-price-updated'>-</strong></span>
+                    <span>Status: <strong class='status-pill stopped'>Stopped</strong></span>
+                    <span>Reason: <strong>Experimental model is waiting</strong></span>
+                    <span>Expires At: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>Trade Plan</h5>
+                    <div class='levels-grid'>
+                      <span>Entry</span><strong>1.15221</strong>
+                      <span>Stop Loss</span><strong>1.16645</strong>
+                      <span>TP1</span><strong>1.14034</strong>
+                      <span>TP2</span><strong>1.13085</strong>
+                      <span>TP3</span><strong>1.12135</strong>
+                      <span>Exp Entry</span><strong>1.15221</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='-210' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='بيان الفائدة الصادر عن بنك كندا' data-news-time-utc='2026-06-07T13:45:00+00:00'>
+                    <h5>Economic News</h5>
+                    <div class='news-row'><span>Event</span><strong>بيان الفائدة الصادر عن بنك كندا</strong></div>
+                    <div class='news-row'><span>Currency</span><strong>CAD</strong></div>
+                    <div class='news-row'><span>Impact</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>Time left</span><strong class='news-time-left'>210m ago</strong></div>
+                    <div class='news-row'><span>Time</span><strong>2026-06-07T13:45:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>Actual</span><strong>-</strong>
+                      <span>Forecast</span><strong>-</strong>
+                      <span>Previous</span><strong>-</strong>
+                      <span>Revision</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>Source: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+    </section>
+  </div>
+
+  <script>
+    const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+    const panels = Array.from(document.querySelectorAll('.interval-panel'));
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const target = document.getElementById(btn.dataset.target);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    // Live mode: auto-refresh page and alert when a new run_id is detected.
+    const currentRunId = document.body.dataset.runId || '';
+    const storageKey = 'shadow_last_run_id';
+    const refreshMs = 45000;
+    const newSignalAlert = 'New signal update detected';
+    const newsEnterAlert = 'Imminent economic event for this symbol';
+    const lang = document.documentElement.getAttribute('lang') || 'ar';
+    const knownRunId = localStorage.getItem(storageKey) || currentRunId;
+    localStorage.setItem(storageKey, knownRunId || currentRunId);
+
+    function formatMinutesText(minutes) {
+      if (!Number.isFinite(minutes)) return '-';
+      if (lang === 'en') {
+        if (minutes > 0) return 'in ' + minutes + 'm';
+        if (minutes < 0) return Math.abs(minutes) + 'm ago';
+        return 'now';
+      }
+      if (minutes > 0) return 'بعد ' + minutes + ' دقيقة';
+      if (minutes < 0) return 'منذ ' + Math.abs(minutes) + ' دقيقة';
+      return 'الآن';
+    }
+
+    function playImpactTone(impact) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+
+        let freq = 720;
+        let dur = 0.22;
+        if (impact === 'high') {
+          freq = 980;
+          dur = 0.35;
+        } else if (impact === 'medium') {
+          freq = 820;
+          dur = 0.28;
+        }
+
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+      } catch (e) {
+        // Ignore audio restrictions silently.
+      }
+    }
+
+    function updateLiveNewsCountdown() {
+      const cards = Array.from(document.querySelectorAll('.news-box[data-news-time-utc], .news-box[data-news-minutes]'));
+      const nowMs = Date.now();
+      cards.forEach(card => {
+        const leftEl = card.querySelector('.news-time-left');
+        if (!leftEl) return;
+
+        let mins = Number(card.dataset.newsMinutes || 'NaN');
+        const eventUtc = String(card.dataset.newsTimeUtc || '').trim();
+        if (eventUtc) {
+          const ms = Date.parse(eventUtc);
+          if (!Number.isNaN(ms)) {
+            mins = Math.floor((ms - nowMs) / 60000);
+          }
+        }
+
+        if (!Number.isFinite(mins)) return;
+        card.dataset.newsMinutes = String(mins);
+        leftEl.textContent = formatMinutesText(mins);
+
+        if (mins >= -15 && mins <= 30) {
+          card.classList.add('imminent');
+        } else {
+          card.classList.remove('imminent');
+        }
+      });
+    }
+
+    async function checkForNewRun() {
+      try {
+        const url = window.location.href.split('#')[0] + (window.location.search ? '&' : '?') + '_ts=' + Date.now();
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) return;
+        const text = await resp.text();
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        const remoteRunId = (doc.body && doc.body.dataset && doc.body.dataset.runId) ? doc.body.dataset.runId : '';
+        const lastKnown = localStorage.getItem(storageKey) || currentRunId;
+        if (remoteRunId && lastKnown && remoteRunId !== lastKnown) {
+          localStorage.setItem(storageKey, remoteRunId);
+          alert(newSignalAlert + '\nRun: ' + remoteRunId);
+          window.location.reload();
+        }
+      } catch (e) {
+        // Ignore transient network errors.
+      }
+    }
+
+    function formatLivePrice(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return '-';
+      return num.toFixed(5);
+    }
+
+    async function refreshLivePrices() {
+      if (!window.location.protocol.startsWith('http')) return;
+
+      const activePanel = document.querySelector('.interval-panel.active');
+      const cards = Array.from((activePanel || document).querySelectorAll('.signal-card[data-live-symbol]'));
+      if (!cards.length) return;
+
+      const symbols = Array.from(new Set(cards
+        .map(card => String(card.getAttribute('data-live-symbol') || '').trim().toUpperCase())
+        .filter(Boolean)));
+      if (!symbols.length) return;
+
+      try {
+        const params = new URLSearchParams();
+        params.set('symbols', symbols.join(','));
+        const resp = await fetch('/api/live-prices?' + params.toString(), { cache: 'no-store' });
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        if (!data || !data.success) return;
+
+        const bySymbol = new Map();
+        for (const row of (data.prices || [])) {
+          const key = String(row.symbol || '').trim().toUpperCase();
+          if (!key) continue;
+          bySymbol.set(key, row);
+        }
+
+        cards.forEach(card => {
+          const symbol = String(card.getAttribute('data-live-symbol') || '').trim().toUpperCase();
+          const priceNode = card.querySelector('.current-price-value');
+          const updatedNode = card.querySelector('.current-price-updated');
+          if (!priceNode || !updatedNode) return;
+
+          const row = bySymbol.get(symbol);
+          if (!row) {
+            return;
+          }
+
+          priceNode.textContent = formatLivePrice(row.current_price);
+          updatedNode.textContent = String(row.updated_at || '-');
+        });
+      } catch (e) {
+        // Ignore transient fetch errors.
+      }
+    }
+
+    setInterval(checkForNewRun, refreshMs);
+    setInterval(updateLiveNewsCountdown, 1000);
+    setInterval(refreshLivePrices, 15000);
+    updateLiveNewsCountdown();
+    refreshLivePrices();
+
+    // News proximity alert: notify when a card has an imminent event window.
+    function checkNewsImminentCards() {
+      try {
+        const cards = Array.from(document.querySelectorAll('.news-box.imminent[data-news-minutes][data-news-symbol]'));
+        const hits = [];
+        cards.forEach(card => {
+          const mins = Number(card.dataset.newsMinutes || '99999');
+          const symbol = String(card.dataset.newsSymbol || '').trim();
+          const impact = String(card.dataset.newsImpact || 'low').trim().toLowerCase();
+          const eventName = String(card.dataset.newsEvent || '').trim();
+          if (!symbol) return;
+          if (mins >= -15 && mins <= 30) hits.push({ symbol, mins, impact, eventName });
+        });
+        if (!hits.length) return;
+
+        const runId = document.body.dataset.runId || 'na';
+        const alertKey = 'shadow_news_alert_' + runId;
+        if (sessionStorage.getItem(alertKey)) return;
+
+        sessionStorage.setItem(alertKey, '1');
+        const strongest = hits.some(h => h.impact === 'high') ? 'high' : (hits.some(h => h.impact === 'medium') ? 'medium' : 'low');
+        playImpactTone(strongest);
+        const text = hits
+          .slice(0, 6)
+          .map(h => h.symbol + ' | ' + (h.eventName || '-') + ' | ' + (h.mins >= 0 ? '+' + h.mins : h.mins) + 'm')
+          .join(', ');
+        alert(newsEnterAlert + '\n' + text);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    checkNewsImminentCards();
+  </script>
+</body>
+</html>

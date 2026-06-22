@@ -1,0 +1,5153 @@
+{
+  "generated_at": "2026-06-05 12:56:24 UTC",
+  "source_symbols": "recommendations_engine.ALL_AVAILABLE_PAIRS",
+  "matrix": {
+    "generated_at": "2026-06-05 12:56:24 UTC",
+    "provider_order": [
+      "forex_analyzer",
+      "oanda",
+      "yfinance"
+    ],
+    "symbols_count": 45,
+    "intervals": [
+      "15m",
+      "1d",
+      "1h",
+      "30m",
+      "4h",
+      "5m"
+    ],
+    "rows": [
+      {
+        "symbol": "ADAUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ADAUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ADAUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ADAUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ADAUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ADAUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ASX200",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDJPY",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "AUDUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BNBUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BRENTUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "CAC40",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "DAX",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US30",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "ETHUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURAUD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURCHF",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURGBP",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURJPY",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "EURUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "FTSE",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GASOLINE",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPAUD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPCAD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPJPY",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "GBPUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HANGSENG",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "HEATING",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "IBEX",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "KOSPI",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NAS100",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NATURALGAS",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NIKKEI",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "NZDUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US2000",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SHANGHAI",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "SOLUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "US500",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "STOXX50",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCAD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDCHF",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "USDJPY",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": true,
+            "ready": false,
+            "reason": "requires OANDA_API_TOKEN"
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "VIX",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": false,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "WTIUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAGUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XAUUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPDUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XPTUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "15m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "1d",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "1h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "30m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "4h",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      },
+      {
+        "symbol": "XRPUSD",
+        "interval": "5m",
+        "providers": {
+          "forex_analyzer": {
+            "supported": true,
+            "ready": true
+          },
+          "oanda": {
+            "supported": false,
+            "ready": false,
+            "reason": null
+          },
+          "yfinance": {
+            "supported": true,
+            "ready": true
+          }
+        }
+      }
+    ]
+  }
+}

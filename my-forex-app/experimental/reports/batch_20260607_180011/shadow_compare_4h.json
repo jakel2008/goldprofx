@@ -1,0 +1,2845 @@
+{
+  "generated_at": "2026-06-07 18:00:37 UTC",
+  "total_symbols": 45,
+  "success_symbols": 22,
+  "failed_symbols": 23,
+  "agreement_count": 1,
+  "agreement_rate_pct": 4.55,
+  "avg_direction_delta": -0.627,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 80,
+    "calendar_errors": []
+  },
+  "results": [
+    {
+      "success": false,
+      "symbol": "ADAUSD",
+      "error": "Official engine failed: Unsupported symbol 'ADAUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'ADAUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'ADAUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "ASX200",
+      "error": "Official engine failed: Unsupported symbol 'ASX200'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'ASX200'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'ASX200'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDJPY",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 19.0,
+        "sell_score": 66.0,
+        "score_gap": -47.0,
+        "confidence": "مرتفعة",
+        "entry_point": 112.876,
+        "stop_loss": 113.48666,
+        "take_profit_1": 112.36711,
+        "take_profit_2": 111.96001,
+        "take_profit_3": 111.5529,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -14.092,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 112.876,
+        "component_scores": {
+          "indicators": -34.037,
+          "candles": -9.151,
+          "channel": -12.168,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -11.245,
+          "news": 0.0,
+          "raw": -14.092,
+          "total": -14.092
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 32.908,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 9.0,
+        "sell_score": 76.0,
+        "score_gap": -67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.70416,
+        "stop_loss": 0.70842,
+        "take_profit_1": 0.70061,
+        "take_profit_2": 0.69777,
+        "take_profit_3": 0.69493,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -15.822,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 0.70416,
+        "component_scores": {
+          "indicators": -21.676,
+          "candles": -27.173,
+          "channel": -14.462,
+          "breakout": 0.0,
+          "fibonacci": -11.587,
+          "sessions": -3.675,
+          "news": 0.0,
+          "raw": -15.822,
+          "total": -15.822
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 51.178,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BNBUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "انتظار",
+        "normalized_recommendation": "wait",
+        "buy_score": 48.0,
+        "sell_score": 42.0,
+        "score_gap": 6.0,
+        "confidence": "متوسطة",
+        "entry_point": 586.25,
+        "stop_loss": 558.8,
+        "take_profit_1": 609.13,
+        "take_profit_2": 627.43,
+        "take_profit_3": 645.73,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.203,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 586.25,
+        "component_scores": {
+          "indicators": -39.466,
+          "candles": -30.0,
+          "channel": -10.064,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 0.592,
+          "news": 0.0,
+          "raw": -18.203,
+          "total": -18.203
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": true,
+        "direction_delta": -24.203,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "BRENTUSD",
+      "error": "Official engine failed: Unsupported symbol 'BRENTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'BRENTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'BRENTUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BTCUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 58.0,
+        "sell_score": 32.0,
+        "score_gap": 26.0,
+        "confidence": "جيدة",
+        "entry_point": 62123.37,
+        "stop_loss": 59464.96,
+        "take_profit_1": 64338.71,
+        "take_profit_2": 66110.99,
+        "take_profit_3": 67883.27,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.691,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 62123.37,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -11.09,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 1.045,
+          "news": 0.0,
+          "raw": -19.691,
+          "total": -19.691
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -346,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف الأسبوعي ADP",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-07T12:15:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "35.8K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -45.691,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "CAC40",
+      "error": "Official engine failed: Unsupported symbol 'CAC40'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'CAC40'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'CAC40'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "DAX",
+      "error": "Official engine failed: Unsupported symbol 'DAX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'DAX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'DAX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "DOW30",
+      "error": "Official engine failed: Unsupported symbol 'DOW30'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'DOW30'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'DOW30'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "ETHUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 58.0,
+        "sell_score": 32.0,
+        "score_gap": 26.0,
+        "confidence": "جيدة",
+        "entry_point": 1630.55,
+        "stop_loss": 1529.1,
+        "take_profit_1": 1715.09,
+        "take_profit_2": 1782.73,
+        "take_profit_3": 1850.36,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.522,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1630.55,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -10.688,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 2.352,
+          "news": 0.0,
+          "raw": -19.522,
+          "total": -19.522
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -346,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف الأسبوعي ADP",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-07T12:15:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "35.8K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -45.522,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURAUD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 19.0,
+        "score_gap": 47.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.63574,
+        "stop_loss": 1.62943,
+        "take_profit_1": 1.641,
+        "take_profit_2": 1.64521,
+        "take_profit_3": 1.64941,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 17.327,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.63574,
+        "component_scores": {
+          "indicators": 32.721,
+          "candles": 26.687,
+          "channel": 12.947,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 10.832,
+          "news": 0.0,
+          "raw": 17.327,
+          "total": 17.327
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -29.673,
+        "same_interval": true,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURCHF",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 74.0,
+        "sell_score": 16.0,
+        "score_gap": 58.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.91756,
+        "stop_loss": 0.91513,
+        "take_profit_1": 0.91958,
+        "take_profit_2": 0.9212,
+        "take_profit_3": 0.92282,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 11.1,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 0.91756,
+        "component_scores": {
+          "indicators": 7.469,
+          "candles": 30.0,
+          "channel": 10.222,
+          "breakout": 0.0,
+          "fibonacci": 8.709,
+          "sessions": 0.544,
+          "news": 0.0,
+          "raw": 11.1,
+          "total": 11.1
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -46.9,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURGBP",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 90.0,
+        "score_gap": -90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.86356,
+        "stop_loss": 0.86532,
+        "take_profit_1": 0.86209,
+        "take_profit_2": 0.86092,
+        "take_profit_3": 0.85975,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -12.005,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 0.86356,
+        "component_scores": {
+          "indicators": -15.428,
+          "candles": -30.0,
+          "channel": -10.134,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -2.182,
+          "news": 0.0,
+          "raw": -12.005,
+          "total": -12.005
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 77.995,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURJPY",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 48.0,
+        "score_gap": -20.0,
+        "confidence": "جيدة",
+        "entry_point": 184.65,
+        "stop_loss": 185.31759,
+        "take_profit_1": 184.09367,
+        "take_profit_2": 183.64861,
+        "take_profit_3": 183.20355,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -12.776,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 184.65,
+        "component_scores": {
+          "indicators": -33.976,
+          "candles": -2.579,
+          "channel": -12.252,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -11.267,
+          "news": 0.0,
+          "raw": -12.776,
+          "total": -12.776
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 7.224,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 9.0,
+        "sell_score": 76.0,
+        "score_gap": -67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.15221,
+        "stop_loss": 1.15718,
+        "take_profit_1": 1.14807,
+        "take_profit_2": 1.14476,
+        "take_profit_3": 1.14144,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.866,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1.15221,
+        "component_scores": {
+          "indicators": -31.801,
+          "candles": -30.0,
+          "channel": -14.411,
+          "breakout": 0.0,
+          "fibonacci": -3.805,
+          "sessions": -3.655,
+          "news": 0.0,
+          "raw": -17.866,
+          "total": -17.866
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 49.134,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "FTSE",
+      "error": "Official engine failed: Unsupported symbol 'FTSE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'FTSE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'FTSE'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "GASOLINE",
+      "error": "Official engine failed: Unsupported symbol 'GASOLINE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'GASOLINE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'GASOLINE'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPAUD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 76.0,
+        "sell_score": 9.0,
+        "score_gap": 67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.89375,
+        "stop_loss": 1.88675,
+        "take_profit_1": 1.89958,
+        "take_profit_2": 1.90425,
+        "take_profit_3": 1.90891,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 18.844,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.89375,
+        "component_scores": {
+          "indicators": 35.014,
+          "candles": 30.0,
+          "channel": 14.0,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 11.504,
+          "news": 0.0,
+          "raw": 18.844,
+          "total": 18.844
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -48.156,
+        "same_interval": true,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPCAD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 62.0,
+        "score_gap": -34.0,
+        "confidence": "جيدة",
+        "entry_point": 1.85955,
+        "stop_loss": 1.86525,
+        "take_profit_1": 1.8548,
+        "take_profit_2": 1.851,
+        "take_profit_3": 1.8472,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -14.269,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 1.85955,
+        "component_scores": {
+          "indicators": -20.099,
+          "candles": -30.0,
+          "channel": -10.6,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -11.466,
+          "news": 0.0,
+          "raw": -14.269,
+          "total": -14.269
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 19.731,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPJPY",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 28.0,
+        "sell_score": 62.0,
+        "score_gap": -34.0,
+        "confidence": "جيدة",
+        "entry_point": 213.84,
+        "stop_loss": 214.73085,
+        "take_profit_1": 213.09763,
+        "take_profit_2": 212.50373,
+        "take_profit_3": 211.90983,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -17.977,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 213.84,
+        "component_scores": {
+          "indicators": -34.247,
+          "candles": -30.0,
+          "channel": -10.341,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -10.758,
+          "news": 0.0,
+          "raw": -17.977,
+          "total": -17.977
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 16.023,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 10.0,
+        "sell_score": 80.0,
+        "score_gap": -70.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.33398,
+        "stop_loss": 1.3403,
+        "take_profit_1": 1.32871,
+        "take_profit_2": 1.3245,
+        "take_profit_3": 1.32028,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -18.012,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": false,
+        "entry_price": 1.33398,
+        "component_scores": {
+          "indicators": -32.524,
+          "candles": -30.0,
+          "channel": -13.021,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -11.472,
+          "news": 0.0,
+          "raw": -18.012,
+          "total": -18.012
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 51.988,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "HANGSENG",
+      "error": "Official engine failed: Unsupported symbol 'HANGSENG'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'HANGSENG'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'HANGSENG'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "HEATING",
+      "error": "Official engine failed: Unsupported symbol 'HEATING'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'HEATING'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'HEATING'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "IBEX",
+      "error": "Official engine failed: Unsupported symbol 'IBEX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'IBEX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'IBEX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "KOSPI",
+      "error": "Official engine failed: Unsupported symbol 'KOSPI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'KOSPI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'KOSPI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NASDAQ",
+      "error": "Official engine failed: Unsupported symbol 'NASDAQ'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NASDAQ'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NASDAQ'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NATURALGAS",
+      "error": "Official engine failed: Unsupported symbol 'NATURALGAS'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NATURALGAS'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NATURALGAS'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NIKKEI",
+      "error": "Official engine failed: Unsupported symbol 'NIKKEI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NIKKEI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NIKKEI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NZDUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 9.0,
+        "sell_score": 76.0,
+        "score_gap": -67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.57959,
+        "stop_loss": 0.58355,
+        "take_profit_1": 0.57629,
+        "take_profit_2": 0.57364,
+        "take_profit_3": 0.571,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -16.232,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 0.57959,
+        "component_scores": {
+          "indicators": -20.348,
+          "candles": -30.0,
+          "channel": -14.001,
+          "breakout": 0.0,
+          "fibonacci": -13.472,
+          "sessions": -3.427,
+          "news": 0.0,
+          "raw": -16.232,
+          "total": -16.232
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 50.768,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "RUSSELL",
+      "error": "Official engine failed: Unsupported symbol 'RUSSELL'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'RUSSELL'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'RUSSELL'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "SHANGHAI",
+      "error": "Official engine failed: Unsupported symbol 'SHANGHAI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'SHANGHAI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'SHANGHAI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "SOLUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 30.0,
+        "sell_score": 60.0,
+        "score_gap": -30.0,
+        "confidence": "جيدة",
+        "entry_point": 63.606,
+        "stop_loss": 68.357,
+        "take_profit_1": 59.647,
+        "take_profit_2": 56.479,
+        "take_profit_3": 53.311,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.868,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 63.606,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -11.82,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 0.284,
+          "news": 0.0,
+          "raw": -19.868,
+          "total": -19.868
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 10.132,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "SPX500",
+      "error": "Official engine failed: Unsupported symbol 'SPX500'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'SPX500'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'SPX500'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "STOXX50",
+      "error": "Official engine failed: Unsupported symbol 'STOXX50'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'STOXX50'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'STOXX50'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCAD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 10.0,
+        "score_gap": 56.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.39414,
+        "stop_loss": 1.38941,
+        "take_profit_1": 1.39808,
+        "take_profit_2": 1.40123,
+        "take_profit_3": 1.40438,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 18.413,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1.39414,
+        "component_scores": {
+          "indicators": 36.309,
+          "candles": 30.0,
+          "channel": 14.315,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 3.189,
+          "news": 0.0,
+          "raw": 18.413,
+          "total": 18.413
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -37.587,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCHF",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 76.0,
+        "sell_score": 0.0,
+        "score_gap": 76.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.79611,
+        "stop_loss": 0.7916,
+        "take_profit_1": 0.79987,
+        "take_profit_2": 0.80287,
+        "take_profit_3": 0.80588,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 21.685,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": false,
+        "entry_price": 0.79611,
+        "component_scores": {
+          "indicators": 0.037,
+          "candles": 30.0,
+          "channel": -2.763,
+          "breakout": 134.763,
+          "fibonacci": 0.905,
+          "sessions": 11.482,
+          "news": 0.0,
+          "raw": 21.685,
+          "total": 21.685
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -54.315,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDJPY",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 90.0,
+        "sell_score": 0.0,
+        "score_gap": 90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 160.308,
+        "stop_loss": 159.86181,
+        "take_profit_1": 160.67983,
+        "take_profit_2": 160.97729,
+        "take_profit_3": 161.27475,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 18.912,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 160.308,
+        "component_scores": {
+          "indicators": 35.312,
+          "candles": 30.0,
+          "channel": 14.819,
+          "breakout": 5.893,
+          "fibonacci": 0.0,
+          "sessions": 3.59,
+          "news": 0.0,
+          "raw": 18.912,
+          "total": 18.912
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -71.088,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "VIX",
+      "error": "Official engine failed: Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "WTIUSD",
+      "error": "Official engine failed: Unsupported symbol 'WTIUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'WTIUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'WTIUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAGUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 9.0,
+        "sell_score": 76.0,
+        "score_gap": -67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 67.808,
+        "stop_loss": 70.671,
+        "take_profit_1": 65.422,
+        "take_profit_2": 63.514,
+        "take_profit_3": 61.606,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -20.91,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 67.808,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -14.652,
+          "breakout": 0.0,
+          "fibonacci": -2.266,
+          "sessions": -3.676,
+          "news": 0.0,
+          "raw": -20.91,
+          "total": -20.91
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 46.09,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAUUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 10.0,
+        "sell_score": 66.0,
+        "score_gap": -56.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4328.48,
+        "stop_loss": 4413.84,
+        "take_profit_1": 4257.35,
+        "take_profit_2": 4200.44,
+        "take_profit_3": 4143.53,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -20.479,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 4328.48,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.903,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -3.178,
+          "news": 0.0,
+          "raw": -20.479,
+          "total": -20.479
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 35.521,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    },
+    {
+      "success": false,
+      "symbol": "XPDUSD",
+      "error": "Official engine failed: Unsupported symbol 'XPDUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'XPDUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'XPDUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "XPTUSD",
+      "error": "Official engine failed: Unsupported symbol 'XPTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'XPTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'XPTUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XRPUSD",
+      "interval_requested": "4h",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 58.0,
+        "sell_score": 18.0,
+        "score_gap": 40.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.1352,
+        "stop_loss": 1.065,
+        "take_profit_1": 1.1937,
+        "take_profit_2": 1.2406,
+        "take_profit_3": 1.2874,
+        "market_data_source": "MT5",
+        "market_data_errors": []
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -19.358,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": false,
+        "entry_price": 1.1352,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -9.291,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": 1.601,
+          "news": 0.0,
+          "raw": -19.358,
+          "total": -19.358
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -256,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 0.0
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "بيان الفائدة الصادر عن بنك كندا",
+          "event_currencies": [
+            "CAD"
+          ],
+          "event_time_utc": "2026-06-07T13:45:00+00:00",
+          "actual": "",
+          "forecast": "",
+          "previous": "",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -59.358,
+        "same_interval": false,
+        "market_data_source": "MT5"
+      }
+    }
+  ]
+}

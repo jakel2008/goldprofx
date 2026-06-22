@@ -1,0 +1,2805 @@
+
+<!doctype html>
+<html lang='ar' dir='rtl'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>لوحة إشارات الشادو</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #15202b;
+      --muted: #52606d;
+      --line: #d9e2ec;
+      --buy: #0f9d58;
+      --sell: #d93025;
+      --wait: #f9ab00;
+      --accent: #0b57d0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Tahoma, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, #f7f9fc 60%, #ffffff 100%);
+      color: var(--ink);
+    }
+    .container { max-width: 1240px; margin: 0 auto; padding: 20px; }
+    .header { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .tab-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .interval-panel { display: none; margin-top: 12px; }
+    .interval-panel.active { display: block; }
+    .badge { display: inline-block; min-width: 56px; text-align: center; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
+    .badge.buy { background: var(--buy); }
+    .badge.sell { background: var(--sell); }
+    .badge.wait { background: var(--wait); color: #202124; }
+    .status-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 12px; }
+    .status-pill.active { background: #1f7a1f; }
+    .status-pill.stopped { background: #b42318; }
+    .status-pill.expired { background: #7a4f01; }
+    .signal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+    .signal-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+    }
+    .signal-card.failed { border-color: #f4b4b1; background: #fff6f6; }
+    .signal-card.empty { color: var(--muted); text-align: center; padding: 18px 10px; }
+    .signal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .signal-head h4 { margin: 0; font-size: 16px; }
+    .head-badges { display: flex; gap: 6px; align-items: center; }
+    .signal-pair { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+    .signal-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin-top: 8px; color: var(--muted); }
+    .signal-levels { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+    .signal-levels h5 { margin: 0 0 6px; font-size: 12px; color: #334155; letter-spacing: 0.3px; text-transform: uppercase; }
+    .levels-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 4px;
+      column-gap: 8px;
+      font-size: 12px;
+      color: #334155;
+    }
+    .levels-grid strong { color: #0f172a; font-weight: 700; }
+    .news-box {
+      margin-top: 10px;
+      border: 1px solid #dbe7ff;
+      background: #f7fbff;
+      border-radius: 10px;
+      padding: 8px;
+    }
+    .news-box.empty { color: var(--muted); text-align: center; background: #f8fafc; border-color: #e5e7eb; }
+    .news-box.imminent { border-color: #ef4444; background: #fff1f2; box-shadow: 0 0 0 1px #fecdd3 inset; }
+    .news-box h5 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .news-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin: 2px 0; }
+    .news-grid {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 3px;
+      column-gap: 8px;
+      font-size: 12px;
+    }
+    .impact-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #fff;
+    }
+    .impact-pill.impact-high { background: #b42318; }
+    .impact-pill.impact-medium { background: #b26a00; }
+    .impact-pill.impact-low { background: #475467; }
+    .news-source { margin: 7px 0 0; font-size: 11px; color: #475467; }
+    .agreement { font-size: 12px; border-radius: 999px; padding: 2px 8px; }
+    .agreement.ok { background: #e9f7ee; color: #0f9d58; }
+    .agreement.no { background: #fdecec; color: #d93025; }
+    .strength { font-size: 12px; border-radius: 999px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .strength.weak { background: #eef2f6; color: #3b4a5a; }
+    .strength.medium { background: #fff4e5; color: #b26a00; }
+    .strength.strong { background: #fdecec; color: #b42318; }
+    .error { margin: 6px 0 0; color: #b42318; font-size: 13px; }
+    .delta-pos { background: #f1fbf4; }
+    .delta-neg { background: #fff5f5; }
+    .delta-zero { background: #fffdf2; }
+    ul { margin: 8px 0 0 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-run-id='20260605_132657'>
+  <div class='container'>
+    <section class='header'>
+      <h1>لوحة إشارات الشادو</h1>
+      <p class='meta'>التشغيل: 20260605_132657 | تم التوليد: 2026-06-05 13:27:59 UTC</p>
+      <p class='meta'>الرموز: ADAUSD, ASX200, AUDJPY, AUDUSD, BNBUSD, BRENTUSD, BTCUSD, CAC40, DAX, DOW30, ETHUSD, EURAUD, EURCHF, EURGBP, EURJPY, EURUSD, FTSE, GASOLINE, GBPAUD, GBPCAD, GBPJPY, GBPUSD, HANGSENG, HEATING, IBEX, KOSPI, NASDAQ, NATURALGAS, NIKKEI, NZDUSD, RUSSELL, SHANGHAI, SOLUSD, SPX500, STOXX50, USDCAD, USDCHF, USDJPY, VIX, WTIUSD, XAGUSD, XAUUSD, XPDUSD, XPTUSD, XRPUSD | الفريمات: 1h</p>
+      <div class='cards'>
+        
+            <div class='card'>
+              <h3>1h</h3>
+              <p>ناجح: 44</p>
+              <p>نسبة التطابق: 2.27%</p>
+              <p>متوسط الفارق: 0.853</p>
+            </div>
+            
+      </div>
+    </section>
+
+    <section class='grid'>
+      <article class='panel'>
+        <h3>أفضل الفريمات</h3>
+        <ul><li>15m: agreement=9.66% delta=3.433</li><li>5m: agreement=6.82% delta=17.412</li><li>30m: agreement=5.12% delta=1.699</li></ul>
+      </article>
+      <article class='panel'>
+        <h3>أضعف الفريمات</h3>
+        <ul><li>1h: agreement=2.12% delta=-29.196</li><li>4h: agreement=2.38% delta=-33.337</li><li>1d: agreement=2.89% delta=29.515</li></ul>
+      </article>
+      <article class='panel'>
+        <h3>الملخص الأسبوعي</h3>
+        <ul>
+          <li>عدد مرات التشغيل: 85</li>
+          <li>متوسط التطابق: 3.72%</li>
+          <li>متوسط الفارق: -12.256</li>
+          <li>التنبيهات: 3</li>
+        </ul>
+      </article>
+      <article class='panel'>
+        <h3>التنبيهات</h3>
+        <ul><li>متوسط التطابق الأسبوعي 3.72% أقل من العتبة 25.0%.</li><li>تنبيه انخفاض التطابق تكرر عبر 6 فريم/فريمات: 15m, 1d, 1h, 30m, 4h, 5m (الأدنى=2.12%، العتبة=25.0%).</li><li>تنبيه انخفاض التطابق اليومي تكرر خلال 1 يوم/أيام من 2026-06-05 إلى 2026-06-05 (الأدنى=3.72%، العتبة=25.0%).</li></ul>
+      </article>
+    </section>
+
+    <section class='panel'>
+      <h2>تفاصيل الإشارات</h2>
+      <div class='tab-nav'>
+        <button class='tab-btn active' data-target='panel-1h'>1h</button>
+      </div>
+      
+            <section id='panel-1h' class='interval-panel active'>
+              <h3>الفريم: 1h</h3>
+              <div class='signal-grid'>
+                
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>ADAUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-11.531</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.16410</strong>
+                      <span>وقف الخسارة</span><strong>0.17255</strong>
+                      <span>هدف 1</span><strong>0.15706</strong>
+                      <span>هدف 2</span><strong>0.15143</strong>
+                      <span>هدف 3</span><strong>0.14580</strong>
+                      <span>دخول التجريبي</span><strong>0.16420</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='ADAUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>ASX200</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>14.844</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>8625.09961</strong>
+                      <span>وقف الخسارة</span><strong>8667.25302</strong>
+                      <span>هدف 1</span><strong>8589.97177</strong>
+                      <span>هدف 2</span><strong>8561.86950</strong>
+                      <span>هدف 3</span><strong>8533.76723</strong>
+                      <span>دخول التجريبي</span><strong>8625.09961</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='ASX200' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>AUDJPY</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>71.351</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>113.71000</strong>
+                      <span>وقف الخسارة</span><strong>113.99581</strong>
+                      <span>هدف 1</span><strong>113.47182</strong>
+                      <span>هدف 2</span><strong>113.28128</strong>
+                      <span>هدف 3</span><strong>113.09074</strong>
+                      <span>دخول التجريبي</span><strong>113.71400</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='AUDJPY' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>AUDUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-61.535</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.71418</strong>
+                      <span>وقف الخسارة</span><strong>0.71289</strong>
+                      <span>هدف 1</span><strong>0.71525</strong>
+                      <span>هدف 2</span><strong>0.71611</strong>
+                      <span>هدف 3</span><strong>0.71697</strong>
+                      <span>دخول التجريبي</span><strong>0.71068</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='AUDUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>BNBUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>9.345</strong></span>
+                    <span>الفريم المختار: <strong>4h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>592.34000</strong>
+                      <span>وقف الخسارة</span><strong>607.17000</strong>
+                      <span>هدف 1</span><strong>579.98000</strong>
+                      <span>هدف 2</span><strong>570.09000</strong>
+                      <span>هدف 3</span><strong>560.21000</strong>
+                      <span>دخول التجريبي</span><strong>592.34000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='BNBUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>BRENTUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>80.697</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>94.21000</strong>
+                      <span>وقف الخسارة</span><strong>95.23069</strong>
+                      <span>هدف 1</span><strong>93.35943</strong>
+                      <span>هدف 2</span><strong>92.67897</strong>
+                      <span>هدف 3</span><strong>91.99851</strong>
+                      <span>دخول التجريبي</span><strong>94.21000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='BRENTUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>BTCUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>26.526</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>62311.47000</strong>
+                      <span>وقف الخسارة</span><strong>63548.11000</strong>
+                      <span>هدف 1</span><strong>61280.93000</strong>
+                      <span>هدف 2</span><strong>60456.51000</strong>
+                      <span>هدف 3</span><strong>59632.08000</strong>
+                      <span>دخول التجريبي</span><strong>62304.87000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='BTCUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>CAC40</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-74.552</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>8281.13965</strong>
+                      <span>وقف الخسارة</span><strong>8237.74627</strong>
+                      <span>هدف 1</span><strong>8317.30080</strong>
+                      <span>هدف 2</span><strong>8346.22971</strong>
+                      <span>هدف 3</span><strong>8375.15863</strong>
+                      <span>دخول التجريبي</span><strong>8281.13965</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='CAC40' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>DAX</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-55.904</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>24950.53906</strong>
+                      <span>وقف الخسارة</span><strong>24817.76299</strong>
+                      <span>هدف 1</span><strong>25061.18578</strong>
+                      <span>هدف 2</span><strong>25149.70316</strong>
+                      <span>هدف 3</span><strong>25238.22054</strong>
+                      <span>دخول التجريبي</span><strong>24949.39062</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='DAX' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>DOW30</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-34.459</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>51561.93000</strong>
+                      <span>وقف الخسارة</span><strong>51314.59000</strong>
+                      <span>هدف 1</span><strong>51768.05000</strong>
+                      <span>هدف 2</span><strong>51932.94000</strong>
+                      <span>هدف 3</span><strong>52097.83000</strong>
+                      <span>دخول التجريبي</span><strong>51561.93000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='DOW30' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>ETHUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>58.467</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1675.71000</strong>
+                      <span>وقف الخسارة</span><strong>1715.75000</strong>
+                      <span>هدف 1</span><strong>1642.35000</strong>
+                      <span>هدف 2</span><strong>1615.66000</strong>
+                      <span>هدف 3</span><strong>1588.96000</strong>
+                      <span>دخول التجريبي</span><strong>1672.70000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='ETHUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>EURAUD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-74.938</strong></span>
+                    <span>الفريم المختار: <strong>4h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.63210</strong>
+                      <span>وقف الخسارة</span><strong>1.62872</strong>
+                      <span>هدف 1</span><strong>1.63491</strong>
+                      <span>هدف 2</span><strong>1.63717</strong>
+                      <span>هدف 3</span><strong>1.63942</strong>
+                      <span>دخول التجريبي</span><strong>1.63210</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='EURAUD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>EURCHF</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-24.930</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.91870</strong>
+                      <span>وقف الخسارة</span><strong>0.91700</strong>
+                      <span>هدف 1</span><strong>0.92012</strong>
+                      <span>هدف 2</span><strong>0.92126</strong>
+                      <span>هدف 3</span><strong>0.92239</strong>
+                      <span>دخول التجريبي</span><strong>0.91870</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='EURCHF' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>EURGBP</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>26.318</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.86388</strong>
+                      <span>وقف الخسارة</span><strong>0.86543</strong>
+                      <span>هدف 1</span><strong>0.86258</strong>
+                      <span>هدف 2</span><strong>0.86155</strong>
+                      <span>هدف 3</span><strong>0.86051</strong>
+                      <span>دخول التجريبي</span><strong>0.86388</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='EURGBP' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>EURJPY</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-99.329</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>186.08800</strong>
+                      <span>وقف الخسارة</span><strong>185.75304</strong>
+                      <span>هدف 1</span><strong>186.36713</strong>
+                      <span>هدف 2</span><strong>186.59044</strong>
+                      <span>هدف 3</span><strong>186.81374</strong>
+                      <span>دخول التجريبي</span><strong>185.58701</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='EURJPY' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>EURUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-74.286</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.16442</strong>
+                      <span>وقف الخسارة</span><strong>1.16232</strong>
+                      <span>هدف 1</span><strong>1.16617</strong>
+                      <span>هدف 2</span><strong>1.16756</strong>
+                      <span>هدف 3</span><strong>1.16896</strong>
+                      <span>دخول التجريبي</span><strong>1.15982</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='EURUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>FTSE</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-39.606</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>10413.13965</strong>
+                      <span>وقف الخسارة</span><strong>10362.15085</strong>
+                      <span>هدف 1</span><strong>10455.63032</strong>
+                      <span>هدف 2</span><strong>10489.62285</strong>
+                      <span>هدف 3</span><strong>10523.61538</strong>
+                      <span>دخول التجريبي</span><strong>10413.13965</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='FTSE' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>GASOLINE</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>49.032</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>2.97950</strong>
+                      <span>وقف الخسارة</span><strong>3.01842</strong>
+                      <span>هدف 1</span><strong>2.94706</strong>
+                      <span>هدف 2</span><strong>2.92112</strong>
+                      <span>هدف 3</span><strong>2.89517</strong>
+                      <span>دخول التجريبي</span><strong>2.97950</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='GASOLINE' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>GBPAUD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-74.544</strong></span>
+                    <span>الفريم المختار: <strong>4h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.88827</strong>
+                      <span>وقف الخسارة</span><strong>1.88467</strong>
+                      <span>هدف 1</span><strong>1.89127</strong>
+                      <span>هدف 2</span><strong>1.89367</strong>
+                      <span>هدف 3</span><strong>1.89607</strong>
+                      <span>دخول التجريبي</span><strong>1.88821</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='GBPAUD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>GBPCAD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>22.873</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.86227</strong>
+                      <span>وقف الخسارة</span><strong>1.86562</strong>
+                      <span>هدف 1</span><strong>1.85948</strong>
+                      <span>هدف 2</span><strong>1.85724</strong>
+                      <span>هدف 3</span><strong>1.85501</strong>
+                      <span>دخول التجريبي</span><strong>1.86227</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='GBPCAD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>GBPJPY</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-41.207</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>215.39200</strong>
+                      <span>وقف الخسارة</span><strong>215.00429</strong>
+                      <span>هدف 1</span><strong>215.71509</strong>
+                      <span>هدف 2</span><strong>215.97356</strong>
+                      <span>هدف 3</span><strong>216.23203</strong>
+                      <span>دخول التجريبي</span><strong>215.39200</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='GBPJPY' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>GBPUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-42.502</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.34722</strong>
+                      <span>وقف الخسارة</span><strong>1.34480</strong>
+                      <span>هدف 1</span><strong>1.34924</strong>
+                      <span>هدف 2</span><strong>1.35086</strong>
+                      <span>هدف 3</span><strong>1.35247</strong>
+                      <span>دخول التجريبي</span><strong>1.34722</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='GBPUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>HANGSENG</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>61.901</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>24961.94922</strong>
+                      <span>وقف الخسارة</span><strong>25111.23717</strong>
+                      <span>هدف 1</span><strong>24837.54259</strong>
+                      <span>هدف 2</span><strong>24738.01729</strong>
+                      <span>هدف 3</span><strong>24638.49199</strong>
+                      <span>دخول التجريبي</span><strong>24961.94922</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='HANGSENG' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>HEATING</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>51.045</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>3.64620</strong>
+                      <span>وقف الخسارة</span><strong>3.68785</strong>
+                      <span>هدف 1</span><strong>3.61149</strong>
+                      <span>هدف 2</span><strong>3.58372</strong>
+                      <span>هدف 3</span><strong>3.55595</strong>
+                      <span>دخول التجريبي</span><strong>3.64620</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='HEATING' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>IBEX</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-74.458</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>18470.69922</strong>
+                      <span>وقف الخسارة</span><strong>18366.95944</strong>
+                      <span>هدف 1</span><strong>18557.14904</strong>
+                      <span>هدف 2</span><strong>18626.30889</strong>
+                      <span>هدف 3</span><strong>18695.46875</strong>
+                      <span>دخول التجريبي</span><strong>18470.69922</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='IBEX' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>KOSPI</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>5.996</strong></span>
+                    <span>الفريم المختار: <strong>30m</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>8181.85986</strong>
+                      <span>وقف الخسارة</span><strong>8431.25909</strong>
+                      <span>هدف 1</span><strong>7974.02717</strong>
+                      <span>هدف 2</span><strong>7807.76101</strong>
+                      <span>هدف 3</span><strong>7641.49486</strong>
+                      <span>دخول التجريبي</span><strong>8181.85986</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='KOSPI' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>NASDAQ</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength weak'>weak</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>0.322</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>26830.96000</strong>
+                      <span>وقف الخسارة</span><strong>26987.78000</strong>
+                      <span>هدف 1</span><strong>26700.28000</strong>
+                      <span>هدف 2</span><strong>26595.73000</strong>
+                      <span>هدف 3</span><strong>26491.18000</strong>
+                      <span>دخول التجريبي</span><strong>26830.96000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='NASDAQ' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>NATURALGAS</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>47.669</strong></span>
+                    <span>الفريم المختار: <strong>30m</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>3.28600</strong>
+                      <span>وقف الخسارة</span><strong>3.31776</strong>
+                      <span>هدف 1</span><strong>3.25954</strong>
+                      <span>هدف 2</span><strong>3.23836</strong>
+                      <span>هدف 3</span><strong>3.21719</strong>
+                      <span>دخول التجريبي</span><strong>3.28600</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='NATURALGAS' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>NIKKEI</h4>
+                    <div class='head-badges'>
+                      <span class='agreement ok'>متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>22.215</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>66611.74219</strong>
+                      <span>وقف الخسارة</span><strong>65897.51813</strong>
+                      <span>هدف 1</span><strong>67206.92891</strong>
+                      <span>هدف 2</span><strong>67683.07828</strong>
+                      <span>هدف 3</span><strong>68159.22766</strong>
+                      <span>دخول التجريبي</span><strong>66588.11719</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='NIKKEI' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>NZDUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-61.177</strong></span>
+                    <span>الفريم المختار: <strong>30m</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.58803</strong>
+                      <span>وقف الخسارة</span><strong>0.58697</strong>
+                      <span>هدف 1</span><strong>0.58891</strong>
+                      <span>هدف 2</span><strong>0.58962</strong>
+                      <span>هدف 3</span><strong>0.59032</strong>
+                      <span>دخول التجريبي</span><strong>0.58476</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='NZDUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>RUSSELL</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>20.141</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>2912.00000</strong>
+                      <span>وقف الخسارة</span><strong>2923.40000</strong>
+                      <span>هدف 1</span><strong>2902.50000</strong>
+                      <span>هدف 2</span><strong>2894.90000</strong>
+                      <span>هدف 3</span><strong>2887.30000</strong>
+                      <span>دخول التجريبي</span><strong>2912.00000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='RUSSELL' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>SHANGHAI</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>71.329</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>4026.40942</strong>
+                      <span>وقف الخسارة</span><strong>4057.63934</strong>
+                      <span>هدف 1</span><strong>4000.38448</strong>
+                      <span>هدف 2</span><strong>3979.56453</strong>
+                      <span>هدف 3</span><strong>3958.74458</strong>
+                      <span>دخول التجريبي</span><strong>4026.40942</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='SHANGHAI' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>SOLUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>40.692</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>66.27000</strong>
+                      <span>وقف الخسارة</span><strong>68.37500</strong>
+                      <span>هدف 1</span><strong>64.51600</strong>
+                      <span>هدف 2</span><strong>63.11300</strong>
+                      <span>هدف 3</span><strong>61.70900</strong>
+                      <span>دخول التجريبي</span><strong>66.27000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='SOLUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>SPX500</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>35.887</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>7547.50000</strong>
+                      <span>وقف الخسارة</span><strong>7567.22000</strong>
+                      <span>هدف 1</span><strong>7531.06000</strong>
+                      <span>هدف 2</span><strong>7517.92000</strong>
+                      <span>هدف 3</span><strong>7504.77000</strong>
+                      <span>دخول التجريبي</span><strong>7547.50000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='SPX500' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>STOXX50</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-76.669</strong></span>
+                    <span>الفريم المختار: <strong>1h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>6097.70996</strong>
+                      <span>وقف الخسارة</span><strong>6065.18511</strong>
+                      <span>هدف 1</span><strong>6124.81400</strong>
+                      <span>هدف 2</span><strong>6146.49723</strong>
+                      <span>هدف 3</span><strong>6168.18046</strong>
+                      <span>دخول التجريبي</span><strong>6097.70996</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='STOXX50' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>USDCAD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>30.535</strong></span>
+                    <span>الفريم المختار: <strong>4h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.38817</strong>
+                      <span>وقف الخسارة</span><strong>1.39067</strong>
+                      <span>هدف 1</span><strong>1.38609</strong>
+                      <span>هدف 2</span><strong>1.38442</strong>
+                      <span>هدف 3</span><strong>1.38276</strong>
+                      <span>دخول التجريبي</span><strong>1.38763</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='USDCAD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>USDCHF</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>94.766</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>0.78770</strong>
+                      <span>وقف الخسارة</span><strong>0.78912</strong>
+                      <span>هدف 1</span><strong>0.78652</strong>
+                      <span>هدف 2</span><strong>0.78557</strong>
+                      <span>هدف 3</span><strong>0.78463</strong>
+                      <span>دخول التجريبي</span><strong>0.79241</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='USDCHF' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>USDJPY</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>59.692</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>159.91000</strong>
+                      <span>وقف الخسارة</span><strong>160.19784</strong>
+                      <span>هدف 1</span><strong>159.67013</strong>
+                      <span>هدف 2</span><strong>159.47824</strong>
+                      <span>هدف 3</span><strong>159.28635</strong>
+                      <span>دخول التجريبي</span><strong>160.07800</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='USDJPY' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>WTIUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>81.151</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>91.81000</strong>
+                      <span>وقف الخسارة</span><strong>92.94657</strong>
+                      <span>هدف 1</span><strong>90.86286</strong>
+                      <span>هدف 2</span><strong>90.10514</strong>
+                      <span>هدف 3</span><strong>89.34743</strong>
+                      <span>دخول التجريبي</span><strong>91.81000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='WTIUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>XAGUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>33.378</strong></span>
+                    <span>الفريم المختار: <strong>5m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>72.86000</strong>
+                      <span>وقف الخسارة</span><strong>73.61700</strong>
+                      <span>هدف 1</span><strong>72.22900</strong>
+                      <span>هدف 2</span><strong>71.72400</strong>
+                      <span>هدف 3</span><strong>71.21900</strong>
+                      <span>دخول التجريبي</span><strong>71.47000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='XAGUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>XAUUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-98.688</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>4494.60000</strong>
+                      <span>وقف الخسارة</span><strong>4473.83000</strong>
+                      <span>هدف 1</span><strong>4511.91000</strong>
+                      <span>هدف 2</span><strong>4525.76000</strong>
+                      <span>هدف 3</span><strong>4539.60000</strong>
+                      <span>دخول التجريبي</span><strong>4444.70000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='XAUUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-neg'>
+                  <div class='signal-head'>
+                    <h4>XPDUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge buy'>buy</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>-80.476</strong></span>
+                    <span>الفريم المختار: <strong>4h</strong></span>
+                    <span>الأفق: <strong>swing</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1328.00000</strong>
+                      <span>وقف الخسارة</span><strong>1309.83714</strong>
+                      <span>هدف 1</span><strong>1343.13571</strong>
+                      <span>هدف 2</span><strong>1355.24429</strong>
+                      <span>هدف 3</span><strong>1367.35286</strong>
+                      <span>دخول التجريبي</span><strong>1328.00000</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='XPDUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>XPTUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength strong'>strong</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>81.420</strong></span>
+                    <span>الفريم المختار: <strong>15m</strong></span>
+                    <span>الأفق: <strong>scalping</strong></span>
+                    <span>مصدر البيانات: <strong>YFINANCE</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1870.59998</strong>
+                      <span>وقف الخسارة</span><strong>1890.20028</strong>
+                      <span>هدف 1</span><strong>1854.26639</strong>
+                      <span>هدف 2</span><strong>1841.19953</strong>
+                      <span>هدف 3</span><strong>1828.13266</strong>
+                      <span>دخول التجريبي</span><strong>1870.59998</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='XPTUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+
+                <article class='signal-card delta-pos'>
+                  <div class='signal-head'>
+                    <h4>XRPUSD</h4>
+                    <div class='head-badges'>
+                      <span class='agreement no'>غير متطابق</span>
+                      <span class='strength medium'>medium</span>
+                    </div>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>الرسمي</span>
+                    <span class='badge sell'>sell</span>
+                  </div>
+                  <div class='signal-pair'>
+                    <span>التجريبي</span>
+                    <span class='badge wait'>wait</span>
+                  </div>
+                  <div class='signal-meta'>
+                    <span>الفارق: <strong>40.711</strong></span>
+                    <span>الفريم المختار: <strong>1d</strong></span>
+                    <span>الأفق: <strong>long_term</strong></span>
+                    <span>مصدر البيانات: <strong>FOREX_ANALYZER</strong></span>
+                    <span>حالة الإشارة: <strong class='status-pill active'>مستمرة</strong></span>
+                    <span>السبب: <strong>جاهزة للبث</strong></span>
+                    <span>تنتهي عند: <strong>-</strong></span>
+                  </div>
+                  <div class='signal-levels'>
+                    <h5>خطة الصفقة</h5>
+                    <div class='levels-grid'>
+                      <span>نقطة الدخول</span><strong>1.12600</strong>
+                      <span>وقف الخسارة</span><strong>1.15700</strong>
+                      <span>هدف 1</span><strong>1.10010</strong>
+                      <span>هدف 2</span><strong>1.07950</strong>
+                      <span>هدف 3</span><strong>1.05880</strong>
+                      <span>دخول التجريبي</span><strong>1.12600</strong>
+                    </div>
+                  </div>
+                  
+                  <div class='news-box ' data-news-minutes='33' data-news-symbol='XRPUSD' data-news-impact='high' data-news-event='مؤشر ISM لأسعار التصنيع' data-news-time-utc='2026-06-05T14:00:00+00:00'>
+                    <h5>الخبر الاقتصادي</h5>
+                    <div class='news-row'><span>الحدث</span><strong>مؤشر ISM لأسعار التصنيع</strong></div>
+                    <div class='news-row'><span>العملة</span><strong>USD</strong></div>
+                    <div class='news-row'><span>التأثير</span><strong class='impact-pill impact-high'>high</strong></div>
+                    <div class='news-row'><span>الوقت المتبقي</span><strong class='news-time-left'>بعد 33 دقيقة</strong></div>
+                    <div class='news-row'><span>الوقت</span><strong>2026-06-05T14:00:00+00:00</strong></div>
+                    <div class='news-grid'>
+                      <span>الفعلي</span><strong>82.1</strong>
+                      <span>المتوقع</span><strong>85.3</strong>
+                      <span>السابق</span><strong>84.6</strong>
+                      <span>المراجعة</span><strong>-</strong>
+                    </div>
+                    <p class='news-source'>المصدر: [&#x27;https://www.arabictrader.com/ar/economic-calendar&#x27;, &#x27;https://www.forexfactory.com/&#x27;]</p>
+                  </div>
+                
+                </article>
+                
+              </div>
+            </section>
+            
+    </section>
+  </div>
+
+  <script>
+    const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+    const panels = Array.from(document.querySelectorAll('.interval-panel'));
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const target = document.getElementById(btn.dataset.target);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    // Live mode: auto-refresh page and alert when a new run_id is detected.
+    const currentRunId = document.body.dataset.runId || '';
+    const storageKey = 'shadow_last_run_id';
+    const refreshMs = 45000;
+    const newSignalAlert = 'تم اكتشاف إشارة/تحديث جديد';
+    const newsEnterAlert = 'حدث اقتصادي قريب لهذا الزوج';
+    const lang = document.documentElement.getAttribute('lang') || 'ar';
+    const knownRunId = localStorage.getItem(storageKey) || currentRunId;
+    localStorage.setItem(storageKey, knownRunId || currentRunId);
+
+    function formatMinutesText(minutes) {
+      if (!Number.isFinite(minutes)) return '-';
+      if (lang === 'en') {
+        if (minutes > 0) return 'in ' + minutes + 'm';
+        if (minutes < 0) return Math.abs(minutes) + 'm ago';
+        return 'now';
+      }
+      if (minutes > 0) return 'بعد ' + minutes + ' دقيقة';
+      if (minutes < 0) return 'منذ ' + Math.abs(minutes) + ' دقيقة';
+      return 'الآن';
+    }
+
+    function playImpactTone(impact) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+
+        let freq = 720;
+        let dur = 0.22;
+        if (impact === 'high') {
+          freq = 980;
+          dur = 0.35;
+        } else if (impact === 'medium') {
+          freq = 820;
+          dur = 0.28;
+        }
+
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+      } catch (e) {
+        // Ignore audio restrictions silently.
+      }
+    }
+
+    function updateLiveNewsCountdown() {
+      const cards = Array.from(document.querySelectorAll('.news-box[data-news-time-utc], .news-box[data-news-minutes]'));
+      const nowMs = Date.now();
+      cards.forEach(card => {
+        const leftEl = card.querySelector('.news-time-left');
+        if (!leftEl) return;
+
+        let mins = Number(card.dataset.newsMinutes || 'NaN');
+        const eventUtc = String(card.dataset.newsTimeUtc || '').trim();
+        if (eventUtc) {
+          const ms = Date.parse(eventUtc);
+          if (!Number.isNaN(ms)) {
+            mins = Math.floor((ms - nowMs) / 60000);
+          }
+        }
+
+        if (!Number.isFinite(mins)) return;
+        card.dataset.newsMinutes = String(mins);
+        leftEl.textContent = formatMinutesText(mins);
+
+        if (mins >= -15 && mins <= 30) {
+          card.classList.add('imminent');
+        } else {
+          card.classList.remove('imminent');
+        }
+      });
+    }
+
+    async function checkForNewRun() {
+      try {
+        const url = window.location.href.split('#')[0] + (window.location.search ? '&' : '?') + '_ts=' + Date.now();
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) return;
+        const text = await resp.text();
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        const remoteRunId = (doc.body && doc.body.dataset && doc.body.dataset.runId) ? doc.body.dataset.runId : '';
+        const lastKnown = localStorage.getItem(storageKey) || currentRunId;
+        if (remoteRunId && lastKnown && remoteRunId !== lastKnown) {
+          localStorage.setItem(storageKey, remoteRunId);
+          alert(newSignalAlert + '
+Run: ' + remoteRunId);
+          window.location.reload();
+        }
+      } catch (e) {
+        // Ignore transient network errors.
+      }
+    }
+
+    setInterval(checkForNewRun, refreshMs);
+    setInterval(updateLiveNewsCountdown, 1000);
+    updateLiveNewsCountdown();
+
+    // News proximity alert: notify when a card has an imminent event window.
+    function checkNewsImminentCards() {
+      try {
+        const cards = Array.from(document.querySelectorAll('.news-box.imminent[data-news-minutes][data-news-symbol]'));
+        const hits = [];
+        cards.forEach(card => {
+          const mins = Number(card.dataset.newsMinutes || '99999');
+          const symbol = String(card.dataset.newsSymbol || '').trim();
+          const impact = String(card.dataset.newsImpact || 'low').trim().toLowerCase();
+          const eventName = String(card.dataset.newsEvent || '').trim();
+          if (!symbol) return;
+          if (mins >= -15 && mins <= 30) hits.push({ symbol, mins, impact, eventName });
+        });
+        if (!hits.length) return;
+
+        const runId = document.body.dataset.runId || 'na';
+        const alertKey = 'shadow_news_alert_' + runId;
+        if (sessionStorage.getItem(alertKey)) return;
+
+        sessionStorage.setItem(alertKey, '1');
+        const strongest = hits.some(h => h.impact === 'high') ? 'high' : (hits.some(h => h.impact === 'medium') ? 'medium' : 'low');
+        playImpactTone(strongest);
+        const text = hits
+          .slice(0, 6)
+          .map(h => h.symbol + ' | ' + (h.eventName || '-') + ' | ' + (h.mins >= 0 ? '+' + h.mins : h.mins) + 'm')
+          .join(', ');
+        alert(newsEnterAlert + '
+' + text);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    checkNewsImminentCards();
+  </script>
+</body>
+</html>

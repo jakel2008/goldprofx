@@ -1,0 +1,2779 @@
+{
+  "generated_at": "2026-06-05 12:43:17 UTC",
+  "total_symbols": 45,
+  "success_symbols": 22,
+  "failed_symbols": 23,
+  "agreement_count": 3,
+  "agreement_rate_pct": 13.64,
+  "avg_direction_delta": 39.574,
+  "news_context": {
+    "calendar_source": [
+      "https://www.arabictrader.com/ar/economic-calendar",
+      "https://www.forexfactory.com/"
+    ],
+    "calendar_events_count": 121,
+    "calendar_errors": []
+  },
+  "results": [
+    {
+      "success": false,
+      "symbol": "ADAUSD",
+      "error": "Official engine failed: Unsupported symbol 'ADAUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'ADAUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'ADAUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "ASX200",
+      "error": "Official engine failed: Unsupported symbol 'ASX200'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'ASX200'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'ASX200'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDJPY",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 72.0,
+        "score_gap": -54.0,
+        "confidence": "مرتفعة",
+        "entry_point": 113.972,
+        "stop_loss": 114.17715,
+        "take_profit_1": 113.80104,
+        "take_profit_2": 113.66428,
+        "take_profit_3": 113.52751
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.309,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 113.968,
+        "component_scores": {
+          "indicators": -4.129,
+          "candles": 28.257,
+          "channel": 1.052,
+          "breakout": 0.0,
+          "fibonacci": -4.021,
+          "sessions": 0.47,
+          "news": 11.2,
+          "raw": 4.109,
+          "total": 15.309
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 69.309,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "AUDUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.71281,
+        "stop_loss": 0.71409,
+        "take_profit_1": 0.71174,
+        "take_profit_2": 0.71089,
+        "take_profit_3": 0.71003
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 27.164,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 0.71454,
+        "component_scores": {
+          "indicators": 23.272,
+          "candles": 30.0,
+          "channel": 15.0,
+          "breakout": 8.0,
+          "fibonacci": 0.0,
+          "sessions": 4.0,
+          "news": 11.2,
+          "raw": 15.964,
+          "total": 27.164
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 71.164,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BNBUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 16.0,
+        "sell_score": 74.0,
+        "score_gap": -58.0,
+        "confidence": "مرتفعة",
+        "entry_point": 590.17,
+        "stop_loss": 594.43,
+        "take_profit_1": 586.62,
+        "take_profit_2": 583.77,
+        "take_profit_3": 580.93
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 17.272,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 592.34,
+        "component_scores": {
+          "indicators": 0.441,
+          "candles": 28.523,
+          "channel": 1.148,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 0.649,
+          "news": 11.2,
+          "raw": 6.072,
+          "total": 17.272
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 75.272,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "BRENTUSD",
+      "error": "Official engine failed: Unsupported symbol 'BRENTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'BRENTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'BRENTUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "BTCUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 80.0,
+        "score_gap": -80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 61870.12,
+        "stop_loss": 62267.23,
+        "take_profit_1": 61539.2,
+        "take_profit_2": 61274.46,
+        "take_profit_3": 61009.72
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -9.059,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 62304.87,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.622,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -0.989,
+          "news": 11.2,
+          "raw": -20.259,
+          "total": -9.059
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 70.941,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "CAC40",
+      "error": "Official engine failed: Unsupported symbol 'CAC40'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'CAC40'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'CAC40'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "DAX",
+      "error": "Official engine failed: Unsupported symbol 'DAX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'DAX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'DAX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "DOW30",
+      "error": "Official engine failed: Unsupported symbol 'DOW30'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'DOW30'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'DOW30'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "ETHUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 80.0,
+        "score_gap": -80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1652.38,
+        "stop_loss": 1664.32,
+        "take_profit_1": 1642.43,
+        "take_profit_2": 1634.47,
+        "take_profit_3": 1626.51
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -9.118,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 1672.7,
+        "component_scores": {
+          "indicators": -40.0,
+          "candles": -30.0,
+          "channel": -13.556,
+          "breakout": 0.0,
+          "fibonacci": -0.0,
+          "sessions": -1.861,
+          "news": 11.2,
+          "raw": -20.318,
+          "total": -9.118
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 70.882,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURAUD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 14.0,
+        "sell_score": 76.0,
+        "score_gap": -62.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.62973,
+        "stop_loss": 1.63266,
+        "take_profit_1": 1.62729,
+        "take_profit_2": 1.62533,
+        "take_profit_3": 1.62337
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 26.769,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 1.62967,
+        "component_scores": {
+          "indicators": 25.0,
+          "candles": 30.0,
+          "channel": 6.782,
+          "breakout": 0.0,
+          "fibonacci": 12.166,
+          "sessions": -2.129,
+          "news": 11.2,
+          "raw": 15.569,
+          "total": 26.769
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 88.769,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURCHF",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 76.0,
+        "sell_score": 9.0,
+        "score_gap": 67.0,
+        "confidence": "مرتفعة",
+        "entry_point": 0.91853,
+        "stop_loss": 0.91688,
+        "take_profit_1": 0.91991,
+        "take_profit_2": 0.92101,
+        "take_profit_3": 0.92211
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 26.393,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 0.91856,
+        "component_scores": {
+          "indicators": 26.105,
+          "candles": 30.0,
+          "channel": 11.25,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 3.445,
+          "news": 11.2,
+          "raw": 15.193,
+          "total": 26.393
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": true,
+        "direction_delta": -40.607,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURGBP",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 30.0,
+        "sell_score": 50.0,
+        "score_gap": -20.0,
+        "confidence": "جيدة",
+        "entry_point": 0.86408,
+        "stop_loss": 0.86564,
+        "take_profit_1": 0.86278,
+        "take_profit_2": 0.86175,
+        "take_profit_3": 0.86071
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": -11.234,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 0.8641,
+        "component_scores": {
+          "indicators": -14.048,
+          "candles": -24.758,
+          "channel": 4.12,
+          "breakout": -118.937,
+          "fibonacci": -6.873,
+          "sessions": -1.657,
+          "news": 11.2,
+          "raw": -22.434,
+          "total": -11.234
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 8.766,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURJPY",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 185.789,
+        "stop_loss": 186.12342,
+        "take_profit_1": 185.51032,
+        "take_profit_2": 185.28737,
+        "take_profit_3": 185.06442
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 28.343,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 186.105,
+        "component_scores": {
+          "indicators": 33.798,
+          "candles": 30.0,
+          "channel": 11.055,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.491,
+          "news": 11.2,
+          "raw": 17.143,
+          "total": 28.343
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 72.343,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "EURUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 32.0,
+        "sell_score": 48.0,
+        "score_gap": -16.0,
+        "confidence": "متوسطة",
+        "entry_point": 1.16401,
+        "stop_loss": 1.16611,
+        "take_profit_1": 1.16226,
+        "take_profit_2": 1.16087,
+        "take_profit_3": 1.15947
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 26.2,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 1.16401,
+        "component_scores": {
+          "indicators": -0.224,
+          "candles": 30.0,
+          "channel": -6.432,
+          "breakout": 91.956,
+          "fibonacci": -1.657,
+          "sessions": 2.396,
+          "news": 11.2,
+          "raw": 15.0,
+          "total": 26.2
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 42.2,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "FTSE",
+      "error": "Official engine failed: Unsupported symbol 'FTSE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'FTSE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'FTSE'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "GASOLINE",
+      "error": "Official engine failed: Unsupported symbol 'GASOLINE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'GASOLINE'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'GASOLINE'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPAUD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "انتظار",
+        "normalized_recommendation": "wait",
+        "buy_score": 42.0,
+        "sell_score": 34.0,
+        "score_gap": 8.0,
+        "confidence": "متوسطة",
+        "entry_point": 1.88589,
+        "stop_loss": 1.8825,
+        "take_profit_1": 1.88872,
+        "take_profit_2": 1.89098,
+        "take_profit_3": 1.89324
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 26.894,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 1.88589,
+        "component_scores": {
+          "indicators": 28.752,
+          "candles": 30.0,
+          "channel": 11.397,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 1.077,
+          "news": 11.2,
+          "raw": 15.694,
+          "total": 26.894
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 18.894,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPCAD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 72.0,
+        "score_gap": -54.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.86526,
+        "stop_loss": 1.86862,
+        "take_profit_1": 1.86246,
+        "take_profit_2": 1.86022,
+        "take_profit_3": 1.85799
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 20.715,
+        "chosen_interval": "1d",
+        "chosen_horizon": "long_term",
+        "news_blocked": true,
+        "entry_price": 1.8653,
+        "component_scores": {
+          "indicators": 31.461,
+          "candles": -2.938,
+          "channel": 11.231,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": -1.889,
+          "news": 11.2,
+          "raw": 9.515,
+          "total": 20.715
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 74.715,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPJPY",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 62.0,
+        "score_gap": -44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 214.97701,
+        "stop_loss": 215.36397,
+        "take_profit_1": 214.65454,
+        "take_profit_2": 214.39657,
+        "take_profit_3": 214.1386
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 28.329,
+        "chosen_interval": "4h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 215.41499,
+        "component_scores": {
+          "indicators": 34.371,
+          "candles": 30.0,
+          "channel": 9.991,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.497,
+          "news": 11.2,
+          "raw": 17.129,
+          "total": 28.329
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 72.329,
+        "same_interval": false
+      }
+    },
+    {
+      "success": true,
+      "symbol": "GBPUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع",
+        "normalized_recommendation": "sell",
+        "buy_score": 32.0,
+        "sell_score": 48.0,
+        "score_gap": -16.0,
+        "confidence": "متوسطة",
+        "entry_point": 1.34622,
+        "stop_loss": 1.34864,
+        "take_profit_1": 1.3442,
+        "take_profit_2": 1.34259,
+        "take_profit_3": 1.34097
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 26.913,
+        "chosen_interval": "1h",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 1.34722,
+        "component_scores": {
+          "indicators": 28.835,
+          "candles": 30.0,
+          "channel": 10.376,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.676,
+          "news": 11.2,
+          "raw": 15.713,
+          "total": 26.913
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 42.913,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "HANGSENG",
+      "error": "Official engine failed: Unsupported symbol 'HANGSENG'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'HANGSENG'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'HANGSENG'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "HEATING",
+      "error": "Official engine failed: Unsupported symbol 'HEATING'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'HEATING'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'HEATING'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "IBEX",
+      "error": "Official engine failed: Unsupported symbol 'IBEX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'IBEX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'IBEX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "KOSPI",
+      "error": "Official engine failed: Unsupported symbol 'KOSPI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'KOSPI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'KOSPI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NASDAQ",
+      "error": "Official engine failed: Unsupported symbol 'NASDAQ'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NASDAQ'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NASDAQ'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NATURALGAS",
+      "error": "Official engine failed: Unsupported symbol 'NATURALGAS'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NATURALGAS'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NATURALGAS'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "NIKKEI",
+      "error": "Official engine failed: Unsupported symbol 'NIKKEI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'NIKKEI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'NIKKEI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "NZDUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 18.0,
+        "sell_score": 48.0,
+        "score_gap": -30.0,
+        "confidence": "جيدة",
+        "entry_point": 0.58624,
+        "stop_loss": 0.5873,
+        "take_profit_1": 0.58536,
+        "take_profit_2": 0.58466,
+        "take_profit_3": 0.58395
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 25.636,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 0.58827,
+        "component_scores": {
+          "indicators": 22.871,
+          "candles": 30.0,
+          "channel": 12.113,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 3.23,
+          "news": 11.2,
+          "raw": 14.436,
+          "total": 25.636
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 55.636,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "RUSSELL",
+      "error": "Official engine failed: Unsupported symbol 'RUSSELL'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'RUSSELL'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'RUSSELL'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "SHANGHAI",
+      "error": "Official engine failed: Unsupported symbol 'SHANGHAI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'SHANGHAI'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'SHANGHAI'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "SOLUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 90.0,
+        "score_gap": -90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 65.64,
+        "stop_loss": 66.322,
+        "take_profit_1": 65.071,
+        "take_profit_2": 64.617,
+        "take_profit_3": 64.162
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 12.928,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 66.27,
+        "component_scores": {
+          "indicators": -4.464,
+          "candles": 19.069,
+          "channel": -1.233,
+          "breakout": 0.0,
+          "fibonacci": -4.063,
+          "sessions": -0.329,
+          "news": 11.2,
+          "raw": 1.728,
+          "total": 12.928
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 102.928,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "SPX500",
+      "error": "Official engine failed: Unsupported symbol 'SPX500'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'SPX500'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'SPX500'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "STOXX50",
+      "error": "Official engine failed: Unsupported symbol 'STOXX50'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'STOXX50'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'STOXX50'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCAD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء",
+        "normalized_recommendation": "buy",
+        "buy_score": 48.0,
+        "sell_score": 32.0,
+        "score_gap": 16.0,
+        "confidence": "متوسطة",
+        "entry_point": 1.3883,
+        "stop_loss": 1.3858,
+        "take_profit_1": 1.39038,
+        "take_profit_2": 1.39205,
+        "take_profit_3": 1.39371
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 19.087,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 1.3883,
+        "component_scores": {
+          "indicators": 1.327,
+          "candles": 30.0,
+          "channel": -1.957,
+          "breakout": 0.0,
+          "fibonacci": 11.974,
+          "sessions": -0.741,
+          "news": 11.2,
+          "raw": 7.887,
+          "total": 19.087
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 3.087,
+        "same_interval": true
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDCHF",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء",
+        "normalized_recommendation": "buy",
+        "buy_score": 48.0,
+        "sell_score": 27.0,
+        "score_gap": 21.0,
+        "confidence": "جيدة",
+        "entry_point": 0.79115,
+        "stop_loss": 0.78973,
+        "take_profit_1": 0.79234,
+        "take_profit_2": 0.79329,
+        "take_profit_3": 0.79424
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 23.162,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 0.79115,
+        "component_scores": {
+          "indicators": 14.222,
+          "candles": 30.0,
+          "channel": 11.365,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 3.031,
+          "news": 11.2,
+          "raw": 11.962,
+          "total": 23.162
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": true,
+        "direction_delta": 2.162,
+        "same_interval": true
+      }
+    },
+    {
+      "success": true,
+      "symbol": "USDJPY",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 62.0,
+        "sell_score": 18.0,
+        "score_gap": 44.0,
+        "confidence": "مرتفعة",
+        "entry_point": 159.99699,
+        "stop_loss": 159.709,
+        "take_profit_1": 160.23699,
+        "take_profit_2": 160.42898,
+        "take_profit_3": 160.62098
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 16.572,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 159.99699,
+        "component_scores": {
+          "indicators": 20.184,
+          "candles": 30.0,
+          "channel": 8.187,
+          "breakout": -71.483,
+          "fibonacci": 1.608,
+          "sessions": 2.183,
+          "news": 11.2,
+          "raw": 5.372,
+          "total": 16.572
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -27.428,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "VIX",
+      "error": "Official engine failed: Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'VIX'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "WTIUSD",
+      "error": "Official engine failed: Unsupported symbol 'WTIUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'WTIUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'WTIUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAGUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 66.0,
+        "sell_score": 0.0,
+        "score_gap": 66.0,
+        "confidence": "مرتفعة",
+        "entry_point": 72.97,
+        "stop_loss": 72.665,
+        "take_profit_1": 73.224,
+        "take_profit_2": 73.427,
+        "take_profit_3": 73.63
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 15.115,
+        "chosen_interval": "15m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 72.97,
+        "component_scores": {
+          "indicators": -3.622,
+          "candles": 30.0,
+          "channel": 5.31,
+          "breakout": 0.0,
+          "fibonacci": -12.649,
+          "sessions": 0.672,
+          "news": 11.2,
+          "raw": 3.915,
+          "total": 15.115
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 32,
+          "dynamic_post_lock_minutes": 43,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": -50.885,
+        "same_interval": true
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XAUUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "شراء قوي",
+        "normalized_recommendation": "buy",
+        "buy_score": 80.0,
+        "sell_score": 0.0,
+        "score_gap": 80.0,
+        "confidence": "مرتفعة",
+        "entry_point": 4494.8,
+        "stop_loss": 4486.71,
+        "take_profit_1": 4501.54,
+        "take_profit_2": 4506.94,
+        "take_profit_3": 4512.33
+      },
+      "experimental": {
+        "recommendation": "buy",
+        "normalized_recommendation": "buy",
+        "final_score": 24.25,
+        "chosen_interval": "5m",
+        "chosen_horizon": "scalping",
+        "news_blocked": true,
+        "entry_price": 4494.8,
+        "component_scores": {
+          "indicators": 24.137,
+          "candles": 30.0,
+          "channel": 1.667,
+          "breakout": 0.0,
+          "fibonacci": 0.0,
+          "sessions": 2.667,
+          "news": 11.2,
+          "raw": 13.05,
+          "total": 24.25
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 42,
+          "dynamic_post_lock_minutes": 56,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": true,
+        "direction_delta": -55.75,
+        "same_interval": false
+      }
+    },
+    {
+      "success": false,
+      "symbol": "XPDUSD",
+      "error": "Official engine failed: Unsupported symbol 'XPDUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'XPDUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'XPDUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": false,
+      "symbol": "XPTUSD",
+      "error": "Official engine failed: Unsupported symbol 'XPTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD.",
+      "official": {
+        "success": false,
+        "error": "Unsupported symbol 'XPTUSD'. Supported values: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD, EURGBP, EURJPY, EURCHF, EURAUD, EURCAD, EURNZD, GBPJPY, GBPCHF, GBPAUD, GBPCAD, GBPNZD, AUDJPY, AUDNZD, AUDCAD, AUDCHF, CADJPY, CADCHF, CHFJPY, NZDJPY, NZDCHF, NZDCAD, US500, NAS100, US30, US2000, BTCUSD, ETHUSD, SOLUSD, XRPUSD, BNBUSD, XAUUSD, XAGUSD."
+      },
+      "experimental": {
+        "success": false,
+        "error": "Unsupported symbol 'XPTUSD'.",
+        "supported_symbols": [
+          "AUDCAD",
+          "AUDCHF",
+          "AUDJPY",
+          "AUDNZD",
+          "AUDUSD",
+          "BNBUSD",
+          "BTCUSD",
+          "CADCHF",
+          "CADJPY",
+          "CHFJPY",
+          "ETHUSD",
+          "EURAUD",
+          "EURCAD",
+          "EURCHF",
+          "EURGBP",
+          "EURJPY",
+          "EURNZD",
+          "EURUSD",
+          "GBPAUD",
+          "GBPCAD",
+          "GBPCHF",
+          "GBPJPY",
+          "GBPNZD",
+          "GBPUSD",
+          "NAS100",
+          "NZDCAD",
+          "NZDCHF",
+          "NZDJPY",
+          "NZDUSD",
+          "SOLUSD",
+          "US2000",
+          "US30",
+          "US500",
+          "USDCAD",
+          "USDCHF",
+          "USDJPY",
+          "XAGUSD",
+          "XAUUSD",
+          "XRPUSD"
+        ]
+      }
+    },
+    {
+      "success": true,
+      "symbol": "XRPUSD",
+      "interval_requested": "15m",
+      "official": {
+        "recommendation": "بيع قوي",
+        "normalized_recommendation": "sell",
+        "buy_score": 0.0,
+        "sell_score": 90.0,
+        "score_gap": -90.0,
+        "confidence": "مرتفعة",
+        "entry_point": 1.1157,
+        "stop_loss": 1.127,
+        "take_profit_1": 1.1063,
+        "take_profit_2": 1.0988,
+        "take_profit_3": 1.0912
+      },
+      "experimental": {
+        "recommendation": "wait",
+        "normalized_recommendation": "wait",
+        "final_score": 12.993,
+        "chosen_interval": "30m",
+        "chosen_horizon": "swing",
+        "news_blocked": true,
+        "entry_price": 1.126,
+        "component_scores": {
+          "indicators": -6.339,
+          "candles": 24.52,
+          "channel": -2.852,
+          "breakout": 0.0,
+          "fibonacci": -5.509,
+          "sessions": -0.616,
+          "news": 11.2,
+          "raw": 1.793,
+          "total": 12.993
+        },
+        "news_info": {
+          "news_mode": "dynamic",
+          "impact": "high",
+          "minutes_to_event": -13,
+          "dynamic_pre_lock_minutes": 37,
+          "dynamic_post_lock_minutes": 50,
+          "surprise_ratio": 1.0235294117647058
+        },
+        "news_context_info": {
+          "calendar_mode": "events",
+          "matched": 1,
+          "event_title": "التغير في التوظيف بالقطاع غير الزراعي",
+          "event_currencies": [
+            "USD"
+          ],
+          "event_time_utc": "2026-06-05T12:30:00+00:00",
+          "actual": "172K",
+          "forecast": "85K",
+          "previous": "179K",
+          "revision": "",
+          "source": "['https://www.arabictrader.com/ar/economic-calendar', 'https://www.forexfactory.com/']"
+        },
+        "calendar_sources": [
+          "https://www.arabictrader.com/ar/economic-calendar",
+          "https://www.forexfactory.com/"
+        ]
+      },
+      "comparison": {
+        "agreement": false,
+        "direction_delta": 102.993,
+        "same_interval": false
+      }
+    }
+  ]
+}

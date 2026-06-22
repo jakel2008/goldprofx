@@ -1,16 +1,28 @@
 import os
+import sys
 import json
 import time
 import re
 import math
+import platform as _platform
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
+
+_IS_WINDOWS = _platform.system() == 'Windows'
 
 try:
     import MetaTrader5 as mt5  # type: ignore
 except Exception:
     mt5 = None  # type: ignore
+
+_MT5_UNAVAILABLE_REASON = (
+    None if mt5 is not None
+    else ('MetaTrader5 يعمل على Windows فقط — هذا الخادم يعمل بنظام '
+           + _platform.system() + '. شغّل المتداول الآلي محلياً على جهاز Windows.'
+          ) if not _IS_WINDOWS
+    else 'MetaTrader5 package is not installed.'
+)
 
 
 _RETCODE_ERRORS: Dict[int, str] = {
@@ -298,6 +310,8 @@ class MT5Bridge:
             "auto_execution_enabled": self.auto_execution_enabled,
             "auto_execution_symbols": list(self.auto_execution_symbols or []),
             "module_available": mt5 is not None,
+            "platform": _platform.system(),
+            "windows_only_note": None if _IS_WINDOWS else "MT5 يعمل على Windows فقط. شغّل continuous_auto_trader.py على جهاز Windows محلياً.",
             "connected": self.connected,
             "login": self.login,
             "server": self.server,

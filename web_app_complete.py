@@ -35,6 +35,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from pathlib import Path
 from urllib.parse import quote
+import platform as _platform
 
 # --- Fix ImportError for vip_subscription_system ---
 import sys
@@ -240,7 +241,13 @@ LAST_SEEN_TOUCH_THROTTLE_SECONDS = max(15, int(os.environ.get('LAST_SEEN_TOUCH_T
 
 TELEGRAM_COMMAND_BOT_ENABLED = os.environ.get('TELEGRAM_COMMAND_BOT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 TELEGRAM_COMMAND_BOT = TelegramCommandBot(Path(__file__).parent) if TelegramCommandBot else None
-BACKGROUND_SERVICES_ENABLED = os.environ.get('BACKGROUND_SERVICES_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+# Render runs the web app only; the long-running analyzers and local automation
+# should stay off there to avoid startup hangs and 502s.
+_IS_RENDER_DEPLOYMENT = bool(os.environ.get('RENDER')) or os.environ.get('RENDER_SERVICE_ID') is not None
+BACKGROUND_SERVICES_ENABLED = (
+    os.environ.get('BACKGROUND_SERVICES_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+    and not _IS_RENDER_DEPLOYMENT
+)
 BACKGROUND_SERVICES_BOOTSTRAPPED = False
 BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = False
 BACKGROUND_SERVICES_BOOTSTRAP_THREAD = None
@@ -9402,16 +9409,6 @@ def api_admin_mt5_status():
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
     status = bridge.status()
-
-    # On Linux/Render the MT5 bridge is status-only; execution happens on a Windows machine.
-    if status.get('platform') != 'Windows':
-        return jsonify({
-            'success': True,
-            'mode': 'status_only',
-            'note': status.get('windows_only_note') or 'MT5 execution is Windows-only.',
-            'status': status,
-        })
-
     if (
         not status.get('connected')
         and status.get('module_available')
@@ -9421,26 +9418,26 @@ def api_admin_mt5_status():
         and str(cfg.get('server') or '').strip()
     ):
         bridge.connect()
-    return jsonify(bridge.status())
+    return jsonify(status)
 
 
 @app.route('/api/admin/mt5/connect', methods=['POST'])
 @admin_required
 def api_admin_mt5_connect():
+    # Check platform first to avoid timeout from bridge.status() on Linux
+    if _platform.system() != 'Windows':
+        return jsonify({
+            'success': False,
+            'mode': 'status_only',
+            'error': 'MT5 execution is available only on Windows. Run continuous_auto_trader.py on your local Windows machine.',
+        }), 400
+
     bridge = _load_mt5_bridge_instance()
     data = request.get_json(silent=True) or {}
     if isinstance(data, dict) and data:
         _save_mt5_wallet_config(data)
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
-
-    if bridge.status().get('platform') != 'Windows':
-        return jsonify({
-            'success': False,
-            'mode': 'status_only',
-            'error': 'MT5 execution is available only on Windows. Run continuous_auto_trader.py on your local Windows machine.',
-            'status': bridge.status(),
-        }), 400
 
     result = bridge.connect()
     return jsonify(result), (200 if result.get('success') else 500)
@@ -9457,11 +9454,9 @@ def api_admin_mt5_disconnect():
 @app.route('/api/admin/mt5/terminals', methods=['GET'])
 @admin_required
 def api_admin_mt5_terminals():
-    bridge = _load_mt5_bridge_instance()
-    cfg = _load_mt5_wallet_config()
-    bridge.configure(cfg)
-
-    if bridge.status().get('platform') != 'Windows':
+    # Check platform first to avoid timeout from bridge.status() on Linux
+    if _platform.system() != 'Windows':
+        cfg = _load_mt5_wallet_config()
         return jsonify({
             'success': True,
             'count': 0,
@@ -9469,6 +9464,10 @@ def api_admin_mt5_terminals():
             'terminals': [],
             'note': 'Windows-only: terminal inspection is not available on this Linux server.',
         })
+
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
 
     result = bridge.inspect_terminals()
     return jsonify(result), (200 if result.get('success') else 500)

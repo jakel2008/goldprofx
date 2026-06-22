@@ -253,7 +253,7 @@ class MT5Bridge:
                 parts = [str(item).strip().upper() for item in symbols_raw if str(item).strip()]
                 self.auto_execution_symbols = parts
 
-        if data.get("login") is not None and str(data.get("login")).strip() != "":
+        if data.get("login") is not None and str(data.get("login")).strip() not in ("", "0", "0.0"):
             self.login = _to_int(data.get("login"), self.login)
 
         if data.get("password") is not None:
@@ -263,7 +263,10 @@ class MT5Bridge:
                 self.password = cleaned_password
 
         if data.get("server") is not None:
-            self.server = self._clean_text(data.get("server"))
+            cleaned_server = self._clean_text(data.get("server"))
+            # Do not wipe a valid server with an empty string.
+            if cleaned_server:
+                self.server = cleaned_server
 
         if data.get("path") is not None:
             self.path = self._clean_text(data.get("path"))

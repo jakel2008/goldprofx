@@ -9401,6 +9401,16 @@ def api_admin_mt5_status():
     bridge = _load_mt5_bridge_instance()
     cfg = _load_mt5_wallet_config()
     bridge.configure(cfg)
+    status = bridge.status()
+    if (
+        not status.get('connected')
+        and status.get('module_available')
+        and bool(cfg.get('enabled'))
+        and bool(cfg.get('allow_trading'))
+        and bool(cfg.get('login'))
+        and str(cfg.get('server') or '').strip()
+    ):
+        bridge.connect()
     return jsonify(bridge.status())
 
 

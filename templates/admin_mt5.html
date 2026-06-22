@@ -78,6 +78,7 @@
               <div class="col-md-3 d-flex align-items-end gap-2">
                 <button class="btn btn-outline-primary" id="btnLoadWalletConfig">{% if current_lang == 'en' %}Load Config{% else %}تحميل الإعدادات{% endif %}</button>
                 <button class="btn btn-outline-success" id="btnSaveWalletConfig">{% if current_lang == 'en' %}Save Config{% else %}حفظ الإعدادات{% endif %}</button>
+                <button class="btn btn-warning" id="btnUseXauOnlyPreset">{% if current_lang == 'en' %}XAUUSD Only{% else %}ذهب فقط XAUUSD{% endif %}</button>
               </div>
             </div>
             <div class="mt-3">
@@ -566,6 +567,17 @@
     }
   }
 
+  async function applyXauOnlyPreset() {
+    $('cfgEnabled').checked = true;
+    $('cfgAllowTrading').checked = true;
+    $('cfgAllowSiteSignals').checked = true;
+    $('cfgAutoExecutionEnabled').checked = true;
+    $('cfgAutoExecutionSymbols').value = 'XAUUSD';
+    $('walletConfigHint').textContent = 'XAUUSD preset applied, saving...';
+    await saveWalletConfig();
+    await loadStatus();
+  }
+
   async function loadSignalCandidates() {
     const out = $('signalCandidatesOutput');
     const sel = $('signalCandidatesSelect');
@@ -1036,6 +1048,7 @@
   $('btnMt5Disconnect').addEventListener('click', disconnectMt5);
   $('btnLoadWalletConfig').addEventListener('click', loadWalletConfig);
   $('btnSaveWalletConfig').addEventListener('click', saveWalletConfig);
+  $('btnUseXauOnlyPreset').addEventListener('click', applyXauOnlyPreset);
   $('btnInspectTerminals').addEventListener('click', inspectTerminals);
   $('btnUseFirstWorkingTerminal').addEventListener('click', useFirstWorkingTerminal);
   $('btnMt5Live').addEventListener('click', loadLive);

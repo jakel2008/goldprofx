@@ -1112,6 +1112,13 @@ LOAD_SIGNALS_CACHE_TTL_SECONDS = max(1, int(os.environ.get('LOAD_SIGNALS_CACHE_T
 LOAD_SIGNALS_CACHE = {}
 LOAD_SIGNALS_CACHE_LOCK = threading.Lock()
 
+# Cache نتائج التحليل في الذاكرة لتسريع الطلبات المتكررة
+ANALYSIS_RESULT_CACHE: dict = {}
+ANALYSIS_RESULT_CACHE_TTL = max(60, int(os.environ.get('ANALYSIS_RESULT_CACHE_TTL_SECONDS', '300')))
+ANALYSIS_RESULT_CACHE_LOCK = threading.Lock()
+# timeout للتحليل - يجب أن يكون أقل من proxy timeout في Render (30 ثانية)
+ANALYSIS_REQUEST_TIMEOUT = max(10, int(os.environ.get('ANALYSIS_REQUEST_TIMEOUT_SECONDS', '25')))
+
 CONTINUOUS_ANALYZER_SYMBOLS = [
     # Forex
     'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
@@ -10157,26 +10164,48 @@ def my_forex_advanced_analyzer_page():
 @app.route(f'{MY_FOREX_BASE_PATH}/api/advanced_analysis', methods=['POST'])
 def my_forex_advanced_analysis_api():
     data = request.json or {}
-    symbol = data.get('symbol', 'EURUSD')
-    interval = data.get('interval', '1h')
-
+    symbol = str(data.get('symbol', 'EURUSD') or 'EURUSD').upper().replace('/', '')
+    interval = str(data.get('interval', '1h') or '1h').lower()
     try:
-        try:
-            from advanced_analyzer_engine import perform_full_analysis # type: ignore
-        except ImportError:
-            analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
-            spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
-            analyzer_module = importlib.util.module_from_spec(spec)
-            sys.modules['advanced_analyzer_engine'] = analyzer_module
-            spec.loader.exec_module(analyzer_module)
-            perform_full_analysis = analyzer_module.perform_full_analysis
-
-        result = perform_full_analysis(symbol, interval, data_source_policy='legacy')
+        result, from_cache = _run_analysis_with_cache(symbol, interval)
         if result.get('success'):
-            return jsonify({'success': True, 'data': result})
+            return jsonify({'success': True, 'data': result, 'cached': from_cache})
         return jsonify({'success': False, 'error': result.get('error', 'خطأ غير معروف')}), 400
     except Exception as error:
         return jsonify({'success': False, 'error': f'خطأ في التحليل: {error}'}), 500
+
+
+def _run_analysis_with_cache(symbol, interval):
+    """تشغيل التحليل مع cache وthread-timeout لتجنب 502 على Render."""
+    import concurrent.futures
+    cache_key = f"{symbol}|{interval}"
+    now = time.time()
+    with ANALYSIS_RESULT_CACHE_LOCK:
+        cached = ANALYSIS_RESULT_CACHE.get(cache_key)
+        if cached and now - cached['ts'] < ANALYSIS_RESULT_CACHE_TTL:
+            return cached['result'], True  # (result, from_cache)
+
+    try:
+        from advanced_analyzer_engine import perform_full_analysis as _pfa  # type: ignore
+    except ImportError:
+        _analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
+        _spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(_analyzer_path))
+        _mod = importlib.util.module_from_spec(_spec)
+        sys.modules['advanced_analyzer_engine'] = _mod
+        _spec.loader.exec_module(_mod)
+        _pfa = _mod.perform_full_analysis
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _executor:
+        _future = _executor.submit(_pfa, symbol, interval, False, 'legacy')
+        try:
+            result = _future.result(timeout=ANALYSIS_REQUEST_TIMEOUT)
+        except concurrent.futures.TimeoutError:
+            return {'success': False, 'error': f'استغرق التحليل وقتاً طويلاً، حاول مرة أخرى ({ANALYSIS_REQUEST_TIMEOUT}s).'}, False
+
+    if result.get('success'):
+        with ANALYSIS_RESULT_CACHE_LOCK:
+            ANALYSIS_RESULT_CACHE[cache_key] = {'result': result, 'ts': time.time()}
+    return result, False
 
 @app.route('/api/forex-analysis', methods=['POST'])
 @app.route('/api/advanced_analysis', methods=['POST'])
@@ -10185,32 +10214,15 @@ def my_forex_advanced_analysis_api():
 def api_forex_analysis():
     """API لتحليل الفوركس - يستخدم المحلل المتقدم"""
     data = request.json or {}
-    symbol = data.get('symbol', 'EUR/USD')
-    interval = data.get('interval', '1h')
-    
+    symbol = str(data.get('symbol', 'EURUSD') or 'EURUSD').upper().replace('/', '')
+    interval = str(data.get('interval', '1h') or '1h').lower()
     try:
-
-        # --- Fix ImportError for advanced_analyzer_engine ---
-        try:
-            from advanced_analyzer_engine import perform_full_analysis # type: ignore
-        except ImportError:
-            import importlib.util
-            import sys
-            from pathlib import Path
-            analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
-            spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(analyzer_path))
-            analyzer_module = importlib.util.module_from_spec(spec)
-            sys.modules['advanced_analyzer_engine'] = analyzer_module
-            spec.loader.exec_module(analyzer_module)
-            perform_full_analysis = analyzer_module.perform_full_analysis
-        result = perform_full_analysis(symbol, interval, data_source_policy='legacy')
-        
+        result, from_cache = _run_analysis_with_cache(symbol, interval)
         if result.get('success'):
-            return jsonify({'success': True, 'data': result})
-        else:
-            return jsonify({'success': False, 'error': result.get('error', 'خطأ غير معروف')})
+            return jsonify({'success': True, 'data': result, 'cached': from_cache})
+        return jsonify({'success': False, 'error': result.get('error', 'خطأ غير معروف')}), 400
     except Exception as e:
-        import traceback
+        return jsonify({'success': False, 'error': f'خطأ في التحليل: {e}'}), 500
         error_detail = traceback.format_exc()
         print(f"Error in forex analysis: {error_detail}")
         return jsonify({'success': False, 'error': f'خطأ في التحليل: {str(e)}'})

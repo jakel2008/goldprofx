@@ -12,9 +12,11 @@ from pathlib import Path
 import os  # <-- Add this line
 
 if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
-    os.environ.setdefault('MARKET_DATA_SOURCE_MODE', 'yahoo_only')
-    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '0')
-    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'disabled')
+    # Render/Linux web runtime: keep market data on external providers and never MT5.
+    os.environ['MARKET_DATA_SOURCE_MODE'] = 'auto'
+    os.environ['CRYPTO_DATA_SOURCE_MODE'] = 'yahoo_first'
+    os.environ['ENABLE_MT5_MARKET_DATA'] = '0'
+    os.environ['MT5_MARKET_DATA_MODE'] = 'disabled'
     os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '1')
     os.environ.setdefault('DATA_FETCH_HTTP_TIMEOUT_SECONDS', '6')
     os.environ.setdefault('GOLDPRO_DATA_DIR', '/var/data')
@@ -396,7 +398,7 @@ def healthz():
 def debug_deploy():
     return jsonify({
         'ok': True,
-        'fix_version': 'yahoo-only-source-v5',
+        'fix_version': 'web-multi-source-no-mt5-v6',
         'render': _IS_RENDER_DEPLOYMENT,
         'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
         'market_data_source_mode': os.environ.get('MARKET_DATA_SOURCE_MODE'),
@@ -9084,13 +9086,25 @@ def smart_analyzer_redirect():
 
 @app.route('/api/strong-signals')
 def api_strong_signals():
-    module = load_my_forex_module()
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
     lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
-    result = module.get_strong_signals(symbol, interval, lang=lang)
-    status_code = 200 if result.get('success') else 400
-    return jsonify(result), status_code
+    try:
+        module = load_my_forex_module()
+        result = module.get_strong_signals(symbol, interval, lang=lang)
+        status_code = 200 if result.get('success') else 400
+        return jsonify(result), status_code
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'symbol': symbol,
+            'interval': interval,
+            'signals': [],
+            'error': f'{type(e).__name__}: {e}',
+            'scan_errors': [f'{type(e).__name__}: {e}'],
+            'traceback': traceback.format_exc(limit=8),
+        }), 500
 
 
 @app.route('/api/smart-signals')
@@ -10196,7 +10210,7 @@ def _run_analysis_with_cache(symbol, interval):
         _pfa = _mod.perform_full_analysis
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _executor:
-        _future = _executor.submit(_pfa, symbol, interval, False, 'legacy')
+        _future = _executor.submit(_pfa, symbol, interval, False)
         try:
             result = _future.result(timeout=ANALYSIS_REQUEST_TIMEOUT)
         except concurrent.futures.TimeoutError:

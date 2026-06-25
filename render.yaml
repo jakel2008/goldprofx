@@ -36,7 +36,9 @@ services:
       - key: BACKGROUND_SERVICES_ENABLED
         value: "1"
       - key: MARKET_DATA_SOURCE_MODE
-        value: "yahoo_only"
+        value: "auto"
+      - key: CRYPTO_DATA_SOURCE_MODE
+        value: "yahoo_first"
       - key: ENABLE_MT5_MARKET_DATA
         value: "0"
       - key: MT5_MARKET_DATA_MODE

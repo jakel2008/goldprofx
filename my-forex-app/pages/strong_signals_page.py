@@ -175,7 +175,15 @@ def fetch_strong_signals(symbol, interval, lang='ar'):
     scan_errors = []
 
     for current_symbol in symbols_to_scan:
-        analysis_result = perform_full_analysis(current_symbol, interval)
+        try:
+            analysis_result = perform_full_analysis(current_symbol, interval)
+        except Exception as e:
+            scan_errors.append({
+                'symbol': current_symbol,
+                'error': _translate_text(f'analysis_exception: {e}', lang),
+            })
+            continue
+
         if not analysis_result.get('success'):
             scan_errors.append({
                 'symbol': current_symbol,

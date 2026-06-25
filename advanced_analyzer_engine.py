@@ -3,6 +3,7 @@
 Advanced Forex Analyzer Engine - Complete Analysis System
 Based on original tkinter code with full indicators
 """
+import os
 import pandas as pd
 import numpy as np
 try:
@@ -1129,7 +1130,9 @@ def perform_full_analysis(symbol, interval, force_live=False, data_source_policy
     try:
         # Fetch data
         normalized_interval = str(interval or '1h').strip().lower()
-        outputsize = 240 if normalized_interval in ('1min', '5min', '15min', '30min', '1h') else 320
+        _is_render = bool(os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'))
+        _base_outputsize = 100 if _is_render else (240 if normalized_interval in ('1min', '5min', '15min', '30min', '1h') else 320)
+        outputsize = max(80, int(os.environ.get('ANALYZER_OUTPUTSIZE', str(_base_outputsize)) or str(_base_outputsize)))
         if str(data_source_policy or '').strip().lower() in ('legacy', 'june', 'june_2026'):
             previous_source_mode = getattr(gp_analyzer, 'MARKET_DATA_SOURCE_MODE', 'yahoo_only')
             previous_mt5_enabled = getattr(gp_analyzer, 'ENABLE_MT5_MARKET_DATA', False)

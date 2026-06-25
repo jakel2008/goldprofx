@@ -5,7 +5,7 @@ services:
     plan: free
     healthCheckPath: /healthz
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1"
     disks:
       - name: goldpro-data
         mountPath: /var/data

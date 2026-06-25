@@ -9,10 +9,13 @@ import pandas as pd
 import ta
 from datetime import datetime, date
 import os
-import yfinance as yf
 import json
 from vip_subscription_system import SubscriptionManager
 from quality_scorer import add_quality_score, filter_signals_by_quality, get_quality_threshold_for_plan
+
+os.environ.setdefault("ENABLE_MT5_MARKET_DATA", "1")
+os.environ.setdefault("MT5_MARKET_DATA_MODE", "primary")
+os.environ.setdefault("ENABLE_YFINANCE_FALLBACK", "0")
 
 # استيراد المزامنة الموحدة
 try:
@@ -224,59 +227,52 @@ def fetch_pair_data(symbol, interval='1h', limit=100):
 
 
 def fetch_pair_data_5m(symbol, period='1d'):
-    """جلب بيانات 5 دقائق عبر Yahoo Finance مع بدائل"""
+    """جلب بيانات الإشارات من MT5 فقط."""
     try:
-        ticker = YF_TICKERS.get(symbol)
-        if not ticker:
-            return None
+        from forex_analyzer import fetch_data as gp_fetch_data, get_last_fetch_metadata
 
-        attempts = [
-            ('5m', period),
-            ('5m', '5d'),
-            ('15m', '5d'),
-            ('30m', '5d'),
-            ('60m', '1mo')
-        ]
-
+        attempts = ['5MIN', '15MIN', '30MIN', '1H']
         df = None
-        for interval, per in attempts:
-            df = yf.download(ticker, interval=interval, period=per, progress=False, auto_adjust=False)
-            if df is not None and not df.empty:
-                break
+        last_error = None
+        for interval in attempts:
+            try:
+                df = gp_fetch_data(symbol, interval, outputsize=500, force_live=True)
+                metadata = get_last_fetch_metadata()
+                if metadata.get('source') != 'MT5':
+                    raise RuntimeError(f"مصدر غير مسموح للإشارات: {metadata.get('source')}")
+                if df is not None and not df.empty:
+                    break
+            except Exception as exc:
+                last_error = exc
+                df = None
 
         if df is None or df.empty:
-            # fallback عبر history
-            try:
-                ticker_obj = yf.Ticker(ticker)
-                df = ticker_obj.history(period='7d', interval='15m', auto_adjust=False)
-            except Exception:
-                df = None
-            # send_broadcast_message(notification)  # Removed undefined variable 'notification'
-        if df is None or df.empty:
+            if last_error:
+                print(f"تعذر جلب {symbol} من MT5: {last_error}")
             return None
-        
-        # تحويل MultiIndex إلى columns عادية إن وجد
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.droplevel(1)
-        
-        # تسمية الأعمدة بشكل صحيح
-        column_mapping = {
-            'Open': 'open',
-            'High': 'high',
-            'Low': 'low',
-            'Close': 'close',
-            'Volume': 'volume'
-        }
-        df = df.rename(columns=column_mapping)
-        
-        # التأكد من أن الأعمدة Series وليست DataFrame
-        for col in ['open', 'high', 'low', 'close', 'volume']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col].squeeze(), errors='coerce')
-        
-        df = df.dropna()
-        df = df.reset_index()
-        return df
+
+        normalized_df = pd.DataFrame()
+        for output_col, candidates in {
+            'open': ('open', 'Open'),
+            'high': ('high', 'High'),
+            'low': ('low', 'Low'),
+            'close': ('close', 'Close'),
+            'volume': ('volume', 'Volume'),
+        }.items():
+            for candidate in candidates:
+                if candidate in df.columns:
+                    normalized_df[output_col] = pd.to_numeric(df[candidate], errors='coerce')
+                    break
+
+        if 'volume' not in normalized_df.columns:
+            normalized_df['volume'] = 0
+        if 'datetime' in df.columns:
+            normalized_df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
+        elif 'Date' in df.columns:
+            normalized_df['datetime'] = pd.to_datetime(df['Date'], errors='coerce')
+
+        normalized_df = normalized_df.dropna(subset=['open', 'high', 'low', 'close']).reset_index(drop=True)
+        return normalized_df
     except Exception as e:
         print(f"خطأ في جلب {symbol}: {e}")
         return None

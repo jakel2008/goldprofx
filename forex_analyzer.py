@@ -14,12 +14,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 
-if os.environ.get("RENDER") or os.environ.get("RENDER_SERVICE_ID"):
-    os.environ.setdefault("ENABLE_MT5_MARKET_DATA", "0")
-    os.environ.setdefault("MT5_MARKET_DATA_MODE", "disabled")
-    os.environ.setdefault("ENABLE_YFINANCE_FALLBACK", "1")
-    os.environ.setdefault("DATA_FETCH_HTTP_TIMEOUT_SECONDS", "6")
-
 # Configuration
 API_KEY = "079cdb64bbc8415abcf8f7be7e389349"
 BASE_URL = "https://api.twelvedata.com/time_series"
@@ -672,6 +666,8 @@ def _with_mt5_source(sources):
     mt5_source = [("MT5", _fetch_from_mt5)]
     if MT5_MARKET_DATA_MODE in {"fallback", "last"}:
         return without_mt5 + mt5_source
+    if MT5_MARKET_DATA_MODE in {"primary", "only", "strict", "mt5_only"}:
+        return mt5_source
     return mt5_source + without_mt5
 
 def fetch_data(symbol, interval, outputsize=100, force_live=False):
@@ -779,7 +775,7 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
                         _set_yf_cooldown(normalized_symbol, normalized_interval)
 
     # fallback نهائي: آخر كاش متاح حتى لو قديم لتجنب توقف التحليل كليًا
-    stale_cache = _load_from_cache(normalized_symbol, normalized_interval, allow_stale=True)
+    stale_cache = None if mt5_first else _load_from_cache(normalized_symbol, normalized_interval, allow_stale=True)
     if stale_cache is not None:
         _update_fetch_metadata(
             normalized_symbol,

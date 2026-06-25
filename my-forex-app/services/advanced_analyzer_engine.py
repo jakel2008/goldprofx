@@ -699,10 +699,7 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 	"""جلب بيانات السوق مع دعم مصادر متعددة (forex_analyzer → yfinance fallback)."""
 	cache_key = (symbol, interval)
-	mt5_enabled = str(os.environ.get("ENABLE_MT5_MARKET_DATA", "1") or "1").strip().lower() in {"1", "true", "yes", "on"}
-	mt5_mode = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower()
-	mt5_primary = mt5_enabled and mt5_mode not in {"fallback", "last", "0", "false", "off", "disabled", "none"}
-	cached_data = None if mt5_primary else _get_cached_market_data(cache_key)
+	cached_data = _get_cached_market_data(cache_key)
 	if cached_data is not None:
 		cached_data.attrs["market_data_source"] = cached_data.attrs.get("market_data_source") or "CACHE_FRESH"
 		return cached_data
@@ -715,12 +712,11 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		gold_pro_dir = Path(__file__).resolve().parent.parent.parent
 		if str(gold_pro_dir) not in sys.path:
 			sys.path.insert(0, str(gold_pro_dir))
-		from forex_analyzer import fetch_data as gp_fetch, get_last_fetch_metadata  # type: ignore
+		from forex_analyzer import fetch_data as gp_fetch  # type: ignore
 		interval_map = {"5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
 		gp_interval = interval_map.get(interval, "1H")
-		gp_data = gp_fetch(symbol, gp_interval, outputsize=240, force_live=mt5_primary)
+		gp_data = gp_fetch(symbol, gp_interval, outputsize=240)
 		if gp_data is not None and len(gp_data) >= 60:
-			fetch_meta = get_last_fetch_metadata()
 			# تحويل الأعمدة إلى الشكل المطلوب
 			for col in ("Open", "High", "Low", "Close"):
 				gp_data[col] = pd.to_numeric(gp_data[col], errors="coerce")
@@ -731,8 +727,8 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 				gp_data["Date"] = pd.to_datetime(gp_data["Date"], utc=True, errors="coerce")
 				gp_data = gp_data.set_index("Date")
 			if len(gp_data) >= 60:
-				gp_data.attrs["market_data_source"] = fetch_meta.get("source") or "FOREX_ANALYZER"
-				gp_data.attrs["market_data_errors"] = fetch_meta.get("errors") or []
+				gp_data.attrs["market_data_source"] = gp_data.attrs.get("market_data_source") or "FOREX_ANALYZER"
+				gp_data.attrs["market_data_errors"] = gp_data.attrs.get("market_data_errors") or []
 				_set_cached_market_data(cache_key, gp_data)
 				return gp_data
 	except Exception:

@@ -12,9 +12,9 @@ from pathlib import Path
 import os  # <-- Add this line
 
 if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
-    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '0')
-    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'disabled')
-    os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '1')
+    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '1')
+    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'primary')
+    os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '0')
     os.environ.setdefault('DATA_FETCH_HTTP_TIMEOUT_SECONDS', '6')
     os.environ.setdefault('GOLDPRO_DATA_DIR', '/var/data')
     os.environ.setdefault('VIP_SIGNALS_DB_PATH', '/var/data/vip_signals.db')
@@ -395,7 +395,7 @@ def healthz():
 def debug_deploy():
     return jsonify({
         'ok': True,
-        'fix_version': 'render-data-source-v3',
+        'fix_version': 'mt5-primary-june-source-v4',
         'render': _IS_RENDER_DEPLOYMENT,
         'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
         'enable_mt5_market_data': os.environ.get('ENABLE_MT5_MARKET_DATA'),

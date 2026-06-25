@@ -36,11 +36,11 @@ services:
       - key: BACKGROUND_SERVICES_ENABLED
         value: "1"
       - key: ENABLE_MT5_MARKET_DATA
-        value: "0"
-      - key: MT5_MARKET_DATA_MODE
-        value: "disabled"
-      - key: ENABLE_YFINANCE_FALLBACK
         value: "1"
+      - key: MT5_MARKET_DATA_MODE
+        value: "primary"
+      - key: ENABLE_YFINANCE_FALLBACK
+        value: "0"
       - key: DATA_FETCH_HTTP_TIMEOUT_SECONDS
         value: "6"
       - key: APP_DEBUG

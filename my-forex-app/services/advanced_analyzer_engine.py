@@ -699,7 +699,9 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 	"""جلب بيانات السوق مع دعم مصادر متعددة (forex_analyzer → yfinance fallback)."""
 	cache_key = (symbol, interval)
-	mt5_primary = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower() not in {"fallback", "last", "0", "false", "off", "disabled", "none"}
+	mt5_enabled = str(os.environ.get("ENABLE_MT5_MARKET_DATA", "1") or "1").strip().lower() in {"1", "true", "yes", "on"}
+	mt5_mode = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower()
+	mt5_primary = mt5_enabled and mt5_mode not in {"fallback", "last", "0", "false", "off", "disabled", "none"}
 	cached_data = None if mt5_primary else _get_cached_market_data(cache_key)
 	if cached_data is not None:
 		cached_data.attrs["market_data_source"] = cached_data.attrs.get("market_data_source") or "CACHE_FRESH"
@@ -745,7 +747,7 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		auto_adjust=False,
 		progress=False,
 		threads=False,
-		timeout=8,
+		timeout=max(3, int(os.environ.get("DATA_FETCH_HTTP_TIMEOUT_SECONDS", "6"))),
 	)
 	if isinstance(data.columns, pd.MultiIndex):
 		data.columns = data.columns.get_level_values(0)

@@ -22,6 +22,7 @@ YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
 CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
 TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
+DATA_FETCH_HTTP_TIMEOUT_SECONDS = max(3, int(os.environ.get("DATA_FETCH_HTTP_TIMEOUT_SECONDS", "6")))
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "yahoo_first") or "yahoo_first").strip().lower()
 MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
 ENABLE_YFINANCE_FALLBACK = str(os.environ.get("ENABLE_YFINANCE_FALLBACK", "0") or "0").strip().lower() in ("1", "true", "yes", "on")
@@ -405,7 +406,7 @@ def _fetch_from_twelve_data(symbol, interval, outputsize):
         "apikey": API_KEY
     }
 
-    response = requests.get(BASE_URL, params=params, timeout=15)
+    response = requests.get(BASE_URL, params=params, timeout=DATA_FETCH_HTTP_TIMEOUT_SECONDS)
     response.raise_for_status()
     data = response.json()
 
@@ -457,7 +458,7 @@ def _fetch_from_binance(symbol, interval, outputsize):
             "interval": binance_interval,
             "limit": limit
         },
-        timeout=15
+        timeout=DATA_FETCH_HTTP_TIMEOUT_SECONDS
     )
     response.raise_for_status()
     klines = response.json()
@@ -496,7 +497,7 @@ def _fetch_from_yfinance(symbol, interval, outputsize):
         raise DataFetchError("Yahoo Finance: unsupported interval")
 
     period = "60d" if yf_interval in ("1m", "5m", "15m", "30m", "60m", "1h") else "2y"
-    raw = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False, auto_adjust=False, timeout=8)
+    raw = yf.download(yf_symbol, period=period, interval=yf_interval, progress=False, auto_adjust=False, timeout=DATA_FETCH_HTTP_TIMEOUT_SECONDS)
 
     if raw is None or raw.empty:
         raise DataFetchError("Yahoo Finance: empty data")
@@ -566,7 +567,7 @@ def _fetch_from_yahoo_chart(symbol, interval, outputsize):
             "events": "div,splits"
         },
         headers=headers,
-        timeout=15
+        timeout=DATA_FETCH_HTTP_TIMEOUT_SECONDS
     )
     response.raise_for_status()
     data = response.json() or {}

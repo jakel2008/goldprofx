@@ -10,6 +10,20 @@ import importlib.util
 import sys
 from pathlib import Path
 import os  # <-- Add this line
+
+if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
+    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '0')
+    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'disabled')
+    os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '1')
+    os.environ.setdefault('DATA_FETCH_HTTP_TIMEOUT_SECONDS', '6')
+    os.environ.setdefault('GOLDPRO_DATA_DIR', '/var/data')
+    os.environ.setdefault('VIP_SIGNALS_DB_PATH', '/var/data/vip_signals.db')
+    os.environ.setdefault('VIP_SUBSCRIPTIONS_DB_PATH', '/var/data/vip_subscriptions.db')
+    os.environ.setdefault('USERS_DB_PATH', '/var/data/users.db')
+    os.environ.setdefault('SIGNALS_DIR', '/var/data/signals')
+    os.environ.setdefault('RECOMMENDATIONS_DIR', '/var/data/recommendations')
+    os.environ.setdefault('ANALYSIS_DIR', '/var/data/analysis')
+
 import threading
 import time
 import subprocess
@@ -381,7 +395,7 @@ def healthz():
 def debug_deploy():
     return jsonify({
         'ok': True,
-        'fix_version': 'render-analyzer-502-v2',
+        'fix_version': 'render-data-source-v3',
         'render': _IS_RENDER_DEPLOYMENT,
         'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
         'enable_mt5_market_data': os.environ.get('ENABLE_MT5_MARKET_DATA'),

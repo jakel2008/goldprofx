@@ -94,6 +94,20 @@
         if (forceMeta) forceMeta.textContent = text;
     }
 
+    async function parseDashboardJsonResponse(response) {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : {};
+            if (!response.ok && data && !data.error) {
+                data.error = `HTTP ${response.status}`;
+            }
+            return data;
+        } catch (error) {
+            const plainText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            throw new Error(`HTTP ${response.status}: ${plainText.slice(0, 180) || response.statusText || 'Non-JSON response'}`);
+        }
+    }
+
     runOnceBtn?.addEventListener('click', async function() {
         const originalText = this.textContent;
         this.disabled = true;
@@ -107,7 +121,7 @@
                     force_live: Boolean(forceLiveToggle?.checked)
                 })
             });
-            const data = await response.json();
+            const data = await parseDashboardJsonResponse(response);
             if (data.success) {
                 setForceMeta(`✅ تم التحليل: ${data.analyzed_count || 0} | إشارات جديدة: ${data.generated_count || 0} | بث: ${data.broadcast_count || 0}`);
                 updateDashboard();
@@ -129,7 +143,7 @@
         try {
             const forceLive = Boolean(forceLiveToggle?.checked) ? '1' : '0';
             const response = await fetch(`/api/admin/data-source-health?interval=1h&outputsize=120&force_live=${forceLive}`);
-            const data = await response.json();
+            const data = await parseDashboardJsonResponse(response);
             if (data.success) {
                 const report = Array.isArray(data.report) ? data.report : [];
                 const sources = [...new Set(report.map(item => item.source).filter(Boolean))];
@@ -138,7 +152,7 @@
                 setForceMeta(`❌ فشل فحص المصادر: ${data.error || 'خطأ غير معروف'}`);
             }
         } catch (error) {
-            setForceMeta('❌ خطأ أثناء فحص المصادر');
+            setForceMeta(`❌ خطأ أثناء فحص المصادر: ${error.message || error}`);
         } finally {
             this.disabled = false;
             this.textContent = originalText;

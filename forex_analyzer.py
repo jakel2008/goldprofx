@@ -14,6 +14,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 
+if os.environ.get("RENDER") or os.environ.get("RENDER_SERVICE_ID"):
+    os.environ.setdefault("ENABLE_MT5_MARKET_DATA", "0")
+    os.environ.setdefault("MT5_MARKET_DATA_MODE", "disabled")
+    os.environ.setdefault("ENABLE_YFINANCE_FALLBACK", "1")
+    os.environ.setdefault("DATA_FETCH_HTTP_TIMEOUT_SECONDS", "6")
+
 # Configuration
 API_KEY = "079cdb64bbc8415abcf8f7be7e389349"
 BASE_URL = "https://api.twelvedata.com/time_series"

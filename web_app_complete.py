@@ -2984,6 +2984,7 @@ def _analyze_and_generate_signal(symbol, interval='1h', force_live=False, return
 
 def _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h'):
     """إنشاء إشارة Bootstrap واحدة إذا كانت القاعدة فارغة لتفادي صفحة إشارات خالية."""
+    _ensure_signals_table()
     if _count_recent_active_signals() > 0:
         return None
 
@@ -5649,6 +5650,7 @@ def load_signals_snapshot(include_closed=False, limit=50):
     """تحميل خفيف للإشارات من قاعدة البيانات بدون تحديث أسعار حي أو تنظيف ثقيل."""
     signals = []
     try:
+        _ensure_signals_table()
         conn = sqlite3.connect('vip_signals.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -7710,6 +7712,12 @@ def api_signals():
     """API لجلب الإشارات"""
     try:
         signals = load_signals_snapshot(limit=50)
+        if not signals:
+            try:
+                _create_bootstrap_signal_if_empty(symbol='XAUUSD', timeframe='1h')
+                signals = load_signals_snapshot(limit=50)
+            except Exception as bootstrap_error:
+                print(f"⚠️ تعذر إنشاء إشارة bootstrap عند فراغ القائمة: {bootstrap_error}")
         user_info = get_current_user()
         filtered_signals = _filter_signals_for_user(signals, user_info)
         return jsonify(filtered_signals)

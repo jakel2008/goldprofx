@@ -23,11 +23,12 @@ CACHE_DIR = Path(__file__).parent / "cache" / "market_data"
 YF_COOLDOWN_SECONDS = int(os.environ.get("YF_ANALYZER_COOLDOWN_SECONDS", "90"))
 TD_COOLDOWN_SECONDS = int(os.environ.get("TWELVEDATA_COOLDOWN_SECONDS", "600"))
 DATA_FETCH_HTTP_TIMEOUT_SECONDS = max(3, int(os.environ.get("DATA_FETCH_HTTP_TIMEOUT_SECONDS", "6")))
+MARKET_DATA_SOURCE_MODE = str(os.environ.get("MARKET_DATA_SOURCE_MODE", "yahoo_only") or "yahoo_only").strip().lower()
 CRYPTO_DATA_SOURCE_MODE = str(os.environ.get("CRYPTO_DATA_SOURCE_MODE", "yahoo_first") or "yahoo_first").strip().lower()
 MAX_ATTEMPTS_PER_SOURCE = max(1, int(os.environ.get("DATA_FETCH_MAX_ATTEMPTS_PER_SOURCE", "1")))
-ENABLE_YFINANCE_FALLBACK = str(os.environ.get("ENABLE_YFINANCE_FALLBACK", "0") or "0").strip().lower() in ("1", "true", "yes", "on")
-ENABLE_MT5_MARKET_DATA = str(os.environ.get("ENABLE_MT5_MARKET_DATA", "1") or "1").strip().lower() in ("1", "true", "yes", "on")
-MT5_MARKET_DATA_MODE = str(os.environ.get("MT5_MARKET_DATA_MODE", "primary") or "primary").strip().lower()
+ENABLE_YFINANCE_FALLBACK = str(os.environ.get("ENABLE_YFINANCE_FALLBACK", "1") or "1").strip().lower() in ("1", "true", "yes", "on")
+ENABLE_MT5_MARKET_DATA = str(os.environ.get("ENABLE_MT5_MARKET_DATA", "0") or "0").strip().lower() in ("1", "true", "yes", "on")
+MT5_MARKET_DATA_MODE = str(os.environ.get("MT5_MARKET_DATA_MODE", "disabled") or "disabled").strip().lower()
 
 logger = logging.getLogger("forex_analyzer")
 if not logger.handlers:
@@ -699,7 +700,9 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
             return fresh_cache
 
     is_crypto = _is_crypto_symbol(normalized_symbol)
-    if is_crypto:
+    if MARKET_DATA_SOURCE_MODE in {"yahoo", "yahoo_only", "yahoo_finance", "yahoochart"}:
+        sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
+    elif is_crypto:
         if CRYPTO_DATA_SOURCE_MODE == "yahoo_only":
             sources = [("YahooChart", _fetch_from_yahoo_chart), ("YahooFinance", _fetch_from_yfinance)]
         elif CRYPTO_DATA_SOURCE_MODE == "yahoo_first":

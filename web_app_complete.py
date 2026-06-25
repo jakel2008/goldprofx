@@ -12,9 +12,10 @@ from pathlib import Path
 import os  # <-- Add this line
 
 if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
-    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '1')
-    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'primary')
-    os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '0')
+    os.environ.setdefault('MARKET_DATA_SOURCE_MODE', 'yahoo_only')
+    os.environ.setdefault('ENABLE_MT5_MARKET_DATA', '0')
+    os.environ.setdefault('MT5_MARKET_DATA_MODE', 'disabled')
+    os.environ.setdefault('ENABLE_YFINANCE_FALLBACK', '1')
     os.environ.setdefault('DATA_FETCH_HTTP_TIMEOUT_SECONDS', '6')
     os.environ.setdefault('GOLDPRO_DATA_DIR', '/var/data')
     os.environ.setdefault('VIP_SIGNALS_DB_PATH', '/var/data/vip_signals.db')
@@ -395,9 +396,10 @@ def healthz():
 def debug_deploy():
     return jsonify({
         'ok': True,
-        'fix_version': 'mt5-primary-june-source-v4',
+        'fix_version': 'yahoo-only-source-v5',
         'render': _IS_RENDER_DEPLOYMENT,
         'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
+        'market_data_source_mode': os.environ.get('MARKET_DATA_SOURCE_MODE'),
         'enable_mt5_market_data': os.environ.get('ENABLE_MT5_MARKET_DATA'),
         'mt5_market_data_mode': os.environ.get('MT5_MARKET_DATA_MODE'),
         'enable_yfinance_fallback': os.environ.get('ENABLE_YFINANCE_FALLBACK'),
@@ -10161,7 +10163,7 @@ def my_forex_advanced_analysis_api():
             spec.loader.exec_module(analyzer_module)
             perform_full_analysis = analyzer_module.perform_full_analysis
 
-        result = perform_full_analysis(symbol, interval)
+        result = perform_full_analysis(symbol, interval, data_source_policy='legacy')
         if result.get('success'):
             return jsonify({'success': True, 'data': result})
         return jsonify({'success': False, 'error': result.get('error', 'خطأ غير معروف')}), 400
@@ -10193,7 +10195,7 @@ def api_forex_analysis():
             sys.modules['advanced_analyzer_engine'] = analyzer_module
             spec.loader.exec_module(analyzer_module)
             perform_full_analysis = analyzer_module.perform_full_analysis
-        result = perform_full_analysis(symbol, interval)
+        result = perform_full_analysis(symbol, interval, data_source_policy='legacy')
         
         if result.get('success'):
             return jsonify({'success': True, 'data': result})

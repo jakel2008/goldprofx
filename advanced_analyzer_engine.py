@@ -1116,10 +1116,10 @@ def detect_comprehensive_signals(df, symbol, interval):
     
     return signals, final_recommendation, levels, fib_levels
 
-def perform_full_analysis(symbol, interval, force_live=False):
+def perform_full_analysis(symbol, interval, force_live=False, data_source_policy=None):
     """التحليل الكامل المتكامل"""
     try:
-        from forex_analyzer import fetch_data, DataFetchError, get_last_fetch_metadata
+        import forex_analyzer as gp_analyzer
     except ImportError:
         return {
             'success': False,
@@ -1130,7 +1130,24 @@ def perform_full_analysis(symbol, interval, force_live=False):
         # Fetch data
         normalized_interval = str(interval or '1h').strip().lower()
         outputsize = 240 if normalized_interval in ('1min', '5min', '15min', '30min', '1h') else 320
-        df = fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
+        if str(data_source_policy or '').strip().lower() in ('legacy', 'june', 'june_2026'):
+            previous_source_mode = getattr(gp_analyzer, 'MARKET_DATA_SOURCE_MODE', 'yahoo_only')
+            previous_mt5_enabled = getattr(gp_analyzer, 'ENABLE_MT5_MARKET_DATA', False)
+            previous_mt5_mode = getattr(gp_analyzer, 'MT5_MARKET_DATA_MODE', 'disabled')
+            previous_yfinance_fallback = getattr(gp_analyzer, 'ENABLE_YFINANCE_FALLBACK', False)
+            try:
+                gp_analyzer.MARKET_DATA_SOURCE_MODE = 'yahoo_only'
+                gp_analyzer.ENABLE_MT5_MARKET_DATA = False
+                gp_analyzer.MT5_MARKET_DATA_MODE = 'disabled'
+                gp_analyzer.ENABLE_YFINANCE_FALLBACK = True
+                df = gp_analyzer.fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
+            finally:
+                gp_analyzer.MARKET_DATA_SOURCE_MODE = previous_source_mode
+                gp_analyzer.ENABLE_MT5_MARKET_DATA = previous_mt5_enabled
+                gp_analyzer.MT5_MARKET_DATA_MODE = previous_mt5_mode
+                gp_analyzer.ENABLE_YFINANCE_FALLBACK = previous_yfinance_fallback
+        else:
+            df = gp_analyzer.fetch_data(symbol, interval, outputsize=outputsize, force_live=force_live)
         
         if len(df) < 50:
             return {
@@ -1169,7 +1186,7 @@ def perform_full_analysis(symbol, interval, force_live=False):
 
         fetch_meta = {}
         try:
-            fetch_meta = get_last_fetch_metadata() or {}
+            fetch_meta = gp_analyzer.get_last_fetch_metadata() or {}
         except Exception:
             fetch_meta = {}
 
@@ -1209,7 +1226,7 @@ def perform_full_analysis(symbol, interval, force_live=False):
             , 'data_stale_cache_used': bool(fetch_meta.get('stale_cache_used'))
         }
         
-    except DataFetchError as e:
+    except gp_analyzer.DataFetchError as e:
         return {'success': False, 'error': str(e)}
     except Exception as e:
         return {'success': False, 'error': f'خطأ في التحليل: {str(e)}'}

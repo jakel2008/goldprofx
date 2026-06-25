@@ -9,13 +9,15 @@ import pandas as pd
 import ta
 from datetime import datetime, date
 import os
+import yfinance as yf
 import json
 from vip_subscription_system import SubscriptionManager
 from quality_scorer import add_quality_score, filter_signals_by_quality, get_quality_threshold_for_plan
 
-os.environ.setdefault("ENABLE_MT5_MARKET_DATA", "1")
-os.environ.setdefault("MT5_MARKET_DATA_MODE", "primary")
-os.environ.setdefault("ENABLE_YFINANCE_FALLBACK", "0")
+os.environ.setdefault("MARKET_DATA_SOURCE_MODE", "yahoo_only")
+os.environ.setdefault("ENABLE_MT5_MARKET_DATA", "0")
+os.environ.setdefault("MT5_MARKET_DATA_MODE", "disabled")
+os.environ.setdefault("ENABLE_YFINANCE_FALLBACK", "1")
 
 # استيراد المزامنة الموحدة
 try:
@@ -227,37 +229,46 @@ def fetch_pair_data(symbol, interval='1h', limit=100):
 
 
 def fetch_pair_data_5m(symbol, period='1d'):
-    """جلب بيانات الإشارات من MT5 فقط."""
+    """جلب بيانات الإشارات من Yahoo فقط."""
     try:
-        from forex_analyzer import fetch_data as gp_fetch_data, get_last_fetch_metadata
+        ticker = YF_TICKERS.get(symbol)
+        if not ticker:
+            return None
 
-        attempts = ['5MIN', '15MIN', '30MIN', '1H']
+        attempts = [
+            ('5m', period),
+            ('5m', '5d'),
+            ('15m', '5d'),
+            ('30m', '5d'),
+            ('60m', '1mo')
+        ]
         df = None
-        last_error = None
-        for interval in attempts:
-            try:
-                df = gp_fetch_data(symbol, interval, outputsize=500, force_live=True)
-                metadata = get_last_fetch_metadata()
-                if metadata.get('source') != 'MT5':
-                    raise RuntimeError(f"مصدر غير مسموح للإشارات: {metadata.get('source')}")
-                if df is not None and not df.empty:
-                    break
-            except Exception as exc:
-                last_error = exc
-                df = None
+        for interval, per in attempts:
+            df = yf.download(ticker, interval=interval, period=per, progress=False, auto_adjust=False, threads=False)
+            if df is not None and not df.empty:
+                break
 
         if df is None or df.empty:
-            if last_error:
-                print(f"تعذر جلب {symbol} من MT5: {last_error}")
             return None
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(1)
+
+        df = df.rename(columns={
+            'Open': 'open',
+            'High': 'high',
+            'Low': 'low',
+            'Close': 'close',
+            'Volume': 'volume'
+        })
 
         normalized_df = pd.DataFrame()
         for output_col, candidates in {
-            'open': ('open', 'Open'),
-            'high': ('high', 'High'),
-            'low': ('low', 'Low'),
-            'close': ('close', 'Close'),
-            'volume': ('volume', 'Volume'),
+            'open': ('open',),
+            'high': ('high',),
+            'low': ('low',),
+            'close': ('close',),
+            'volume': ('volume',),
         }.items():
             for candidate in candidates:
                 if candidate in df.columns:

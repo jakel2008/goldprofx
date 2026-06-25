@@ -712,10 +712,21 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		gold_pro_dir = Path(__file__).resolve().parent.parent.parent
 		if str(gold_pro_dir) not in sys.path:
 			sys.path.insert(0, str(gold_pro_dir))
-		from forex_analyzer import fetch_data as gp_fetch  # type: ignore
+		import forex_analyzer as gp_analyzer  # type: ignore
 		interval_map = {"5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
 		gp_interval = interval_map.get(interval, "1H")
-		gp_data = gp_fetch(symbol, gp_interval, outputsize=240)
+		previous_mt5_enabled = getattr(gp_analyzer, "ENABLE_MT5_MARKET_DATA", False)
+		previous_mt5_mode = getattr(gp_analyzer, "MT5_MARKET_DATA_MODE", "disabled")
+		previous_yfinance_fallback = getattr(gp_analyzer, "ENABLE_YFINANCE_FALLBACK", False)
+		try:
+			gp_analyzer.ENABLE_MT5_MARKET_DATA = False
+			gp_analyzer.MT5_MARKET_DATA_MODE = "disabled"
+			gp_analyzer.ENABLE_YFINANCE_FALLBACK = True
+			gp_data = gp_analyzer.fetch_data(symbol, gp_interval, outputsize=240)
+		finally:
+			gp_analyzer.ENABLE_MT5_MARKET_DATA = previous_mt5_enabled
+			gp_analyzer.MT5_MARKET_DATA_MODE = previous_mt5_mode
+			gp_analyzer.ENABLE_YFINANCE_FALLBACK = previous_yfinance_fallback
 		if gp_data is not None and len(gp_data) >= 60:
 			# تحويل الأعمدة إلى الشكل المطلوب
 			for col in ("Open", "High", "Low", "Close"):

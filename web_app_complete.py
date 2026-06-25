@@ -377,6 +377,21 @@ def healthz():
     return jsonify({'ok': True}), 200
 
 
+@app.route('/debug-deploy')
+def debug_deploy():
+    return jsonify({
+        'ok': True,
+        'fix_version': 'render-analyzer-502-v2',
+        'render': _IS_RENDER_DEPLOYMENT,
+        'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
+        'enable_mt5_market_data': os.environ.get('ENABLE_MT5_MARKET_DATA'),
+        'mt5_market_data_mode': os.environ.get('MT5_MARKET_DATA_MODE'),
+        'enable_yfinance_fallback': os.environ.get('ENABLE_YFINANCE_FALLBACK'),
+        'data_fetch_http_timeout_seconds': os.environ.get('DATA_FETCH_HTTP_TIMEOUT_SECONDS'),
+        'render_git_commit': os.environ.get('RENDER_GIT_COMMIT'),
+    }), 200
+
+
 def _is_local_admin_session():
     return session.get('local_admin_username') == ADMIN_USERNAME
 

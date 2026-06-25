@@ -10181,7 +10181,7 @@ def my_forex_advanced_analysis_api():
 @app.route('/api/forex-analysis', methods=['POST'])
 @app.route('/api/advanced_analysis', methods=['POST'])
 @app.route('/api/advanced-analysis', methods=['POST'])
-@admin_required
+@login_required
 def api_forex_analysis():
     """API لتحليل الفوركس - يستخدم المحلل المتقدم"""
     data = request.json or {}

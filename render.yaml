@@ -15,9 +15,29 @@ services:
         generateValue: true
       - key: DB_PATH
         value: /var/data/goldpro_system.db
+      - key: GOLDPRO_DATA_DIR
+        value: /var/data
+      - key: USERS_DB_PATH
+        value: /var/data/users.db
+      - key: VIP_SUBSCRIPTIONS_DB_PATH
+        value: /var/data/vip_subscriptions.db
+      - key: VIP_SIGNALS_DB_PATH
+        value: /var/data/vip_signals.db
+      - key: SIGNALS_DIR
+        value: /var/data/signals
+      - key: RECOMMENDATIONS_DIR
+        value: /var/data/recommendations
+      - key: ANALYSIS_DIR
+        value: /var/data/analysis
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: WEB_CONCURRENCY
+        value: "1"
+      - key: BACKGROUND_SERVICES_ENABLED
+        value: "1"
+      - key: ENABLE_MT5_MARKET_DATA
+        value: "0"
+      - key: ENABLE_YFINANCE_FALLBACK
         value: "1"
       - key: APP_DEBUG
         value: "0"
@@ -30,7 +50,7 @@ services:
       - key: LIVE_PRICE_FAIL_CACHE_TTL_SECONDS
         value: "4"
       - key: PUBLIC_BASE_URL
-        value: "https://goldprofx.onrender.com"
+        value: "https://goldprofx-1.onrender.com"
       - key: EMAIL_ACTIVATION_REQUIRED
         value: "0"
       - key: SMTP_ENABLED

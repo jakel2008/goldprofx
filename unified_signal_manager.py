@@ -14,10 +14,15 @@ class UnifiedSignalManager:
     """مدير الإشارات الموحد للويب والبوت"""
     
     def __init__(self):
-        self.signals_dir = "signals"
-        self.recommendations_dir = "recommendations"
-        self.web_db = "vip_signals.db"
-        self.vip_db = "vip_subscriptions.db"
+        data_dir = os.environ.get("GOLDPRO_DATA_DIR")
+        if not data_dir and os.path.exists("/var/data"):
+            data_dir = "/var/data"
+        data_dir = data_dir or os.path.dirname(os.path.abspath(__file__))
+
+        self.signals_dir = os.environ.get("SIGNALS_DIR", os.path.join(data_dir, "signals"))
+        self.recommendations_dir = os.environ.get("RECOMMENDATIONS_DIR", os.path.join(data_dir, "recommendations"))
+        self.web_db = os.environ.get("VIP_SIGNALS_DB_PATH", os.path.join(data_dir, "vip_signals.db"))
+        self.vip_db = os.environ.get("VIP_SUBSCRIPTIONS_DB_PATH", os.path.join(data_dir, "vip_subscriptions.db"))
         
         # إعدادات التليجرام
         self.bot_token = os.environ.get("MM_TELEGRAM_BOT_TOKEN", "8253445917:AAEajrjXavN5Ebz8pSKeU8frqIyI84zi26A")

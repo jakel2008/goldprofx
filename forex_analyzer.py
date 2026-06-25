@@ -272,7 +272,35 @@ def _is_non_fx_market_symbol(symbol):
 
 
 def _normalize_interval(interval):
-    return str(interval or "1h").strip().upper().replace(" ", "")
+    normalized = str(interval or "1h").strip().upper().replace(" ", "")
+    aliases = {
+        "1M": "1MIN",
+        "1MINUTE": "1MIN",
+        "1MINUTES": "1MIN",
+        "5M": "5MIN",
+        "5MINUTE": "5MIN",
+        "5MINUTES": "5MIN",
+        "15M": "15MIN",
+        "15MINUTE": "15MIN",
+        "15MINUTES": "15MIN",
+        "30M": "30MIN",
+        "30MINUTE": "30MIN",
+        "30MINUTES": "30MIN",
+        "60M": "1H",
+        "60MIN": "1H",
+        "60MINUTE": "1H",
+        "60MINUTES": "1H",
+        "1HR": "1H",
+        "1HOUR": "1H",
+        "1HOURS": "1H",
+        "4HR": "4H",
+        "4HOUR": "4H",
+        "4HOURS": "4H",
+        "D": "1D",
+        "DAY": "1D",
+        "DAILY": "1D",
+    }
+    return aliases.get(normalized, normalized)
 
 
 def _is_crypto_symbol(symbol):

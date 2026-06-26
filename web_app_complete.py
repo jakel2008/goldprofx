@@ -9084,6 +9084,44 @@ def smart_analyzer_redirect():
     return redirect(url_for('strong_signals_page', **query_args))
 
 
+def _run_strong_signals_with_timeout(module, symbol, interval, lang):
+    """Run strong signals scan with a hard timeout to avoid upstream 502 timeouts."""
+    import concurrent.futures
+
+    timeout_seconds = max(8, int(os.environ.get('STRONG_SIGNALS_REQUEST_TIMEOUT_SECONDS', '45') or '45'))
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(module.get_strong_signals, symbol, interval, lang=lang)
+    try:
+        result = future.result(timeout=timeout_seconds)
+        executor.shutdown(wait=True, cancel_futures=False)
+        return result
+    except concurrent.futures.TimeoutError:
+        future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        return {
+            'success': False,
+            'symbol': symbol,
+            'interval': interval,
+            'signals': [],
+            'scanned_symbols': 0,
+            'matched_signals': 0,
+            'scan_errors': [f'timeout: strong-signals scan exceeded {timeout_seconds}s'],
+            'error': f'timeout after {timeout_seconds}s',
+        }
+    except Exception as e:
+        executor.shutdown(wait=False, cancel_futures=True)
+        return {
+            'success': False,
+            'symbol': symbol,
+            'interval': interval,
+            'signals': [],
+            'scanned_symbols': 0,
+            'matched_signals': 0,
+            'scan_errors': [f'{type(e).__name__}: {e}'],
+            'error': f'{type(e).__name__}: {e}',
+        }
+
+
 @app.route('/api/strong-signals')
 def api_strong_signals():
     symbol = request.args.get('symbol', 'ALL')
@@ -9091,7 +9129,7 @@ def api_strong_signals():
     lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
     try:
         module = load_my_forex_module()
-        result = module.get_strong_signals(symbol, interval, lang=lang)
+        result = _run_strong_signals_with_timeout(module, symbol, interval, lang)
         status_code = 200 if result.get('success') else 400
         return jsonify(result), status_code
     except Exception as e:
@@ -10092,7 +10130,7 @@ def my_forex_strong_signals_page():
                 'deferred_scan': True,
             }
         else:
-            strong_signals_data = module.get_strong_signals(symbol, interval, lang=lang)
+            strong_signals_data = _run_strong_signals_with_timeout(module, symbol, interval, lang)
     except Exception as e:
         import traceback
         strong_signals_data = {

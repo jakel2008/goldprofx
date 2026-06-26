@@ -10247,12 +10247,18 @@ def _run_analysis_with_cache(symbol, interval):
         _spec.loader.exec_module(_mod)
         _pfa = _mod.perform_full_analysis
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _executor:
-        _future = _executor.submit(_pfa, symbol, interval, False)
-        try:
-            result = _future.result(timeout=ANALYSIS_REQUEST_TIMEOUT)
-        except concurrent.futures.TimeoutError:
-            return {'success': False, 'error': f'استغرق التحليل وقتاً طويلاً، حاول مرة أخرى ({ANALYSIS_REQUEST_TIMEOUT}s).'}, False
+    _executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    _future = _executor.submit(_pfa, symbol, interval, False)
+    try:
+        result = _future.result(timeout=ANALYSIS_REQUEST_TIMEOUT)
+        _executor.shutdown(wait=True, cancel_futures=False)
+    except concurrent.futures.TimeoutError:
+        _future.cancel()
+        _executor.shutdown(wait=False, cancel_futures=True)
+        return {'success': False, 'error': f'استغرق التحليل وقتاً طويلاً، حاول مرة أخرى ({ANALYSIS_REQUEST_TIMEOUT}s).'}, False
+    except Exception:
+        _executor.shutdown(wait=False, cancel_futures=True)
+        raise
 
     if result.get('success'):
         with ANALYSIS_RESULT_CACHE_LOCK:

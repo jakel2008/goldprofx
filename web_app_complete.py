@@ -9122,12 +9122,106 @@ def _run_strong_signals_with_timeout(module, symbol, interval, lang):
         }
 
 
+def _run_core_analysis_with_timeout(symbol, interval, timeout_seconds=18):
+    """Run core analysis with a bounded timeout and return a unified result payload."""
+    import concurrent.futures
+
+    try:
+        from advanced_analyzer_engine import perform_full_analysis as _pfa  # type: ignore
+    except ImportError:
+        _analyzer_path = Path(__file__).parent / 'advanced_analyzer_engine.py'
+        _spec = importlib.util.spec_from_file_location('advanced_analyzer_engine', str(_analyzer_path))
+        _mod = importlib.util.module_from_spec(_spec)
+        sys.modules['advanced_analyzer_engine'] = _mod
+        _spec.loader.exec_module(_mod)
+        _pfa = _mod.perform_full_analysis
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(_pfa, symbol, interval, False)
+    try:
+        result = future.result(timeout=max(8, int(timeout_seconds or 18)))
+        executor.shutdown(wait=True, cancel_futures=False)
+        return result
+    except concurrent.futures.TimeoutError:
+        future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        return {'success': False, 'error': f'timeout after {timeout_seconds}s'}
+    except Exception as e:
+        executor.shutdown(wait=False, cancel_futures=True)
+        return {'success': False, 'error': f'{type(e).__name__}: {e}'}
+
+
+def _build_render_safe_strong_signals(symbol, interval, lang):
+    """Fallback strong-signals builder for Render to avoid my-forex runtime crashes."""
+    normalized = (symbol or 'ALL').strip().upper().replace('/', '')
+    if normalized in ('', 'ALL'):
+        scan_symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'BTCUSD', 'ETHUSD']
+    else:
+        scan_symbols = [normalized]
+
+    signals = []
+    scan_errors = []
+    strong_set = {'شراء قوي', 'بيع قوي'}
+    soft_set = {'شراء', 'بيع'}
+
+    for sym in scan_symbols:
+        outcome = _run_core_analysis_with_timeout(sym, interval, timeout_seconds=16)
+        if not isinstance(outcome, dict) or not outcome.get('success'):
+            scan_errors.append({'symbol': sym, 'error': (outcome or {}).get('error', 'analysis failed')})
+            continue
+
+        rec = str(outcome.get('recommendation') or outcome.get('signal') or '').strip()
+        if rec not in strong_set:
+            # Keep results selective but tolerant when market is quiet.
+            if rec not in soft_set:
+                continue
+
+        buy_score = int(outcome.get('buy_score') or 0)
+        sell_score = int(outcome.get('sell_score') or 0)
+        signals.append({
+            'symbol': sym,
+            'symbol_label': sym,
+            'category': 'Major' if sym in {'EURUSD', 'GBPUSD', 'USDJPY'} else ('Metals' if sym == 'XAUUSD' else 'Crypto'),
+            'recommendation': rec,
+            'buy_score': buy_score,
+            'sell_score': sell_score,
+            'entry_price': outcome.get('entry_point'),
+            'take_profit1': outcome.get('take_profit1'),
+            'take_profit2': outcome.get('take_profit2'),
+            'take_profit3': outcome.get('take_profit3'),
+            'stop_loss': outcome.get('stop_loss'),
+            'confidence': outcome.get('confidence'),
+            'score_gap': abs(buy_score - sell_score),
+        })
+
+    signals.sort(key=lambda item: int(item.get('score_gap') or 0), reverse=True)
+    all_label = 'All markets' if lang == 'en' else 'كل الأسواق'
+    return {
+        'success': True,
+        'symbol': 'ALL' if normalized in ('', 'ALL') else normalized,
+        'interval': interval,
+        'symbol_label': all_label if normalized in ('', 'ALL') else normalized,
+        'signals': signals,
+        'categories': ['Majors', 'Metals', 'Crypto'],
+        'scanned_symbols': len(scan_symbols),
+        'matched_signals': len(signals),
+        'scan_errors': scan_errors,
+        'generated_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
+        'error': None,
+        'cached': False,
+        'fallback_mode': 'core_engine_render_safe',
+    }
+
+
 @app.route('/api/strong-signals')
 def api_strong_signals():
     symbol = request.args.get('symbol', 'ALL')
     interval = request.args.get('interval', '1h')
     lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
     try:
+        if _IS_RENDER_DEPLOYMENT:
+            result = _build_render_safe_strong_signals(symbol, interval, lang)
+            return jsonify(result), 200
         module = load_my_forex_module()
         result = _run_strong_signals_with_timeout(module, symbol, interval, lang)
         status_code = 200 if result.get('success') else 400
@@ -10130,7 +10224,10 @@ def my_forex_strong_signals_page():
                 'deferred_scan': True,
             }
         else:
-            strong_signals_data = _run_strong_signals_with_timeout(module, symbol, interval, lang)
+            if _IS_RENDER_DEPLOYMENT:
+                strong_signals_data = _build_render_safe_strong_signals(symbol, interval, lang)
+            else:
+                strong_signals_data = _run_strong_signals_with_timeout(module, symbol, interval, lang)
     except Exception as e:
         import traceback
         strong_signals_data = {

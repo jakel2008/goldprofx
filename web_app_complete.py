@@ -265,10 +265,20 @@ BACKGROUND_SERVICES_ENABLED = (
     os.environ.get('BACKGROUND_SERVICES_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
     and not _IS_RENDER_DEPLOYMENT
 )
+# On Render the full background suite stays off (telegram polling, trade guardian,
+# delivery schedulers) to avoid conflicts with the local instance. Signal GENERATION
+# can still run there so the signals page is populated; the Python-3.14 segfault that
+# previously crashed analysis on Render is fixed.
+RENDER_SIGNAL_GENERATION_ENABLED = (
+    _IS_RENDER_DEPLOYMENT
+    and os.environ.get('RENDER_SIGNAL_GENERATION_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+)
 BACKGROUND_SERVICES_BOOTSTRAPPED = False
 BACKGROUND_SERVICES_BOOTSTRAP_IN_PROGRESS = False
 BACKGROUND_SERVICES_BOOTSTRAP_THREAD = None
 BACKGROUND_SERVICES_BOOTSTRAP_LOCK = threading.Lock()
+RENDER_SIGNAL_BOOTSTRAP_DONE = False
+RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS = False
 
 
 @lru_cache(maxsize=1)
@@ -389,6 +399,39 @@ def _schedule_background_services_bootstrap():
         return True
 
 
+def _bootstrap_render_signal_generation_once():
+    """على Render: تشغيل المحلل المستمر فقط لتعبئة قاعدة الإشارات (بدون بوتات تيليجرام)."""
+    global RENDER_SIGNAL_BOOTSTRAP_DONE, RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS
+    try:
+        try:
+            start_continuous_analyzer(interval_seconds=CONTINUOUS_ANALYZER_INTERVAL_DEFAULT)
+        except Exception:
+            pass
+    finally:
+        with BACKGROUND_SERVICES_BOOTSTRAP_LOCK:
+            RENDER_SIGNAL_BOOTSTRAP_DONE = True
+            RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS = False
+
+
+def _schedule_render_signal_generation_bootstrap():
+    """جدولة تشغيل توليد الإشارات على Render بشكل غير حاجب للاستجابة."""
+    global RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS
+    if not RENDER_SIGNAL_GENERATION_ENABLED or RENDER_SIGNAL_BOOTSTRAP_DONE:
+        return False
+
+    with BACKGROUND_SERVICES_BOOTSTRAP_LOCK:
+        if RENDER_SIGNAL_BOOTSTRAP_DONE or RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS:
+            return False
+
+        RENDER_SIGNAL_BOOTSTRAP_IN_PROGRESS = True
+        threading.Thread(
+            target=_bootstrap_render_signal_generation_once,
+            daemon=True,
+            name='render-signal-generation-bootstrap'
+        ).start()
+        return True
+
+
 @app.route('/healthz')
 def healthz():
     return jsonify({'ok': True}), 200
@@ -401,6 +444,9 @@ def debug_deploy():
         'fix_version': 'web-multi-source-no-mt5-v6',
         'render': _IS_RENDER_DEPLOYMENT,
         'background_services_enabled': BACKGROUND_SERVICES_ENABLED,
+        'render_signal_generation_enabled': RENDER_SIGNAL_GENERATION_ENABLED,
+        'render_signal_bootstrap_done': RENDER_SIGNAL_BOOTSTRAP_DONE,
+        'continuous_analyzer_running': bool(CONTINUOUS_ANALYZER_STATE.get('running')),
         'market_data_source_mode': os.environ.get('MARKET_DATA_SOURCE_MODE'),
         'enable_mt5_market_data': os.environ.get('ENABLE_MT5_MARKET_DATA'),
         'mt5_market_data_mode': os.environ.get('MT5_MARKET_DATA_MODE'),
@@ -3980,10 +4026,13 @@ def ensure_background_services_running():
     if request.path == '/healthz':
         return
 
-    if not BACKGROUND_SERVICES_ENABLED or BACKGROUND_SERVICES_BOOTSTRAPPED:
+    if BACKGROUND_SERVICES_ENABLED and not BACKGROUND_SERVICES_BOOTSTRAPPED:
+        _schedule_background_services_bootstrap()
         return
 
-    _schedule_background_services_bootstrap()
+    # على Render: شغّل توليد الإشارات فقط (المحلل المستمر) لتعبئة صفحة الإشارات.
+    if RENDER_SIGNAL_GENERATION_ENABLED and not RENDER_SIGNAL_BOOTSTRAP_DONE:
+        _schedule_render_signal_generation_bootstrap()
 
 
 @app.route('/set-language', methods=['POST'])

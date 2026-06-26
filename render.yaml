@@ -37,6 +37,14 @@ services:
         value: "1"
       - key: BACKGROUND_SERVICES_ENABLED
         value: "1"
+      - key: RENDER_SIGNAL_GENERATION_ENABLED
+        value: "1"
+      - key: CONTINUOUS_ANALYZER_SYMBOLS
+        value: "XAUUSD,EURUSD,GBPUSD,USDJPY,BTCUSD,ETHUSD,XAGUSD,US30,NAS100,USOIL"
+      - key: CONTINUOUS_ANALYZER_INTERVAL_SECONDS
+        value: "180"
+      - key: ANALYZER_MAX_INTERVALS_PER_SYMBOL
+        value: "1"
       - key: MARKET_DATA_SOURCE_MODE
         value: "auto"
       - key: CRYPTO_DATA_SOURCE_MODE

@@ -9245,6 +9245,67 @@ def api_smart_signals():
     return api_strong_signals()
 
 
+@app.route('/api/render-probe')
+def api_render_probe():
+    """Crash-isolated diagnostic: runs the data-fetch + analysis chain in a
+    SEPARATE process so a native crash (segfault) or OOM kill is captured via
+    the subprocess return code instead of taking down the web worker.
+
+    returncode 0 -> see JSON; -9 -> OOM (SIGKILL); -11 -> segfault (SIGSEGV).
+    """
+    import subprocess
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    try:
+        timeout_s = max(10, int(request.args.get('timeout', '40') or '40'))
+    except Exception:
+        timeout_s = 40
+
+    probe_path = str(Path(__file__).parent / 'render_fetch_probe.py')
+    payload = {
+        'symbol': symbol,
+        'interval': interval,
+        'probe_exists': os.path.exists(probe_path),
+        'python': sys.executable,
+    }
+    try:
+        proc = subprocess.run(
+            [sys.executable, probe_path, symbol, interval],
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            cwd=str(Path(__file__).parent),
+        )
+        payload['returncode'] = proc.returncode
+        if proc.returncode == -9:
+            payload['failure_mode'] = 'SIGKILL_OOM'
+        elif proc.returncode == -11:
+            payload['failure_mode'] = 'SIGSEGV_native_crash'
+        elif proc.returncode != 0:
+            payload['failure_mode'] = f'exit_{proc.returncode}'
+        else:
+            payload['failure_mode'] = 'completed'
+
+        stdout = (proc.stdout or '').strip()
+        payload['stderr'] = (proc.stderr or '')[-4000:]
+        try:
+            payload['result'] = json.loads(stdout.splitlines()[-1]) if stdout else None
+        except Exception:
+            payload['result'] = None
+            payload['stdout_raw'] = stdout[-4000:]
+    except subprocess.TimeoutExpired:
+        payload['failure_mode'] = 'timeout'
+        payload['returncode'] = None
+        payload['error'] = f'probe exceeded {timeout_s}s'
+    except Exception as e:
+        import traceback
+        payload['failure_mode'] = 'launcher_error'
+        payload['error'] = f'{type(e).__name__}: {e}'
+        payload['traceback'] = traceback.format_exc(limit=8)
+
+    return jsonify(payload), 200
+
+
 @app.route('/admin/shadow-signals')
 @app.route('/shadow-signals')
 @admin_required

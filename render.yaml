@@ -11,6 +11,8 @@ services:
         mountPath: /var/data
         sizeGB: 1
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.4"
       - key: FLASK_SECRET_KEY
         generateValue: true
       - key: DB_PATH

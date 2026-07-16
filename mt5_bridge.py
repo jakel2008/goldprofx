@@ -74,7 +74,7 @@ class MT5Bridge:
         self.deviation = 20
         self.default_volume = 0.01
         self.connected = False
-        self._config_path = os.path.join(os.getcwd(), "mt5_wallet_config.json")
+        self._config_path = os.environ.get("MT5_WALLET_CONFIG") or os.path.join(os.getcwd(), "mt5_wallet_config.json")
         self._symbol_names_cache: List[str] = []
         self._symbol_cache_at: float = 0.0
         self._normalized_symbol_map_cache: Dict[str, str] = {}

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "allow_trading": true,
+  "allow_site_signals": true,
+  "auto_execution_enabled": true,
+  "auto_execution_symbols": [
+    "XAUUSD",
+    "USDCHF",
+    "AUDUSD",
+    "USDCAD",
+    "NZDUSD"
+  ],
+  "login": 252559747,
+  "password": "95515430aA@",
+  "server": "Exness-MT5Real33",
+  "path": "C:\\Program Files\\ATFXGM MT5 Terminal\\terminal64.exe",
+  "magic": 88012,
+  "deviation": 20,
+  "default_volume": 0.01
+}

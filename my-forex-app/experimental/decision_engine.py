@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-import json
-import re
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -41,49 +38,6 @@ NEWS_IMPACT_WEIGHT = {
     "high": 1.8,
 }
 
-ECONOMIC_CALENDAR_SOURCES = [
-    "https://www.arabictrader.com/ar/economic-calendar",
-    "https://www.forexfactory.com/",
-]
-
-ECONOMIC_NEWS_CACHE_FILE = Path(__file__).resolve().parents[2] / "economic_news_cache.json"
-
-_CURRENCY_RE = re.compile(r"\b(?:USD|EUR|GBP|JPY|AUD|NZD|CAD|CHF|CNY|XAU|XAG)\b", re.IGNORECASE)
-
-_HIGH_IMPACT_KEYWORDS = {
-    "nfp",
-    "nonfarm",
-    "cpi",
-    "inflation",
-    "interest rate",
-    "rate decision",
-    "fomc",
-    "fed",
-    "ecb",
-    "boe",
-    "boj",
-    "rba",
-    "rbnz",
-    "بطالة",
-    "التضخم",
-    "الفائدة",
-    "الفيدرالي",
-    "مؤشر مديري المشتريات",
-    "ism",
-    "gdp",
-    "الناتج المحلي",
-}
-
-_MEDIUM_IMPACT_KEYWORDS = {
-    "pmi",
-    "jobs",
-    "payroll",
-    "retail sales",
-    "مبيعات التجزئة",
-    "إعانات البطالة",
-    "claims",
-}
-
 
 @dataclass
 class NewsContext:
@@ -97,233 +51,6 @@ class ScorePart:
     name: str
     score: float
     reason: str
-
-
-def _normalize_impact(value: str | None) -> str:
-    text = str(value or "").strip().lower()
-    if text in {"high", "عالية", "high impact"}:
-        return "high"
-    if text in {"medium", "متوسطة", "medium impact"}:
-        return "medium"
-    return "low"
-
-
-def _impact_rank(value: str) -> int:
-    impact = _normalize_impact(value)
-    if impact == "high":
-        return 3
-    if impact == "medium":
-        return 2
-    return 1
-
-
-def _detect_impact_from_text(text: str) -> str:
-    low = str(text or "").lower()
-    if any(word in low for word in _HIGH_IMPACT_KEYWORDS):
-        return "high"
-    if any(word in low for word in _MEDIUM_IMPACT_KEYWORDS):
-        return "medium"
-    if "عالية" in low:
-        return "high"
-    if "متوسطة" in low:
-        return "medium"
-    return "low"
-
-
-def _extract_currencies(text: str) -> set[str]:
-    return {m.group(0).upper() for m in _CURRENCY_RE.finditer(str(text or ""))}
-
-
-def _symbol_currencies(symbol: str) -> set[str]:
-    upper = str(symbol or "").upper()
-    known = {"USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF", "CNY", "XAU", "XAG"}
-    found = {m.group(0).upper() for m in _CURRENCY_RE.finditer(upper)}
-    found = {item for item in found if item in known}
-    if not found and upper in {"US30", "NAS100", "SPX500", "CRUDE", "BRENT", "NATGAS", "BTCUSD", "ETHUSD"}:
-        found.add("USD")
-    return found
-
-
-def _parse_dt_to_utc(value: Any) -> datetime | None:
-    if value in (None, ""):
-        return None
-    text = str(value).strip()
-    formats = [
-        "%Y-%m-%d %H:%M:%S",
-        "%Y-%m-%dT%H:%M:%S",
-        "%Y-%m-%dT%H:%M:%S.%fZ",
-        "%Y-%m-%dT%H:%M:%SZ",
-    ]
-    for fmt in formats:
-        try:
-            dt = datetime.strptime(text, fmt)
-            return dt.replace(tzinfo=timezone.utc)
-        except Exception:
-            continue
-    try:
-        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
-        return dt.astimezone(timezone.utc)
-    except Exception:
-        return None
-
-
-def _resolve_news_from_calendar_events(symbol: str, events: list[dict[str, Any]]) -> tuple[NewsContext | None, dict[str, Any]]:
-    symbol_ccy = _symbol_currencies(symbol)
-    now = datetime.now(timezone.utc)
-    best: dict[str, Any] | None = None
-
-    for event in events:
-        if not isinstance(event, dict):
-            continue
-
-        event_ccy = set()
-        for key in ("currency", "currencies", "country", "ccy"):
-            value = event.get(key)
-            if isinstance(value, str):
-                event_ccy |= _extract_currencies(value)
-            elif isinstance(value, list):
-                event_ccy |= {str(v).upper() for v in value if str(v).strip()}
-
-        title = str(event.get("title") or event.get("name") or "")
-        event_ccy |= _extract_currencies(title)
-
-        if symbol_ccy and event_ccy and symbol_ccy.isdisjoint(event_ccy):
-            continue
-
-        minutes_to_event = event.get("minutes_to_event")
-        if minutes_to_event is None:
-            event_time = _parse_dt_to_utc(event.get("time_utc") or event.get("datetime") or event.get("event_time"))
-            if event_time is not None:
-                minutes_to_event = int((event_time - now).total_seconds() // 60)
-
-        if minutes_to_event is None:
-            continue
-
-        impact = _normalize_impact(event.get("impact") or _detect_impact_from_text(title))
-        score = (_impact_rank(impact) * 1000) - abs(int(minutes_to_event))
-        if best is None or score > int(best.get("_score", -10**9)):
-            best = {
-                "impact": impact,
-                "minutes_to_event": int(minutes_to_event),
-                "surprise_ratio": float(event.get("surprise_ratio", 0.0) or 0.0),
-                "title": title,
-                "currencies": sorted(event_ccy),
-                "time_utc": event.get("time_utc"),
-                "actual": event.get("actual"),
-                "forecast": event.get("forecast"),
-                "previous": event.get("previous"),
-                "revision": event.get("revision"),
-                "_score": score,
-            }
-
-    if best is None:
-        return None, {"calendar_mode": "events", "matched": 0}
-
-    return (
-        NewsContext(
-            minutes_to_event=int(best["minutes_to_event"]),
-            impact=str(best["impact"]),
-            surprise_ratio=float(best["surprise_ratio"]),
-        ),
-        {
-            "calendar_mode": "events",
-            "matched": 1,
-            "event_title": best.get("title"),
-            "event_currencies": best.get("currencies") or [],
-            "event_time_utc": best.get("time_utc"),
-            "actual": best.get("actual"),
-            "forecast": best.get("forecast"),
-            "previous": best.get("previous"),
-            "revision": best.get("revision"),
-        },
-    )
-
-
-def _resolve_news_from_cache(symbol: str) -> tuple[NewsContext | None, dict[str, Any]]:
-    if not ECONOMIC_NEWS_CACHE_FILE.exists():
-        return None, {"calendar_mode": "cache", "available": False}
-
-    try:
-        payload = json.loads(ECONOMIC_NEWS_CACHE_FILE.read_text(encoding="utf-8"))
-    except Exception as exc:
-        return None, {"calendar_mode": "cache", "available": True, "error": str(exc)}
-
-    items = payload.get("items") if isinstance(payload, dict) else None
-    if not isinstance(items, list) or not items:
-        return None, {"calendar_mode": "cache", "available": True, "items": 0}
-
-    updated_at = _parse_dt_to_utc(payload.get("updated_at") if isinstance(payload, dict) else None)
-    age_minutes = None
-    cache_clock_skew = False
-    if updated_at is not None:
-        age_minutes = int((datetime.now(timezone.utc) - updated_at).total_seconds() // 60)
-        if age_minutes < 0:
-            # Some feeds write local time without timezone; treat negative age as clock skew.
-            cache_clock_skew = True
-            age_minutes = abs(age_minutes)
-
-    symbol_ccy = _symbol_currencies(symbol)
-    relevant_rows: list[dict[str, Any]] = []
-    strongest_impact = "low"
-
-    for row in items:
-        text = str(row or "").strip()
-        if not text:
-            continue
-        row_ccy = _extract_currencies(text)
-        if symbol_ccy and row_ccy and symbol_ccy.isdisjoint(row_ccy):
-            continue
-        impact = _detect_impact_from_text(text)
-        if _impact_rank(impact) > _impact_rank(strongest_impact):
-            strongest_impact = impact
-        relevant_rows.append({"impact": impact, "currencies": sorted(row_ccy), "title": text})
-
-    if not relevant_rows:
-        return None, {"calendar_mode": "cache", "available": True, "items": len(items), "matched": 0}
-
-    # Headlines are post-publication; treat as recent post-event context.
-    minutes_to_event = -max(0, age_minutes or 0)
-    context = NewsContext(minutes_to_event=minutes_to_event, impact=strongest_impact, surprise_ratio=0.0)
-
-    return context, {
-        "calendar_mode": "cache",
-        "available": True,
-        "items": len(items),
-        "matched": len(relevant_rows),
-        "matched_impacts": {
-            "high": sum(1 for item in relevant_rows if item["impact"] == "high"),
-            "medium": sum(1 for item in relevant_rows if item["impact"] == "medium"),
-            "low": sum(1 for item in relevant_rows if item["impact"] == "low"),
-        },
-        "cache_age_minutes": age_minutes,
-        "cache_clock_skew": cache_clock_skew,
-    }
-
-
-def _resolve_news_context(symbol: str, news_context: dict[str, Any] | None) -> tuple[NewsContext | None, dict[str, Any]]:
-    if news_context:
-        if isinstance(news_context.get("calendar_events"), list):
-            resolved, details = _resolve_news_from_calendar_events(symbol, news_context.get("calendar_events") or [])
-            if resolved is not None:
-                details["source"] = str(news_context.get("calendar_source") or ECONOMIC_CALENDAR_SOURCES[0])
-                return resolved, details
-
-        if any(key in news_context for key in ("minutes_to_event", "impact", "surprise_ratio")):
-            return (
-                NewsContext(
-                    minutes_to_event=news_context.get("minutes_to_event"),
-                    impact=_normalize_impact(str(news_context.get("impact", "low"))),
-                    surprise_ratio=float(news_context.get("surprise_ratio", 0.0) or 0.0),
-                ),
-                {
-                    "calendar_mode": "manual",
-                    "source": str(news_context.get("calendar_source") or "manual"),
-                },
-            )
-
-    resolved, details = _resolve_news_from_cache(symbol)
-    details["source"] = ECONOMIC_CALENDAR_SOURCES
-    return resolved, details
 
 
 def _ensure_datetime_index(data: pd.DataFrame) -> pd.DataFrame:
@@ -607,9 +334,6 @@ def _news_adjustment(symbol: str, news: NewsContext | None) -> tuple[float, bool
 
     if news.minutes_to_event is not None and -dynamic_post_lock <= news.minutes_to_event < 0:
         surprise_score *= 0.7
-        # Keep protective block active shortly after medium/high-impact events.
-        if impact >= NEWS_IMPACT_WEIGHT["medium"]:
-            blocked = True
 
     return surprise_score, blocked, {
         "news_mode": "dynamic",
@@ -737,7 +461,13 @@ def evaluate_experimental_decision(
     if normalized_interval not in SUPPORTED_INTERVALS:
         normalized_interval = "1h"
 
-    news, news_context_info = _resolve_news_context(normalized_symbol, news_context)
+    news = None
+    if news_context:
+        news = NewsContext(
+            minutes_to_event=news_context.get("minutes_to_event"),
+            impact=str(news_context.get("impact", "low")).lower(),
+            surprise_ratio=float(news_context.get("surprise_ratio", 0.0) or 0.0),
+        )
 
     interval_results = []
     for interval in ALL_INTERVALS:
@@ -767,8 +497,6 @@ def evaluate_experimental_decision(
         "preferred_interval": normalized_interval,
         "recommendation": best["recommendation"],
         "news_blocked": bool(best.get("news_blocked")),
-        "news_context_info": news_context_info,
-        "calendar_sources": ECONOMIC_CALENDAR_SOURCES,
         "final_score": best["scores"]["total"],
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "chosen_details": best,

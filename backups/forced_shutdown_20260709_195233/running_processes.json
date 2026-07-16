@@ -1,0 +1,52 @@
+[
+  {
+    "ProcessId": 19052,
+    "ParentProcessId": 16720,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" site_signal_generator_runner.py --config accounts/account1_gold/config.json --interval-seconds 45"
+  },
+  {
+    "ProcessId": 5388,
+    "ParentProcessId": 19052,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" site_signal_generator_runner.py --config accounts/account1_gold/config.json --interval-seconds 45"
+  },
+  {
+    "ProcessId": 7360,
+    "ParentProcessId": 2192,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" \"D:\\GOLD PRO\\continuous_auto_trader.py\" --config \"D:\\GOLD PRO\\accounts\\account3\\config.json\" --state \"D:\\GOLD PRO\\accounts\\account3\\runtime_state.json\" --wallet-config \"D:\\GOLD PRO\\accounts\\account3\\wallet.json\" --account-id account3"
+  },
+  {
+    "ProcessId": 18148,
+    "ParentProcessId": 7360,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" \"D:\\GOLD PRO\\continuous_auto_trader.py\" --config \"D:\\GOLD PRO\\accounts\\account3\\config.json\" --state \"D:\\GOLD PRO\\accounts\\account3\\runtime_state.json\" --wallet-config \"D:\\GOLD PRO\\accounts\\account3\\wallet.json\" --account-id account3"
+  },
+  {
+    "ProcessId": 13464,
+    "ParentProcessId": 14512,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" auto_trader_watchdog.py --config accounts/account1_gold/config.json --state accounts/account1_gold/runtime_state.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold --restart-delay 5"
+  },
+  {
+    "ProcessId": 14048,
+    "ParentProcessId": 13464,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" auto_trader_watchdog.py --config accounts/account1_gold/config.json --state accounts/account1_gold/runtime_state.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold --restart-delay 5"
+  },
+  {
+    "ProcessId": 11656,
+    "ParentProcessId": 14048,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" -u \"D:\\GOLD PRO\\continuous_auto_trader.py\" --config accounts/account1_gold/config.json --state accounts/account1_gold/runtime_state.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold"
+  },
+  {
+    "ProcessId": 13804,
+    "ParentProcessId": 11656,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" -u \"D:\\GOLD PRO\\continuous_auto_trader.py\" --config accounts/account1_gold/config.json --state accounts/account1_gold/runtime_state.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold"
+  },
+  {
+    "ProcessId": 3876,
+    "ParentProcessId": 14516,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" -u mt5_trade_guardian.py --config accounts/account1_gold/config.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold --interval-sec 10"
+  },
+  {
+    "ProcessId": 17188,
+    "ParentProcessId": 3876,
+    "CommandLine": "\"D:\\GOLD PRO\\.venv\\Scripts\\python.exe\" -u mt5_trade_guardian.py --config accounts/account1_gold/config.json --wallet-config accounts/account1_gold/wallet.json --account-id account1_gold --interval-sec 10"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "pending_orders": {},
+  "last_trade_at": {
+    "NZDUSD:1h": 1783608665,
+    "USDCAD:1h": 1783614849,
+    "AUDUSD:1h": 1783609643,
+    "USDCHF:1h": 1783609659
+  },
+  "last_signature": {
+    "NZDUSD:1h": "site_db|NZDUSD_1H_20260709_175054|NZDUSD|1h|شراء|0.57484|0.57412|0.57572",
+    "USDCAD:1h": "site_db|USDCAD_1H_20260709_193404|USDCAD|1h|بيع|1.41659|1.41798|1.41492",
+    "AUDUSD:1h": "site_db|AUDUSD_1H_20260709_180723|AUDUSD|1h|بيع|0.69435|0.69502|0.69354",
+    "USDCHF:1h": "site_db|USDCHF_1H_20260709_180722|USDCHF|1h|بيع|0.80666|0.80759|0.80554"
+  }
+}

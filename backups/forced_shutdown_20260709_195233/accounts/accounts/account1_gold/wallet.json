@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "allow_trading": true,
+  "allow_site_signals": true,
+  "auto_execution_enabled": true,
+  "auto_execution_symbols": [
+    "XAUUSD",
+    "USDCHF",
+    "AUDUSD",
+    "USDCAD",
+    "NZDUSD"
+  ],
+  "login": 256636278,
+  "password": "Zaid8080@",
+  "server": "Exness-MT5Real35",
+  "path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+  "magic": 88001,
+  "deviation": 20,
+  "default_volume": 0.01
+}

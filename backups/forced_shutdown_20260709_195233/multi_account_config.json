@@ -1,0 +1,85 @@
+{
+  "_note": "سجل المحافظ/الحسابات للتداول الآلي المتعدد (حتى 10 حسابات). كل حساب يعمل في عملية مستقلة بمحفظة MT5 خاصة. لتشغيل عدة حسابات معًا يجب أن يكون لكل حساب نسخة محطة MetaTrader 5 مستقلة (path مختلف). فعّل/عطّل أي حساب عبر enabled.",
+  "accounts": [
+    {
+      "id": "account1_gold",
+      "enabled": true,
+      "label": "محفظة الذهب (أساسي)",
+      "config": "accounts/account1_gold/config.json",
+      "wallet": "accounts/account1_gold/wallet.json",
+      "state": "accounts/account1_gold/runtime_state.json"
+    },
+    {
+      "id": "account2_bitcoin",
+      "enabled": true,
+      "label": "محفظة البتكوين (أساسي)",
+      "config": "accounts/account2_bitcoin/config.json",
+      "wallet": "accounts/account2_bitcoin/wallet.json",
+      "state": "accounts/account2_bitcoin/runtime_state.json"
+    },
+    {
+      "id": "account3",
+      "enabled": true,
+      "label": "محفظة 3 (ذهب + بتكوين)",
+      "config": "accounts/account3/config.json",
+      "wallet": "accounts/account3/wallet.json",
+      "state": "accounts/account3/runtime_state.json"
+    },
+    {
+      "id": "account4",
+      "enabled": true,
+      "label": "محفظة 4 (ذهب + بتكوين)",
+      "config": "accounts/account4/config.json",
+      "wallet": "accounts/account4/wallet.json",
+      "state": "accounts/account4/runtime_state.json"
+    },
+    {
+      "id": "account5",
+      "enabled": true,
+      "label": "محفظة 5 (ذهب + بتكوين)",
+      "config": "accounts/account5/config.json",
+      "wallet": "accounts/account5/wallet.json",
+      "state": "accounts/account5/runtime_state.json"
+    },
+    {
+      "id": "account6",
+      "enabled": true,
+      "label": "محفظة 6 (ذهب + بتكوين)",
+      "config": "accounts/account6/config.json",
+      "wallet": "accounts/account6/wallet.json",
+      "state": "accounts/account6/runtime_state.json"
+    },
+    {
+      "id": "account7",
+      "enabled": true,
+      "label": "محفظة 7 (ذهب + بتكوين)",
+      "config": "accounts/account7/config.json",
+      "wallet": "accounts/account7/wallet.json",
+      "state": "accounts/account7/runtime_state.json"
+    },
+    {
+      "id": "account8",
+      "enabled": true,
+      "label": "محفظة 8 (ذهب + بتكوين)",
+      "config": "accounts/account8/config.json",
+      "wallet": "accounts/account8/wallet.json",
+      "state": "accounts/account8/runtime_state.json"
+    },
+    {
+      "id": "account9",
+      "enabled": true,
+      "label": "محفظة 9 (ذهب + بتكوين)",
+      "config": "accounts/account9/config.json",
+      "wallet": "accounts/account9/wallet.json",
+      "state": "accounts/account9/runtime_state.json"
+    },
+    {
+      "id": "account10",
+      "enabled": true,
+      "label": "محفظة 10 (ذهب + بتكوين)",
+      "config": "accounts/account10/config.json",
+      "wallet": "accounts/account10/wallet.json",
+      "state": "accounts/account10/runtime_state.json"
+    }
+  ]
+}

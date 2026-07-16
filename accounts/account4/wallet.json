@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "allow_trading": true,
+  "allow_site_signals": true,
+  "auto_execution_enabled": true,
+  "auto_execution_symbols": [
+    "XAUUSD"
+  ],
+  "login": 28572,
+  "password": "Mahmood*750",
+  "server": "YWO-Trade",
+  "path": "C:\\Program Files\\MT5 Weltrade\\terminal64.exe",
+  "magic": 88001,
+  "deviation": 20,
+  "default_volume": 0.01
+}

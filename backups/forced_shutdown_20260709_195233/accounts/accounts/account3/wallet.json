@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "allow_trading": true,
+  "allow_site_signals": true,
+  "auto_execution_enabled": true,
+  "auto_execution_symbols": [
+    "XAUUSD",
+    "USDCHF",
+    "AUDUSD",
+    "USDCAD",
+    "NZDUSD",
+    "BTCUSD"
+  ],
+  "login": 256693311,
+  "password": "Mila0508$",
+  "server": "Exness-MT5Real35",
+  "path": "C:\\Program Files\\FTMO Global Markets MT5 Terminal\\terminal64.exe",
+  "magic": 88013,
+  "deviation": 20,
+  "default_volume": 0.01
+}

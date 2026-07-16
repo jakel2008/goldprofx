@@ -50,15 +50,6 @@
       "max_weight_step_per_cycle": 0.15
     }
   },
-  "economic_calendar": {
-    "enabled": true,
-    "primary_source": "https://www.arabictrader.com/ar/economic-calendar",
-    "secondary_sources": [
-      "https://www.forexfactory.com/"
-    ],
-    "integration_mode": "auto_symbol_relevance",
-    "focus": "high_and_medium_impact_first"
-  },
   "safety_minimums": {
     "min_rr": 1.2,
     "max_volatility_pct": 6.0,

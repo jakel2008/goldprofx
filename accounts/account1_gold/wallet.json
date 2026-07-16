@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "allow_trading": true,
+  "allow_site_signals": true,
+  "auto_execution_enabled": true,
+  "login": 0,
+  "password": "",
+  "server": "",
+  "path": "",
+  "magic": 88001,
+  "deviation": 20,
+  "default_volume": 0.01,
+  "auto_execution_symbols": [
+    "BTCUSD",
+    "XAUUSD",
+    "USDCHF",
+    "AUDUSD",
+    "USDCAD",
+    "NZDUSD"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "saved_at": "2026-07-09T19:53:17",
+  "backup_path": "D:\\GOLD PRO\\backups\\forced_shutdown_20260709_195233",
+  "restart_script": "START_ACCOUNT1_FULL_AUTOMATION.ps1",
+  "account": "account1_gold",
+  "includes": [
+    "accounts/**",
+    "root *.json",
+    "key *.db",
+    ".vscode config",
+    "automation scripts",
+    "running_processes.json"
+  ]
+}

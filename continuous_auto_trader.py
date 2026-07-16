@@ -1,7 +1,10 @@
 import argparse
+import atexit
 import json
 import math
+import os
 import re
+import sqlite3
 import sys
 import time
 from datetime import datetime, timezone
@@ -15,6 +18,91 @@ if str(APP_ROOT) not in sys.path:
 
 from services.advanced_analyzer_engine import SUPPORTED_INTERVALS, SUPPORTED_SYMBOLS, perform_full_analysis
 from mt5_bridge import MT5Bridge, mt5
+
+
+_SINGLE_INSTANCE_LOCK_PATH: str | None = None
+_SINGLE_INSTANCE_LOCK_OWNER = False
+
+
+def _release_single_instance_lock() -> None:
+    global _SINGLE_INSTANCE_LOCK_OWNER
+    if not _SINGLE_INSTANCE_LOCK_OWNER:
+        return
+    try:
+        if _SINGLE_INSTANCE_LOCK_PATH and Path(_SINGLE_INSTANCE_LOCK_PATH).exists():
+            Path(_SINGLE_INSTANCE_LOCK_PATH).unlink(missing_ok=True)
+    except Exception:
+        pass
+    _SINGLE_INSTANCE_LOCK_OWNER = False
+
+
+def _is_pid_running(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except PermissionError:
+        return True
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return False
+    return True
+
+
+def acquire_single_instance_lock() -> bool:
+    global _SINGLE_INSTANCE_LOCK_PATH
+    global _SINGLE_INSTANCE_LOCK_OWNER
+
+    account_id = os.environ.get("AUTO_TRADER_ACCOUNT_ID", "").strip()
+    safe_account_id = re.sub(r"[^A-Za-z0-9_.-]", "_", account_id) if account_id else ""
+    lock_name = f"continuous_auto_trader.{safe_account_id}.lock" if safe_account_id else "continuous_auto_trader.lock"
+    lock_path = PROJECT_ROOT / lock_name
+    lock_path_str = str(lock_path)
+    _SINGLE_INSTANCE_LOCK_PATH = lock_path_str
+
+    def _try_create_lock() -> bool:
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+        fd = os.open(lock_path_str, flags)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+        return True
+
+    try:
+        _try_create_lock()
+        _SINGLE_INSTANCE_LOCK_OWNER = True
+        atexit.register(_release_single_instance_lock)
+        return True
+    except FileExistsError:
+        try:
+            existing_pid = int(lock_path.read_text(encoding="utf-8").strip() or "0")
+        except Exception:
+            existing_pid = 0
+
+        if _is_pid_running(existing_pid):
+            return False
+
+        try:
+            age_sec = time.time() - lock_path.stat().st_mtime
+        except Exception:
+            age_sec = 0
+        if age_sec < 120:
+            return False
+
+        try:
+            lock_path.unlink(missing_ok=True)
+        except Exception:
+            return False
+
+        try:
+            _try_create_lock()
+            _SINGLE_INSTANCE_LOCK_OWNER = True
+            atexit.register(_release_single_instance_lock)
+            return True
+        except Exception:
+            return False
+    except Exception:
+        return False
 
 
 DEFAULT_CONFIG = {
@@ -46,8 +134,16 @@ DEFAULT_CONFIG = {
     "split_tp": True,
     "trading_sessions_utc": [{"start": "06:00", "end": "22:00", "weekdays": [0, 1, 2, 3, 4]}],
     "daily_loss_limit_usd": 25.0,
+    "daily_loss_limit_percent_of_equity": 0.0,
+    "daily_loss_limit_follow_risk_percent": True,
     "max_consecutive_losses": 3,
     "dry_run": True,
+    "signal_source": "analysis",
+    "site_signals_db_path": "vip_signals.db",
+    "site_signals_limit": 30,
+    "site_signals_max_age_minutes": 1,
+    "site_signals_min_quality": 0,
+    "site_signal_symbols": [],
 }
 
 
@@ -83,6 +179,38 @@ def to_base_symbol(broker_symbol: str) -> str:
         if normalized.startswith(base_symbol):
             return base_symbol
     return normalized
+
+
+CRYPTO_BASE_SYMBOLS = {
+    "BTCUSD", "BTCUSDT", "BTCUSDC",
+    "ETHUSD", "ETHUSDT", "ETHUSDC",
+    "XRPUSD", "ADAUSD", "SOLUSD", "DOGEUSD",
+    "BNBUSD", "LTCUSD", "BCHUSD", "DOTUSD",
+    "LINKUSD", "AVAXUSD", "TRXUSD", "XLMUSD",
+}
+
+
+def _is_crypto_symbol(symbol: str) -> bool:
+    base_symbol = to_base_symbol(symbol)
+    if base_symbol in CRYPTO_BASE_SYMBOLS:
+        return True
+    return bool(re.match(r"^(BTC|ETH|XRP|ADA|SOL|DOGE|BNB|LTC|BCH|DOT|LINK|AVAX|TRX|XLM)(USD|USDT|USDC)$", base_symbol))
+
+
+def _is_market_open_for_execution(symbol: str, now_utc: datetime) -> tuple[bool, str]:
+    if _is_crypto_symbol(symbol):
+        return True, "crypto_24_7"
+
+    weekday = now_utc.weekday()
+    now_minutes = now_utc.hour * 60 + now_utc.minute
+    saturday_close_minutes = 1 * 60
+
+    if weekday == 5 and now_minutes >= saturday_close_minutes:
+        return False, "weekend_non_crypto_market_closed"
+    if weekday == 6:
+        return False, "weekend_non_crypto_market_closed"
+
+    return True, "market_open"
 
 
 def calc_risk_volume(bridge: MT5Bridge, symbol: str, entry: float, stop_loss: float, risk_percent: float) -> dict:
@@ -125,6 +253,8 @@ def calc_risk_volume(bridge: MT5Bridge, symbol: str, entry: float, stop_loss: fl
     loss_per_lot = (distance / tick_size) * tick_value
     raw_volume = risk_amount / loss_per_lot
     volume = normalize_volume(raw_volume, vol_min, vol_step, vol_max)
+    estimated_loss = loss_per_lot * volume
+    estimated_risk_percent = (estimated_loss / account_value * 100.0) if account_value > 0 else 0.0
 
     return {
         "success": True,
@@ -135,7 +265,10 @@ def calc_risk_volume(bridge: MT5Bridge, symbol: str, entry: float, stop_loss: fl
         "risk_basis": "equity" if use_equity else "balance",
         "risk_amount": round(risk_amount, 2),
         "loss_per_lot": round(loss_per_lot, 2),
+        "raw_volume": round(raw_volume, 6),
         "volume": volume,
+        "estimated_loss_usd": round(estimated_loss, 2),
+        "estimated_risk_percent": round(estimated_risk_percent, 4),
         "volume_min": vol_min,
         "volume_step": vol_step,
         "volume_max": vol_max,
@@ -167,16 +300,29 @@ def save_json(path: Path, data) -> None:
 def merge_config(user_config: dict) -> dict:
     merged = dict(DEFAULT_CONFIG)
     merged.update(user_config or {})
-    merged["symbols"] = [str(item).strip().upper() for item in merged.get("symbols", []) if str(item).strip().upper() in SUPPORTED_SYMBOLS]
+
+    signal_source = str(merged.get("signal_source") or DEFAULT_CONFIG["signal_source"]).strip().lower()
+    if signal_source in {"site", "website", "site_signals"}:
+        signal_source = "site_db"
+    if signal_source not in {"analysis", "site_db", "both"}:
+        signal_source = "analysis"
+    merged["signal_source"] = signal_source
+
+    selected_symbols = [re.sub(r"[^A-Z0-9]", "", str(item).upper()) for item in merged.get("symbols", []) if str(item).strip()]
+    if signal_source == "analysis":
+        selected_symbols = [item for item in selected_symbols if item in SUPPORTED_SYMBOLS]
+    merged["symbols"] = selected_symbols
     merged["intervals"] = [str(item).strip().lower() for item in merged.get("intervals", []) if str(item).strip().lower() in SUPPORTED_INTERVALS]
-    if not merged["symbols"]:
+    merged["blocked_symbols"] = [re.sub(r"[^A-Z0-9]", "", str(item).upper()) for item in merged.get("blocked_symbols", []) if str(item).strip()]
+    merged["site_signal_symbols"] = [re.sub(r"[^A-Z0-9*]", "", str(item).upper()) for item in merged.get("site_signal_symbols", []) if str(item).strip()]
+    if not merged["symbols"] and signal_source == "analysis":
         merged["symbols"] = list(DEFAULT_CONFIG["symbols"])
     if not merged["intervals"]:
         merged["intervals"] = list(DEFAULT_CONFIG["intervals"])
     merged["scan_every_sec"] = max(15, int(merged.get("scan_every_sec", 60)))
     merged["risk_percent"] = max(0.1, float(merged.get("risk_percent", 1.0)))
     merged["use_equity_for_risk"] = bool(merged.get("use_equity_for_risk", True))
-    merged["max_risk_usd_per_trade"] = max(0.1, float(merged.get("max_risk_usd_per_trade", 8.0)))
+    merged["max_risk_usd_per_trade"] = max(0.0, float(merged.get("max_risk_usd_per_trade", 8.0)))
     merged["max_risk_percent_of_equity"] = max(0.1, float(merged.get("max_risk_percent_of_equity", 0.8)))
     merged["max_stop_distance_percent"] = max(0.1, float(merged.get("max_stop_distance_percent", 1.2)))
     merged["max_target_distance_percent"] = max(0.1, float(merged.get("max_target_distance_percent", 3.5)))
@@ -189,11 +335,20 @@ def merge_config(user_config: dict) -> dict:
     merged["max_open_positions_cap"] = max(0, int(merged.get("max_open_positions_cap", 24)))
     merged["min_score_gap"] = max(0, int(merged.get("min_score_gap", 18)))
     merged["daily_loss_limit_usd"] = max(0.0, float(merged.get("daily_loss_limit_usd", 25.0)))
+    merged["daily_loss_limit_follow_risk_percent"] = bool(merged.get("daily_loss_limit_follow_risk_percent", True))
+    daily_loss_percent = max(0.0, float(merged.get("daily_loss_limit_percent_of_equity", 0.0)))
+    if merged["daily_loss_limit_usd"] <= 0 and merged["daily_loss_limit_follow_risk_percent"]:
+        daily_loss_percent = float(merged["risk_percent"])
+    merged["daily_loss_limit_percent_of_equity"] = daily_loss_percent
     merged["max_consecutive_losses"] = max(0, int(merged.get("max_consecutive_losses", 3)))
+    merged["site_signals_limit"] = max(1, min(200, int(merged.get("site_signals_limit", 30))))
+    merged["site_signals_max_age_minutes"] = max(0, int(merged.get("site_signals_max_age_minutes", 180)))
+    merged["site_signals_min_quality"] = max(0, min(100, int(merged.get("site_signals_min_quality", 0))))
 
     sessions = merged.get("trading_sessions_utc", DEFAULT_CONFIG["trading_sessions_utc"])
     normalized_sessions = []
-    if isinstance(sessions, list):
+    disable_sessions = "trading_sessions_utc" in (user_config or {}) and sessions == []
+    if isinstance(sessions, list) and not disable_sessions:
         for one in sessions:
             if not isinstance(one, dict):
                 continue
@@ -209,7 +364,7 @@ def merge_config(user_config: dict) -> dict:
                 safe_weekdays = [0, 1, 2, 3, 4]
             normalized_sessions.append({"start": start, "end": end, "weekdays": safe_weekdays})
 
-    merged["trading_sessions_utc"] = normalized_sessions if normalized_sessions else list(DEFAULT_CONFIG["trading_sessions_utc"])
+    merged["trading_sessions_utc"] = [] if disable_sessions else (normalized_sessions if normalized_sessions else list(DEFAULT_CONFIG["trading_sessions_utc"]))
     return merged
 
 
@@ -273,6 +428,9 @@ def _is_gold_market_open(config: dict, now_utc: datetime) -> tuple[bool, str]:
 
     if bool(config.get("force_gold_trading_now", False)):
         return True, "gold_forced_trading_enabled"
+
+    if config.get("trading_sessions_utc") == []:
+        return True, "gold_time_filter_disabled"
     
     hour = now_utc.hour
     minute = now_utc.minute
@@ -348,7 +506,21 @@ def _daily_risk_guard(bridge: MT5Bridge, config: dict, now_utc: datetime) -> dic
         else:
             break
 
-    loss_limit = max(0.0, float(config.get("daily_loss_limit_usd", 25.0) or 25.0))
+    account = mt5.account_info()
+    account_balance = float(getattr(account, "balance", 0.0) or 0.0) if account is not None else 0.0
+    account_equity = float(getattr(account, "equity", account_balance) or account_balance) if account is not None else 0.0
+
+    fixed_loss_limit = max(0.0, float(config.get("daily_loss_limit_usd", 0.0) or 0.0))
+    percent_loss_limit = max(0.0, float(config.get("daily_loss_limit_percent_of_equity", 0.0) or 0.0))
+    if fixed_loss_limit > 0:
+        loss_limit = fixed_loss_limit
+        loss_limit_source = "usd"
+    elif percent_loss_limit > 0 and account_equity > 0:
+        loss_limit = account_equity * (percent_loss_limit / 100.0)
+        loss_limit_source = "equity_percent"
+    else:
+        loss_limit = 0.0
+        loss_limit_source = "disabled"
     max_consecutive_losses = max(0, int(config.get("max_consecutive_losses", 3) or 3))
     breached_daily_loss = loss_limit > 0 and daily_pnl <= -loss_limit
     breached_consecutive = max_consecutive_losses > 0 and consecutive_losses >= max_consecutive_losses
@@ -357,6 +529,10 @@ def _daily_risk_guard(bridge: MT5Bridge, config: dict, now_utc: datetime) -> dic
         "success": True,
         "daily_realized_pnl_usd": round(daily_pnl, 2),
         "daily_loss_limit_usd": round(loss_limit, 2),
+        "daily_loss_limit_source": loss_limit_source,
+        "daily_loss_limit_percent_of_equity": round(percent_loss_limit, 4),
+        "daily_loss_limit_follow_risk_percent": bool(config.get("daily_loss_limit_follow_risk_percent", True)),
+        "account_equity": round(account_equity, 2),
         "risk_window_start_utc": reset_after_utc.isoformat(timespec="seconds"),
         "consecutive_losses": consecutive_losses,
         "max_consecutive_losses": max_consecutive_losses,
@@ -645,6 +821,221 @@ def build_candidate(symbol: str, interval: str, analysis: dict) -> dict:
     }
 
 
+def _site_db_path(config: dict) -> Path:
+    raw_path = str(config.get("site_signals_db_path") or DEFAULT_CONFIG["site_signals_db_path"]).strip()
+    path = Path(raw_path).expanduser()
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return path
+
+
+def _clean_symbol(value: object) -> str:
+    return re.sub(r"[^A-Z0-9]", "", str(value or "").upper())
+
+
+def _site_signal_side(value: object) -> str:
+    text = str(value or "").strip().lower()
+    if text in {"buy", "long", "شراء"} or "شراء" in text:
+        return "buy"
+    if text in {"sell", "short", "بيع"} or "بيع" in text:
+        return "sell"
+    return "none"
+
+
+def _site_recommendation(side: str) -> str:
+    if side == "buy":
+        return "شراء"
+    if side == "sell":
+        return "بيع"
+    return ""
+
+
+def _float_or_none(value: object) -> float | None:
+    try:
+        if value in (None, ""):
+            return None
+        out = float(value)
+        if not math.isfinite(out) or out <= 0:
+            return None
+        return out
+    except Exception:
+        return None
+
+
+def _signal_created_timestamp(row: dict) -> float | None:
+    raw = row.get("created_at") or row.get("timestamp")
+    if raw in (None, ""):
+        return None
+    text = str(raw).strip().replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return parsed.timestamp()
+
+
+def _valid_site_levels(side: str, entry: float, stop_loss: float, targets: list[float]) -> bool:
+    if side == "buy":
+        return stop_loss < entry and all(tp > entry for tp in targets)
+    if side == "sell":
+        return stop_loss > entry and all(tp < entry for tp in targets)
+    return False
+
+
+def load_site_signal_candidates(config: dict, now_ts: int | None = None) -> tuple[list[dict], dict]:
+    db_path = _site_db_path(config)
+    stats = {
+        "source": "site_db",
+        "db_path": str(db_path),
+        "loaded": 0,
+        "accepted": 0,
+        "skipped": {},
+    }
+
+    def skip(reason: str) -> None:
+        skipped = stats.setdefault("skipped", {})
+        skipped[reason] = int(skipped.get(reason, 0) or 0) + 1
+
+    if not db_path.exists():
+        stats["error"] = "site signals database not found"
+        return [], stats
+
+    selected_symbols = list(config.get("site_signal_symbols") or config.get("symbols") or [])
+    allowed_symbols = set(selected_symbols)
+    allow_all_symbols = "*" in allowed_symbols
+    blocked_symbols = set(config.get("blocked_symbols") or [])
+    max_age_minutes = int(config.get("site_signals_max_age_minutes", 180) or 0)
+    min_quality = int(config.get("site_signals_min_quality", 0) or 0)
+    now_ts = int(now_ts or time.time())
+
+    try:
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(signals)").fetchall()}
+        where_sql = "WHERE lower(coalesce(status, 'active')) = 'active'" if "status" in columns else ""
+        order_columns = [name for name in ["created_at", "timestamp", "id", "signal_id"] if name in columns]
+        order_sql = "ORDER BY " + ", ".join(f"{name} DESC" for name in order_columns) if order_columns else ""
+        rows = conn.execute(
+            f"SELECT * FROM signals {where_sql} {order_sql} LIMIT ?",
+            (int(config.get("site_signals_limit", 30)),),
+        ).fetchall()
+        conn.close()
+    except Exception as exc:
+        stats["error"] = str(exc)
+        return [], stats
+
+    stats["loaded"] = len(rows)
+    candidates = []
+    for row_obj in rows:
+        row = dict(row_obj)
+        symbol = _clean_symbol(row.get("symbol") or row.get("pair"))
+        base_symbol = to_base_symbol(symbol)
+        if not allowed_symbols:
+            skip("no_user_selected_symbols")
+            continue
+        if not symbol:
+            skip("missing_symbol")
+            continue
+        if blocked_symbols and (symbol in blocked_symbols or base_symbol in blocked_symbols):
+            skip("blocked_symbol")
+            continue
+        if allowed_symbols and not allow_all_symbols and symbol not in allowed_symbols and base_symbol not in allowed_symbols:
+            skip("symbol_not_allowed")
+            continue
+
+        created_ts = _signal_created_timestamp(row)
+        if max_age_minutes > 0 and created_ts is not None and (now_ts - int(created_ts)) > (max_age_minutes * 60):
+            skip("stale")
+            continue
+
+        quality_score = int(float(row.get("quality_score") or 0))
+        if quality_score < min_quality:
+            skip("quality_below_min")
+            continue
+
+        side = _site_signal_side(row.get("signal_type") or row.get("signal") or row.get("recommendation"))
+        entry = _float_or_none(row.get("entry_price") if row.get("entry_price") is not None else row.get("entry"))
+        stop_loss = _float_or_none(row.get("stop_loss") if row.get("stop_loss") is not None else row.get("sl"))
+        tp1 = _float_or_none(row.get("take_profit_1") if row.get("take_profit_1") is not None else row.get("tp1"))
+        tp2 = _float_or_none(row.get("take_profit_2") if row.get("take_profit_2") is not None else row.get("tp2")) or tp1
+        tp3 = _float_or_none(row.get("take_profit_3") if row.get("take_profit_3") is not None else row.get("tp3")) or tp2
+        if side == "none" or entry is None or stop_loss is None or tp1 is None or tp2 is None or tp3 is None:
+            skip("incomplete_levels")
+            continue
+        if not _valid_site_levels(side, entry, stop_loss, [tp1, tp2, tp3]):
+            skip("invalid_levels_for_side")
+            continue
+
+        risk_distance = abs(entry - stop_loss)
+        reward_distance = abs(tp1 - entry)
+        rr_ratio = (reward_distance / risk_distance) if risk_distance > 0 else 0.0
+        timeframe = str(row.get("timeframe") or row.get("tf") or "5m").strip().lower() or "5m"
+        signal_id = str(row.get("signal_id") or row.get("id") or "").strip()
+        site_row_id = row.get("id")
+        rank_score = quality_score or 1
+        candidates.append(
+            {
+                "symbol": symbol,
+                "interval": timeframe,
+                "recommendation": _site_recommendation(side),
+                "side": side,
+                "confidence": quality_score,
+                "buy_score": quality_score if side == "buy" else 0,
+                "sell_score": quality_score if side == "sell" else 0,
+                "score_gap": quality_score,
+                "rank_score": rank_score,
+                "entry": entry,
+                "stop_loss": stop_loss,
+                "tp1": tp1,
+                "tp2": tp2,
+                "tp3": tp3,
+                "market_regime": "site_signal",
+                "risk_reward_ratio": rr_ratio,
+                "analysis": row,
+                "source": "site_db",
+                "signal_id": signal_id,
+                "site_row_id": site_row_id,
+                "created_at": row.get("created_at") or row.get("timestamp"),
+            }
+        )
+
+    stats["accepted"] = len(candidates)
+    return candidates, stats
+
+
+def mark_site_signal_activated(config: dict, candidate: dict) -> dict:
+    if str(candidate.get("source") or "") != "site_db":
+        return {"success": True, "skipped": True}
+
+    db_path = _site_db_path(config)
+    if not db_path.exists():
+        return {"success": False, "error": "site signals database not found"}
+
+    try:
+        conn = sqlite3.connect(str(db_path), timeout=10)
+        columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(signals)").fetchall()}
+        if "activated" not in columns:
+            conn.close()
+            return {"success": True, "skipped": True, "reason": "activated column not found"}
+
+        row_id = candidate.get("site_row_id")
+        signal_id = str(candidate.get("signal_id") or "").strip()
+        if row_id is not None and "id" in columns:
+            cur = conn.execute("UPDATE signals SET activated = 1 WHERE id = ?", (row_id,))
+        elif signal_id and "signal_id" in columns:
+            cur = conn.execute("UPDATE signals SET activated = 1 WHERE signal_id = ?", (signal_id,))
+        else:
+            conn.close()
+            return {"success": False, "error": "missing signal id column"}
+
+        conn.commit()
+        changed = int(cur.rowcount or 0)
+        conn.close()
+        return {"success": True, "updated": changed}
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+
+
 def select_best_candidate(config: dict, analyses: list[dict]) -> dict | None:
     filtered = []
     for item in analyses:
@@ -756,6 +1147,9 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                         "time_utc": now_utc.isoformat(timespec="seconds"),
                         "daily_realized_pnl_usd": risk_guard.get("daily_realized_pnl_usd"),
                         "daily_loss_limit_usd": risk_guard.get("daily_loss_limit_usd"),
+                        "daily_loss_limit_source": risk_guard.get("daily_loss_limit_source"),
+                        "daily_loss_limit_percent_of_equity": risk_guard.get("daily_loss_limit_percent_of_equity"),
+                        "account_equity": risk_guard.get("account_equity"),
                         "consecutive_losses": risk_guard.get("consecutive_losses"),
                         "max_consecutive_losses": risk_guard.get("max_consecutive_losses"),
                         "breached_daily_loss_limit": risk_guard.get("breached_daily_loss_limit"),
@@ -822,12 +1216,19 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
             continue
 
         analyses = []
-        for symbol in config["symbols"]:
-            for interval in config["intervals"]:
-                result = perform_full_analysis(symbol, interval)
-                if not result.get("success"):
-                    continue
-                analyses.append(build_candidate(symbol, interval, result))
+        site_signal_stats = None
+        signal_source = str(config.get("signal_source") or "analysis").strip().lower()
+        if signal_source in {"site_db", "both"}:
+            site_candidates, site_signal_stats = load_site_signal_candidates(config, now_ts=now_ts)
+            analyses.extend(site_candidates)
+
+        if signal_source in {"analysis", "both"}:
+            for symbol in config["symbols"]:
+                for interval in config["intervals"]:
+                    result = perform_full_analysis(symbol, interval)
+                    if not result.get("success"):
+                        continue
+                    analyses.append(build_candidate(symbol, interval, result))
 
         ranked_candidates = select_ranked_candidates(config, analyses)
         best = ranked_candidates[0] if ranked_candidates else None
@@ -837,10 +1238,15 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
             "time_utc": now_utc.isoformat(timespec="seconds"),
             "symbols": config["symbols"],
             "intervals": config["intervals"],
+            "signal_source": signal_source,
+            "site_signals": site_signal_stats,
             "session_match": session_reason,
             "risk_guard": {
                 "daily_realized_pnl_usd": risk_guard.get("daily_realized_pnl_usd"),
                 "daily_loss_limit_usd": risk_guard.get("daily_loss_limit_usd"),
+                "daily_loss_limit_source": risk_guard.get("daily_loss_limit_source"),
+                "daily_loss_limit_percent_of_equity": risk_guard.get("daily_loss_limit_percent_of_equity"),
+                "account_equity": risk_guard.get("account_equity"),
                 "consecutive_losses": risk_guard.get("consecutive_losses"),
                 "max_consecutive_losses": risk_guard.get("max_consecutive_losses"),
                 "closed_positions_today": risk_guard.get("closed_positions_today"),
@@ -861,6 +1267,8 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
             "best": {
                 "symbol": best.get("symbol"),
                 "interval": best.get("interval"),
+                "source": best.get("source", "analysis"),
+                "signal_id": best.get("signal_id"),
                 "recommendation": best.get("recommendation"),
                 "score_gap": best.get("score_gap"),
                 "rank_score": best.get("rank_score"),
@@ -886,9 +1294,19 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
 
                 symbol = str(candidate["symbol"])
                 interval = str(candidate["interval"])
-                
-                # Gold-specific: skip XAUUSD during low-liquidity hours
+
                 base_sym = to_base_symbol(symbol)
+                market_ok, market_reason = _is_market_open_for_execution(base_sym, now_utc)
+                if not market_ok:
+                    heartbeat["actions"].append({
+                        "event": "skip_market_closed",
+                        "symbol": symbol,
+                        "interval": interval,
+                        "reason": market_reason,
+                    })
+                    continue
+
+                # Gold-specific: skip XAUUSD during low-liquidity hours
                 if base_sym == "XAUUSD":
                     gold_ok, gold_reason = _is_gold_market_open(config, now_utc)
                     if not gold_ok:
@@ -990,7 +1408,7 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                 last_ts = int(last_trade_map.get(key, 0) or 0)
                 in_cooldown = cooldown_minutes > 0 and (now_ts - last_ts) < (cooldown_minutes * 60)
 
-                signature = f"{symbol}|{interval}|{candidate['recommendation']}|{candidate['entry']}|{candidate['stop_loss']}|{candidate['tp1']}"
+                signature = f"{candidate.get('source', 'analysis')}|{candidate.get('signal_id', '')}|{symbol}|{interval}|{candidate['recommendation']}|{candidate['entry']}|{candidate['stop_loss']}|{candidate['tp1']}"
                 last_sig_map = state.get("last_signature", {})
                 same_signature = str(last_sig_map.get(key, "")) == signature
 
@@ -1015,12 +1433,13 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                     )
                     continue
 
+                risk_percent_per_trade = float(config["risk_percent"])
                 sizing = calc_risk_volume(
                     bridge,
                     symbol=symbol,
                     entry=entry_price,
                     stop_loss=stop_price,
-                    risk_percent=float(config["risk_percent"]),
+                    risk_percent=risk_percent_per_trade,
                 )
                 if not sizing.get("success"):
                     heartbeat["actions"].append({"event": "skip_sizing_error", "symbol": symbol, "error": sizing.get("error")})
@@ -1041,21 +1460,43 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
 
                 estimated_loss_usd = float(sizing.get("loss_per_lot", 0.0)) * effective_volume
                 account_equity = float(sizing.get("equity", 0.0) or 0.0)
-                max_risk_usd_cap = float(config.get("max_risk_usd_per_trade", 8.0))
+                actual_risk_percent = (estimated_loss_usd / account_equity * 100.0) if account_equity > 0 else 0.0
+                max_risk_usd_cap = float(config.get("max_risk_usd_per_trade", 8.0) or 0.0)
                 max_risk_pct_equity = float(config.get("max_risk_percent_of_equity", 0.8))
-                equity_risk_cap = (account_equity * max_risk_pct_equity / 100.0) if account_equity > 0 else max_risk_usd_cap
-                effective_risk_cap = min(max_risk_usd_cap, equity_risk_cap)
-                if estimated_loss_usd > effective_risk_cap:
+                configured_risk_cap = (account_equity * risk_percent_per_trade / 100.0) if account_equity > 0 else 0.0
+                equity_risk_cap = (account_equity * max_risk_pct_equity / 100.0) if account_equity > 0 else 0.0
+                positive_risk_caps = [x for x in (configured_risk_cap, equity_risk_cap, max_risk_usd_cap) if x > 0]
+                effective_risk_cap = min(positive_risk_caps) if positive_risk_caps else 0.0
+                if effective_volume <= 0 or estimated_loss_usd <= 0:
                     heartbeat["actions"].append(
                         {
-                            "event": "skip_risk_above_portfolio_cap",
+                            "event": "skip_invalid_order_size",
+                            "symbol": symbol,
+                            "interval": interval,
+                            "volume": effective_volume,
+                            "estimated_loss_usd": round(estimated_loss_usd, 2),
+                            "loss_per_lot": sizing.get("loss_per_lot"),
+                        }
+                    )
+                    continue
+
+                if effective_risk_cap > 0 and estimated_loss_usd > effective_risk_cap:
+                    heartbeat["actions"].append(
+                        {
+                            "event": "skip_order_size_above_risk",
                             "symbol": symbol,
                             "interval": interval,
                             "estimated_loss_usd": round(estimated_loss_usd, 2),
                             "risk_cap_usd": round(effective_risk_cap, 2),
+                            "configured_risk_cap_usd": round(configured_risk_cap, 2),
+                            "actual_risk_percent": round(actual_risk_percent, 4),
+                            "risk_percent_per_trade": round(risk_percent_per_trade, 4),
                             "account_equity": round(account_equity, 2),
                             "max_risk_usd_per_trade": round(max_risk_usd_cap, 2),
                             "max_risk_percent_of_equity": round(max_risk_pct_equity, 3),
+                            "raw_volume": sizing.get("raw_volume"),
+                            "volume": effective_volume,
+                            "volume_min": sizing.get("volume_min"),
                         }
                     )
                     continue
@@ -1072,6 +1513,8 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                     "split_tp": split_tp,
                     "pending_entry": pending_entry,
                     "dry_run": bool(config.get("dry_run", True)),
+                    "source": candidate.get("source", "analysis"),
+                    "source_signal_id": candidate.get("signal_id"),
                 }
                 execution = bridge.execute_signal(payload)
                 ok = bool(execution.get("success"))
@@ -1117,12 +1560,17 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                         "event": "execute_signal",
                         "symbol": symbol,
                         "interval": interval,
+                        "source": candidate.get("source", "analysis"),
+                        "signal_id": candidate.get("signal_id"),
                         "recommendation": candidate["recommendation"],
                         "dry_run": bool(config.get("dry_run", True)),
                         "success": ok,
                         "error": exec_error,
                         "volume": effective_volume,
+                        "raw_volume": sizing.get("raw_volume"),
                         "estimated_loss_usd": round(estimated_loss_usd, 2),
+                        "actual_risk_percent": round(actual_risk_percent, 4),
+                        "risk_cap_usd": round(effective_risk_cap, 2),
                         "rr_ratio": round(rr_ratio, 3),
                         "stop_distance_percent": round(stop_distance_pct, 3),
                         "pending_entry": pending_entry,
@@ -1137,6 +1585,19 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                     state.setdefault("last_trade_at", {})[key] = now_ts
                     state.setdefault("last_signature", {})[key] = signature
 
+                    site_activation = mark_site_signal_activated(config, candidate)
+                    if not site_activation.get("skipped"):
+                        heartbeat["actions"].append(
+                            {
+                                "event": "site_signal_mark_activated",
+                                "symbol": symbol,
+                                "signal_id": candidate.get("signal_id"),
+                                "success": bool(site_activation.get("success")),
+                                "updated": site_activation.get("updated"),
+                                "error": site_activation.get("error"),
+                            }
+                        )
+
                     if pending_entry and not bool(config.get("dry_run", True)):
                         pending_tickets = extract_pending_order_tickets(execution)
                         for ticket in pending_tickets:
@@ -1146,6 +1607,8 @@ def run_loop(config_path: Path, state_path: Path, once: bool) -> int:
                                 "side": str(candidate["side"]),
                                 "created_at": now_ts,
                                 "signature": signature,
+                                "source": candidate.get("source", "analysis"),
+                                "signal_id": candidate.get("signal_id"),
                             }
 
                     save_json(state_path, state)
@@ -1161,6 +1624,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Continuous auto trader with user-selected symbols and intervals")
     parser.add_argument("--config", default=str(PROJECT_ROOT / "auto_trading_user_config.json"), help="Path to config JSON file")
     parser.add_argument("--state", default=str(PROJECT_ROOT / "auto_trading_runtime_state.json"), help="Path to runtime state file")
+    parser.add_argument("--wallet-config", default="", help="Path to MT5 wallet config JSON (login/server/path) for this account")
+    parser.add_argument("--account-id", default="", help="Unique id for this account/wallet (namespaces the single-instance lock)")
     parser.add_argument("--setup", action="store_true", help="Run interactive setup and save config")
     parser.add_argument("--once", action="store_true", help="Run one scan cycle only")
     return parser.parse_args()
@@ -1168,6 +1633,16 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
+
+    if str(getattr(args, "account_id", "") or "").strip():
+        os.environ["AUTO_TRADER_ACCOUNT_ID"] = str(args.account_id).strip()
+    if str(getattr(args, "wallet_config", "") or "").strip():
+        os.environ["MT5_WALLET_CONFIG"] = str(Path(args.wallet_config).expanduser())
+
+    if not acquire_single_instance_lock():
+        print(json.dumps({"event": "already_running", "message": "Trader instance already active"}, ensure_ascii=False))
+        raise SystemExit(0)
+
     config_path = Path(args.config)
     state_path = Path(args.state)
 

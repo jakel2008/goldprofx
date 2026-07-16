@@ -19,6 +19,7 @@ links = [
     {"name": "إدارة الاشتراكات", "name_en": "Subscriptions", "url": "/subscriptions_management", "icon": "👥", "admin": True},
     {"name": "بوتات التداول", "name_en": "Trading Bots", "url": "/bot-management", "icon": "🤖", "admin": True},
     {"name": "المحلل المتقدم", "name_en": "Advanced Analyzer", "url": "/advanced_analyzer", "icon": "🧠", "admin": True},
+    {"name": "إشارات الشادو", "name_en": "Shadow Signals", "url": "/admin/shadow-signals", "icon": "🧪", "admin": True},
 
     # زر التحليل (الإشارات القوية) - إضافة منفصلة
     {"name": "التحليل", "name_en": "Analysis", "url": "/forex-app/strong-signals", "icon": "📡"},

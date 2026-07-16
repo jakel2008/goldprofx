@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from experimental.decision_engine import evaluate_experimental_decision
-from experimental.economic_calendar import load_calendar_events_cached
 from services.advanced_analyzer_engine import perform_full_analysis
 
 
@@ -90,8 +89,6 @@ def compare_symbol(
             "take_profit_1": official.get("take_profit1"),
             "take_profit_2": official.get("take_profit2"),
             "take_profit_3": official.get("take_profit3"),
-            "market_data_source": official.get("market_data_source"),
-            "market_data_errors": official.get("market_data_errors") or [],
         },
         "experimental": {
             "recommendation": experimental.get("recommendation"),
@@ -102,15 +99,11 @@ def compare_symbol(
             "news_blocked": bool(experimental.get("news_blocked")),
             "entry_price": (experimental.get("chosen_details") or {}).get("close_price"),
             "component_scores": (experimental.get("chosen_details") or {}).get("scores"),
-            "news_info": (experimental.get("chosen_details") or {}).get("news_info") or {},
-            "news_context_info": experimental.get("news_context_info") or {},
-            "calendar_sources": experimental.get("calendar_sources") or [],
         },
         "comparison": {
             "agreement": agreement,
             "direction_delta": round(experimental_score - official_score, 3),
             "same_interval": str(experimental.get("chosen_interval")) == str(interval),
-            "market_data_source": official.get("market_data_source"),
         },
     }
 
@@ -120,13 +113,7 @@ def build_shadow_report(
     interval: str = "1h",
     news_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    context: Dict[str, Any] = dict(news_context or {})
-    if not isinstance(context.get("calendar_events"), list):
-        calendar_payload = load_calendar_events_cached()
-        context["calendar_events"] = calendar_payload.get("events") or []
-        context["calendar_source"] = calendar_payload.get("source") or []
-        context["calendar_errors"] = calendar_payload.get("errors") or []
-    results = [compare_symbol(symbol, interval=interval, news_context=context) for symbol in symbols]
+    results = [compare_symbol(symbol, interval=interval, news_context=news_context) for symbol in symbols]
 
     ok = [item for item in results if item.get("success")]
     failed = [item for item in results if not item.get("success")]
@@ -146,11 +133,6 @@ def build_shadow_report(
         "agreement_count": agreement_count,
         "agreement_rate_pct": agreement_rate,
         "avg_direction_delta": avg_direction_delta,
-        "news_context": {
-            "calendar_source": context.get("calendar_source") or [],
-            "calendar_events_count": len(context.get("calendar_events") or []),
-            "calendar_errors": context.get("calendar_errors") or [],
-        },
         "results": results,
     }
 

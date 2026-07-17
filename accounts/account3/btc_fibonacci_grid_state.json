@@ -1,0 +1,206 @@
+{
+  "updated_at": "2026-07-06T19:50:27",
+  "dry_run": false,
+  "plan": {
+    "symbol": "BTCUSD",
+    "broker_symbol": "BTCUSD.X",
+    "timeframe": "M5",
+    "trend_side": "buy",
+    "direction": {
+      "side": "buy",
+      "reason": "ema9_ema34_momentum",
+      "ema9": 63547.80252,
+      "ema34": 62935.32366,
+      "last_close": 63659.27,
+      "momentum_12_bars": 214.9
+    },
+    "swing_low": 61279.09,
+    "swing_high": 63816.35,
+    "fib": {
+      "0": 61279.09,
+      "50": 62547.72,
+      "75": 63182.03,
+      "basket_close": 63127.72
+    },
+    "basket_close_target": {
+      "mode": "penultimate_reversal_order",
+      "target": 63127.72,
+      "source": "penultimate_reversal_order",
+      "order": {
+        "idx": 15,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63177.72,
+        "pending_price": 63127.72,
+        "volume": 0.01,
+        "comment": "ACC3_BTC_FIB_GRI_50-75_15"
+      },
+      "reverse_orders_count": 8
+    },
+    "tick": {
+      "success": true,
+      "symbol": "BTCUSD.X",
+      "requested_symbol": "BTCUSD",
+      "bid": 63651.46,
+      "ask": 63701.46,
+      "mid": 63676.46,
+      "spread": 50.0
+    },
+    "broker_point": 0.01,
+    "grid_step_mode": "broker_points",
+    "grid_step_points": 500.0,
+    "grid_step_price": 5.0,
+    "spread_broker_points": 5000.0,
+    "spread_adjustment": true,
+    "orders_count": 16,
+    "target_reached": true
+  },
+  "orders_preview": [
+    {
+      "idx": 1,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62514.09,
+      "pending_price": 62564.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_1"
+    },
+    {
+      "idx": 2,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62519.09,
+      "pending_price": 62569.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_2"
+    },
+    {
+      "idx": 3,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62524.09,
+      "pending_price": 62574.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_3"
+    },
+    {
+      "idx": 4,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62529.09,
+      "pending_price": 62579.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_4"
+    },
+    {
+      "idx": 5,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62534.09,
+      "pending_price": 62584.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_5"
+    },
+    {
+      "idx": 6,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62539.09,
+      "pending_price": 62589.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_6"
+    },
+    {
+      "idx": 7,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62544.09,
+      "pending_price": 62594.09,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_7"
+    },
+    {
+      "idx": 8,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 62547.72,
+      "pending_price": 62597.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_0-50_8"
+    },
+    {
+      "idx": 9,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63147.72,
+      "pending_price": 63097.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_9"
+    },
+    {
+      "idx": 10,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63152.72,
+      "pending_price": 63102.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_10"
+    },
+    {
+      "idx": 11,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63157.72,
+      "pending_price": 63107.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_11"
+    },
+    {
+      "idx": 12,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63162.72,
+      "pending_price": 63112.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_12"
+    },
+    {
+      "idx": 13,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63167.72,
+      "pending_price": 63117.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_13"
+    },
+    {
+      "idx": 14,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63172.72,
+      "pending_price": 63122.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_14"
+    },
+    {
+      "idx": 15,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63177.72,
+      "pending_price": 63127.72,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_15"
+    },
+    {
+      "idx": 16,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 63182.03,
+      "pending_price": 63132.03,
+      "volume": 0.01,
+      "comment": "ACC3_BTC_FIB_GRI_50-75_16"
+    }
+  ],
+  "execution_reason": "target_reached_wait",
+  "actions_count": 0
+}

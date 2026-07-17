@@ -1,0 +1,101 @@
+{
+  "_note": "إعدادات الحساب 5 — الأساس الذهب والبتكوين. عدّل المخاطرة حسب حجم المحفظة.",
+  "enabled": true,
+  "symbols": [
+    "XAUUSD",
+    "US100"
+  ],
+  "blocked_symbols": [
+    "BTCUSD"
+  ],
+  "intervals": [
+    "15m",
+    "30m",
+    "1h"
+  ],
+  "risk_percent": 1.2,
+  "scan_every_sec": 20,
+  "min_score_gap": 35,
+  "allow_normal_signals": true,
+  "allow_strong_signals": true,
+  "strong_pending_only": false,
+  "max_open_positions": 3,
+  "dynamic_max_positions_enabled": false,
+  "max_total_open_risk_percent": 8.0,
+  "min_open_positions": 1,
+  "max_open_positions_cap": 3,
+  "one_position_per_symbol": true,
+  "cooldown_minutes_per_symbol": 20,
+  "pending_entry": false,
+  "cancel_on_market_invalidation": true,
+  "split_tp": false,
+  "dry_run": false,
+  "use_equity_for_risk": true,
+  "max_risk_usd_per_trade": 300.0,
+  "max_risk_percent_of_equity": 1.2,
+  "max_stop_distance_percent": 1.2,
+  "max_target_distance_percent": 3.5,
+  "min_rr_ratio": 0.9,
+  "max_trades_per_cycle": 2,
+  "cancel_expired_pending": true,
+  "trading_sessions_utc": [
+    {
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "start": "00:00",
+      "end": "00:00"
+    }
+  ],
+  "daily_loss_limit_usd": 250.0,
+  "daily_loss_reset_at_utc": "2026-07-02T01:24:16Z",
+  "max_consecutive_losses": 6,
+  "daily_profit_lock_usd": 0.0,
+  "ignore_consecutive_losses_if_daily_pnl_above_usd": 0.0,
+  "gold_trend_filter_enabled": true,
+  "gold_trend_filter_intervals": [
+    "15m"
+  ],
+  "gold_trend_min_gap": 28,
+  "trailing_stop_enabled": false,
+  "trailing_stop_trigger_rr": 1.0,
+  "trailing_stop_lock_rr": 0.5,
+  "trailing_stop_breakeven": true,
+  "fixed_volume": 0.01,
+  "pending_fallback_to_market": false,
+  "market_reprice_entry": false,
+  "force_gold_trading_now": false,
+  "gold_scalping_strategy_enabled": false,
+  "gold_scalping_entry_intervals": [
+    "3m",
+    "5m"
+  ],
+  "gold_scalping_context_intervals": [
+    "15m"
+  ],
+  "gold_scalping_min_context_agreement": 1,
+  "gold_scalping_require_rsi_momentum": true,
+  "gold_trend_fail_open": false,
+  "gold_scalping_context_min_ema_gap_percent": 0.01,
+  "gold_scalping_min_entry_score_gap": 35,
+  "gold_scalping_rsi_buy_min": 38.0,
+  "gold_scalping_rsi_buy_max": 68.0,
+  "gold_scalping_rsi_sell_min": 32.0,
+  "gold_scalping_rsi_sell_max": 62.0,
+  "gold_scalping_max_entry_distance_atr": 1.4,
+  "gold_scalping_min_volume_ratio": 0.8,
+  "gold_scalping_skip_bollinger_extreme": true,
+  "gold_scalping_atr_reference_interval": "5m",
+  "gold_scalping_stop_atr_multiplier": 1.0,
+  "gold_scalping_tp1_rr": 1.0,
+  "gold_scalping_tp2_rr": 1.5,
+  "gold_scalping_tp3_rr": 2.0,
+  "pending_expiry_minutes": 5,
+  "pending_dedupe_price_tolerance": 1.0
+}

@@ -1,0 +1,424 @@
+{
+  "success": true,
+  "state_path": "D:\\GOLD PRO\\accounts\\account1_gold\\xau_fibonacci_grid_state.json",
+  "plan": {
+    "symbol": "XAUUSD",
+    "broker_symbol": "XAUUSD",
+    "timeframe": "M5",
+    "trend_side": "sell",
+    "direction": {
+      "side": "sell",
+      "reason": "ema9_ema34_momentum",
+      "ema9": 4181.7534,
+      "ema34": 4181.68908,
+      "last_close": 4178.86,
+      "momentum_12_bars": -4.04
+    },
+    "swing_low": 4155.27,
+    "swing_high": 4201.44,
+    "fib": {
+      "0": 4201.44,
+      "50": 4178.35,
+      "75": 4166.81,
+      "basket_close": 4178.9
+    },
+    "basket_close_target": {
+      "mode": "penultimate_reversal_order",
+      "target": 4178.9,
+      "source": "penultimate_reversal_order",
+      "order": {
+        "idx": 3,
+        "zone": "50-75",
+        "side": "buy",
+        "raw_price": 4178.35,
+        "pending_price": 4178.9,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_50-75_3"
+      },
+      "reverse_orders_count": 2
+    },
+    "tick": {
+      "success": true,
+      "symbol": "XAUUSD",
+      "requested_symbol": "XAUUSD",
+      "bid": 4178.86,
+      "ask": 4179.41,
+      "mid": 4179.135,
+      "spread": 0.5500000000001819
+    },
+    "broker_point": 0.01,
+    "grid_step_mode": "broker_points",
+    "grid_step_points": 2000.0,
+    "grid_step_price": 20.0,
+    "spread_broker_points": 55.0,
+    "spread_adjustment": true,
+    "orders_count": 4,
+    "target_reached": false,
+    "orders_preview": [
+      {
+        "idx": 1,
+        "zone": "0-50",
+        "side": "sell",
+        "raw_price": 4201.44,
+        "pending_price": 4200.89,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_0-50_1"
+      },
+      {
+        "idx": 2,
+        "zone": "0-50",
+        "side": "sell",
+        "raw_price": 4181.44,
+        "pending_price": 4180.89,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_0-50_2"
+      },
+      {
+        "idx": 3,
+        "zone": "50-75",
+        "side": "buy",
+        "raw_price": 4178.35,
+        "pending_price": 4178.9,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_50-75_3"
+      },
+      {
+        "idx": 4,
+        "zone": "50-75",
+        "side": "buy",
+        "raw_price": 4166.81,
+        "pending_price": 4167.36,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_50-75_4"
+      }
+    ]
+  },
+  "execution": {
+    "dry_run": false,
+    "reason": "new_grid_cycle",
+    "actions_count": 4,
+    "actions_preview": [
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 1,
+          "zone": "0-50",
+          "side": "sell",
+          "raw_price": 4201.44,
+          "pending_price": 4200.89,
+          "volume": 0.01,
+          "comment": "ACC1_XAU_FIB_GRI_0-50_1"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634889,
+            "volume": 0.01,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209404,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "XAUUSD",
+              0.01,
+              4200.89,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              3,
+              0,
+              0,
+              0,
+              "ACC1_XAU_FIB_GRI_0-50_1",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "XAUUSD",
+            "volume": 0.01,
+            "type": 3,
+            "price": 4200.89,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_XAU_FIB_GRI_0-50_1",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_LIMIT",
+            "requested_symbol": "XAUUSD",
+            "resolved_symbol": "XAUUSD",
+            "side": "sell",
+            "entry_price": 4200.89,
+            "current_bid": 4178.86,
+            "current_ask": 4179.41,
+            "volume": 0.01,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 2,
+          "zone": "0-50",
+          "side": "sell",
+          "raw_price": 4181.44,
+          "pending_price": 4180.89,
+          "volume": 0.01,
+          "comment": "ACC1_XAU_FIB_GRI_0-50_2"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634890,
+            "volume": 0.01,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209405,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "XAUUSD",
+              0.01,
+              4180.89,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              3,
+              0,
+              0,
+              0,
+              "ACC1_XAU_FIB_GRI_0-50_2",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "XAUUSD",
+            "volume": 0.01,
+            "type": 3,
+            "price": 4180.89,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_XAU_FIB_GRI_0-50_2",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_LIMIT",
+            "requested_symbol": "XAUUSD",
+            "resolved_symbol": "XAUUSD",
+            "side": "sell",
+            "entry_price": 4180.89,
+            "current_bid": 4178.66,
+            "current_ask": 4179.21,
+            "volume": 0.01,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 3,
+          "zone": "50-75",
+          "side": "buy",
+          "raw_price": 4178.35,
+          "pending_price": 4178.9,
+          "volume": 0.01,
+          "comment": "ACC1_XAU_FIB_GRI_50-75_3"
+        },
+        "result": {
+          "success": false,
+          "retcode": 10015,
+          "result": {
+            "retcode": 10015,
+            "deal": 0,
+            "order": 0,
+            "volume": 0.0,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Invalid price",
+            "request_id": 0,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "XAUUSD",
+              0.01,
+              4178.9,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_XAU_FIB_GRI_50-75_3",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "XAUUSD",
+            "volume": 0.01,
+            "type": 2,
+            "price": 4178.9,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_XAU_FIB_GRI_50-75_3",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "XAUUSD",
+            "resolved_symbol": "XAUUSD",
+            "side": "buy",
+            "entry_price": 4178.9,
+            "current_bid": 4178.35,
+            "current_ask": 4178.9,
+            "volume": 0.01,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10015,
+              "error": "سعر غير صالح",
+              "deviation": 20,
+              "type_filling": null
+            }
+          ],
+          "error": "سعر غير صالح"
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 4,
+          "zone": "50-75",
+          "side": "buy",
+          "raw_price": 4166.81,
+          "pending_price": 4167.36,
+          "volume": 0.01,
+          "comment": "ACC1_XAU_FIB_GRI_50-75_4"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634891,
+            "volume": 0.01,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209406,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "XAUUSD",
+              0.01,
+              4167.36,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_XAU_FIB_GRI_50-75_4",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "XAUUSD",
+            "volume": 0.01,
+            "type": 2,
+            "price": 4167.36,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_XAU_FIB_GRI_50-75_4",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "XAUUSD",
+            "resolved_symbol": "XAUUSD",
+            "side": "buy",
+            "entry_price": 4167.36,
+            "current_bid": 4178.35,
+            "current_ask": 4178.9,
+            "volume": 0.01,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

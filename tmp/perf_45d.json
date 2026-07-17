@@ -1,0 +1,903 @@
+{
+  "window_utc": {
+    "start": "2026-05-19T12:33:25+00:00",
+    "end": "2026-07-03T12:33:25+00:00"
+  },
+  "accounts": [
+    {
+      "id": "account1_gold",
+      "wallet": "D:\\GOLD PRO\\accounts\\account1_gold\\wallet.json",
+      "magic": 88011,
+      "connect": true,
+      "connect_error": null,
+      "account": {
+        "login": 1015732,
+        "server": "Markets.com-Live",
+        "balance": 83.16,
+        "equity": 118.02,
+        "floating_profit": 34.86
+      },
+      "history": {
+        "fallback_symbol_filter_used": false,
+        "deal_count": 347,
+        "entry_deal_count": 176,
+        "exit_deal_count": 171,
+        "closed_trade_count": 171,
+        "wins": 66,
+        "losses": 105,
+        "flats": 0,
+        "win_rate_percent": 38.6,
+        "gross_profit": 387.28,
+        "gross_loss": -816.06,
+        "net_pnl": -428.78,
+        "profit_factor": 0.475,
+        "avg_win": 5.87,
+        "avg_loss": -7.77,
+        "best_trade": 33.34,
+        "worst_trade": -97.48,
+        "first_trade": {
+          "position_id": "19580303",
+          "symbol": "BTCUSD.X",
+          "direction": "unknown",
+          "open_time_utc": "2026-06-27T16:00:03+00:00",
+          "close_time_utc": "2026-06-27T17:03:24+00:00",
+          "volume_closed": 0.09,
+          "pnl": -29.59,
+          "exit_count": 1,
+          "comment": "[sl 60481.49]"
+        },
+        "last_trade": {
+          "position_id": "19629004",
+          "symbol": "XAUUSD",
+          "direction": "SELL",
+          "open_time_utc": "2026-07-03T09:41:58+00:00",
+          "close_time_utc": "2026-07-03T10:01:29+00:00",
+          "volume_closed": 0.05,
+          "pnl": -24.05,
+          "exit_count": 1,
+          "comment": "[sl 4175.46]"
+        },
+        "max_loss_streak": 33,
+        "trades_by_hour_utc": [
+          {
+            "hour": "2026-06-27T17",
+            "count": 12,
+            "wins": 0,
+            "losses": 12,
+            "pnl": -138.92
+          },
+          {
+            "hour": "2026-06-27T19",
+            "count": 9,
+            "wins": 0,
+            "losses": 9,
+            "pnl": -71.88
+          },
+          {
+            "hour": "2026-06-27T21",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -28.58
+          },
+          {
+            "hour": "2026-06-28T12",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -35.7
+          },
+          {
+            "hour": "2026-06-28T13",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -35.81
+          },
+          {
+            "hour": "2026-06-29T00",
+            "count": 6,
+            "wins": 1,
+            "losses": 5,
+            "pnl": -46.48
+          },
+          {
+            "hour": "2026-06-29T01",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -0.28
+          },
+          {
+            "hour": "2026-06-29T10",
+            "count": 2,
+            "wins": 2,
+            "losses": 0,
+            "pnl": 0.2
+          },
+          {
+            "hour": "2026-06-29T11",
+            "count": 12,
+            "wins": 10,
+            "losses": 2,
+            "pnl": -55.76
+          },
+          {
+            "hour": "2026-06-29T13",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 4.29
+          },
+          {
+            "hour": "2026-06-29T14",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -0.61
+          },
+          {
+            "hour": "2026-06-29T15",
+            "count": 3,
+            "wins": 1,
+            "losses": 2,
+            "pnl": 3.79
+          },
+          {
+            "hour": "2026-06-29T18",
+            "count": 4,
+            "wins": 4,
+            "losses": 0,
+            "pnl": 22.77
+          },
+          {
+            "hour": "2026-06-29T19",
+            "count": 3,
+            "wins": 3,
+            "losses": 0,
+            "pnl": 6.14
+          },
+          {
+            "hour": "2026-06-30T00",
+            "count": 3,
+            "wins": 3,
+            "losses": 0,
+            "pnl": 18.06
+          },
+          {
+            "hour": "2026-06-30T13",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -0.22
+          },
+          {
+            "hour": "2026-07-01T11",
+            "count": 9,
+            "wins": 4,
+            "losses": 5,
+            "pnl": -27.98
+          },
+          {
+            "hour": "2026-07-01T13",
+            "count": 6,
+            "wins": 4,
+            "losses": 2,
+            "pnl": 72.06
+          },
+          {
+            "hour": "2026-07-01T14",
+            "count": 4,
+            "wins": 0,
+            "losses": 4,
+            "pnl": -17.3
+          },
+          {
+            "hour": "2026-07-01T15",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -20.88
+          },
+          {
+            "hour": "2026-07-01T18",
+            "count": 2,
+            "wins": 2,
+            "losses": 0,
+            "pnl": 9.81
+          },
+          {
+            "hour": "2026-07-01T19",
+            "count": 7,
+            "wins": 5,
+            "losses": 2,
+            "pnl": 15.27
+          },
+          {
+            "hour": "2026-07-01T22",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -10.49
+          },
+          {
+            "hour": "2026-07-01T23",
+            "count": 3,
+            "wins": 2,
+            "losses": 1,
+            "pnl": 4.87
+          },
+          {
+            "hour": "2026-07-02T00",
+            "count": 6,
+            "wins": 1,
+            "losses": 5,
+            "pnl": -20.22
+          },
+          {
+            "hour": "2026-07-02T01",
+            "count": 4,
+            "wins": 1,
+            "losses": 3,
+            "pnl": -9.6
+          },
+          {
+            "hour": "2026-07-02T08",
+            "count": 6,
+            "wins": 3,
+            "losses": 3,
+            "pnl": -0.4
+          },
+          {
+            "hour": "2026-07-02T09",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -5.18
+          },
+          {
+            "hour": "2026-07-02T12",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 0.53
+          },
+          {
+            "hour": "2026-07-02T13",
+            "count": 9,
+            "wins": 5,
+            "losses": 4,
+            "pnl": 5.64
+          },
+          {
+            "hour": "2026-07-02T14",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -4.99
+          },
+          {
+            "hour": "2026-07-02T15",
+            "count": 5,
+            "wins": 2,
+            "losses": 3,
+            "pnl": -5.34
+          },
+          {
+            "hour": "2026-07-02T16",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -14.39
+          },
+          {
+            "hour": "2026-07-02T17",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -5.11
+          },
+          {
+            "hour": "2026-07-02T18",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 0.66
+          },
+          {
+            "hour": "2026-07-02T19",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -5.07
+          },
+          {
+            "hour": "2026-07-03T00",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 5.72
+          },
+          {
+            "hour": "2026-07-03T01",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -5.28
+          },
+          {
+            "hour": "2026-07-03T02",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 0.02
+          },
+          {
+            "hour": "2026-07-03T03",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -5.12
+          },
+          {
+            "hour": "2026-07-03T07",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 5.11
+          },
+          {
+            "hour": "2026-07-03T08",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -0.73
+          },
+          {
+            "hour": "2026-07-03T09",
+            "count": 14,
+            "wins": 6,
+            "losses": 8,
+            "pnl": -7.35
+          },
+          {
+            "hour": "2026-07-03T10",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -24.05
+          }
+        ]
+      },
+      "open_positions": [],
+      "pending_orders": 0,
+      "config": {
+        "enabled": true,
+        "dry_run": false,
+        "symbols": [
+          "XAUUSD"
+        ],
+        "max_open_positions": 2,
+        "one_position_per_symbol": false,
+        "gold_scalping_entry_intervals": [
+          "5m"
+        ],
+        "gold_scalping_context_intervals": [
+          "15m",
+          "30m"
+        ],
+        "gold_scalping_min_context_agreement": 0,
+        "gold_scalping_require_rsi_momentum": false,
+        "daily_loss_limit_usd": 20,
+        "daily_loss_reset_at_utc": "2026-07-02T01:24:16Z",
+        "force_gold_trading_now": true
+      },
+      "log_summary": {
+        "exists": true,
+        "execute_signal_events": 0,
+        "skip_gold_market_closed": 117,
+        "risk_guard_blocked": 0,
+        "max_open_positions_reached": 0,
+        "skip_existing_symbol_position": 0,
+        "last_events": [
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}"
+        ]
+      }
+    },
+    {
+      "id": "account2_bitcoin",
+      "wallet": "D:\\GOLD PRO\\accounts\\account2_bitcoin\\wallet.json",
+      "magic": 88012,
+      "connect": true,
+      "connect_error": null,
+      "account": {
+        "login": 262972266,
+        "server": "Exness-MT5Trial16",
+        "balance": 8495.33,
+        "equity": 8495.33,
+        "floating_profit": 0.0
+      },
+      "history": {
+        "fallback_symbol_filter_used": false,
+        "deal_count": 530,
+        "entry_deal_count": 273,
+        "exit_deal_count": 257,
+        "closed_trade_count": 257,
+        "wins": 134,
+        "losses": 94,
+        "flats": 29,
+        "win_rate_percent": 52.1,
+        "gross_profit": 4651.88,
+        "gross_loss": -4772.61,
+        "net_pnl": -120.73,
+        "profit_factor": 0.975,
+        "avg_win": 34.72,
+        "avg_loss": -50.77,
+        "best_trade": 95.0,
+        "worst_trade": -95.0,
+        "first_trade": {
+          "position_id": "1445309413",
+          "symbol": "BTCUSDm",
+          "direction": "unknown",
+          "open_time_utc": "2026-06-27T19:00:37+00:00",
+          "close_time_utc": "2026-06-27T19:19:50+00:00",
+          "volume_closed": 0.15,
+          "pnl": -12.66,
+          "exit_count": 1,
+          "comment": "[sl 60393.41000]"
+        },
+        "last_trade": {
+          "position_id": "1473882609",
+          "symbol": "XAUUSDm",
+          "direction": "SELL",
+          "open_time_utc": "2026-07-03T12:20:02+00:00",
+          "close_time_utc": "2026-07-03T12:20:03+00:00",
+          "volume_closed": 0.05,
+          "pnl": 1.45,
+          "exit_count": 1,
+          "comment": "[tp 4174.92100]"
+        },
+        "max_loss_streak": 12,
+        "trades_by_hour_utc": [
+          {
+            "hour": "2026-06-27T19",
+            "count": 6,
+            "wins": 0,
+            "losses": 6,
+            "pnl": -55.27
+          },
+          {
+            "hour": "2026-06-28T13",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -110.47
+          },
+          {
+            "hour": "2026-06-28T15",
+            "count": 3,
+            "wins": 0,
+            "losses": 3,
+            "pnl": -114.23
+          },
+          {
+            "hour": "2026-06-29T00",
+            "count": 3,
+            "wins": 2,
+            "losses": 1,
+            "pnl": 3.44
+          },
+          {
+            "hour": "2026-06-29T01",
+            "count": 6,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -2.12
+          },
+          {
+            "hour": "2026-06-29T02",
+            "count": 6,
+            "wins": 1,
+            "losses": 2,
+            "pnl": -1.72
+          },
+          {
+            "hour": "2026-06-29T03",
+            "count": 4,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -2.52
+          },
+          {
+            "hour": "2026-06-29T05",
+            "count": 7,
+            "wins": 1,
+            "losses": 5,
+            "pnl": -6.34
+          },
+          {
+            "hour": "2026-06-29T06",
+            "count": 9,
+            "wins": 4,
+            "losses": 4,
+            "pnl": -2.63
+          },
+          {
+            "hour": "2026-06-29T07",
+            "count": 1,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-29T08",
+            "count": 1,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-29T10",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -1.91
+          },
+          {
+            "hour": "2026-06-29T11",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -1.86
+          },
+          {
+            "hour": "2026-06-29T12",
+            "count": 1,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-29T14",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 0.41
+          },
+          {
+            "hour": "2026-06-29T15",
+            "count": 2,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-29T16",
+            "count": 2,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 0.14
+          },
+          {
+            "hour": "2026-06-30T00",
+            "count": 2,
+            "wins": 2,
+            "losses": 0,
+            "pnl": 19.88
+          },
+          {
+            "hour": "2026-06-30T11",
+            "count": 2,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-30T13",
+            "count": 2,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 3.05
+          },
+          {
+            "hour": "2026-06-30T14",
+            "count": 1,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-30T15",
+            "count": 3,
+            "wins": 0,
+            "losses": 0,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-06-30T16",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 0.6
+          },
+          {
+            "hour": "2026-06-30T20",
+            "count": 6,
+            "wins": 5,
+            "losses": 1,
+            "pnl": 407.9
+          },
+          {
+            "hour": "2026-07-01T06",
+            "count": 6,
+            "wins": 1,
+            "losses": 3,
+            "pnl": -177.04
+          },
+          {
+            "hour": "2026-07-01T07",
+            "count": 4,
+            "wins": 1,
+            "losses": 3,
+            "pnl": -177.32
+          },
+          {
+            "hour": "2026-07-01T09",
+            "count": 5,
+            "wins": 5,
+            "losses": 0,
+            "pnl": 357.56
+          },
+          {
+            "hour": "2026-07-01T10",
+            "count": 16,
+            "wins": 12,
+            "losses": 4,
+            "pnl": 691.2
+          },
+          {
+            "hour": "2026-07-01T11",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 90.0
+          },
+          {
+            "hour": "2026-07-01T12",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 89.88
+          },
+          {
+            "hour": "2026-07-01T15",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -89.76
+          },
+          {
+            "hour": "2026-07-01T16",
+            "count": 3,
+            "wins": 2,
+            "losses": 1,
+            "pnl": 90.0
+          },
+          {
+            "hour": "2026-07-01T22",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -190.0
+          },
+          {
+            "hour": "2026-07-01T23",
+            "count": 6,
+            "wins": 2,
+            "losses": 2,
+            "pnl": -5.0
+          },
+          {
+            "hour": "2026-07-02T00",
+            "count": 12,
+            "wins": 4,
+            "losses": 8,
+            "pnl": -375.0
+          },
+          {
+            "hour": "2026-07-02T01",
+            "count": 11,
+            "wins": 5,
+            "losses": 6,
+            "pnl": -92.03
+          },
+          {
+            "hour": "2026-07-02T08",
+            "count": 9,
+            "wins": 4,
+            "losses": 5,
+            "pnl": -100.58
+          },
+          {
+            "hour": "2026-07-02T09",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-07-02T12",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": 6.06
+          },
+          {
+            "hour": "2026-07-02T13",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 84.52
+          },
+          {
+            "hour": "2026-07-02T14",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -84.0
+          },
+          {
+            "hour": "2026-07-02T15",
+            "count": 4,
+            "wins": 2,
+            "losses": 2,
+            "pnl": 0.0
+          },
+          {
+            "hour": "2026-07-02T16",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -168.03
+          },
+          {
+            "hour": "2026-07-02T17",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -83.02
+          },
+          {
+            "hour": "2026-07-02T18",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 85.0
+          },
+          {
+            "hour": "2026-07-02T19",
+            "count": 2,
+            "wins": 0,
+            "losses": 2,
+            "pnl": -171.77
+          },
+          {
+            "hour": "2026-07-02T22",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 85.0
+          },
+          {
+            "hour": "2026-07-03T00",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 78.56
+          },
+          {
+            "hour": "2026-07-03T05",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -85.95
+          },
+          {
+            "hour": "2026-07-03T07",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -1.26
+          },
+          {
+            "hour": "2026-07-03T08",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -1.38
+          },
+          {
+            "hour": "2026-07-03T09",
+            "count": 14,
+            "wins": 12,
+            "losses": 2,
+            "pnl": -9.36
+          },
+          {
+            "hour": "2026-07-03T10",
+            "count": 17,
+            "wins": 12,
+            "losses": 5,
+            "pnl": -57.56
+          },
+          {
+            "hour": "2026-07-03T11",
+            "count": 34,
+            "wins": 28,
+            "losses": 6,
+            "pnl": -13.2
+          },
+          {
+            "hour": "2026-07-03T12",
+            "count": 17,
+            "wins": 14,
+            "losses": 3,
+            "pnl": -32.6
+          }
+        ]
+      },
+      "open_positions": [],
+      "pending_orders": 0,
+      "config": {
+        "enabled": true,
+        "dry_run": false,
+        "symbols": [
+          "XAUUSD"
+        ],
+        "max_open_positions": 2,
+        "one_position_per_symbol": false,
+        "gold_scalping_entry_intervals": [
+          "5m"
+        ],
+        "gold_scalping_context_intervals": [
+          "15m",
+          "30m"
+        ],
+        "gold_scalping_min_context_agreement": 0,
+        "gold_scalping_require_rsi_momentum": false,
+        "daily_loss_limit_usd": 250.0,
+        "daily_loss_reset_at_utc": "2026-07-02T01:24:16Z",
+        "force_gold_trading_now": true
+      },
+      "log_summary": {
+        "exists": true,
+        "execute_signal_events": 0,
+        "skip_gold_market_closed": 41,
+        "risk_guard_blocked": 23,
+        "max_open_positions_reached": 0,
+        "skip_existing_symbol_position": 0,
+        "last_events": [
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}"
+        ]
+      }
+    }
+  ]
+}

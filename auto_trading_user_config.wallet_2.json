@@ -1,0 +1,40 @@
+{
+  "enabled": true,
+  "symbols": [
+    "XAUUSD",
+    "BTCUSD",
+    "ETHUSD"
+  ],
+  "intervals": [
+    "5m",
+    "15m",
+    "30m"
+  ],
+  "risk_percent": 2.0,
+  "scan_every_sec": 15,
+  "min_score_gap": 32,
+  "allow_normal_signals": true,
+  "allow_strong_signals": true,
+  "strong_pending_only": false,
+  "max_open_positions": 5,
+  "dynamic_max_positions_enabled": true,
+  "max_total_open_risk_percent": 9.0,
+  "min_open_positions": 1,
+  "max_open_positions_cap": 8,
+  "one_position_per_symbol": true,
+  "cooldown_minutes_per_symbol": 12,
+  "pending_entry": false,
+  "cancel_on_market_invalidation": true,
+  "split_tp": true,
+  "dry_run": false,
+  "use_equity_for_risk": true,
+  "max_risk_usd_per_trade": 250.0,
+  "max_risk_percent_of_equity": 2.0,
+  "max_stop_distance_percent": 1.5,
+  "max_target_distance_percent": 5.0,
+  "min_rr_ratio": 0.8,
+  "max_trades_per_cycle": 3,
+  "cancel_expired_pending": true,
+  "daily_loss_limit_usd": 300.0,
+  "max_consecutive_losses": 4
+}

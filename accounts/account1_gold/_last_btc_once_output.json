@@ -1,0 +1,2381 @@
+{
+  "success": true,
+  "state_path": "D:\\GOLD PRO\\accounts\\account1_gold\\btc_fibonacci_grid_state.json",
+  "plan": {
+    "symbol": "BTCUSD",
+    "broker_symbol": "BTCUSD.X",
+    "timeframe": "M5",
+    "trend_side": "buy",
+    "direction": {
+      "side": "buy",
+      "reason": "ema9_ema34_momentum",
+      "ema9": 63562.55924,
+      "ema34": 63464.13635,
+      "last_close": 63658.0,
+      "momentum_12_bars": 66.98
+    },
+    "swing_low": 62548.12,
+    "swing_high": 63940.88,
+    "fib": {
+      "0": 62548.12,
+      "50": 63244.5,
+      "75": 63592.69,
+      "basket_close": 63539.5
+    },
+    "basket_close_target": {
+      "mode": "penultimate_reversal_order",
+      "target": 63539.5,
+      "source": "penultimate_reversal_order",
+      "order": {
+        "idx": 25,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63589.5,
+        "pending_price": 63539.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_25"
+      },
+      "reverse_orders_count": 13
+    },
+    "tick": {
+      "success": true,
+      "symbol": "BTCUSD.X",
+      "requested_symbol": "BTCUSD",
+      "bid": 63658.0,
+      "ask": 63708.0,
+      "mid": 63683.0,
+      "spread": 50.0
+    },
+    "broker_point": 0.01,
+    "grid_step_mode": "broker_points",
+    "grid_step_points": 500.0,
+    "grid_step_price": 5.0,
+    "spread_broker_points": 5000.0,
+    "spread_adjustment": true,
+    "orders_count": 26,
+    "target_reached": true,
+    "orders_preview": [
+      {
+        "idx": 1,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63188.12,
+        "pending_price": 63238.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_1"
+      },
+      {
+        "idx": 2,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63193.12,
+        "pending_price": 63243.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_2"
+      },
+      {
+        "idx": 3,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63198.12,
+        "pending_price": 63248.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_3"
+      },
+      {
+        "idx": 4,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63203.12,
+        "pending_price": 63253.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_4"
+      },
+      {
+        "idx": 5,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63208.12,
+        "pending_price": 63258.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_5"
+      },
+      {
+        "idx": 6,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63213.12,
+        "pending_price": 63263.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_6"
+      },
+      {
+        "idx": 7,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63218.12,
+        "pending_price": 63268.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_7"
+      },
+      {
+        "idx": 8,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63223.12,
+        "pending_price": 63273.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_8"
+      },
+      {
+        "idx": 9,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63228.12,
+        "pending_price": 63278.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_9"
+      },
+      {
+        "idx": 10,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63233.12,
+        "pending_price": 63283.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_10"
+      },
+      {
+        "idx": 11,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63238.12,
+        "pending_price": 63288.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_11"
+      },
+      {
+        "idx": 12,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63243.12,
+        "pending_price": 63293.12,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_12"
+      },
+      {
+        "idx": 13,
+        "zone": "0-50",
+        "side": "buy",
+        "raw_price": 63244.5,
+        "pending_price": 63294.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_0-50_13"
+      },
+      {
+        "idx": 14,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63534.5,
+        "pending_price": 63484.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_14"
+      },
+      {
+        "idx": 15,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63539.5,
+        "pending_price": 63489.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_15"
+      },
+      {
+        "idx": 16,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63544.5,
+        "pending_price": 63494.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_16"
+      },
+      {
+        "idx": 17,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63549.5,
+        "pending_price": 63499.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_17"
+      },
+      {
+        "idx": 18,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63554.5,
+        "pending_price": 63504.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_18"
+      },
+      {
+        "idx": 19,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63559.5,
+        "pending_price": 63509.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_19"
+      },
+      {
+        "idx": 20,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63564.5,
+        "pending_price": 63514.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_20"
+      },
+      {
+        "idx": 21,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63569.5,
+        "pending_price": 63519.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_21"
+      },
+      {
+        "idx": 22,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63574.5,
+        "pending_price": 63524.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_22"
+      },
+      {
+        "idx": 23,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63579.5,
+        "pending_price": 63529.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_23"
+      },
+      {
+        "idx": 24,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63584.5,
+        "pending_price": 63534.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_24"
+      },
+      {
+        "idx": 25,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63589.5,
+        "pending_price": 63539.5,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_25"
+      },
+      {
+        "idx": 26,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 63592.69,
+        "pending_price": 63542.69,
+        "volume": 0.01,
+        "comment": "ACC1_BTC_FIB_GRI_50-75_26"
+      }
+    ]
+  },
+  "execution": {
+    "dry_run": false,
+    "reason": "new_grid_cycle",
+    "actions_count": 26,
+    "actions_preview": [
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 1,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63188.12,
+          "pending_price": 63238.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_1"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634856,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209378,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63238.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_1",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63238.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_1",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63238.12,
+            "current_bid": 63658.0,
+            "current_ask": 63708.0,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 2,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63193.12,
+          "pending_price": 63243.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_2"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634857,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209379,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63243.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_2",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63243.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_2",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63243.12,
+            "current_bid": 63658.0,
+            "current_ask": 63708.0,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 3,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63198.12,
+          "pending_price": 63248.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_3"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634858,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209380,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63248.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_3",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63248.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_3",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63248.12,
+            "current_bid": 63657.73,
+            "current_ask": 63707.73,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 4,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63203.12,
+          "pending_price": 63253.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_4"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634859,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209381,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63253.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_4",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63253.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_4",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63253.12,
+            "current_bid": 63657.73,
+            "current_ask": 63707.73,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 5,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63208.12,
+          "pending_price": 63258.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_5"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634860,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209382,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63258.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_5",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63258.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_5",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63258.12,
+            "current_bid": 63659.93,
+            "current_ask": 63709.93,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 6,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63213.12,
+          "pending_price": 63263.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_6"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634861,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209383,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63263.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_6",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63263.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_6",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63263.12,
+            "current_bid": 63659.93,
+            "current_ask": 63709.93,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 7,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63218.12,
+          "pending_price": 63268.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_7"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634862,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209384,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63268.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_7",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63268.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_7",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63268.12,
+            "current_bid": 63659.93,
+            "current_ask": 63709.93,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 8,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63223.12,
+          "pending_price": 63273.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_8"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634863,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209385,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63273.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_8",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63273.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_8",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63273.12,
+            "current_bid": 63660.1,
+            "current_ask": 63710.1,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 9,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63228.12,
+          "pending_price": 63278.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_9"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634864,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209386,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63278.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_9",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63278.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_9",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63278.12,
+            "current_bid": 63660.1,
+            "current_ask": 63710.1,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 10,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63233.12,
+          "pending_price": 63283.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_10"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634865,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209387,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63283.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_10",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63283.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_10",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63283.12,
+            "current_bid": 63660.1,
+            "current_ask": 63710.1,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 11,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63238.12,
+          "pending_price": 63288.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_11"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634866,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209388,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63288.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_11",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63288.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_11",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63288.12,
+            "current_bid": 63660.02,
+            "current_ask": 63710.02,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 12,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63243.12,
+          "pending_price": 63293.12,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_12"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634867,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209389,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63293.12,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_12",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63293.12,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_12",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63293.12,
+            "current_bid": 63660.2,
+            "current_ask": 63710.2,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 13,
+          "zone": "0-50",
+          "side": "buy",
+          "raw_price": 63244.5,
+          "pending_price": 63294.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_0-50_13"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634868,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209390,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63294.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              2,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_0-50_13",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 2,
+            "price": 63294.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_0-50_13",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "BUY_LIMIT",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "buy",
+            "entry_price": 63294.5,
+            "current_bid": 63660.2,
+            "current_ask": 63710.2,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 14,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63534.5,
+          "pending_price": 63484.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_14"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634869,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209391,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63484.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_14",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63484.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_14",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63484.5,
+            "current_bid": 63660.62,
+            "current_ask": 63710.62,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 15,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63539.5,
+          "pending_price": 63489.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_15"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634870,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209392,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63489.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_15",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63489.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_15",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63489.5,
+            "current_bid": 63660.62,
+            "current_ask": 63710.62,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 16,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63544.5,
+          "pending_price": 63494.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_16"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634871,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209393,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63494.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_16",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63494.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_16",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63494.5,
+            "current_bid": 63660.62,
+            "current_ask": 63710.62,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 17,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63549.5,
+          "pending_price": 63499.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_17"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634872,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209394,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63499.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_17",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63499.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_17",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63499.5,
+            "current_bid": 63660.62,
+            "current_ask": 63710.62,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 18,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63554.5,
+          "pending_price": 63504.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_18"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634876,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209395,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63504.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_18",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63504.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_18",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63504.5,
+            "current_bid": 63660.46,
+            "current_ask": 63710.46,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 19,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63559.5,
+          "pending_price": 63509.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_19"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634877,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209396,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63509.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_19",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63509.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_19",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63509.5,
+            "current_bid": 63660.46,
+            "current_ask": 63710.46,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 20,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63564.5,
+          "pending_price": 63514.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_20"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634878,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209397,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63514.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_20",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63514.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_20",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63514.5,
+            "current_bid": 63660.46,
+            "current_ask": 63710.46,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 21,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63569.5,
+          "pending_price": 63519.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_21"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634879,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209398,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63519.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_21",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63519.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_21",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63519.5,
+            "current_bid": 63660.46,
+            "current_ask": 63710.46,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 22,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63574.5,
+          "pending_price": 63524.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_22"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634880,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209399,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63524.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_22",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63524.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_22",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63524.5,
+            "current_bid": 63660.26,
+            "current_ask": 63710.26,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 23,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63579.5,
+          "pending_price": 63529.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_23"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634881,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209400,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63529.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_23",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63529.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_23",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63529.5,
+            "current_bid": 63660.26,
+            "current_ask": 63710.26,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 24,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63584.5,
+          "pending_price": 63534.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_24"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634882,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209401,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63534.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_24",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63534.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_24",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63534.5,
+            "current_bid": 63660.26,
+            "current_ask": 63710.26,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 25,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63589.5,
+          "pending_price": 63539.5,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_25"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634884,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209402,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63539.5,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_25",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63539.5,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_25",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63539.5,
+            "current_bid": 63660.26,
+            "current_ask": 63710.26,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      },
+      {
+        "event": "place_pending",
+        "order": {
+          "idx": 26,
+          "zone": "50-75",
+          "side": "sell",
+          "raw_price": 63592.69,
+          "pending_price": 63542.69,
+          "volume": 0.01,
+          "comment": "ACC1_BTC_FIB_GRI_50-75_26"
+        },
+        "result": {
+          "success": true,
+          "retcode": 10009,
+          "result": {
+            "retcode": 10009,
+            "deal": 0,
+            "order": 19634885,
+            "volume": 0.05,
+            "price": 0.0,
+            "bid": 0.0,
+            "ask": 0.0,
+            "comment": "Request executed",
+            "request_id": 5209403,
+            "retcode_external": 0,
+            "request": [
+              5,
+              88011,
+              0,
+              "BTCUSD.X",
+              0.05,
+              63542.69,
+              0.0,
+              0.0,
+              0.0,
+              20,
+              5,
+              0,
+              0,
+              0,
+              "ACC1_BTC_FIB_GRI_50-75_26",
+              0,
+              0
+            ]
+          },
+          "request": {
+            "action": 5,
+            "symbol": "BTCUSD.X",
+            "volume": 0.05,
+            "type": 5,
+            "price": 63542.69,
+            "deviation": 20,
+            "magic": 88011,
+            "comment": "ACC1_BTC_FIB_GRI_50-75_26",
+            "type_time": 0
+          },
+          "metadata": {
+            "execution_mode": "pending",
+            "order_type_name": "SELL_STOP",
+            "requested_symbol": "BTCUSD",
+            "resolved_symbol": "BTCUSD.X",
+            "side": "sell",
+            "entry_price": 63542.69,
+            "current_bid": 63660.26,
+            "current_ask": 63710.26,
+            "volume": 0.05,
+            "stop_loss": null,
+            "take_profit": null
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "retcode": 10009,
+              "error": null,
+              "deviation": 20,
+              "type_filling": null
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

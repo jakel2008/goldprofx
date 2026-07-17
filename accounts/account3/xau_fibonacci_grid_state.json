@@ -1,0 +1,190 @@
+{
+  "updated_at": "2026-07-07T21:37:59",
+  "dry_run": false,
+  "plan": {
+    "symbol": "XAUUSD",
+    "broker_symbol": "XAUUSDm",
+    "timeframe": "M5",
+    "trend_side": "sell",
+    "direction": {
+      "side": "sell",
+      "reason": "ema9_ema34_momentum",
+      "ema9": 4141.99099,
+      "ema34": 4144.40434,
+      "last_close": 4141.763,
+      "momentum_12_bars": -4.328
+    },
+    "swing_low": 4119.566,
+    "swing_high": 4180.512,
+    "fib": {
+      "0": 4180.512,
+      "50": 4150.039,
+      "75": 4134.802,
+      "basket_close": 4144.279
+    },
+    "basket_close_target": {
+      "mode": "penultimate_reversal_order",
+      "target": 4144.279,
+      "source": "penultimate_reversal_order",
+      "order": {
+        "idx": 5,
+        "zone": "50-75",
+        "side": "buy",
+        "raw_price": 4144.039,
+        "pending_price": 4144.279,
+        "volume": 0.01,
+        "comment": "ACC3_XAU_FIB_GRI_50-75_5"
+      },
+      "reverse_orders_count": 6
+    },
+    "tick": {
+      "success": true,
+      "symbol": "XAUUSDm",
+      "requested_symbol": "XAUUSD",
+      "bid": 4141.763,
+      "ask": 4142.003,
+      "mid": 4141.883,
+      "spread": 0.23999999999978172
+    },
+    "broker_point": 0.001,
+    "grid_step_mode": "broker_points",
+    "grid_step_points": 1200.0,
+    "grid_step_price": 1.2,
+    "original_grid_step_price": 1.2,
+    "liquidity_guard": {
+      "allowed": true,
+      "reasons": [],
+      "spread": 0.24,
+      "spread_broker_points": 240.0,
+      "max_spread_points": 350.0,
+      "min_grid_step_spread_multiplier": 3.0,
+      "auto_widened_grid_step": false
+    },
+    "spread_broker_points": 240.0,
+    "spread_adjustment": true,
+    "orders_count": 12,
+    "target_reached": true
+  },
+  "orders_preview": [
+    {
+      "idx": 1,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4139.239,
+      "pending_price": 4139.479,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_1"
+    },
+    {
+      "idx": 2,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4140.439,
+      "pending_price": 4140.679,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_2"
+    },
+    {
+      "idx": 3,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4141.639,
+      "pending_price": 4141.879,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_3"
+    },
+    {
+      "idx": 4,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4142.839,
+      "pending_price": 4143.079,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_4"
+    },
+    {
+      "idx": 5,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4144.039,
+      "pending_price": 4144.279,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_5"
+    },
+    {
+      "idx": 6,
+      "zone": "50-75",
+      "side": "buy",
+      "raw_price": 4145.239,
+      "pending_price": 4145.479,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_50-75_6"
+    },
+    {
+      "idx": 7,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4150.039,
+      "pending_price": 4149.799,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_7"
+    },
+    {
+      "idx": 8,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4150.512,
+      "pending_price": 4150.272,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_8"
+    },
+    {
+      "idx": 9,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4151.712,
+      "pending_price": 4151.472,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_9"
+    },
+    {
+      "idx": 10,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4152.912,
+      "pending_price": 4152.672,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_10"
+    },
+    {
+      "idx": 11,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4154.112,
+      "pending_price": 4153.872,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_11"
+    },
+    {
+      "idx": 12,
+      "zone": "0-50",
+      "side": "sell",
+      "raw_price": 4155.312,
+      "pending_price": 4155.072,
+      "volume": 0.01,
+      "comment": "ACC3_XAU_FIB_GRI_0-50_12"
+    }
+  ],
+  "execution_reason": "target_reached_wait",
+  "actions_count": 0,
+  "basket_snapshot": null,
+  "basket_profit_protection": {
+    "active": false,
+    "peak_pnl": 0.0,
+    "current_pnl": 0.0,
+    "floor_pnl": 0.0,
+    "reason": "no_positions"
+  },
+  "protective_pause": null,
+  "anchor_guard": null
+}

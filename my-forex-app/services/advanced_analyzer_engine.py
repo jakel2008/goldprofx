@@ -90,6 +90,8 @@ PRICE_PRECISION = {
 }
 
 SUPPORTED_INTERVALS = {
+	"1m": {"yf_interval": "1m", "period": "7d", "risk_multiplier": 0.70},
+	"3m": {"yf_interval": "1m", "period": "7d", "risk_multiplier": 0.80, "resample": "3min"},
 	"5m": {"yf_interval": "5m", "period": "10d", "risk_multiplier": 0.90},
 	"15m": {"yf_interval": "15m", "period": "30d", "risk_multiplier": 1.00},
 	"30m": {"yf_interval": "30m", "period": "30d", "risk_multiplier": 1.15},
@@ -260,21 +262,31 @@ def _score_market(data: pd.DataFrame) -> tuple[int, int, dict]:
 	close = data["Close"]
 	ema12 = close.ewm(span=12, adjust=False).mean()
 	ema26 = close.ewm(span=26, adjust=False).mean()
+	ema9 = close.ewm(span=9, adjust=False).mean()
+	ema34 = close.ewm(span=34, adjust=False).mean()
+	ema50 = close.ewm(span=50, adjust=False).mean()
+	ema200 = close.ewm(span=200, adjust=False).mean()
 	macd = ema12 - ema26
 	macd_signal = macd.ewm(span=9, adjust=False).mean()
 	sma20 = close.rolling(20).mean().bfill()
 	sma50 = close.rolling(50).mean().bfill()
+	bb_std20 = close.rolling(20).std().bfill()
+	bb_upper = sma20 + (bb_std20 * 2)
+	bb_lower = sma20 - (bb_std20 * 2)
 	rsi14 = _compute_rsi(close)
+	rsi9 = _compute_rsi(close, 9)
 	atr14 = _compute_atr(data)
 	momentum = close.pct_change(5).fillna(0) * 100
 	trend_strength = ((close - sma20) / sma20.replace(0, pd.NA)).fillna(0) * 100
 
 	latest = data.iloc[-1]
+	previous = data.iloc[-2]
 	last_close = float(data["Close"].iloc[-1])
 	last_open = float(data["Open"].iloc[-1])
 	_vol_series = data.get("Volume", pd.Series(dtype=float))
 	last_volume = float(_vol_series.iloc[-1]) if len(_vol_series) > 0 and pd.notna(_vol_series.iloc[-1]) else 0.0
 	average_volume = float(_vol_series.tail(20).mean() or 0)
+	volume_ratio = (last_volume / average_volume) if average_volume > 0 else 0.0
 
 	buy_score = 0
 	sell_score = 0
@@ -326,13 +338,30 @@ def _score_market(data: pd.DataFrame) -> tuple[int, int, dict]:
 
 	details = {
 		"rsi": round(rsi_value, 2),
+		"rsi9": round(float(rsi9.iloc[-1]), 2),
+		"rsi9_previous": round(float(rsi9.iloc[-2]), 2) if len(rsi9) > 1 else round(float(rsi9.iloc[-1]), 2),
 		"macd": round(float(macd.iloc[-1]), 5),
 		"macd_signal": round(float(macd_signal.iloc[-1]), 5),
+		"ema9": round(float(ema9.iloc[-1]), 5),
+		"ema34": round(float(ema34.iloc[-1]), 5),
+		"ema50": round(float(ema50.iloc[-1]), 5),
+		"ema200": round(float(ema200.iloc[-1]), 5),
 		"sma20": round(float(sma20.iloc[-1]), 5),
 		"sma50": round(float(sma50.iloc[-1]), 5),
+		"bb_upper": round(float(bb_upper.iloc[-1]), 5),
+		"bb_middle": round(float(sma20.iloc[-1]), 5),
+		"bb_lower": round(float(bb_lower.iloc[-1]), 5),
+		"bb_width_pct": round(((float(bb_upper.iloc[-1]) - float(bb_lower.iloc[-1])) / float(sma20.iloc[-1])) * 100, 3) if float(sma20.iloc[-1]) else 0.0,
 		"atr14": float(atr14.iloc[-1]),
 		"momentum_pct": round(momentum_value, 3),
 		"trend_pct_from_sma20": round(float(trend_strength.iloc[-1]), 3),
+		"volume_ratio": round(float(volume_ratio), 3),
+		"last_open": round(float(latest["Open"]), 5),
+		"last_high": round(float(latest["High"]), 5),
+		"last_low": round(float(latest["Low"]), 5),
+		"last_close": round(float(latest["Close"]), 5),
+		"prev_open": round(float(previous["Open"]), 5),
+		"prev_close": round(float(previous["Close"]), 5),
 	}
 	return buy_score, sell_score, details
 
@@ -676,17 +705,22 @@ def _build_analyst_report(
 def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: str, interval: str) -> tuple[float, float, float, float]:
 	risk_multiplier = SUPPORTED_INTERVALS[interval]["risk_multiplier"]
 	step = max(atr_value * risk_multiplier, entry_point * 0.0015)
+	target_multipliers = (1.0, 1.8, 2.6)
+	stop_multiplier = 1.2
+	if symbol == "XAUUSD":
+		target_multipliers = (1.6, 2.4, 3.4)
+		stop_multiplier = 1.3
 
 	if direction >= 0:
-		take_profit1 = entry_point + step
-		take_profit2 = entry_point + (step * 1.8)
-		take_profit3 = entry_point + (step * 2.6)
-		stop_loss = entry_point - (step * 1.2)
+		take_profit1 = entry_point + (step * target_multipliers[0])
+		take_profit2 = entry_point + (step * target_multipliers[1])
+		take_profit3 = entry_point + (step * target_multipliers[2])
+		stop_loss = entry_point - (step * stop_multiplier)
 	else:
-		take_profit1 = entry_point - step
-		take_profit2 = entry_point - (step * 1.8)
-		take_profit3 = entry_point - (step * 2.6)
-		stop_loss = entry_point + (step * 1.2)
+		take_profit1 = entry_point - (step * target_multipliers[0])
+		take_profit2 = entry_point - (step * target_multipliers[1])
+		take_profit3 = entry_point - (step * target_multipliers[2])
+		stop_loss = entry_point + (step * stop_multiplier)
 
 	return (
 		_round_price(take_profit1, symbol),
@@ -694,6 +728,19 @@ def _price_levels(entry_point: float, atr_value: float, direction: int, symbol: 
 		_round_price(take_profit3, symbol),
 		_round_price(stop_loss, symbol),
 	)
+
+
+def _resample_ohlcv(data: pd.DataFrame, rule: str) -> pd.DataFrame:
+	agg = {
+		"Open": "first",
+		"High": "max",
+		"Low": "min",
+		"Close": "last",
+		"Volume": "sum",
+	}
+	if "Adj Close" in data.columns:
+		agg["Adj Close"] = "last"
+	return data.resample(rule).agg(agg).dropna(subset=["Open", "High", "Low", "Close"])
 
 
 def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
@@ -713,21 +760,27 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 		if str(gold_pro_dir) not in sys.path:
 			sys.path.insert(0, str(gold_pro_dir))
 		import forex_analyzer as gp_analyzer  # type: ignore
-		interval_map = {"5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
+		interval_map = {"1m": "1MIN", "3m": "1MIN", "5m": "5MIN", "15m": "15MIN", "30m": "30MIN", "1h": "1H", "4h": "4H", "1d": "1DAY"}
 		gp_interval = interval_map.get(interval, "1H")
 		previous_mt5_enabled = getattr(gp_analyzer, "ENABLE_MT5_MARKET_DATA", False)
 		previous_mt5_mode = getattr(gp_analyzer, "MT5_MARKET_DATA_MODE", "disabled")
 		previous_yfinance_fallback = getattr(gp_analyzer, "ENABLE_YFINANCE_FALLBACK", False)
+		mt5_wallet_config = str(os.environ.get("MT5_WALLET_CONFIG") or "").strip()
+		use_mt5_analysis = str(os.environ.get("AUTO_TRADER_USE_MT5_MARKET_DATA", "1") or "1").strip().lower() in {"1", "true", "yes", "on"}
+		require_mt5_analysis = str(os.environ.get("AUTO_TRADER_REQUIRE_MT5_MARKET_DATA", "1") or "1").strip().lower() in {"1", "true", "yes", "on"}
 		try:
-			gp_analyzer.ENABLE_MT5_MARKET_DATA = False
-			gp_analyzer.MT5_MARKET_DATA_MODE = "disabled"
+			gp_analyzer.ENABLE_MT5_MARKET_DATA = bool(mt5_wallet_config and use_mt5_analysis)
+			gp_analyzer.MT5_MARKET_DATA_MODE = "mt5_only" if bool(mt5_wallet_config and use_mt5_analysis) else "disabled"
 			gp_analyzer.ENABLE_YFINANCE_FALLBACK = True
-			gp_data = gp_analyzer.fetch_data(symbol, gp_interval, outputsize=240)
+			gp_data = gp_analyzer.fetch_data(symbol, gp_interval, outputsize=240, force_live=bool(mt5_wallet_config and use_mt5_analysis))
 		finally:
 			gp_analyzer.ENABLE_MT5_MARKET_DATA = previous_mt5_enabled
 			gp_analyzer.MT5_MARKET_DATA_MODE = previous_mt5_mode
 			gp_analyzer.ENABLE_YFINANCE_FALLBACK = previous_yfinance_fallback
 		if gp_data is not None and len(gp_data) >= 60:
+			gp_source = str(gp_data.attrs.get("market_data_source") or "").upper()
+			if mt5_wallet_config and use_mt5_analysis and require_mt5_analysis and gp_source != "MT5":
+				raise RuntimeError(f"MT5 market data required, got {gp_source or 'unknown'}")
 			# تحويل الأعمدة إلى الشكل المطلوب
 			for col in ("Open", "High", "Low", "Close"):
 				gp_data[col] = pd.to_numeric(gp_data[col], errors="coerce")
@@ -737,6 +790,8 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 			if "Date" in gp_data.columns:
 				gp_data["Date"] = pd.to_datetime(gp_data["Date"], utc=True, errors="coerce")
 				gp_data = gp_data.set_index("Date")
+			if interval_info.get("resample"):
+				gp_data = _resample_ohlcv(gp_data, str(interval_info["resample"]))
 			if len(gp_data) >= 60:
 				gp_data.attrs["market_data_source"] = gp_data.attrs.get("market_data_source") or "FOREX_ANALYZER"
 				gp_data.attrs["market_data_errors"] = gp_data.attrs.get("market_data_errors") or []
@@ -764,16 +819,9 @@ def _download_market_data(symbol: str, interval: str) -> pd.DataFrame:
 			data[col] = data[col].iloc[:, 0]
 	cleaned = data.dropna(subset=["Open", "High", "Low", "Close"])
 	if interval == "4h":
-		cleaned = cleaned.resample("4h").agg(
-			{
-				"Open": "first",
-				"High": "max",
-				"Low": "min",
-				"Close": "last",
-				"Adj Close": "last",
-				"Volume": "sum",
-			}
-		).dropna(subset=["Open", "High", "Low", "Close"])
+		cleaned = _resample_ohlcv(cleaned, "4h")
+	elif interval_info.get("resample"):
+		cleaned = _resample_ohlcv(cleaned, str(interval_info["resample"]))
 	cleaned.attrs["market_data_source"] = "YFINANCE"
 	cleaned.attrs["market_data_errors"] = []
 	_set_cached_market_data(cache_key, cleaned)
@@ -901,12 +949,23 @@ def perform_full_analysis(symbol: str, interval: str) -> dict:
 		price_change_pct,
 		{
 			"rsi": details["rsi"],
+			"rsi9": details["rsi9"],
+			"rsi9_previous": details["rsi9_previous"],
 			"macd": details["macd"],
 			"macd_signal": details["macd_signal"],
+			"ema9": round(_round_price(details["ema9"], normalized_symbol), 5),
+			"ema34": round(_round_price(details["ema34"], normalized_symbol), 5),
+			"ema50": round(_round_price(details["ema50"], normalized_symbol), 5),
+			"ema200": round(_round_price(details["ema200"], normalized_symbol), 5),
 			"sma20": round(_round_price(details["sma20"], normalized_symbol), 5),
 			"sma50": round(_round_price(details["sma50"], normalized_symbol), 5),
+			"bb_upper": round(_round_price(details["bb_upper"], normalized_symbol), 5),
+			"bb_middle": round(_round_price(details["bb_middle"], normalized_symbol), 5),
+			"bb_lower": round(_round_price(details["bb_lower"], normalized_symbol), 5),
+			"bb_width_pct": details["bb_width_pct"],
 			"momentum_pct": details["momentum_pct"],
 			"trend_pct_from_sma20": details["trend_pct_from_sma20"],
+			"volume_ratio": details["volume_ratio"],
 		},
 		scenario,
 		executive_summary,
@@ -949,12 +1008,35 @@ def perform_full_analysis(symbol: str, interval: str) -> dict:
 		"scenario_horizons": scenario_horizons,
 		"technical": {
 			"rsi": details["rsi"],
+			"rsi9": details["rsi9"],
+			"rsi9_previous": details["rsi9_previous"],
 			"macd": details["macd"],
 			"macd_signal": details["macd_signal"],
+			"ema9": round(_round_price(details["ema9"], normalized_symbol), 5),
+			"ema34": round(_round_price(details["ema34"], normalized_symbol), 5),
+			"ema50": round(_round_price(details["ema50"], normalized_symbol), 5),
+			"ema200": round(_round_price(details["ema200"], normalized_symbol), 5),
 			"sma20": round(_round_price(details["sma20"], normalized_symbol), 5),
 			"sma50": round(_round_price(details["sma50"], normalized_symbol), 5),
+			"bb_upper": round(_round_price(details["bb_upper"], normalized_symbol), 5),
+			"bb_middle": round(_round_price(details["bb_middle"], normalized_symbol), 5),
+			"bb_lower": round(_round_price(details["bb_lower"], normalized_symbol), 5),
+			"bb_width_pct": details["bb_width_pct"],
 			"momentum_pct": details["momentum_pct"],
 			"trend_pct_from_sma20": details["trend_pct_from_sma20"],
 			"atr14": _round_price(details["atr14"], normalized_symbol),
+			"volume_ratio": details["volume_ratio"],
+			"last_open": round(_round_price(details["last_open"], normalized_symbol), 5),
+			"last_high": round(_round_price(details["last_high"], normalized_symbol), 5),
+			"last_low": round(_round_price(details["last_low"], normalized_symbol), 5),
+			"last_close": round(_round_price(details["last_close"], normalized_symbol), 5),
+			"prev_open": round(_round_price(details["prev_open"], normalized_symbol), 5),
+			"prev_close": round(_round_price(details["prev_close"], normalized_symbol), 5),
+			"last_open": round(_round_price(details["last_open"], normalized_symbol), 5),
+			"last_high": round(_round_price(details["last_high"], normalized_symbol), 5),
+			"last_low": round(_round_price(details["last_low"], normalized_symbol), 5),
+			"last_close": round(_round_price(details["last_close"], normalized_symbol), 5),
+			"prev_open": round(_round_price(details["prev_open"], normalized_symbol), 5),
+			"prev_close": round(_round_price(details["prev_close"], normalized_symbol), 5),
 		},
 	}

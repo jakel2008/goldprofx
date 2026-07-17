@@ -74,7 +74,11 @@ class MT5Bridge:
         self.deviation = 20
         self.default_volume = 0.01
         self.connected = False
+<<<<<<< Updated upstream
         self._config_path = os.environ.get("MT5_WALLET_CONFIG") or os.path.join(os.getcwd(), "mt5_wallet_config.json")
+=======
+        self._config_path = os.environ.get("MT5_WALLET_CONFIG", "").strip() or os.path.join(os.getcwd(), "mt5_wallet_config.json")
+>>>>>>> Stashed changes
         self._symbol_names_cache: List[str] = []
         self._symbol_cache_at: float = 0.0
         self._normalized_symbol_map_cache: Dict[str, str] = {}
@@ -1297,27 +1301,73 @@ class MT5Bridge:
 
         dry_run = bool(payload.get("dry_run", True))
         split_tp = bool(payload.get("split_tp", True))
+        tp_execution_mode = str(payload.get("tp_execution_mode") or "").strip().lower()
+        tp_execution_aliases = {
+            "tp1": "tp1_only",
+            "tp1_only": "tp1_only",
+            "target1_only": "tp1_only",
+            "tp2": "tp2_only",
+            "tp2_only": "tp2_only",
+            "target2_only": "tp2_only",
+            "tp3": "tp3_only",
+            "tp3_only": "tp3_only",
+            "target3_only": "tp3_only",
+            "split": "split",
+            "split_tp": "split",
+            "all": "split",
+            "single": "single",
+            "signal": "single",
+        }
+        tp_execution_mode = tp_execution_aliases.get(tp_execution_mode, "split" if split_tp else "single")
         pending_entry = bool(payload.get("pending_entry", False))
         total_volume = float(payload.get("volume") or self.default_volume)
+        split_tp_volume_mode = str(payload.get("split_tp_volume_mode") or "weighted").strip().lower()
+        interval = str(payload.get("interval") or "").strip().lower()
+        comment_interval_tag_enabled = bool(payload.get("comment_interval_tag_enabled", True))
+        interval_tag = f"_TF{interval.upper()}" if comment_interval_tag_enabled and interval else ""
 
         if not symbol:
             return {"success": False, "error": "symbol/pair is required"}
 
         if split_tp:
-            targets = [tp for tp in [tp1, tp2, tp3] if tp is not None]
-            if not targets:
-                targets = [None]
+            target_specs = []
+            if tp_execution_mode in {"tp1_only", "tp2_only", "tp3_only"}:
+                target_number = int(tp_execution_mode[2])
+                target_value = {1: tp1, 2: tp2, 3: tp3}.get(target_number)
+                if target_value is None:
+                    return {
+                        "success": False,
+                        "error": f"{tp_execution_mode} requested but target is missing",
+                        "tp_execution_mode": tp_execution_mode,
+                    }
+                target_specs = [(target_number, target_value)]
+            else:
+                target_specs = [(idx + 1, tp) for idx, tp in enumerate([tp1, tp2, tp3]) if tp is not None]
+                if not target_specs:
+                    target_specs = [(1, None)]
 
-            # Split one trade volume across targets; do not multiply risk by repeating full volume.
-            weights = [0.5, 0.3, 0.2]
-            if len(targets) == 1:
-                weights = [1.0]
-            elif len(targets) == 2:
-                weights = [0.6, 0.4]
-            volumes = [round(max(total_volume * weights[idx], 0.0), 4) for idx in range(len(targets))]
+            if split_tp_volume_mode in {"legacy_full", "full", "full_each", "repeat_full"}:
+                volumes = [round(max(total_volume, 0.0), 4) for _ in target_specs]
+            else:
+                # Split one trade volume across targets; do not multiply risk by repeating full volume.
+                weights = [0.5, 0.3, 0.2]
+                if len(target_specs) == 1:
+                    weights = [1.0]
+                elif len(target_specs) == 2:
+                    weights = [0.6, 0.4]
+
+                volume_rules = self.get_symbol_volume_rules(symbol)
+                if bool(volume_rules.get("success")) and len(target_specs) > 1:
+                    volume_min = float(volume_rules.get("volume_min") or 0.0)
+                    smallest_split_volume = total_volume * min(weights[: len(target_specs)])
+                    if volume_min > 0 and smallest_split_volume < volume_min:
+                        target_specs = [target_specs[0]]
+                        weights = [1.0]
+
+                volumes = [round(max(total_volume * weights[idx], 0.0), 4) for idx in range(len(target_specs))]
 
             orders = []
-            for idx, tp in enumerate(targets):
+            for idx, (target_number, tp) in enumerate(target_specs):
                 volume = volumes[idx]
                 if volume <= 0:
                     continue
@@ -1327,7 +1377,7 @@ class MT5Bridge:
                     volume=volume,
                     sl=float(sl) if sl is not None else None,
                     tp=float(tp) if tp is not None else None,
-                    comment=f"GOLD_PRO_TP{idx+1}",
+                    comment=f"GOLD_PRO_TP{target_number}{interval_tag}",
                     dry_run=dry_run,
                     pending=pending_entry,
                     entry_price=float(entry_price) if entry_price is not None else None,
@@ -1337,17 +1387,30 @@ class MT5Bridge:
             return {
                 "success": all(bool(item.get("success")) for item in orders) if orders else False,
                 "dry_run": dry_run,
+                "tp_execution_mode": tp_execution_mode,
+                "split_tp_volume_mode": split_tp_volume_mode,
                 "orders": orders,
             }
+
+        single_tp = tp1
+        single_comment = f"GOLD_PRO_SIGNAL{interval_tag}"
+        if tp_execution_mode == "tp2_only":
+            single_tp = tp2
+            single_comment = f"GOLD_PRO_TP2{interval_tag}"
+        elif tp_execution_mode == "tp3_only":
+            single_tp = tp3
+            single_comment = f"GOLD_PRO_TP3{interval_tag}"
+        elif tp_execution_mode == "tp1_only":
+            single_comment = f"GOLD_PRO_TP1{interval_tag}"
 
         return self.send_order(
             symbol=symbol,
             side=side,
             volume=total_volume,
             sl=float(sl) if sl is not None else None,
-            tp=float(tp1) if tp1 is not None else None,
+            tp=float(single_tp) if single_tp is not None else None,
             dry_run=dry_run,
-            comment="GOLD_PRO_SIGNAL",
+            comment=single_comment,
             pending=pending_entry,
             entry_price=float(entry_price) if entry_price is not None else None,
         )

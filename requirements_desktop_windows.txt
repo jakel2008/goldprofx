@@ -1,0 +1,6 @@
+MetaTrader5>=5.0.45
+psutil>=5.9.0
+numpy==2.2.3
+pandas==2.2.3
+yfinance==0.2.52
+ta==0.11.0

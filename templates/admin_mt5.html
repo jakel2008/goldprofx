@@ -325,6 +325,13 @@
 
             <div class="row g-2 mb-2">
               <div class="col-md-4">
+                <label class="form-label">{% if current_lang == 'en' %}Trading Strategy{% else %}استراتيجية التداول{% endif %}</label>
+                <select id="autoTraderStrategyPreset" class="form-select" title="Auto trader strategy preset">
+                  <option value="">{% if current_lang == 'en' %}Manual{% else %}يدوي{% endif %}</option>
+                  <option value="gold_aggressive_v3">{% if current_lang == 'en' %}Gold Aggressive v3 (XAUUSD){% else %}ذهبي هجومي v3 (XAUUSD){% endif %}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
                 <label class="form-label">{% if current_lang == 'en' %}Symbols (comma separated){% else %}الأزواج (مفصولة بفاصلة){% endif %}</label>
                 <input id="autoTraderSymbols" class="form-control" type="text" placeholder="EURUSD,GBPUSD,USDJPY,XAUUSD" />
               </div>
@@ -448,6 +455,40 @@
   let lastFoundSymbols = [];
   let lastTerminalChecks = [];
   let lastSignalCandidates = [];
+  let selectedAutoTraderPreset = '';
+
+  const AUTO_TRADER_STRATEGY_PRESETS = {
+    gold_aggressive_v3: {
+      label: 'Gold Aggressive v3',
+      config: {
+        strategy_name: 'gold_aggressive_v3',
+        symbols: ['XAUUSD'],
+        intervals: ['5m', '15m', '30m'],
+        risk_percent: 2.0,
+        scan_every_sec: 5,
+        min_score_gap: 24,
+        allow_normal_signals: true,
+        allow_strong_signals: true,
+        strong_pending_only: false,
+        pending_entry: false,
+        cancel_on_market_invalidation: true,
+        dry_run: false,
+        max_open_positions: 3,
+        dynamic_max_positions_enabled: false,
+        max_total_open_risk_percent: 10.0,
+        min_open_positions: 1,
+        max_open_positions_cap: 3,
+        one_position_per_symbol: false,
+        cooldown_minutes_per_symbol: 0,
+        split_tp: false,
+        daily_loss_limit_usd: 300.0,
+        max_consecutive_losses: 8,
+        gold_scalping_strategy_enabled: true,
+        trailing_stop_enabled: true,
+        no_loss_after_profit_enabled: true,
+      },
+    },
+  };
 
   function toPretty(data) {
     try { return JSON.stringify(data, null, 2); } catch (e) { return String(data); }
@@ -572,12 +613,15 @@
       body: JSON.stringify(payload)
     });
     if (result.ok) {
-      $('walletConfigHint').textContent = 'Config saved successfully';
-      if (result.data && result.data.status) {
-        $('mt5StatusOutput').textContent = toPretty(result.data.status);
-      }
+      // أبقِ البيانات المدخلة كما هي في الفورم ولا تعِد التحميل من الخادم
+      const hint = $('walletConfigHint');
+      hint.textContent = '✅ تم حفظ الإعدادات بنجاح';
+      hint.style.color = 'green';
+      setTimeout(() => { hint.style.color = ''; }, 3000);
     } else {
-      $('walletConfigHint').textContent = 'Failed to save config';
+      const hint = $('walletConfigHint');
+      hint.textContent = '❌ فشل حفظ الإعدادات';
+      hint.style.color = 'red';
     }
   }
 
@@ -656,7 +700,7 @@
   }
 
   function autoTraderPayload() {
-    return {
+    const payload = {
       symbols: String($('autoTraderSymbols').value || '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean),
       intervals: String($('autoTraderIntervals').value || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
       risk_percent: Number($('autoTraderRiskPercent').value || '0.5'),
@@ -669,6 +713,46 @@
       cancel_on_market_invalidation: Boolean($('autoTraderMarketInvalidation').checked),
       dry_run: Boolean($('autoTraderDryRun').checked)
     };
+
+    const presetKey = String(selectedAutoTraderPreset || '').trim();
+    if (presetKey && AUTO_TRADER_STRATEGY_PRESETS[presetKey]) {
+      Object.assign(payload, AUTO_TRADER_STRATEGY_PRESETS[presetKey].config || {});
+    }
+
+    return payload;
+  }
+
+  function applyAutoTraderStrategyPreset() {
+    const presetKey = String(($('autoTraderStrategyPreset') && $('autoTraderStrategyPreset').value) || '').trim();
+    selectedAutoTraderPreset = presetKey;
+    if (!presetKey) {
+      return;
+    }
+
+    const preset = AUTO_TRADER_STRATEGY_PRESETS[presetKey];
+    if (!preset || !preset.config) {
+      return;
+    }
+
+    const cfg = preset.config;
+    $('autoTraderSymbols').value = Array.isArray(cfg.symbols) ? cfg.symbols.join(',') : $('autoTraderSymbols').value;
+    $('autoTraderIntervals').value = Array.isArray(cfg.intervals) ? cfg.intervals.join(',') : $('autoTraderIntervals').value;
+    if (typeof cfg.risk_percent === 'number') $('autoTraderRiskPercent').value = cfg.risk_percent;
+    if (typeof cfg.scan_every_sec === 'number') $('autoTraderScanSec').value = cfg.scan_every_sec;
+    if (typeof cfg.min_score_gap === 'number') $('autoTraderMinGap').value = cfg.min_score_gap;
+    if (typeof cfg.strong_pending_only === 'boolean') $('autoTraderStrongOnly').checked = cfg.strong_pending_only;
+    if (typeof cfg.pending_entry === 'boolean') $('autoTraderPendingEntry').checked = cfg.pending_entry;
+    if (typeof cfg.cancel_on_market_invalidation === 'boolean') $('autoTraderMarketInvalidation').checked = cfg.cancel_on_market_invalidation;
+    if (typeof cfg.dry_run === 'boolean') $('autoTraderDryRun').checked = cfg.dry_run;
+
+    $('autoTraderOutput').textContent = toPretty({
+      success: true,
+      event: 'preset_applied',
+      preset: presetKey,
+      strategy_name: cfg.strategy_name || null,
+      symbols: cfg.symbols || [],
+      intervals: cfg.intervals || []
+    });
   }
 
   function fillAutoTraderConfig(cfg) {
@@ -689,6 +773,15 @@
     if (Array.isArray(config.intervals) && config.intervals.length) {
       $('tfInput').value = intervalToLegacyTf(config.intervals[0]);
     }
+
+    const strategyName = String(config.strategy_name || '').trim();
+    const matchedPreset = Object.keys(AUTO_TRADER_STRATEGY_PRESETS).find((key) => {
+      const preset = AUTO_TRADER_STRATEGY_PRESETS[key] || {};
+      const presetStrategyName = String((preset.config || {}).strategy_name || '').trim();
+      return presetStrategyName && presetStrategyName === strategyName;
+    });
+    selectedAutoTraderPreset = matchedPreset || '';
+    $('autoTraderStrategyPreset').value = selectedAutoTraderPreset;
   }
 
   async function loadAutoTraderConfig() {
@@ -1102,6 +1195,7 @@
   $('btnAutoTraderStart').addEventListener('click', startAutoTrader);
   $('btnAutoTraderStop').addEventListener('click', stopAutoTrader);
   $('btnAutoTraderStatus').addEventListener('click', loadAutoTraderStatus);
+  $('autoTraderStrategyPreset').addEventListener('change', applyAutoTraderStrategyPreset);
   if ($('btnRunFullSweep')) {
     $('btnRunFullSweep').addEventListener('click', runFullSweep);
   }

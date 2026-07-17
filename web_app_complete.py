@@ -9061,6 +9061,978 @@ def api_smart_signals():
     return api_strong_signals()
 
 
+<<<<<<< Updated upstream
+=======
+@app.route('/api/render-probe')
+def api_render_probe():
+    """Crash-isolated diagnostic: runs the data-fetch + analysis chain in a
+    SEPARATE process so a native crash (segfault) or OOM kill is captured via
+    the subprocess return code instead of taking down the web worker.
+
+    returncode 0 -> see JSON; -9 -> OOM (SIGKILL); -11 -> segfault (SIGSEGV).
+    """
+    import subprocess
+    symbol = request.args.get('symbol', 'EURUSD')
+    interval = request.args.get('interval', '1h')
+    try:
+        timeout_s = max(10, int(request.args.get('timeout', '40') or '40'))
+    except Exception:
+        timeout_s = 40
+
+    probe_path = str(Path(__file__).parent / 'render_fetch_probe.py')
+    payload = {
+        'symbol': symbol,
+        'interval': interval,
+        'probe_exists': os.path.exists(probe_path),
+        'python': sys.executable,
+    }
+    try:
+        proc = subprocess.run(
+            [sys.executable, probe_path, symbol, interval],
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            cwd=str(Path(__file__).parent),
+        )
+        payload['returncode'] = proc.returncode
+        if proc.returncode == -9:
+            payload['failure_mode'] = 'SIGKILL_OOM'
+        elif proc.returncode == -11:
+            payload['failure_mode'] = 'SIGSEGV_native_crash'
+        elif proc.returncode != 0:
+            payload['failure_mode'] = f'exit_{proc.returncode}'
+        else:
+            payload['failure_mode'] = 'completed'
+
+        stdout = (proc.stdout or '').strip()
+        payload['stderr'] = (proc.stderr or '')[-4000:]
+        try:
+            payload['result'] = json.loads(stdout.splitlines()[-1]) if stdout else None
+        except Exception:
+            payload['result'] = None
+            payload['stdout_raw'] = stdout[-4000:]
+    except subprocess.TimeoutExpired:
+        payload['failure_mode'] = 'timeout'
+        payload['returncode'] = None
+        payload['error'] = f'probe exceeded {timeout_s}s'
+    except Exception as e:
+        import traceback
+        payload['failure_mode'] = 'launcher_error'
+        payload['error'] = f'{type(e).__name__}: {e}'
+        payload['traceback'] = traceback.format_exc(limit=8)
+
+    return jsonify(payload), 200
+
+
+@app.route('/admin/shadow-signals')
+@app.route('/shadow-signals')
+@admin_required
+def admin_shadow_signals_page():
+    """عرض آخر لوحة شادو مولدة داخل صفحة الأدمن."""
+    lang = normalize_ui_language(request.args.get('lang') or get_ui_language())
+    reports_dir = MY_FOREX_APP_DIR / 'experimental' / 'reports'
+    preferred = reports_dir / ('shadow_latest_en.html' if lang == 'en' else 'shadow_latest_ar.html')
+    fallback = reports_dir / 'shadow_latest.html'
+    report_path = preferred if preferred.exists() else fallback
+    if not report_path.exists():
+        return Response(
+            '<!doctype html><meta charset="utf-8"><h1>Shadow report is not available</h1>',
+            status=404,
+            mimetype='text/html; charset=utf-8',
+        )
+    return Response(report_path.read_text(encoding='utf-8'), mimetype='text/html; charset=utf-8')
+
+
+def _safe_bool(value, default=False):
+    if value is None:
+        return bool(default)
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _split_csv_tokens(value: Any) -> list[str]:
+    if isinstance(value, list):
+        items = value
+    else:
+        items = str(value or '').split(',')
+    return [str(item).strip() for item in items if str(item).strip()]
+
+
+def _normalize_auto_symbols(symbols_value: Any) -> list[str]:
+    module = load_my_forex_module()
+    supported = set(getattr(module, 'SUPPORTED_SYMBOLS', {}).keys())
+    values = [token.upper() for token in _split_csv_tokens(symbols_value)]
+    return [token for token in values if token in supported]
+
+
+def _normalize_auto_intervals(intervals_value: Any) -> list[str]:
+    module = load_my_forex_module()
+    supported = set(getattr(module, 'SUPPORTED_INTERVALS', {}).keys())
+    values = [token.lower() for token in _split_csv_tokens(intervals_value)]
+    return [token for token in values if token in supported]
+
+
+def _load_mt5_wallet_config() -> dict:
+    defaults = {
+        'enabled': True,
+        'allow_trading': False,
+        'allow_site_signals': True,
+        'auto_execution_enabled': False,
+        'auto_execution_symbols': [],
+        'login': 0,
+        'server': '',
+        'path': '',
+        'magic': 88001,
+        'deviation': 20,
+        'default_volume': 0.01,
+    }
+    try:
+        if MT5_WALLET_CONFIG_PATH.exists():
+            payload = json.loads(MT5_WALLET_CONFIG_PATH.read_text(encoding='utf-8') or '{}')
+            if isinstance(payload, dict):
+                defaults.update(payload)
+    except Exception:
+        pass
+    return defaults
+
+
+def _save_mt5_wallet_config(payload: dict) -> dict:
+    merged = _load_mt5_wallet_config()
+    merged.update(payload or {})
+    MT5_WALLET_CONFIG_PATH.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding='utf-8')
+    return merged
+
+
+def _load_auto_trader_config() -> dict:
+    module = load_my_forex_module()
+    fallback = {
+        'enabled': True,
+        'symbols': list(getattr(module, 'SUPPORTED_SYMBOLS', {}).keys())[:5],
+        'intervals': ['1h', '4h'],
+        'risk_percent': 0.5,
+        'scan_every_sec': 60,
+        'min_score_gap': 40,
+        'allow_normal_signals': False,
+        'allow_strong_signals': True,
+        'strong_pending_only': True,
+        'max_open_positions': 0,
+        'dynamic_max_positions_enabled': True,
+        'max_total_open_risk_percent': 2.1,
+        'min_open_positions': 3,
+        'max_open_positions_cap': 24,
+        'one_position_per_symbol': True,
+        'cooldown_minutes_per_symbol': 90,
+        'pending_entry': True,
+        'cancel_on_market_invalidation': True,
+        'split_tp': True,
+        'dry_run': False,
+    }
+    try:
+        if AUTO_TRADER_CONFIG_PATH.exists():
+            payload = json.loads(AUTO_TRADER_CONFIG_PATH.read_text(encoding='utf-8') or '{}')
+            if isinstance(payload, dict):
+                fallback.update(payload)
+    except Exception:
+        pass
+
+    fallback['symbols'] = _normalize_auto_symbols(fallback.get('symbols'))
+    fallback['intervals'] = _normalize_auto_intervals(fallback.get('intervals'))
+    if not fallback['symbols']:
+        fallback['symbols'] = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD']
+    if not fallback['intervals']:
+        fallback['intervals'] = ['1h', '4h']
+    return fallback
+
+
+def _save_auto_trader_config(payload: dict) -> dict:
+    current = _load_auto_trader_config()
+    data = dict(payload or {})
+    if 'symbols' in data:
+        data['symbols'] = _normalize_auto_symbols(data.get('symbols'))
+    if 'intervals' in data:
+        data['intervals'] = _normalize_auto_intervals(data.get('intervals'))
+
+    merged = dict(current)
+    merged.update(data)
+    merged['risk_percent'] = max(0.1, float(merged.get('risk_percent', 0.5)))
+    merged['scan_every_sec'] = max(15, int(merged.get('scan_every_sec', 60)))
+    merged['min_score_gap'] = max(0, int(merged.get('min_score_gap', 40)))
+    merged['max_open_positions'] = max(0, int(merged.get('max_open_positions', 0)))
+    merged['dynamic_max_positions_enabled'] = _safe_bool(merged.get('dynamic_max_positions_enabled'), True)
+    merged['max_total_open_risk_percent'] = max(0.1, float(merged.get('max_total_open_risk_percent', 2.1)))
+    merged['min_open_positions'] = max(1, int(merged.get('min_open_positions', 3)))
+    merged['max_open_positions_cap'] = max(0, int(merged.get('max_open_positions_cap', 24)))
+    merged['cooldown_minutes_per_symbol'] = max(0, int(merged.get('cooldown_minutes_per_symbol', 90)))
+    merged['allow_normal_signals'] = _safe_bool(merged.get('allow_normal_signals'), False)
+    merged['allow_strong_signals'] = _safe_bool(merged.get('allow_strong_signals'), True)
+    merged['strong_pending_only'] = _safe_bool(merged.get('strong_pending_only'), True)
+    merged['pending_entry'] = _safe_bool(merged.get('pending_entry'), True)
+    merged['cancel_on_market_invalidation'] = _safe_bool(merged.get('cancel_on_market_invalidation'), True)
+    merged['split_tp'] = _safe_bool(merged.get('split_tp'), True)
+    merged['dry_run'] = _safe_bool(merged.get('dry_run'), False)
+
+    if not merged.get('symbols'):
+        merged['symbols'] = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD']
+    if not merged.get('intervals'):
+        merged['intervals'] = ['1h', '4h']
+
+    AUTO_TRADER_CONFIG_PATH.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding='utf-8')
+    return merged
+
+
+def _auto_trader_status_payload() -> dict:
+    global AUTO_TRADER_PROCESS
+    with AUTO_TRADER_LOCK:
+        running = AUTO_TRADER_PROCESS is not None and AUTO_TRADER_PROCESS.poll() is None
+        return {
+            'running': running,
+            'pid': AUTO_TRADER_PROCESS.pid if running else None,
+            'config_path': str(AUTO_TRADER_CONFIG_PATH),
+            'script_path': str(CONTINUOUS_AUTO_TRADER_SCRIPT),
+        }
+
+
+def _start_auto_trader_process() -> dict:
+    global AUTO_TRADER_PROCESS
+    with AUTO_TRADER_LOCK:
+        if AUTO_TRADER_PROCESS is not None and AUTO_TRADER_PROCESS.poll() is None:
+            return {'success': True, 'already_running': True, 'pid': AUTO_TRADER_PROCESS.pid}
+
+        if not CONTINUOUS_AUTO_TRADER_SCRIPT.exists():
+            return {'success': False, 'error': f'continuous_auto_trader.py not found at {CONTINUOUS_AUTO_TRADER_SCRIPT}'}
+
+        python_bin = os.environ.get('AUTO_TRADER_PYTHON', '').strip() or sys.executable
+        cmd = [python_bin, str(CONTINUOUS_AUTO_TRADER_SCRIPT), '--config', str(AUTO_TRADER_CONFIG_PATH)]
+        try:
+            AUTO_TRADER_PROCESS = subprocess.Popen(
+                cmd,
+                cwd=str(Path(__file__).resolve().parent),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return {'success': True, 'started': True, 'pid': AUTO_TRADER_PROCESS.pid, 'cmd': cmd}
+        except Exception as error:
+            return {'success': False, 'error': str(error), 'cmd': cmd}
+
+
+def _stop_auto_trader_process() -> dict:
+    global AUTO_TRADER_PROCESS
+    with AUTO_TRADER_LOCK:
+        if AUTO_TRADER_PROCESS is None or AUTO_TRADER_PROCESS.poll() is not None:
+            AUTO_TRADER_PROCESS = None
+            return {'success': True, 'stopped': False, 'message': 'Auto trader is not running'}
+
+        pid = AUTO_TRADER_PROCESS.pid
+        try:
+            AUTO_TRADER_PROCESS.terminate()
+            AUTO_TRADER_PROCESS.wait(timeout=8)
+        except Exception:
+            try:
+                AUTO_TRADER_PROCESS.kill()
+            except Exception:
+                pass
+        AUTO_TRADER_PROCESS = None
+        return {'success': True, 'stopped': True, 'pid': pid}
+
+
+def _start_trade_guardian_process() -> dict:
+    global TRADE_GUARDIAN_PROCESS
+    with TRADE_GUARDIAN_LOCK:
+        if TRADE_GUARDIAN_PROCESS is not None and TRADE_GUARDIAN_PROCESS.poll() is None:
+            return {'success': True, 'already_running': True, 'pid': TRADE_GUARDIAN_PROCESS.pid}
+
+        if not MT5_TRADE_GUARDIAN_SCRIPT.exists():
+            return {'success': False, 'error': f'mt5_trade_guardian.py not found at {MT5_TRADE_GUARDIAN_SCRIPT}'}
+
+        python_bin = os.environ.get('AUTO_TRADER_PYTHON', '').strip() or sys.executable
+        cmd = [
+            python_bin,
+            str(MT5_TRADE_GUARDIAN_SCRIPT),
+            '--reversal-protection',
+            '--interval-sec',
+            str(TRADE_GUARDIAN_INTERVAL_SECONDS),
+        ]
+        if TRADE_GUARDIAN_PARTIAL_CLOSE_ENABLED:
+            cmd.extend([
+                '--partial-close',
+                '--partial-profit-usd',
+                str(TRADE_GUARDIAN_PARTIAL_PROFIT_USD),
+                '--partial-fraction',
+                str(TRADE_GUARDIAN_PARTIAL_FRACTION),
+            ])
+        try:
+            TRADE_GUARDIAN_PROCESS = subprocess.Popen(
+                cmd,
+                cwd=str(Path(__file__).resolve().parent),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return {'success': True, 'started': True, 'pid': TRADE_GUARDIAN_PROCESS.pid, 'cmd': cmd}
+        except Exception as error:
+            return {'success': False, 'error': str(error), 'cmd': cmd}
+
+
+def _stop_trade_guardian_process() -> dict:
+    global TRADE_GUARDIAN_PROCESS
+    with TRADE_GUARDIAN_LOCK:
+        if TRADE_GUARDIAN_PROCESS is None or TRADE_GUARDIAN_PROCESS.poll() is not None:
+            TRADE_GUARDIAN_PROCESS = None
+            return {'success': True, 'stopped': False, 'message': 'Trade guardian is not running'}
+
+        pid = TRADE_GUARDIAN_PROCESS.pid
+        try:
+            TRADE_GUARDIAN_PROCESS.terminate()
+            TRADE_GUARDIAN_PROCESS.wait(timeout=8)
+        except Exception:
+            try:
+                TRADE_GUARDIAN_PROCESS.kill()
+            except Exception:
+                pass
+        TRADE_GUARDIAN_PROCESS = None
+        return {'success': True, 'stopped': True, 'pid': pid}
+
+
+@lru_cache(maxsize=1)
+def _load_mt5_bridge_instance():
+    from mt5_bridge import mt5_bridge as bridge
+    return bridge
+
+
+def _parse_symbols_query(raw_value: str) -> list[str]:
+    return [item.strip().upper() for item in str(raw_value or '').split(',') if item.strip()]
+
+
+def _build_mt5_payload_from_signal(raw_payload: dict, defaults: dict | None = None) -> dict:
+    data = dict(raw_payload or {})
+    defaults = dict(defaults or {})
+
+    recommendation = data.get('recommendation') or data.get('signal') or data.get('signal_type') or data.get('trade_type')
+    side = _normalize_signal_type(_extract_signal_type(recommendation) or recommendation, default='buy')
+
+    symbol = str(data.get('symbol') or data.get('pair') or '').strip().upper()
+    if not symbol:
+        return {'success': False, 'error': 'signal payload missing symbol'}
+
+    def _num(value):
+        try:
+            return None if value is None or str(value).strip() == '' else float(value)
+        except Exception:
+            return None
+
+    payload = {
+        'symbol': symbol,
+        'signal_type': side,
+        'entry_price': _num(data.get('entry_price') if data.get('entry_price') is not None else data.get('entry')),
+        'stop_loss': _num(data.get('stop_loss') if data.get('stop_loss') is not None else data.get('sl')),
+        'take_profit_1': _num(data.get('take_profit_1') if data.get('take_profit_1') is not None else data.get('tp1')),
+        'take_profit_2': _num(data.get('take_profit_2') if data.get('take_profit_2') is not None else data.get('tp2')),
+        'take_profit_3': _num(data.get('take_profit_3') if data.get('take_profit_3') is not None else data.get('tp3')),
+        'volume': _num(data.get('volume')),
+        'split_tp': bool(data.get('split_tp', True)),
+        'pending_entry': bool(data.get('pending_entry', False)),
+        'dry_run': bool(data.get('dry_run', True)),
+        'manual_confirm': True,
+        'execution_source': str(data.get('execution_source') or 'mt5_admin_panel').strip() or 'mt5_admin_panel',
+    }
+    payload.update(defaults)
+    return {'success': True, 'payload': payload}
+
+
+def _load_signal_candidates(limit: int = 40) -> list[dict]:
+    signals_dir = Path(__file__).resolve().parent / 'signals'
+    candidates: list[dict] = []
+    if not signals_dir.exists():
+        return candidates
+
+    files = sorted(signals_dir.glob('*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+    for file_path in files:
+        try:
+            loaded = json.loads(file_path.read_text(encoding='utf-8') or '{}')
+        except Exception:
+            continue
+
+        rows = loaded if isinstance(loaded, list) else [loaded]
+        for idx, row in enumerate(rows):
+            if not isinstance(row, dict):
+                continue
+            signal_id = f"{file_path.stem}:{idx}"
+            symbol = str(row.get('symbol') or row.get('pair') or '').strip().upper()
+            signal_type = _normalize_signal_type(_extract_signal_type(row.get('recommendation') or row.get('signal') or row.get('signal_type') or row.get('trade_type')), default='buy')
+            candidates.append(
+                {
+                    'id': signal_id,
+                    'symbol': symbol,
+                    'signal_type': signal_type,
+                    'source_file': str(file_path.name),
+                    'payload': row,
+                }
+            )
+            if len(candidates) >= max(1, int(limit or 40)):
+                return candidates
+    return candidates
+
+
+@app.route('/api/admin/mt5/status', methods=['GET'])
+@admin_required
+def api_admin_mt5_status():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    status = bridge.status()
+    if (
+        not status.get('connected')
+        and status.get('module_available')
+        and bool(cfg.get('enabled'))
+        and bool(cfg.get('allow_trading'))
+        and bool(cfg.get('login'))
+        and str(cfg.get('server') or '').strip()
+    ):
+        bridge.connect()
+    return jsonify(status)
+
+
+@app.route('/api/admin/mt5/connect', methods=['POST'])
+@admin_required
+def api_admin_mt5_connect():
+    # Check platform first to avoid timeout from bridge.status() on Linux
+    if _platform.system() != 'Windows':
+        return jsonify({
+            'success': False,
+            'mode': 'status_only',
+            'error': 'MT5 execution is available only on Windows. Run continuous_auto_trader.py on your local Windows machine.',
+        }), 400
+
+    bridge = _load_mt5_bridge_instance()
+    data = request.get_json(silent=True) or {}
+    if isinstance(data, dict) and data:
+        _save_mt5_wallet_config(data)
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+
+    result = bridge.connect()
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/disconnect', methods=['POST'])
+@admin_required
+def api_admin_mt5_disconnect():
+    bridge = _load_mt5_bridge_instance()
+    result = bridge.shutdown()
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/terminals', methods=['GET'])
+@admin_required
+def api_admin_mt5_terminals():
+    # Check platform first to avoid timeout from bridge.status() on Linux
+    if _platform.system() != 'Windows':
+        cfg = _load_mt5_wallet_config()
+        return jsonify({
+            'success': True,
+            'count': 0,
+            'configured_path': cfg.get('path'),
+            'terminals': [],
+            'note': 'Windows-only: terminal inspection is not available on this Linux server.',
+        })
+
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+
+    result = bridge.inspect_terminals()
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/live', methods=['GET'])
+@admin_required
+def api_admin_mt5_live():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    symbols = _parse_symbols_query(request.args.get('symbols', ''))
+    if not symbols:
+        symbols = ['XAUUSD', 'EURUSD', 'BTCUSD']
+    result = bridge.get_live_ticks(symbols)
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/snapshot', methods=['GET'])
+@admin_required
+def api_admin_mt5_snapshot():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    symbols = _parse_symbols_query(request.args.get('symbols', ''))
+    if not symbols:
+        symbols = ['XAUUSD', 'EURUSD', 'BTCUSD']
+    result = bridge.get_snapshot(symbols)
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/rates', methods=['GET'])
+@admin_required
+def api_admin_mt5_rates():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    symbol = str(request.args.get('symbol', 'XAUUSD') or 'XAUUSD').strip().upper()
+    timeframe = str(request.args.get('timeframe', 'H1') or 'H1').strip().upper()
+    count = max(20, min(2000, int(request.args.get('count', 200) or 200)))
+    result = bridge.get_rates(symbol=symbol, timeframe=timeframe, count=count)
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/history', methods=['GET'])
+@admin_required
+def api_admin_mt5_history():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    hours = max(1, min(720, int(request.args.get('hours', 24) or 24)))
+    result = bridge.history(hours=hours)
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/symbols', methods=['GET'])
+@admin_required
+def api_admin_mt5_symbols():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    query = str(request.args.get('query', '') or '').strip()
+    limit = max(1, min(1000, int(request.args.get('limit', 100) or 100)))
+    result = bridge.search_symbols(query=query, limit=limit)
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/order', methods=['POST'])
+@admin_required
+def api_admin_mt5_order():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    data = request.get_json(silent=True) or {}
+    result = bridge.send_order(
+        symbol=str(data.get('symbol') or '').strip().upper(),
+        side=str(data.get('side') or data.get('signal_type') or 'buy').strip().lower(),
+        volume=float(data.get('volume') or 0.01),
+        sl=float(data.get('sl')) if data.get('sl') is not None else None,
+        tp=float(data.get('tp')) if data.get('tp') is not None else None,
+        comment=str(data.get('comment') or 'GOLD_PRO_ORDER')[:32],
+        dry_run=bool(data.get('dry_run', True)),
+        pending=bool(data.get('pending', False)),
+        entry_price=float(data.get('entry_price')) if data.get('entry_price') is not None else None,
+    )
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/execute-signal', methods=['POST'])
+@admin_required
+def api_admin_mt5_execute_signal():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+    data = request.get_json(silent=True) or {}
+    mapped = _build_mt5_payload_from_signal(data)
+    if not mapped.get('success'):
+        return jsonify(mapped), 400
+    result = bridge.execute_signal(mapped['payload'])
+    return jsonify(result), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/signals', methods=['GET'])
+@admin_required
+def api_admin_mt5_signals():
+    limit = max(1, min(200, int(request.args.get('limit', 40) or 40)))
+    rows = _load_signal_candidates(limit=limit)
+    return jsonify({'success': True, 'count': len(rows), 'signals': rows})
+
+
+@app.route('/api/admin/mt5/execute-selected', methods=['POST'])
+@admin_required
+def api_admin_mt5_execute_selected():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+
+    data = request.get_json(silent=True) or {}
+    signal_id = str(data.get('signal_id') or '').strip()
+    if not signal_id:
+        return jsonify({'success': False, 'error': 'signal_id is required'}), 400
+
+    candidates = _load_signal_candidates(limit=500)
+    selected = next((row for row in candidates if str(row.get('id')) == signal_id), None)
+    if not selected:
+        return jsonify({'success': False, 'error': 'Signal not found'}), 404
+
+    defaults = {
+        'dry_run': bool(data.get('dry_run', True)),
+        'split_tp': bool(data.get('split_tp', True)),
+    }
+    if data.get('volume') is not None:
+        try:
+            defaults['volume'] = float(data.get('volume'))
+        except Exception:
+            pass
+
+    mapped = _build_mt5_payload_from_signal(selected.get('payload') or {}, defaults=defaults)
+    if not mapped.get('success'):
+        return jsonify(mapped), 400
+
+    result = bridge.execute_signal(mapped['payload'])
+    return jsonify({'success': bool(result.get('success')), 'signal': selected, 'payload': mapped['payload'], 'result': result}), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/auto-execute-cycle', methods=['POST'])
+@admin_required
+def api_admin_mt5_auto_execute_cycle():
+    bridge = _load_mt5_bridge_instance()
+    cfg = _load_mt5_wallet_config()
+    bridge.configure(cfg)
+
+    data = request.get_json(silent=True) or {}
+    dry_run = bool(data.get('dry_run', True))
+    limit = max(1, min(20, int(data.get('limit', 5) or 5)))
+    configured_symbols = [item.upper() for item in _split_csv_tokens(cfg.get('auto_execution_symbols'))]
+    candidates = _load_signal_candidates(limit=300)
+
+    executed = []
+    skipped = []
+    for row in candidates:
+        if len(executed) >= limit:
+            break
+        symbol = str(row.get('symbol') or '').upper()
+        if configured_symbols and symbol and symbol not in configured_symbols:
+            skipped.append({'id': row.get('id'), 'symbol': symbol, 'reason': 'symbol_not_in_auto_group'})
+            continue
+
+        mapped = _build_mt5_payload_from_signal(row.get('payload') or {}, defaults={'dry_run': dry_run, 'split_tp': True})
+        if not mapped.get('success'):
+            skipped.append({'id': row.get('id'), 'symbol': symbol, 'reason': mapped.get('error')})
+            continue
+
+        result = bridge.execute_signal(mapped['payload'])
+        executed.append({'id': row.get('id'), 'symbol': symbol, 'success': bool(result.get('success')), 'result': result})
+
+    success = any(item.get('success') for item in executed) if executed else True
+    return jsonify(
+        {
+            'success': success,
+            'dry_run': dry_run,
+            'limit': limit,
+            'auto_execution_symbols': configured_symbols,
+            'executed_count': len(executed),
+            'skipped_count': len(skipped),
+            'executed': executed,
+            'skipped': skipped,
+        }
+    ), (200 if success else 500)
+
+
+@app.route('/admin/mt5')
+@app.route('/mt5-control')
+@admin_required
+def admin_mt5_page():
+    """لوحة إدارة ربط MT5 والتداول الآلي."""
+    user_info = get_current_user()
+    return render_template('admin_mt5.html', user_info=user_info, enable_full_sweep=True)
+
+
+@app.route('/api/admin/mt5/config', methods=['GET'])
+@admin_required
+def api_admin_mt5_config_get():
+    cfg = _load_mt5_wallet_config()
+    response_cfg = dict(cfg)
+    response_cfg['password_set'] = bool(str(cfg.get('password') or '').strip())
+    if 'password' in response_cfg:
+        response_cfg.pop('password', None)
+    return jsonify({'success': True, 'config': response_cfg})
+
+
+@app.route('/api/admin/mt5/config', methods=['POST'])
+@admin_required
+def api_admin_mt5_config_post():
+    data = request.get_json(silent=True) or {}
+    # احفظ البيانات المدخلة كاملةً بدون دمج مع القديم
+    payload = {
+        'enabled': _safe_bool(data.get('enabled'), True),
+        'allow_trading': _safe_bool(data.get('allow_trading'), False),
+        'allow_site_signals': _safe_bool(data.get('allow_site_signals'), True),
+        'auto_execution_enabled': _safe_bool(data.get('auto_execution_enabled'), False),
+        'auto_execution_symbols': [item.upper() for item in _split_csv_tokens(data.get('auto_execution_symbols'))],
+        'login': int(data.get('login') or 0),
+        'server': str(data.get('server') or '').strip(),
+        'path': str(data.get('path') or '').strip(),
+        'magic': int(data.get('magic') or 88001),
+        'deviation': int(data.get('deviation') or 20),
+        'default_volume': float(data.get('default_volume') or 0.01),
+    }
+    # احفظ كلمة المرور الجديدة إن أُدخلت، وإلا احتفظ بالقديمة
+    new_password = str(data.get('password') or '').strip()
+    if new_password:
+        payload['password'] = new_password
+    else:
+        try:
+            old = json.loads(MT5_WALLET_CONFIG_PATH.read_text(encoding='utf-8') or '{}')
+            if isinstance(old, dict) and old.get('password'):
+                payload['password'] = old['password']
+        except Exception:
+            pass
+
+    # اكتب الملف مباشرةً بالبيانات المدخلة (كتابة كاملة بدون دمج)
+    MT5_WALLET_CONFIG_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding='utf-8')
+    response_cfg = dict(payload)
+    response_cfg['password_set'] = bool(str(payload.get('password') or '').strip())
+    response_cfg.pop('password', None)
+
+    return jsonify({'success': True, 'config': response_cfg})
+
+
+@app.route('/api/admin/mt5/auto-trader/config', methods=['GET'])
+@admin_required
+def api_admin_mt5_auto_trader_config_get():
+    return jsonify({'success': True, 'config': _load_auto_trader_config()})
+
+
+@app.route('/api/admin/mt5/auto-trader/config', methods=['POST'])
+@admin_required
+def api_admin_mt5_auto_trader_config_post():
+    data = request.get_json(silent=True) or {}
+    saved = _save_auto_trader_config(data)
+    return jsonify({'success': True, 'config': saved})
+
+
+@app.route('/api/admin/mt5/auto-trader/status', methods=['GET'])
+@admin_required
+def api_admin_mt5_auto_trader_status():
+    return jsonify({'success': True, **_auto_trader_status_payload()})
+
+
+@app.route('/api/admin/mt5/auto-trader/start', methods=['POST'])
+@admin_required
+def api_admin_mt5_auto_trader_start():
+    result = _start_auto_trader_process()
+    status = _auto_trader_status_payload()
+    return jsonify({'success': bool(result.get('success')), 'result': result, 'status': status}), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/auto-trader/stop', methods=['POST'])
+@admin_required
+def api_admin_mt5_auto_trader_stop():
+    result = _stop_auto_trader_process()
+    status = _auto_trader_status_payload()
+    return jsonify({'success': bool(result.get('success')), 'result': result, 'status': status}), (200 if result.get('success') else 500)
+
+
+@app.route('/api/admin/mt5/auto-trader/run-once', methods=['POST'])
+@admin_required
+def api_admin_mt5_auto_trader_run_once():
+    if not CONTINUOUS_AUTO_TRADER_SCRIPT.exists():
+        return jsonify({'success': False, 'error': f'continuous_auto_trader.py not found at {CONTINUOUS_AUTO_TRADER_SCRIPT}'}), 500
+
+    payload = request.get_json(silent=True) or {}
+    if isinstance(payload, dict) and payload:
+        _save_auto_trader_config(payload)
+
+    python_bin = os.environ.get('AUTO_TRADER_PYTHON', '').strip() or sys.executable
+    cmd = [python_bin, str(CONTINUOUS_AUTO_TRADER_SCRIPT), '--config', str(AUTO_TRADER_CONFIG_PATH), '--once']
+    try:
+        completed = subprocess.run(
+            cmd,
+            cwd=str(Path(__file__).resolve().parent),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired:
+        return jsonify({'success': False, 'error': 'run-once scan timed out', 'cmd': cmd}), 504
+    except Exception as error:
+        return jsonify({'success': False, 'error': str(error), 'cmd': cmd}), 500
+
+    stdout_lines = [line for line in str(completed.stdout or '').splitlines() if line.strip()]
+    stderr_lines = [line for line in str(completed.stderr or '').splitlines() if line.strip()]
+    parsed = None
+    for line in reversed(stdout_lines):
+        try:
+            parsed = json.loads(line)
+            break
+        except Exception:
+            continue
+
+    return jsonify({
+        'success': completed.returncode == 0,
+        'returncode': completed.returncode,
+        'result': parsed,
+        'stdout_tail': stdout_lines[-60:],
+        'stderr_tail': stderr_lines[-30:],
+        'cmd': cmd,
+    }), (200 if completed.returncode == 0 else 500)
+
+
+@app.route('/api/admin/mt5/full-sweep', methods=['POST'])
+@admin_required
+def api_admin_mt5_full_sweep():
+    """Return ranked top signals for MT5 full-sweep table."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        top_n = max(1, min(200, int(payload.get('top_n', 20) or 20)))
+        max_symbols = max(5, min(2000, int(payload.get('max_symbols', 80) or 80)))
+
+        module = load_my_forex_module()
+        supported_symbols = list(getattr(module, 'SUPPORTED_SYMBOLS', {}).keys())[:max_symbols]
+        supported_intervals = list(getattr(module, 'SUPPORTED_INTERVALS', {}).keys())
+        intervals = [iv for iv in ['30m', '1h', '4h'] if iv in supported_intervals] or (supported_intervals[:2] or ['1h'])
+
+        loader = getattr(module, 'load_gold_pro_perform_full_analysis', None)
+        analyzer = loader() if callable(loader) else getattr(module, 'perform_full_analysis', None)
+        if not callable(analyzer):
+            return jsonify({'success': False, 'error': 'analysis engine unavailable'}), 500
+
+        rows = []
+        checked = 0
+        for symbol in supported_symbols:
+            for interval in intervals:
+                checked += 1
+                try:
+                    result = analyzer(symbol, interval)
+                except Exception:
+                    continue
+                if not isinstance(result, dict) or not result.get('success'):
+                    continue
+
+                recommendation = str(result.get('recommendation') or '')
+                if recommendation not in {'شراء', 'بيع', 'شراء قوي', 'بيع قوي'}:
+                    continue
+
+                buy_score = int(result.get('buy_score') or 0)
+                sell_score = int(result.get('sell_score') or 0)
+                score_gap = abs(buy_score - sell_score)
+                quality = int(result.get('quality_score') or score_gap)
+                rr = float(result.get('risk_reward_ratio') or 0)
+
+                rows.append({
+                    'symbol': symbol,
+                    'interval': interval,
+                    'recommendation': recommendation,
+                    'quality_score': quality,
+                    'rr_tp1': rr,
+                    'score_gap': score_gap,
+                    'data_source': str(result.get('market_data_source') or result.get('data_source') or 'analysis_engine'),
+                })
+
+        rows.sort(key=lambda item: (int(item.get('quality_score') or 0), int(item.get('score_gap') or 0), float(item.get('rr_tp1') or 0)), reverse=True)
+        top_signals = rows[:top_n]
+        return jsonify({
+            'success': True,
+            'checked': checked,
+            'symbols_count': len(supported_symbols),
+            'intervals': intervals,
+            'candidates': len(rows),
+            'top_n': top_n,
+            'top_signals': top_signals,
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/continuous-analyzer/full-sweep', methods=['POST'])
+@admin_required
+def api_admin_continuous_analyzer_full_sweep():
+    """Return ranked top signals for MT5 full-sweep table."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        top_n = max(1, min(200, int(payload.get('top_n', 20) or 20)))
+        max_symbols = max(5, min(2000, int(payload.get('max_symbols', 80) or 80)))
+
+        module = load_my_forex_module()
+        supported_symbols = list(getattr(module, 'SUPPORTED_SYMBOLS', {}).keys())[:max_symbols]
+        supported_intervals = list(getattr(module, 'SUPPORTED_INTERVALS', {}).keys())
+        intervals = [iv for iv in ['30m', '1h', '4h'] if iv in supported_intervals] or (supported_intervals[:2] or ['1h'])
+
+        loader = getattr(module, 'load_gold_pro_perform_full_analysis', None)
+        analyzer = loader() if callable(loader) else getattr(module, 'perform_full_analysis', None)
+        if not callable(analyzer):
+            return jsonify({'success': False, 'error': 'analysis engine unavailable'}), 500
+
+        rows = []
+        checked = 0
+        for symbol in supported_symbols:
+            for interval in intervals:
+                checked += 1
+                try:
+                    result = analyzer(symbol, interval)
+                except Exception:
+                    continue
+                if not isinstance(result, dict) or not result.get('success'):
+                    continue
+
+                recommendation = str(result.get('recommendation') or '')
+                if recommendation not in {'شراء', 'بيع', 'شراء قوي', 'بيع قوي'}:
+                    continue
+
+                buy_score = int(result.get('buy_score') or 0)
+                sell_score = int(result.get('sell_score') or 0)
+                score_gap = abs(buy_score - sell_score)
+                quality = int(result.get('quality_score') or score_gap)
+                rr = float(result.get('risk_reward_ratio') or 0)
+
+                rows.append({
+                    'symbol': symbol,
+                    'interval': interval,
+                    'recommendation': recommendation,
+                    'quality_score': quality,
+                    'rr_tp1': rr,
+                    'score_gap': score_gap,
+                    'data_source': str(result.get('market_data_source') or result.get('data_source') or 'analysis_engine'),
+                })
+
+        rows.sort(key=lambda item: (int(item.get('quality_score') or 0), int(item.get('score_gap') or 0), float(item.get('rr_tp1') or 0)), reverse=True)
+        top_signals = rows[:top_n]
+        return jsonify({
+            'success': True,
+            'checked': checked,
+            'symbols_count': len(supported_symbols),
+            'intervals': intervals,
+            'candidates': len(rows),
+            'top_n': top_n,
+            'top_signals': top_signals,
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shadow/mt5/activate-signal', methods=['POST'])
+def api_shadow_mt5_activate_signal():
+    """Proxy MT5 shadow activation from the mounted forex UI through the main app."""
+    module = load_my_forex_module()
+    handler = getattr(module, 'shadow_activate_signal_mt5', None)
+    if not callable(handler):
+        return jsonify({'success': False, 'error': 'MT5 shadow activation handler is unavailable'}), 500
+    return handler()
+
+
+@app.route('/api/shadow/mt5/watchdog/run-once', methods=['POST'])
+def api_shadow_mt5_watchdog_run_once():
+    """Proxy one MT5 shadow watchdog pass from the mounted forex UI."""
+    module = load_my_forex_module()
+    handler = getattr(module, 'shadow_mt5_watchdog_run_once_api', None)
+    if not callable(handler):
+        return jsonify({'success': False, 'error': 'MT5 shadow watchdog handler is unavailable'}), 500
+    return handler()
+
+
+@app.route('/api/shadow/mt5/watchdog/status', methods=['GET'])
+def api_shadow_mt5_watchdog_status():
+    """Proxy MT5 shadow watchdog status from the mounted forex UI."""
+    module = load_my_forex_module()
+    handler = getattr(module, 'shadow_mt5_watchdog_status_api', None)
+    if not callable(handler):
+        return jsonify({'success': False, 'error': 'MT5 shadow watchdog status handler is unavailable'}), 500
+    return handler()
+
+
+>>>>>>> Stashed changes
 @app.route(f'{MY_FOREX_BASE_PATH}/debug-status')
 def my_forex_debug_status():
     import traceback as tb
@@ -9279,6 +10251,71 @@ def my_forex_advanced_analysis_api():
     except Exception as error:
         return jsonify({'success': False, 'error': f'خطأ في التحليل: {error}'}), 500
 
+<<<<<<< Updated upstream
+=======
+
+def _load_trade_analysis_engine():
+    """Load the same analyzer used by continuous_auto_trader for trade decisions."""
+    app_root = Path(__file__).resolve().parent / 'my-forex-app'
+    if str(app_root) not in sys.path:
+        sys.path.insert(0, str(app_root))
+    from services.advanced_analyzer_engine import perform_full_analysis as _pfa  # type: ignore
+    return _pfa
+
+
+def _normalize_trade_analysis_result(result):
+    if not isinstance(result, dict):
+        return result
+
+    out = dict(result)
+    recommendation = str(out.get('recommendation') or out.get('signal') or 'حياد')
+    out['analysis_source'] = 'advanced_analyzer'
+    out['analysis_engine'] = 'services.advanced_analyzer_engine.perform_full_analysis'
+    out['signal'] = recommendation
+    out['recommendation'] = recommendation
+    out['explanation'] = out.get('executive_summary') or out.get('analyst_report') or '\n'.join(out.get('signals') or []) or recommendation
+    out.setdefault('analysis_text', out['explanation'])
+    out.setdefault('analysis_schools', {})
+
+    technical = out.get('technical') if isinstance(out.get('technical'), dict) else {}
+    out.setdefault('support', technical.get('bb_lower'))
+    out.setdefault('resistance', technical.get('bb_upper'))
+    out.setdefault('pivot', technical.get('bb_middle'))
+    out.setdefault('fibonacci_levels', {})
+    return out
+
+
+def _run_analysis_with_cache(symbol, interval):
+    """تشغيل التحليل مع cache وthread-timeout لتجنب 502 على Render."""
+    import concurrent.futures
+    cache_key = f"{symbol}|{interval}"
+    now = time.time()
+    with ANALYSIS_RESULT_CACHE_LOCK:
+        cached = ANALYSIS_RESULT_CACHE.get(cache_key)
+        if cached and now - cached['ts'] < ANALYSIS_RESULT_CACHE_TTL:
+            return cached['result'], True  # (result, from_cache)
+
+    _pfa = _load_trade_analysis_engine()
+
+    _executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    _future = _executor.submit(_pfa, symbol, interval)
+    try:
+        result = _normalize_trade_analysis_result(_future.result(timeout=ANALYSIS_REQUEST_TIMEOUT))
+        _executor.shutdown(wait=True, cancel_futures=False)
+    except concurrent.futures.TimeoutError:
+        _future.cancel()
+        _executor.shutdown(wait=False, cancel_futures=True)
+        return {'success': False, 'error': f'استغرق التحليل وقتاً طويلاً، حاول مرة أخرى ({ANALYSIS_REQUEST_TIMEOUT}s).'}, False
+    except Exception:
+        _executor.shutdown(wait=False, cancel_futures=True)
+        raise
+
+    if result.get('success'):
+        with ANALYSIS_RESULT_CACHE_LOCK:
+            ANALYSIS_RESULT_CACHE[cache_key] = {'result': result, 'ts': time.time()}
+    return result, False
+
+>>>>>>> Stashed changes
 @app.route('/api/forex-analysis', methods=['POST'])
 @app.route('/api/advanced_analysis', methods=['POST'])
 @app.route('/api/advanced-analysis', methods=['POST'])

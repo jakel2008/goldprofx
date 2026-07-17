@@ -1,0 +1,34 @@
+window_start=2026-06-21T00:00:00+00:00
+window_end_exclusive=2026-07-01T00:00:00+00:00
+
+account=account1_gold
+closed=71
+wins=25
+losses=46
+flats=0
+win_rate_percent=35.2
+gross_profit=113.26
+gross_loss=-472.25
+net_pnl=-358.99
+profit_factor=0.24
+best_trade=15.65
+worst_trade=-97.48
+symbols_top=[('BTCUSD.X', 39), ('XAUUSD', 29), ('US30', 3)]
+top_days=[('2026-06-30', 17.84), ('2026-06-29', -65.94), ('2026-06-28', -71.51), ('2026-06-27', -239.38)]
+worst_days=[('2026-06-27', -239.38), ('2026-06-28', -71.51), ('2026-06-29', -65.94), ('2026-06-30', 17.84)]
+
+account=account2_bitcoin
+closed=75
+wins=20
+losses=30
+flats=25
+win_rate_percent=26.7
+gross_profit=443.29
+gross_loss=-306.94
+net_pnl=136.35
+profit_factor=1.444
+best_trade=85.0
+worst_trade=-54.64
+symbols_top=[('BTCUSDm', 18), ('XAUUSDm', 17), ('ETHUSDm', 5), ('EURUSDm', 4), ('US30_x10m', 3), ('AUDUSDm', 2), ('GBPUSDm', 2), ('NZDCHFm', 2), ('NZDJPYm', 2), ('AUDCHFm', 2)]
+top_days=[('2026-06-30', 431.43), ('2026-06-29', -15.11), ('2026-06-27', -55.27), ('2026-06-28', -224.7)]
+worst_days=[('2026-06-28', -224.7), ('2026-06-27', -55.27), ('2026-06-29', -15.11), ('2026-06-30', 431.43)]

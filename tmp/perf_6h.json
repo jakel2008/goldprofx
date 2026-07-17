@@ -1,0 +1,280 @@
+{
+  "window_utc": {
+    "start": "2026-07-03T06:31:13+00:00",
+    "end": "2026-07-03T12:31:13+00:00"
+  },
+  "accounts": [
+    {
+      "id": "account1_gold",
+      "wallet": "D:\\GOLD PRO\\accounts\\account1_gold\\wallet.json",
+      "magic": 88011,
+      "connect": true,
+      "connect_error": null,
+      "account": {
+        "login": 1015732,
+        "server": "Markets.com-Live",
+        "balance": 83.16,
+        "equity": 130.26,
+        "floating_profit": 47.1
+      },
+      "history": {
+        "fallback_symbol_filter_used": false,
+        "deal_count": 36,
+        "entry_deal_count": 18,
+        "exit_deal_count": 18,
+        "closed_trade_count": 18,
+        "wins": 8,
+        "losses": 10,
+        "flats": 0,
+        "win_rate_percent": 44.4,
+        "gross_profit": 33.19,
+        "gross_loss": -60.21,
+        "net_pnl": -27.02,
+        "profit_factor": 0.551,
+        "avg_win": 4.15,
+        "avg_loss": -6.02,
+        "best_trade": 5.25,
+        "worst_trade": -24.8,
+        "first_trade": {
+          "position_id": "19627771",
+          "symbol": "XAUUSD",
+          "direction": "unknown",
+          "open_time_utc": "2026-07-03T06:48:57+00:00",
+          "close_time_utc": "2026-07-03T07:07:51+00:00",
+          "volume_closed": 0.01,
+          "pnl": 5.11,
+          "exit_count": 1,
+          "comment": "[tp 4178.17]"
+        },
+        "last_trade": {
+          "position_id": "19629004",
+          "symbol": "XAUUSD",
+          "direction": "SELL",
+          "open_time_utc": "2026-07-03T09:41:58+00:00",
+          "close_time_utc": "2026-07-03T10:01:29+00:00",
+          "volume_closed": 0.05,
+          "pnl": -24.05,
+          "exit_count": 1,
+          "comment": "[sl 4175.46]"
+        },
+        "max_loss_streak": 4,
+        "trades_by_hour_utc": [
+          {
+            "hour": "2026-07-03T07",
+            "count": 1,
+            "wins": 1,
+            "losses": 0,
+            "pnl": 5.11
+          },
+          {
+            "hour": "2026-07-03T08",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -0.73
+          },
+          {
+            "hour": "2026-07-03T09",
+            "count": 14,
+            "wins": 6,
+            "losses": 8,
+            "pnl": -7.35
+          },
+          {
+            "hour": "2026-07-03T10",
+            "count": 1,
+            "wins": 0,
+            "losses": 1,
+            "pnl": -24.05
+          }
+        ]
+      },
+      "open_positions": [],
+      "pending_orders": 0,
+      "config": {
+        "enabled": true,
+        "dry_run": false,
+        "symbols": [
+          "XAUUSD"
+        ],
+        "max_open_positions": 2,
+        "one_position_per_symbol": false,
+        "gold_scalping_entry_intervals": [
+          "5m"
+        ],
+        "gold_scalping_context_intervals": [
+          "15m",
+          "30m"
+        ],
+        "gold_scalping_min_context_agreement": 0,
+        "gold_scalping_require_rsi_momentum": false,
+        "daily_loss_limit_usd": 20,
+        "daily_loss_reset_at_utc": "2026-07-02T01:24:16Z",
+        "force_gold_trading_now": true
+      },
+      "log_summary": {
+        "exists": true,
+        "execute_signal_events": 0,
+        "skip_gold_market_closed": 117,
+        "risk_guard_blocked": 0,
+        "max_open_positions_reached": 0,
+        "skip_existing_symbol_position": 0,
+        "last_events": [
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}"
+        ]
+      }
+    },
+    {
+      "id": "account2_bitcoin",
+      "wallet": "D:\\GOLD PRO\\accounts\\account2_bitcoin\\wallet.json",
+      "magic": 88012,
+      "connect": true,
+      "connect_error": null,
+      "account": {
+        "login": 262972266,
+        "server": "Exness-MT5Trial16",
+        "balance": 8495.33,
+        "equity": 8495.33,
+        "floating_profit": 0.0
+      },
+      "history": {
+        "fallback_symbol_filter_used": false,
+        "deal_count": 172,
+        "entry_deal_count": 86,
+        "exit_deal_count": 86,
+        "closed_trade_count": 86,
+        "wins": 68,
+        "losses": 18,
+        "flats": 0,
+        "win_rate_percent": 79.1,
+        "gross_profit": 260.03,
+        "gross_loss": -375.39,
+        "net_pnl": -115.36,
+        "profit_factor": 0.693,
+        "avg_win": 3.82,
+        "avg_loss": -20.86,
+        "best_trade": 84.56,
+        "worst_trade": -85.87,
+        "first_trade": {
+          "position_id": "1472621996",
+          "symbol": "XAUUSDm",
+          "direction": "unknown",
+          "open_time_utc": "2026-07-03T06:48:52+00:00",
+          "close_time_utc": "2026-07-03T07:06:58+00:00",
+          "volume_closed": 0.17,
+          "pnl": 84.56,
+          "exit_count": 1,
+          "comment": "[tp 4177.54400]"
+        },
+        "last_trade": {
+          "position_id": "1473882609",
+          "symbol": "XAUUSDm",
+          "direction": "SELL",
+          "open_time_utc": "2026-07-03T12:20:02+00:00",
+          "close_time_utc": "2026-07-03T12:20:03+00:00",
+          "volume_closed": 0.05,
+          "pnl": 1.45,
+          "exit_count": 1,
+          "comment": "[tp 4174.92100]"
+        },
+        "max_loss_streak": 2,
+        "trades_by_hour_utc": [
+          {
+            "hour": "2026-07-03T07",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -1.26
+          },
+          {
+            "hour": "2026-07-03T08",
+            "count": 2,
+            "wins": 1,
+            "losses": 1,
+            "pnl": -1.38
+          },
+          {
+            "hour": "2026-07-03T09",
+            "count": 14,
+            "wins": 12,
+            "losses": 2,
+            "pnl": -9.36
+          },
+          {
+            "hour": "2026-07-03T10",
+            "count": 17,
+            "wins": 12,
+            "losses": 5,
+            "pnl": -57.56
+          },
+          {
+            "hour": "2026-07-03T11",
+            "count": 34,
+            "wins": 28,
+            "losses": 6,
+            "pnl": -13.2
+          },
+          {
+            "hour": "2026-07-03T12",
+            "count": 17,
+            "wins": 14,
+            "losses": 3,
+            "pnl": -32.6
+          }
+        ]
+      },
+      "open_positions": [],
+      "pending_orders": 0,
+      "config": {
+        "enabled": true,
+        "dry_run": false,
+        "symbols": [
+          "XAUUSD"
+        ],
+        "max_open_positions": 2,
+        "one_position_per_symbol": false,
+        "gold_scalping_entry_intervals": [
+          "5m"
+        ],
+        "gold_scalping_context_intervals": [
+          "15m",
+          "30m"
+        ],
+        "gold_scalping_min_context_agreement": 0,
+        "gold_scalping_require_rsi_momentum": false,
+        "daily_loss_limit_usd": 250.0,
+        "daily_loss_reset_at_utc": "2026-07-02T01:24:16Z",
+        "force_gold_trading_now": true
+      },
+      "log_summary": {
+        "exists": true,
+        "execute_signal_events": 0,
+        "skip_gold_market_closed": 41,
+        "risk_guard_blocked": 23,
+        "max_open_positions_reached": 0,
+        "skip_existing_symbol_position": 0,
+        "last_events": [
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}",
+          "intenance_actions\": [], \"best\": {\"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"recommendation\": \"╪┤╪▒╪د╪ة ┘é┘ê┘è\", \"score_gap\": 58, \"rank_score\": 78}, \"actions\": [{\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"15m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"30m\", \"reason\": \"gold_outside_trading_hours\"}, {\"event\": \"skip_gold_market_closed\", \"symbol\": \"XAUUSD\", \"interval\": \"5m\", \"reason\": \"gold_outside_trading_hours\"}]}"
+        ]
+      }
+    }
+  ]
+}

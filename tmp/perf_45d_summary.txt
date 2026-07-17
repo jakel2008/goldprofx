@@ -1,0 +1,61 @@
+window={'start': '2026-05-19T12:33:25+00:00', 'end': '2026-07-03T12:33:25+00:00'}
+
+account=account1_gold
+closed=171 wins=66 losses=105 win_rate=38.6 net_pnl=-428.78 profit_factor=0.475 best_trade=33.34 worst_trade=-97.48
+top_hours=
+  2026-07-01T13 pnl=72.06 count=6 wins=4 losses=2
+  2026-06-29T18 pnl=22.77 count=4 wins=4 losses=0
+  2026-06-30T00 pnl=18.06 count=3 wins=3 losses=0
+  2026-07-01T19 pnl=15.27 count=7 wins=5 losses=2
+  2026-07-01T18 pnl=9.81 count=2 wins=2 losses=0
+  2026-06-29T19 pnl=6.14 count=3 wins=3 losses=0
+  2026-07-03T00 pnl=5.72 count=1 wins=1 losses=0
+  2026-07-02T13 pnl=5.64 count=9 wins=5 losses=4
+  2026-07-03T07 pnl=5.11 count=1 wins=1 losses=0
+  2026-07-01T23 pnl=4.87 count=3 wins=2 losses=1
+best_days=
+  2026-07-01 pnl=25.36 count=34 wins=17 losses=17
+  2026-06-30 pnl=17.84 count=5 wins=3 losses=2
+  2026-07-03 pnl=-31.68 count=23 wins=10 losses=13
+  2026-07-02 pnl=-63.47 count=43 wins=14 losses=29
+  2026-06-29 pnl=-65.94 count=36 wins=22 losses=14
+  2026-06-28 pnl=-71.51 count=6 wins=0 losses=6
+  2026-06-27 pnl=-239.38 count=24 wins=0 losses=24
+worst_days=
+  2026-06-27 pnl=-239.38 count=24 wins=0 losses=24
+  2026-06-28 pnl=-71.51 count=6 wins=0 losses=6
+  2026-06-29 pnl=-65.94 count=36 wins=22 losses=14
+  2026-07-02 pnl=-63.47 count=43 wins=14 losses=29
+  2026-07-03 pnl=-31.68 count=23 wins=10 losses=13
+  2026-06-30 pnl=17.84 count=5 wins=3 losses=2
+  2026-07-01 pnl=25.36 count=34 wins=17 losses=17
+
+account=account2_bitcoin
+closed=257 wins=134 losses=94 win_rate=52.1 net_pnl=-120.73 profit_factor=0.975 best_trade=95.0 worst_trade=-95.0
+top_hours=
+  2026-07-01T10 pnl=691.2 count=16 wins=12 losses=4
+  2026-06-30T20 pnl=407.9 count=6 wins=5 losses=1
+  2026-07-01T09 pnl=357.56 count=5 wins=5 losses=0
+  2026-07-01T11 pnl=90.0 count=1 wins=1 losses=0
+  2026-07-01T16 pnl=90.0 count=3 wins=2 losses=1
+  2026-07-01T12 pnl=89.88 count=1 wins=1 losses=0
+  2026-07-02T18 pnl=85.0 count=1 wins=1 losses=0
+  2026-07-02T22 pnl=85.0 count=1 wins=1 losses=0
+  2026-07-02T13 pnl=84.52 count=1 wins=1 losses=0
+  2026-07-03T00 pnl=78.56 count=1 wins=1 losses=0
+best_days=
+  2026-07-01 pnl=679.52 count=45 wins=25 losses=16
+  2026-06-30 pnl=431.43 count=17 wins=9 losses=1
+  2026-06-29 pnl=-15.11 count=46 wins=11 losses=17
+  2026-06-27 pnl=-55.27 count=6 wins=0 losses=6
+  2026-07-03 pnl=-122.75 count=88 wins=69 losses=19
+  2026-06-28 pnl=-224.7 count=6 wins=0 losses=6
+  2026-07-02 pnl=-813.85 count=49 wins=20 losses=29
+worst_days=
+  2026-07-02 pnl=-813.85 count=49 wins=20 losses=29
+  2026-06-28 pnl=-224.7 count=6 wins=0 losses=6
+  2026-07-03 pnl=-122.75 count=88 wins=69 losses=19
+  2026-06-27 pnl=-55.27 count=6 wins=0 losses=6
+  2026-06-29 pnl=-15.11 count=46 wins=11 losses=17
+  2026-06-30 pnl=431.43 count=17 wins=9 losses=1
+  2026-07-01 pnl=679.52 count=45 wins=25 losses=16

@@ -1,0 +1,476 @@
+{
+  "updated_at": "2026-07-06T09:36:31",
+  "dry_run": false,
+  "plan": {
+    "symbol": "XAUUSD",
+    "broker_symbol": "XAUUSD",
+    "timeframe": "M5",
+    "trend_side": "buy",
+    "direction": {
+      "side": "buy",
+      "reason": "ema9_ema34_momentum",
+      "ema9": 4154.26049,
+      "ema34": 4157.41309,
+      "last_close": 4157.9,
+      "momentum_12_bars": 3.3
+    },
+    "swing_low": 4144.63,
+    "swing_high": 4202.85,
+    "fib": {
+      "0": 4144.63,
+      "50": 4173.74,
+      "75": 4188.3,
+      "basket_close": 4187.19
+    },
+    "basket_close_target": {
+      "mode": "penultimate_reversal_order",
+      "target": 4187.19,
+      "source": "penultimate_reversal_order",
+      "order": {
+        "idx": 45,
+        "zone": "50-75",
+        "side": "sell",
+        "raw_price": 4187.74,
+        "pending_price": 4187.19,
+        "volume": 0.01,
+        "comment": "ACC1_XAU_FIB_GRI_50-75_45"
+      },
+      "reverse_orders_count": 16
+    },
+    "tick": {
+      "success": true,
+      "symbol": "XAUUSD",
+      "requested_symbol": "XAUUSD",
+      "bid": 4157.9,
+      "ask": 4158.45,
+      "mid": 4158.174999999999,
+      "spread": 0.5500000000001819
+    },
+    "broker_point": 0.01,
+    "grid_step_mode": "broker_points",
+    "grid_step_points": 100.0,
+    "grid_step_price": 1.0,
+    "spread_broker_points": 55.0,
+    "spread_adjustment": true,
+    "orders_count": 46,
+    "target_reached": false
+  },
+  "orders_preview": [
+    {
+      "idx": 1,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4144.63,
+      "pending_price": 4145.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_1"
+    },
+    {
+      "idx": 2,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4145.63,
+      "pending_price": 4146.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_2"
+    },
+    {
+      "idx": 3,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4146.63,
+      "pending_price": 4147.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_3"
+    },
+    {
+      "idx": 4,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4147.63,
+      "pending_price": 4148.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_4"
+    },
+    {
+      "idx": 5,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4148.63,
+      "pending_price": 4149.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_5"
+    },
+    {
+      "idx": 6,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4149.63,
+      "pending_price": 4150.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_6"
+    },
+    {
+      "idx": 7,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4150.63,
+      "pending_price": 4151.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_7"
+    },
+    {
+      "idx": 8,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4151.63,
+      "pending_price": 4152.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_8"
+    },
+    {
+      "idx": 9,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4152.63,
+      "pending_price": 4153.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_9"
+    },
+    {
+      "idx": 10,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4153.63,
+      "pending_price": 4154.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_10"
+    },
+    {
+      "idx": 11,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4154.63,
+      "pending_price": 4155.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_11"
+    },
+    {
+      "idx": 12,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4155.63,
+      "pending_price": 4156.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_12"
+    },
+    {
+      "idx": 13,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4156.63,
+      "pending_price": 4157.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_13"
+    },
+    {
+      "idx": 14,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4157.63,
+      "pending_price": 4158.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_14"
+    },
+    {
+      "idx": 15,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4158.63,
+      "pending_price": 4159.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_15"
+    },
+    {
+      "idx": 16,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4159.63,
+      "pending_price": 4160.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_16"
+    },
+    {
+      "idx": 17,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4160.63,
+      "pending_price": 4161.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_17"
+    },
+    {
+      "idx": 18,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4161.63,
+      "pending_price": 4162.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_18"
+    },
+    {
+      "idx": 19,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4162.63,
+      "pending_price": 4163.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_19"
+    },
+    {
+      "idx": 20,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4163.63,
+      "pending_price": 4164.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_20"
+    },
+    {
+      "idx": 21,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4164.63,
+      "pending_price": 4165.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_21"
+    },
+    {
+      "idx": 22,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4165.63,
+      "pending_price": 4166.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_22"
+    },
+    {
+      "idx": 23,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4166.63,
+      "pending_price": 4167.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_23"
+    },
+    {
+      "idx": 24,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4167.63,
+      "pending_price": 4168.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_24"
+    },
+    {
+      "idx": 25,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4168.63,
+      "pending_price": 4169.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_25"
+    },
+    {
+      "idx": 26,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4169.63,
+      "pending_price": 4170.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_26"
+    },
+    {
+      "idx": 27,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4170.63,
+      "pending_price": 4171.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_27"
+    },
+    {
+      "idx": 28,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4171.63,
+      "pending_price": 4172.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_28"
+    },
+    {
+      "idx": 29,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4172.63,
+      "pending_price": 4173.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_29"
+    },
+    {
+      "idx": 30,
+      "zone": "0-50",
+      "side": "buy",
+      "raw_price": 4173.63,
+      "pending_price": 4174.18,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_0-50_30"
+    },
+    {
+      "idx": 31,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4173.74,
+      "pending_price": 4173.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_31"
+    },
+    {
+      "idx": 32,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4174.74,
+      "pending_price": 4174.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_32"
+    },
+    {
+      "idx": 33,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4175.74,
+      "pending_price": 4175.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_33"
+    },
+    {
+      "idx": 34,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4176.74,
+      "pending_price": 4176.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_34"
+    },
+    {
+      "idx": 35,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4177.74,
+      "pending_price": 4177.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_35"
+    },
+    {
+      "idx": 36,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4178.74,
+      "pending_price": 4178.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_36"
+    },
+    {
+      "idx": 37,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4179.74,
+      "pending_price": 4179.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_37"
+    },
+    {
+      "idx": 38,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4180.74,
+      "pending_price": 4180.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_38"
+    },
+    {
+      "idx": 39,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4181.74,
+      "pending_price": 4181.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_39"
+    },
+    {
+      "idx": 40,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4182.74,
+      "pending_price": 4182.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_40"
+    },
+    {
+      "idx": 41,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4183.74,
+      "pending_price": 4183.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_41"
+    },
+    {
+      "idx": 42,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4184.74,
+      "pending_price": 4184.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_42"
+    },
+    {
+      "idx": 43,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4185.74,
+      "pending_price": 4185.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_43"
+    },
+    {
+      "idx": 44,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4186.74,
+      "pending_price": 4186.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_44"
+    },
+    {
+      "idx": 45,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4187.74,
+      "pending_price": 4187.19,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_45"
+    },
+    {
+      "idx": 46,
+      "zone": "50-75",
+      "side": "sell",
+      "raw_price": 4188.3,
+      "pending_price": 4187.74,
+      "volume": 0.01,
+      "comment": "ACC1_XAU_FIB_GRI_50-75_46"
+    }
+  ],
+  "execution_reason": "new_grid_cycle",
+  "actions_count": 46
+}

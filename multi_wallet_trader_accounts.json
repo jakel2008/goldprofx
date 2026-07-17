@@ -1,0 +1,18 @@
+{
+  "accounts": [
+    {
+      "enabled": true,
+      "account_id": "wallet_1",
+      "wallet_config": "mt5_wallet_config.wallet_1.json",
+      "trader_config": "auto_trading_user_config.wallet_1.json",
+      "state_file": "auto_trading_runtime_state.wallet_1.json"
+    },
+    {
+      "enabled": false,
+      "account_id": "wallet_2",
+      "wallet_config": "mt5_wallet_config.wallet_2.json",
+      "trader_config": "auto_trading_user_config.wallet_2.json",
+      "state_file": "auto_trading_runtime_state.wallet_2.json"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+strategy_name=wallet2_restored_multisymbol_v1
+window={'start': '2026-06-05T00:00:00+00:00', 'end': '2026-07-03T12:38:46+00:00'}
+closed=264 wins=140 losses=95 flats=29
+win_rate_percent=53.0 net_pnl=-113.81 profit_factor=0.976
+gross_profit=4659.26 gross_loss=-4773.07 best_trade=95.0 worst_trade=-95.0

@@ -747,6 +747,8 @@ def fetch_data(symbol, interval, outputsize=100, force_live=False):
                 df = source_fn(normalized_symbol, normalized_interval, outputsize)
                 if len(df) < 20:
                     raise DataFetchError(f"{source_name}: insufficient candles ({len(df)})")
+                df.attrs["market_data_source"] = source_name
+                df.attrs["market_data_errors"] = list(errors)
                 if source_name == "YahooFinance":
                     _clear_yf_cooldown(normalized_symbol, normalized_interval)
                 _save_to_cache(df, normalized_symbol, normalized_interval)
